@@ -1093,6 +1093,9 @@
 
   async function openDetail(target, opts) {
     if (target && target.market === 'crypto' && !CRYPTO_ON) return;   // 合规开关：加密标的详情不放行
+    // 防御：hashchange/popstate 曾在 IIFE 顶层注册（早于 init 填充 el），
+    // 窗口期内的深链导航会命中空 el 直接 TypeError。真深链由 init 尾部的 renderFromHash 兜底
+    if (!el.detailName) return;
     state.prevView = state.view === 'detail' ? state.prevView : state.tab;
     state.detail = target;
     setView('detail');
@@ -2911,8 +2914,12 @@
     if (state.hashLock) { state.hashLock = false; return; }
     renderFromHash();
   }
-  window.addEventListener('popstate', onHashNav);
-  window.addEventListener('hashchange', onHashNav);
+  // 监听器注册放在 init 内：IIFE 顶层注册曾早于 el 填充，窗口期内的 hashchange
+  // 会带着未初始化的 el 走进 openDetail（偶发 TypeError，详情页整条变空）
+  function bindHashNav() {
+    window.addEventListener('popstate', onHashNav);
+    window.addEventListener('hashchange', onHashNav);
+  }
 
   /* ==================== 状态栏 / 自检 ==================== */
 
@@ -2942,6 +2949,24 @@
     return max;
   }
 
+  // 状态栏副标题按 tab 取材：卡片墙隐藏的板块（宏观/事件/聪明钱/产业链/自选）
+  // 没有可见行情行，硬填一个"47 个标的"是用户看不见的数字——改给该页面自己的摘要
+  function marketSubFor(tab) {
+    const fetchTxt = '抓取 ' + (state.lastUpdate ? fmtTime(state.lastUpdate) : '--');
+    if (VIEW_OF_TAB[tab] !== 'market') {
+      if (tab === 'events') return `全球事件 ${(state.events || []).length} 条 · ${fetchTxt}`;
+      if (tab === 'funds') return `龙虎榜 ${(state.lhb && state.lhb.rows.length) || 0} 只上榜 · 席位 ${(state.actors || []).length} 个 · ${fetchTxt}`;
+      if (tab === 'chain') return `${(window.INDUSTRY_CHAINS || []).length} 条产业链 · ${fetchTxt}`;
+      if (tab === 'watch') return `自选 ${window.Store.watchlist.all().length} 只 · ${fetchTxt}`;
+      return fetchTxt;
+    }
+    if (tab === 'fxmacro') {
+      const n = window.WorldBankSource ? window.WorldBankSource.COUNTRIES.length : 8;
+      return `世界经济 · ${n} 国年度指标 · ${fetchTxt}`;
+    }
+    return `${visibleQuoteCount()} 个标的 · 每 ${window.Store.settings.get().refresh}s 刷新 · ${fetchTxt}`;
+  }
+
   function renderStatus() {
     // 数据源状态说人话：逐源代号对用户是噪音（细节保留在"开发者自检"区）
     const items = window.SourceState.all();
@@ -2956,8 +2981,7 @@
     el.updatedLine.textContent = '行情 ' + (quoteAt ? fmtNewsTime(quoteAt) : '--') +
       ' · 抓取 ' + (fetchAt ? fmtTime(fetchAt) : '--') +
       (degCount ? ` · ${degCount} 个标的使用备源/缓存` : '');
-    el.marketSub.textContent = `${visibleQuoteCount()} 个标的 · 每 ${window.Store.settings.get().refresh}s 刷新 · ` +
-      '抓取 ' + (fetchAt ? fmtTime(fetchAt) : '--');
+    el.marketSub.textContent = marketSubFor(state.tab);
   }
 
   function renderSelfTest() {
@@ -3413,6 +3437,7 @@
 
   async function init() {
     DOM_IDS.forEach(id => { el[id] = $(id); });
+    bindHashNav();
     applySettings();
     bindEvents();
     renderStatus();

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenFinLens 修复验证报告 · 2026-09-13（第二轮）</title>
+<style>
+:root{
+  --bg:#fbfbfa; --card:#ffffff; --ink:#1a1a1c; --ink2:#4a4a50; --ink3:#7c7c85;
+  --line:#e6e6e2; --line2:#f0f0ec;
+  --p0:#c0392b; --p0bg:#fdf1ef; --p0line:#f0c9c2;
+  --p1:#c47f16; --p1bg:#fdf7ec; --p1line:#f0dcb4;
+  --p2:#3a6ea5; --p2bg:#f1f5fa; --p2line:#cddcec;
+  --ok:#1f7a52; --okbg:#eff8f3; --okline:#c6e5d5;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 32px 96px}
+code,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+code{background:#f3f3ef;border:1px solid var(--line);border-radius:3px;padding:1px 5px;font-size:12.5px}
+.hd{border-bottom:2px solid var(--ink);padding-bottom:26px;margin-bottom:38px}
+.eyebrow{font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px}
+h1{font-size:32px;line-height:1.25;margin:0 0 12px;letter-spacing:-.02em;font-weight:700}
+.sub{color:var(--ink2);font-size:15.5px;max-width:76ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:20px;font:12.5px/1.6 var(--mono);color:var(--ink3)}
+.meta b{color:var(--ink2);font-weight:600}
+h2{font-size:22px;letter-spacing:-.01em;margin:52px 0 8px;padding-top:22px;border-top:1px solid var(--line);font-weight:700}
+h2 .cnt{font:600 12px/1 var(--mono);color:var(--ink3);vertical-align:middle;margin-left:8px}
+h3{font-size:16.5px;margin:28px 0 8px;font-weight:700}
+p{margin:10px 0;color:var(--ink2)}
+.lead{color:var(--ink);font-size:16px}
+ul,ol{margin:10px 0;padding-left:22px;color:var(--ink2)}
+li{margin:5px 0}
+strong{color:var(--ink);font-weight:650}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0 8px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.kpi .n{font:600 30px/1 var(--mono);letter-spacing:-.02em}
+.kpi .l{font-size:12.5px;color:var(--ink3);margin-top:7px}
+.kpi.bad .n{color:var(--p0)} .kpi.warn .n{color:var(--p1)} .kpi.info .n{color:var(--p2)} .kpi.good .n{color:var(--ok)}
+.b{display:inline-block;font:700 10.5px/1 var(--mono);letter-spacing:.06em;padding:3px 7px;border-radius:3px;vertical-align:1px}
+.b.p0{background:var(--p0);color:#fff} .b.p1{background:var(--p1);color:#fff} .b.p2{background:var(--p2);color:#fff}
+.b.ok{background:var(--ok);color:#fff} .b.g{background:#ecece8;color:var(--ink2)}
+.issue{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:5px;padding:20px 24px;margin:18px 0}
+.issue.p0{border-left-color:var(--p0)} .issue.p1{border-left-color:var(--p1)}
+.issue.p2{border-left-color:var(--p2)} .issue.ok{border-left-color:var(--ok)}
+.issue h3{margin:0 0 4px;font-size:17px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.issue .id{font:700 11px/1 var(--mono);color:var(--ink3);letter-spacing:.05em}
+.issue .one{color:var(--ink2);font-size:14.5px;margin:6px 0 14px;padding-bottom:13px;border-bottom:1px dashed var(--line)}
+.issue .one b{color:var(--ink)}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px}
+th,td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--line2);vertical-align:top}
+th{font:700 10.5px/1.5 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr:hover{background:#fafaf7}
+td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.bad td{background:var(--p0bg)} tr.good td{background:var(--okbg)} tr.warn td{background:var(--p1bg)}
+.wrong{color:var(--p0);font-weight:650} .right{color:var(--ok);font-weight:650}
+.note{border-radius:5px;padding:13px 17px;margin:14px 0;font-size:14px}
+.note.p0{background:var(--p0bg);border:1px solid var(--p0line)}
+.note.p1{background:var(--p1bg);border:1px solid var(--p1line)}
+.note.p2{background:var(--p2bg);border:1px solid var(--p2line)}
+.note.ok{background:var(--okbg);border:1px solid var(--okline)}
+.note .t{font-weight:700;font-size:13px;margin-bottom:5px}
+.note.p0 .t{color:var(--p0)} .note.p1 .t{color:var(--p1)} .note.p2 .t{color:var(--p2)} .note.ok .t{color:var(--ok)}
+.bar{display:grid;grid-template-columns:150px 1fr 76px;align-items:center;gap:12px;margin:7px 0;font-size:13.5px}
+.bar .tr{height:15px;border-radius:2px}
+.bar .v{font:600 12.5px/1 var(--mono);text-align:right;color:var(--ink2)}
+.ev{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.evcard{border:1px solid var(--line);border-radius:5px;padding:14px 16px;background:#fdfdfb}
+.evcard .h{font:700 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:9px}
+.evcard .big{font:600 21px/1.3 var(--mono);letter-spacing:-.01em}
+.evcard.bad .big{color:var(--p0)} .evcard.good .big{color:var(--ok)}
+.evcard .s{font-size:12.5px;color:var(--ink3);margin-top:6px}
+footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink3)}
+@media(max-width:820px){.wrap{padding:36px 20px 64px}.kpis{grid-template-columns:1fr 1fr}.ev{grid-template-columns:1fr}h1{font-size:25px}}
+@media(max-width:520px){.kpis{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hd">
+  <div class="eyebrow">Fix Verification · Round 2 · No Source Change</div>
+  <h1>修复验证报告<br><span style="font-size:22px;color:#7c7c85;font-weight:600">对 commit <code>f2dc294</code> 的独立复检</span></h1>
+  <p class="sub">你说改了，我就把 14 项逐条实测了一遍。<strong>12 项确认修好，2 项只修了一半，1 项被改坏（回归），另有 4 处本次改动带出的新问题</strong>。本报告仍然<strong>没有修改任何源码</strong>。</p>
+  <div class="meta">
+    <span><b>复检时间</b> 2026-09-13 23:37–23:45</span>
+    <span><b>被测提交</b> f2dc294</span>
+    <span><b>测试套件</b> 139 项全绿（已复跑确认）</span>
+    <span><b>端到端</b> 6 轮 CDP 实测 · 1440/1024/768/375</span>
+    <span><b>源码改动</b> 0</span>
+  </div>
+</div>
+
+<h2 style="border-top:none;padding-top:0;margin-top:0">一句话结论</h2>
+<p class="lead">这轮修复的<strong>质量很高</strong>——两个 P0 里的「世界经济仪表盘」完美复活，体验面 12 项里绝大多数都真正落地了。但成交额那一处<strong>只修对了自己测过的那两个样本</strong>：港股/美股个股修好了，<strong>港股指数被改坏、美股指数仍然错</strong>。而且新加的测试断言把错误的行为固化了下来，所以 139 项全绿并不能说明问题。</p>
+
+<div class="kpis">
+  <div class="kpi good"><div class="n">12</div><div class="l">确认修复 ✓</div></div>
+  <div class="kpi warn"><div class="n">2</div><div class="l">只修了一半</div></div>
+  <div class="kpi bad"><div class="n">1</div><div class="l">回归（改坏了）</div></div>
+  <div class="kpi info"><div class="n">4</div><div class="l">本次改动带出的新问题</div></div>
+</div>
+
+<h2>一、逐项复检结果 <span class="cnt">原报告 14 项 + 1 项环境事实</span></h2>
+
+<table>
+  <thead><tr><th>原编号</th><th>问题</th><th>复检结论</th><th>实测证据</th></tr></thead>
+  <tbody>
+    <tr class="good"><td class="num">P0-1a</td><td>港股/美股<b>个股</b>成交额 ×10000</td><td><span class="b ok">已修</span></td><td>腾讯控股 66.75 亿（原 667483.51 亿）、苹果 168.96 亿、英伟达 195.54 亿、特斯拉 110.19 亿</td></tr>
+    <tr class="bad"><td class="num">P0-1b</td><td>港股/美股<b>指数</b>成交额</td><td><span class="b p0">回归 + 未修</span></td><td>恒生指数 2284<b>万</b>（应 2284 亿）、道琼斯 186362.12 亿（仍荒谬）</td></tr>
+    <tr class="good"><td class="num">P0-2</td><td>世界经济仪表盘整屏空白</td><td><span class="b ok">已修</span></td><td>8 国 × 6 指标全部出数（美国 30.77T / 中国 19.50T / 日本 4.44T…），色阶热图与口径说明齐全</td></tr>
+    <tr class="good"><td class="num">P1-1</td><td>首屏四格涨跌恒灰</td><td><span class="b ok">已修</span></td><td>计算色 <code>down=rgb(46,189,133)</code> / <code>up=rgb(255,92,92)</code>；切「绿涨红跌」后四格与卡片行同步反转 ✓</td></tr>
+    <tr class="good"><td class="num">P1-2</td><td>触屏显示"滚轮/右键"</td><td><span class="b ok">已修</span></td><td>用触摸模拟复测：<code>pointer:coarse=true</code> → 文案变「单指拖动 · 双指缩放 · 长按查看 · 点「复位」回初始视图」，复位按钮默认可见 ✓</td></tr>
+    <tr class="good"><td class="num">P1-3</td><td>移动端成交额列消失</td><td><span class="b ok">已修</span></td><td>375px 下 <code>.qr-amt</code> 由 <code>none</code> 变 <code>block</code>，折叠到第二行显示「-46.29　9581.86亿」✓</td></tr>
+    <tr class="warn"><td class="num">P1-4</td><td>移动端 tab 热区过小</td><td><span class="b p1">修了热区，但更挤</span></td><td>热区 40–52px ✓ 达标；但总宽从 396px 涨到 <b>540px</b>，首屏可见 tab 从 7 个降到 <b>6 个</b></td></tr>
+    <tr class="warn"><td class="num">P1-5</td><td>"47 个标的"任何 tab 都不对</td><td><span class="b p1">只修了一半</span></td><td>全部 47/47 行 ✓、A股 8/8 ✓、港美 15/15 ✓、加密 6/6 ✓；<b>宏观仍显示 18、事件/聪明钱/产业链/自选仍显示 47，而这几个页面可见行情行数为 0</b></td></tr>
+    <tr class="good"><td class="num">P1-6</td><td>时间标注不可信</td><td><span class="b ok">已修</span></td><td>状态栏变「<b>行情 9-11 16:15 · 抓取 23:44:14</b>」；热力图角标「实时」→「主源直连」✓</td></tr>
+    <tr class="good"><td class="num">P1-7</td><td>事件滞后无量化、无日期</td><td><span class="b ok">已修</span></td><td>「更新于 22:08 · <b>数据已滞后 2 小时</b> · 18 个事件点 · 覆盖 80 条事件」；数据本身也已恢复更新（09-12 09:10 → 09-13 22:08）✓</td></tr>
+    <tr class="good"><td class="num">P1-8</td><td>详情页星标无 aria、太小</td><td><span class="b ok">已修</span></td><td><code>aria-label="收藏"/"取消收藏"</code> + <code>aria-pressed</code> 随状态切换 ✓；移动端星标 40×40、返回 74×40 ✓</td></tr>
+    <tr class="warn"><td class="num">P1-9</td><td>产业链"15A · 2US"看不懂</td><td><span class="b p1">改了，但折行</span></td><td>文案变「26 只（含港美股 6 只）」✓、加了热度条图例 ✓；<b>但 96px 列宽装不下，折成两行，与相邻列基线错位</b></td></tr>
+    <tr class="good"><td class="num">P1-10</td><td>成交量冒充成交额</td><td><span class="b ok">已修</span></td><td>外汇/商品/国债等无成交额的品类全部显示 <code>--</code>（13 个标的）✓</td></tr>
+    <tr class="good"><td class="num">P1-11</td><td>页脚暴露数据源代码</td><td><span class="b ok">已修</span></td><td>「数据源全部正常」；异常时「部分数据源响应异常 · 已自动切换备用源，数据仍在刷新」+ 警示色 ✓</td></tr>
+    <tr class="good"><td class="num">P1-12</td><td>空态文案技术腔</td><td><span class="b ok">已修</span></td><td>hero 降级显示中文名「上证指数 / 恒生指数 / 标普500 / 比特币」✓；事件/席位/龙虎榜/13F 空态去掉 GitHub Actions、工作流等术语 ✓</td></tr>
+    <tr class="warn"><td class="num">环境</td><td>WebGL 失败无兜底</td><td><span class="b g">未能实测</span></td><td>代码已加前置探测 + 兜底说明 + 「切换到平面地图」按钮；本机 WebGL 可用故未触发，<b>真机禁 WebGL 环境仍需验证</b></td></tr>
+  </tbody>
+</table>
+
+<h2>二、必须再修 <span class="cnt">3 项</span></h2>
+
+<div class="issue p0">
+  <h3><span class="id">R1</span> 回归：港股指数成交额被改错了 <span class="b p0">从"正确"变成"错误"</span></h3>
+  <p class="one">修复前，恒生指数显示 <b>2284.31 亿</b>——这是对的。修复后显示 <b>2284 万</b>。<b>本来没错的地方被改错了。</b></p>
+
+  <div class="blk"><div class="t">复检实测（页面渲染值）</div>
+  <table>
+    <thead><tr><th>标的</th><th>修复前显示</th><th>修复后显示</th><th>应有的值</th><th>判定</th></tr></thead>
+    <tbody>
+      <tr class="bad"><td>恒生指数 <code>hkHSI</code></td><td class="right">2284.31 亿</td><td class="wrong">2284 万</td><td class="right">≈ 2284 亿港元</td><td class="wrong">回归</td></tr>
+      <tr class="bad"><td>恒生科技 <code>hkHSTECH</code></td><td class="right">474.86 亿</td><td class="wrong">475 万</td><td class="right">≈ 474.86 亿港元</td><td class="wrong">回归</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="blk"><div class="t">根因：分档维度选错了</div>
+  <p>新增的换算函数按 <b>symbol 字符串前缀</b>分档：</p>
+  <p><code>function amountScale(symbol) { return /^(sh|sz|bj)/.test(symbol) ? 1e4 : 1; }</code></p>
+  <p>于是 <code>hkHSI</code> 不匹配 <code>sh|sz|bj</code> → 落到 ×1。但实测腾讯这个接口里，<strong>港股个股和港股指数的 f[37] 单位并不一样</strong>：</p>
+  <table>
+    <thead><tr><th>标的</th><th class="n">f[36] 成交量</th><th class="n">f[37] 成交额</th><th>f[37] 的真实单位</th><th>正确系数</th></tr></thead>
+    <tbody>
+      <tr class="good"><td>腾讯控股 <code>hk00700</code>（个股）</td><td class="n">15628379.0</td><td class="n">6674835081.790</td><td>元</td><td class="right">×1 ✓</td></tr>
+      <tr class="bad"><td>恒生指数 <code>hkHSI</code>（指数）</td><td class="n">22843055.8745</td><td class="n">22843055.874</td><td><b>万</b></td><td class="wrong">应为 ×1e4</td></tr>
+      <tr class="bad"><td>恒生科技 <code>hkHSTECH</code>（指数）</td><td class="n">4748576.7532</td><td class="n">4748576.753</td><td><b>万</b></td><td class="wrong">应为 ×1e4</td></tr>
+    </tbody>
+  </table>
+  <p>注意上表的一个信号：<strong>港股指数的 f[36] 与 f[37] 是同一个数</strong>（22843055.8745 ≈ 22843055.874）——指数行的「成交量」与「成交额」同源，都按"万"给出。而个股这两个字段是完全不同的量纲。</p>
+  <p>量级交叉验证：2284.31 亿港元恰好落在港股全市场日均成交额的正常区间；而 2284 万港元<strong>连一只小盘股都不如</strong>，恒生指数不可能只有这个数。</p></div>
+
+  <div class="note p0"><div class="t">建议修法（按市场维度分档，而不是按字符串前缀）</div>
+  代码里已经有现成的 <code>marketOf(symbol)</code> 能区分 index / cn / hk / us，直接用它分档即可：</div>
+  <table>
+    <thead><tr><th>类别</th><th>symbol 示例</th><th>f[37] 单位</th><th>系数</th></tr></thead>
+    <tbody>
+      <tr><td>A股个股 / A股指数</td><td><code>sh600519</code> <code>sh000001</code> <code>sz399001</code></td><td>万</td><td class="right">×1e4</td></tr>
+      <tr><td>港股个股</td><td><code>hk00700</code></td><td>元</td><td class="right">×1</td></tr>
+      <tr class="bad"><td>港股指数</td><td><code>hkHSI</code> <code>hkHSTECH</code></td><td>万</td><td class="right">×1e4</td></tr>
+      <tr><td>美股个股</td><td><code>usAAPL</code></td><td>元</td><td class="right">×1</td></tr>
+      <tr class="bad"><td>美股指数</td><td><code>usDJI</code> <code>usIXIC</code> <code>usINX</code></td><td>不可用（见 R2）</td><td class="right">显示 <code>--</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="issue p0">
+  <h3><span class="id">R2</span> 美股指数成交额仍然错，而且错得还是很离谱 <span class="b p0">未修好</span></h3>
+  <p class="one">道琼斯显示成交 <b>186362.12 亿</b>（18.6 万亿），纳斯达克 <b>1491236.15 亿</b>（149 万亿），标普500 <b>203661.29 亿</b>。数字从"错一万倍"变成了"错几十万倍"，<b>但对用户来说还是同一个问题：一眼假。</b></p>
+  <table>
+    <thead><tr><th>标的</th><th class="n">源站 f[37]</th><th>×1（现在）</th><th>×1e4（修复前）</th><th>合理量级</th></tr></thead>
+    <tbody>
+      <tr class="bad"><td>道琼斯 <code>usDJI</code></td><td class="n">18,636,212,057,928</td><td class="wrong">186362.12 亿</td><td class="wrong">1863621205.79 亿</td><td>百亿美元级</td></tr>
+      <tr class="bad"><td>纳斯达克 <code>usIXIC</code></td><td class="n">149,123,614,902,353</td><td class="wrong">1491236.15 亿</td><td class="wrong">14912361490.24 亿</td><td>千亿美元级</td></tr>
+      <tr class="bad"><td>标普500 <code>usINX</code></td><td class="n">20,366,129,102,464</td><td class="wrong">203661.29 亿</td><td class="wrong">2036612910.25 亿</td><td>千亿美元级</td></tr>
+    </tbody>
+  </table>
+  <p>用成交量反推也对不上：道琼斯 f[36] = 3.54 亿股，按成分股均价粗估成交额约 500–700 亿美元，与 <code>f[37]</code> 无论乘 1 还是乘 1e4 都不吻合。说明<strong>腾讯这个接口对美股指数返回的 f[37] 根本不能当作成交额用</strong>。</p>
+  <div class="note p0"><div class="t">建议</div>
+  参照项目自己的原则——「宁可缺，不放假数据」。美股指数这一类直接输出 <code>amount: null</code>，界面显示 <code>--</code>（和外汇/商品/债券现在一样）。<b>显示一个荒谬的数字，比诚实留空伤害大得多</b>：外汇留空没人觉得有问题，指数显示 18.6 万亿会让人怀疑整个看板的数据。</div>
+</div>
+
+<div class="issue p1">
+  <h3><span class="id">R3</span>「标的数」只修了一半，还有 5 个板块对不上 <span class="b p1">部分修复</span></h3>
+  <p class="one">A股、港美、加密这 3 个板块的数字终于和所见行数一致了。但<b>另外 5 个板块仍然显示一个用户看不到的行情数量</b>——它们的卡片墙是隐藏的，页面上一行行情都没有。</p>
+  <div class="blk"><div class="t">实测（可见行数 = 该 tab 下 <code>.qrow</code> 的实际可见数量）</div>
+  <table>
+    <thead><tr><th>板块</th><th>状态栏文案</th><th>可见行情行数</th><th>判定</th></tr></thead>
+    <tbody>
+      <tr class="good"><td>全部</td><td>47 个标的</td><td class="n">47</td><td class="right">✓ 一致</td></tr>
+      <tr class="good"><td>A股</td><td>8 个标的</td><td class="n">8</td><td class="right">✓ 一致</td></tr>
+      <tr class="good"><td>港美</td><td>15 个标的</td><td class="n">15</td><td class="right">✓ 一致</td></tr>
+      <tr class="good"><td>加密</td><td>6 个标的</td><td class="n">6</td><td class="right">✓ 一致</td></tr>
+      <tr class="bad"><td>宏观</td><td class="wrong">18 个标的</td><td class="n">0</td><td class="wrong">✗ 看不到</td></tr>
+      <tr class="bad"><td>事件</td><td class="wrong">47 个标的</td><td class="n">0</td><td class="wrong">✗ 看不到</td></tr>
+      <tr class="bad"><td>聪明钱</td><td class="wrong">47 个标的</td><td class="n">0</td><td class="wrong">✗ 看不到</td></tr>
+      <tr class="bad"><td>产业链</td><td class="wrong">47 个标的</td><td class="n">0</td><td class="wrong">✗ 看不到</td></tr>
+      <tr class="bad"><td>自选</td><td class="wrong">47 个标的</td><td class="n">0</td><td class="wrong">✗ 看不到</td></tr>
+    </tbody>
+  </table></div>
+  <p>原因：<code>visibleQuoteCount()</code> 里的 <code>tabFilter</code> 只覆盖了 <code>{cn, hkus, crypto, fxmacro}</code> 四个板块，其余板块没有过滤条件，直接退化成全局池大小。</p>
+  <div class="note p1"><div class="t">建议</div>对「卡片墙不显示行情」的板块（事件 / 聪明钱 / 产业链 / 自选 / 宏观），<b>干脆不要显示这个计数</b>，改成该页面自己的一句话摘要（例如宏观页写「8 国 × 6 项年度指标 · 世界银行」、产业链页写「10 条链 · 49 环节」）。比强行填一个行情数字更有信息量。</div>
+</div>
+
+<h2>三、这轮改动带出来的新问题 <span class="cnt">4 项</span></h2>
+
+<div class="issue p1">
+  <h3><span class="id">N1</span> 偶发未捕获异常：详情页可能打不开 <span class="b p1">偶发 · 未能稳定复现</span></h3>
+  <p class="one">在 CDP 连续导航测试中出现<strong>一次</strong>未捕获异常，导致详情页顶栏与统计格全空。随后我用 4 条路径分别复测，<b>都没能再复现</b>。所以这条按"低概率但根因明确"上报。</p>
+  <div class="ev">
+    <div class="evcard bad"><div class="h">异常堆栈（原样）</div><div class="s" style="font-family:var(--mono);font-size:11.5px;color:#c0392b">TypeError: Cannot set properties of undefined (setting 'textContent')<br>　at openDetail (js/app.js:1100:31)<br>　at renderFromHash (js/app.js:2592:7)<br>　at onHashNav (js/app.js:2912:5)</div></div>
+    <div class="evcard bad"><div class="h">同一时刻的页面状态</div><div class="big" style="font-size:15px">detailStats = 空</div><div class="s">状态栏停在初始文本「加载中…」，即 <code>init()</code> 尚未跑完</div></div>
+  </div>
+  <p><code>app.js:1100</code> 是 <code>el.detailName.textContent = …</code>，而 <code>el</code> 在 <code>init()</code> 的<strong>第一行</strong>（3415 行）才被填充。但 <code>hashchange</code> / <code>popstate</code> 监听注册在 IIFE 顶层（2914–2915 行），<strong>早于</strong> <code>init()</code> 执行。</p>
+  <ul>
+    <li>脚本在 <code>&lt;body&gt;</code> 末尾同步执行时，<code>document.readyState === 'loading'</code> → <code>init</code> 被推迟到 <code>DOMContentLoaded</code>；</li>
+    <li>从「监听器就位」到「<code>el</code> 构建完成」之间存在一个窗口；</li>
+    <li>窗口期内若发生 hash 导航（用户点分享链接、或加载慢时脚本抢先响应），<code>openDetail</code> 就会命中还是空对象的 <code>el</code>。</li>
+  </ul>
+  <div class="note p1"><div class="t">建议（防御成本极低）</div>①把 <code>hashchange</code>/<code>popstate</code> 两行注册挪到 <code>init()</code> 内部；或 ②<code>openDetail</code> 开头加一句 <code>if (!el.detailName) return;</code>。两种都行，建议都做。</div>
+</div>
+
+<div class="issue p1">
+  <h3><span class="id">N2</span> 产业链新文案在列宽里折行，把这一列挤歪了 <span class="b p1">视觉回归</span></h3>
+  <p class="one">文案改成「26 只（含港美股 6 只）」——方向完全正确，但那一列的 grid 宽度还是原来的 <code>96px</code>，装不下新文案，于是<b>折成两行</b>，与相邻列的基线错开。</p>
+  <p>实测渲染：<code>17 只（含港美股 2</code> / <code>只）</code> —— 括号被折断在行尾，视觉上像是数据溢出了。</p>
+  <div class="note p1"><div class="t">建议</div>三选一：①把 <code>.cr-mix</code> 列宽从 96px 提到 <b>150px</b>（推荐，信息完整）；②文案再压：「17 只 · 港美 2」；③主列只留总数「17 只」，港美股明细全部放 <code>title</code>（现在明细本来就在 title 里，属于重复）。</div>
+</div>
+
+<div class="issue p2">
+  <h3><span class="id">N3</span> 移动端 tab：热区达标了，但被推到屏幕外的 tab 从 2 个变成 3 个 <span class="b p2">权衡副作用</span></h3>
+  <p class="one">热区从 20–36px 提到 40–52px，这是对的。但 9 个 tab 的总宽也从 396px 涨到 <b>540px</b>，容器依旧是 343px——首屏能看到的 tab 反而少了。</p>
+  <table>
+    <thead><tr><th>375px 视口</th><th>修复前</th><th>修复后</th></tr></thead>
+    <tbody>
+      <tr><td>可点区域（tab 宽度）</td><td class="right">20–36px</td><td class="right">40–52px ✓</td></tr>
+      <tr><td>首屏可见 tab</td><td class="right">7 个（聪明钱 / 产业链 / 自选 在外）</td><td class="wrong">6 个（聪明钱 / 产业链 / 自选 在外）</td></tr>
+      <tr><td>内容总宽 / 容器</td><td class="n">396 / 343</td><td class="n">540 / 343</td></tr>
+    </tbody>
+  </table>
+  <p>实测：可见 = <code>全部 · A股 · 港美 · 宏观 · 加密 · 事件</code>；不可见 = <code>聪明钱 · 产业链 · 自选</code>。<strong>「自选」是用户个人数据入口，藏在屏幕外三格之后，代价偏大。</strong>右缘渐隐的暗示在浅色截图上不够明显。</p>
+  <div class="note p2"><div class="t">建议</div>这是结构问题不是样式问题——343px 放 9 个一级 tab 就是放不下。可选方案：①把 tab 做成两行（顶栏本来就有两行空间）；②归并为「看盘 / 挖掘 / 我的」三组；③把「自选」提到顶栏做成常驻图标（它本来也不属于行情板块）。</div>
+</div>
+
+<div class="issue p2">
+  <h3><span class="id">N4</span> 全球指数条：同一行的数值没有对齐 <span class="b p2">老问题 · 仍未处理</span></h3>
+  <p class="one">指数名称长短不一，长的会折行，导致<b>同一行三个格子里的数字高低不一</b>。实测像素位置：</p>
+  <table>
+    <thead><tr><th>行</th><th>单元格</th><th class="n">数字顶部 Y</th><th>偏差</th></tr></thead>
+    <tbody>
+      <tr><td>第 1 行</td><td>日经225</td><td class="n">515</td><td class="right">基准</td></tr>
+      <tr><td>第 1 行</td><td>德国 DAX</td><td class="n">515</td><td class="right">基准</td></tr>
+      <tr class="warn"><td>第 1 行</td><td>英国富时 100（折行）</td><td class="n">531</td><td class="wrong">低 16px</td></tr>
+      <tr><td>第 2 行</td><td>法国 CAC40</td><td class="n">667</td><td class="right">基准</td></tr>
+      <tr class="warn"><td>第 2 行</td><td>韩国 KOSPI</td><td class="n">650</td><td class="wrong">高 17px</td></tr>
+      <tr><td>第 2 行</td><td>印度 SENSEX</td><td class="n">667</td><td class="right">基准</td></tr>
+    </tbody>
+  </table>
+  <p>三格并排时数字上下错开 16–17px，看起来像没对齐的表格。<strong>建议</strong>：给名称固定两行高度（<code>min-height</code> + 不换行或截断），数字统一贴底对齐。</p>
+</div>
+
+<h2>四、为什么 139 项测试全绿，却仍然漏掉这些？</h2>
+<p>我复跑了 <code>node _test/run-all.mjs</code>：<strong>139 passed / 0 failed</strong>，你的说法属实。但绿色掩盖了两个问题——都在新增的 <code>_test/detail.test.mjs</code> 里：</p>
+
+<div class="issue p0">
+  <h3><span class="id">T1</span> 测试断言把错误的行为固化成了"规格"</h3>
+  <p class="one">新增断言里写着：</p>
+  <p><code>assert.equal(W.TencentSource.amountScale('hkHSI'), 1);</code><br>
+     <code>assert.equal(W.TencentSource.amountScale('usINX'), 1);</code></p>
+  <p>这两条断言表示"港股指数、美股指数都用 ×1"——<strong>而实测证明港股指数必须用 ×1e4</strong>。也就是说：<b>现在这条测试不是在防回归，而是在把回归锁死</b>。将来有人想修好它，反而会被这条测试挡住。</p>
+  <div class="note p0"><div class="t">建议</div>把 <code>hkHSI</code> 改成断言 <code>1e4</code>；<code>usINX</code> 如果决定走"不可用→显示 --"，就断言 <code>amount === null</code>。断言应该描述<strong>真实世界应该是什么样</strong>，而不是描述<strong>代码当前做了什么</strong>。</div>
+</div>
+
+<div class="issue p1">
+  <h3><span class="id">T2</span> 量级断言只覆盖了自己修过的两个样本</h3>
+  <p class="one">同文件里的量级测试只测了 <code>sh600519</code>、<code>sh000001</code>、<code>hk00700</code>、<code>usAAPL</code> 四个——正好是<strong>作者手工验证过的那四个</strong>。指数一个都没测，于是 <code>hkHSI</code> 从 2284 亿掉到 2284 万，测试毫无反应。</p>
+  <div class="note p1"><div class="t">建议</div>把断言改成"对每个出现的市场类别各取一个代表"：A股个股 / A股指数 / 港股个股 / <b>港股指数</b> / 美股个股 / <b>美股指数</b>。每个都给出合理量级区间。这次的教训正是"样本选择决定了测试的有效边界"。</div>
+</div>
+
+<h2>五、确认修好的部分（做得漂亮）</h2>
+<div class="issue ok">
+  <h3><span class="id">✓</span> 世界经济仪表盘：从整屏空白到完整可用</h3>
+  <p>一处 <code>countryiso3code</code> → <code>country.id</code> 的修正，让 8 国 × 6 指标的表格完整出现，还顺带补了「缓存于 23:38:13」的时间标注和底部口径说明。这是本轮最有价值的修复。</p>
+</div>
+<div class="issue ok">
+  <h3><span class="id">✓</span> 时间口径：终于可信了</h3>
+  <p>状态栏从"最后更新 18:31"（其实是抓取时刻）改成「<b>行情 9-11 16:15 · 抓取 23:44:14</b>」——休市日再也不会把上周五的收盘价伪装成实时行情。热力图角标的"实时"也改成了名实相符的"主源直连"。这一步的措辞拿捏很准。</p>
+</div>
+<div class="issue ok">
+  <h3><span class="id">✓</span> 红绿配色联动：干净利落</h3>
+  <p>实测切换「绿涨红跌」：hero 四格 <code>down</code> 变红、<code>up</code> 变绿，卡片行同步反转，切回后完全还原。<code>.hero-chg.up/.down</code> 复合选择器这个改法是对的——没有加 <code>!important</code>，而是把特异性补回去。</p>
+</div>
+<div class="issue ok">
+  <h3><span class="id">✓</span> 触屏适配这次是真做了</h3>
+  <p>用触摸模拟（<code>pointer: coarse</code>）复测：热力图提示换成「单指拖动 · 双指缩放 · 长按查看 · 点「复位」回初始视图」，复位按钮默认可见；移动端星标 40×40、返回 74×40。之前我报告里说"未能在无头环境验证"，这次我用触摸模拟补上了——<b>结论是修好了</b>。</p>
+</div>
+<div class="issue ok">
+  <h3><span class="id">✓</span> 文案分层做得很克制</h3>
+  <p>「数据源全部正常」/「部分数据源响应异常 · 已自动切换备用源，数据仍在刷新」——把 em-clist / brk / gdelt 这些代号收进了开发者自检区，用户面只留一句人话。hero 降级也改显示"上证指数/恒生指数/标普500/比特币"而不是 SH000001。这类改动看似小，但它决定了产品是"给用户的"还是"给作者的"。</p>
+</div>
+<div class="issue ok">
+  <h3><span class="id">✓</span> 降级行为没有因为改动而退化</h3>
+  <p>再次拦截全部外部请求（82 次）实测：状态栏正确转为警示文案、hero 显示中文名 + "等待数据"、卡片墙显示加载中说明、页面不白屏不弹窗。<strong>这轮改动没有破坏项目最核心的稳定性承诺。</strong></p>
+</div>
+
+<h2>六、下一步：三个小改动就能收口</h2>
+<table>
+  <thead><tr><th>#</th><th>改什么</th><th>文件</th><th>验证方式</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>换算系数改用 <code>marketOf()</code> 分档：cn/index → ×1e4，hk个股/us个股 → ×1；<b>港股指数必须 ×1e4</b></td><td><code>js/sources/tencent.js</code></td><td>页面显示恒生指数 ≈2284 亿、恒生科技 ≈475 亿</td></tr>
+    <tr><td>2</td><td>美股指数 <code>f[37]</code> 不可靠 → 输出 <code>null</code>，界面显示 <code>--</code></td><td><code>js/sources/tencent.js</code></td><td>道琼斯/纳指/标普成交额列显示 <code>--</code></td></tr>
+    <tr><td>3</td><td>修正测试断言：<code>hkHSI → 1e4</code>；<code>usINX → amount 为 null</code>；量级断言补上港/美指数两个样本</td><td><code>_test/detail.test.mjs</code></td><td>改完跑一次，看它<b>红</b>，再改代码让它变绿</td></tr>
+  </tbody>
+</table>
+<p>顺带三件低成本的：<code>visibleQuoteCount</code> 对无行情板块不要显示计数（R3）、<code>openDetail</code> 加一行防御（N1）、<code>.cr-mix</code> 列宽放宽（N2）。</p>
+
+<h2>七、本次复检的方法与边界</h2>
+<ul>
+  <li><strong>怎么测</strong>：Edge 153 无头 + Chrome DevTools Protocol 驱动真实点击/键盘/滚动；6 轮脚本分别覆盖常规路径、深链、竞态、触屏模拟、上游全断降级、四档视口；所有行情数值都与 <code>qt.gtimg.cn</code> 原始字段逐条对账。</li>
+  <li><strong>源码改动</strong>：0。探针注入在副本页上，项目文件未动。</li>
+  <li><strong>没能验证的</strong>：WebGL 失败兜底（本机 WebGL 可用，未触发降级分支）、真机触屏手势（捏合/长按）、Safari/Firefox 兼容性、长时间挂机内存。这几项按"未验证"计，不算通过。</li>
+  <li><strong>关于 N1</strong>：只用一次实测命中、四条路径未能复现，所以我把它标为"偶发"而不是"必然崩溃"。但堆栈指向的时序问题在代码里是客观存在的，建议按防御性修复处理。</li>
+</ul>
+
+<footer>
+  <p><strong>复检对象</strong>：commit <code>f2dc294</code>（2026-09-13 23:26）· <strong>源码改动</strong> 0 处</p>
+  <p>证据：截图在 <code>_qa_shots/shots2/</code>；原始数据在 <code>cdp4-log.json</code>、<code>cdp5-log.json</code>、<code>cdp6-log.json</code>；测试输出在 <code>_qa_shots/test-run.txt</code>；上一轮基线已备份至 <code>_qa_shots/baseline/</code>，可直接与新结果逐项对比。</p>
+  <p>本报告只做诊断与验证，不包含任何代码改动。</p>
+</footer>
+
+</div>
+</body>
+</html>

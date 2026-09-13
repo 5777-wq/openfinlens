@@ -65,15 +65,22 @@ await test('代码互转：腾讯 symbol ↔ 东财 secid 双向一致（含北�
 });
 
 /* ================= 成交额单位与行情时间（P0-1 回归） ================= */
-await test('成交额单位分流：A股/A股指数 ×1e4，港/美股及其指数 ×1', () => {
+await test('成交额单位分流：A股/港股指数 ×1e4，港/美股个股 ×1，美股指数不可用', () => {
+  // 断言描述"真实世界应该是什么样"：港股指数 f[37] 实测按万给（f[36]≈f[37] 同源），
+  // 第一版按前缀分档曾把它改坏成 2284 万
   assert.equal(W.TencentSource.amountScale('sh600519'), 1e4);
   assert.equal(W.TencentSource.amountScale('sh000001'), 1e4);
   assert.equal(W.TencentSource.amountScale('sz300750'), 1e4);
   assert.equal(W.TencentSource.amountScale('bj920001'), 1e4);
+  assert.equal(W.TencentSource.amountScale('hkHSI'), 1e4);
+  assert.equal(W.TencentSource.amountScale('hkHSTECH'), 1e4);
   assert.equal(W.TencentSource.amountScale('hk00700'), 1);
-  assert.equal(W.TencentSource.amountScale('hkHSI'), 1);
   assert.equal(W.TencentSource.amountScale('usAAPL'), 1);
-  assert.equal(W.TencentSource.amountScale('usINX'), 1);
+  // 美股指数 f[37] 与任何单位都对不上（成交量反推也不吻合）→ 不可用，输出 null
+  assert.equal(W.TencentSource.amountUsable('usINX'), false);
+  assert.equal(W.TencentSource.amountUsable('usDJI'), false);
+  assert.equal(W.TencentSource.amountUsable('usAAPL'), true);
+  assert.equal(W.TencentSource.amountUsable('hk00700'), true);
 });
 
 await test('行情时间解析：北京域市场按 +8 折算，美股显式 null（时区诚实）', () => {
@@ -83,19 +90,25 @@ await test('行情时间解析：北京域市场按 +8 折算，美股显式 nul
   assert.equal(W.TencentSource.quoteTimeOf(''), null);
 });
 
-await test('实数据量级：港/美股成交额是元级（旧 bug 曾放大 1 万倍显示 66.7 万亿）', async () => {
-  const qs = await W.TencentSource.getQuotes(['sh600519', 'sh000001', 'hk00700', 'usAAPL']);
+await test('实数据量级：六类样本各自落在真实区间（个股/指数 × A股/港/美全覆盖）', async () => {
+  const qs = await W.TencentSource.getQuotes(['sh600519', 'sh000001', 'hk00700', 'hkHSI', 'usAAPL', 'usINX']);
   const by = Object.fromEntries(qs.map(q => [q.symbol, q]));
-  // A股：f[37] 单位是万，×1e4 后为元级（茅台日成交通常数十亿元）
   assert.ok(by['sh600519'] && by['sh600519'].amount > 1e8 && by['sh600519'].amount < 1e12,
     '茅台成交额应在亿~千亿级: ' + (by['sh600519'] || {}).amount);
   assert.ok(by['sh000001'] && by['sh000001'].amount > 1e9 && by['sh000001'].amount < 5e13,
     '上证成交额应在百亿~万亿级: ' + (by['sh000001'] || {}).amount);
-  // 港/美股：接口已是元，×1（旧 bug 值 6.7e13 必然越界）
+  // 港股个股：元级（数十亿港元）
   assert.ok(by['hk00700'] && by['hk00700'].amount > 1e7 && by['hk00700'].amount < 5e11,
     '腾讯控股成交额应约数十亿港元级: ' + (by['hk00700'] || {}).amount);
+  // 港股指数：万级换算后约 2284 亿港元（旧 bug 曾显示 2284 万）
+  assert.ok(by['hkHSI'] && by['hkHSI'].amount > 1e10 && by['hkHSI'].amount < 1e12,
+    '恒生指数成交额应在百亿~千亿级: ' + (by['hkHSI'] || {}).amount);
+  // 美股个股：元级（数十亿美元）
   assert.ok(by['usAAPL'] && by['usAAPL'].amount > 1e7 && by['usAAPL'].amount < 5e11,
     '苹果成交额应约数十亿美元级: ' + (by['usAAPL'] || {}).amount);
+  // 美股指数：接口数值不可用，诚实输出 null（宁缺毋假）
+  assert.ok(by['usINX'] && by['usINX'].amount === null,
+    '美股指数成交额应为 null: ' + (by['usINX'] || {}).amount);
 });
 
 await test('世界银行：8 国 ×6 指标 ≥32 非空（P0-2 回归：码位错位时为 0）', async () => {

@@ -16,11 +16,24 @@ const TencentSource = (() => {
     return 'other';
   }
 
-  /* [37] 成交额的单位按市场分流：A股与 A 股指数是"万"（×1e4），港股/美股及其
-     指数接口返回的已经是"元"（×1）。统一 ×1e4 曾把港美成交额放大一万倍
-     （腾讯控股显示 66.7 万亿港元、道琼斯显示 18.6 亿亿元）。 */
+  /* [37] 成交额的单位按市场分档（2026-09-13 复核实测，第一版按前缀分档曾把
+     港股指数从 2284 亿改坏成 2284 万）：
+     - A股个股/A股指数：万元（×1e4）
+     - 港股个股：元（×1）；港股指数：万（×1e4）——指数行 f[36]≈f[37] 同源、都按万给
+     - 美股个股：元（×1）
+     - 美股指数：接口数值与任何单位都对不上（成交量反推也不吻合）→ 不可用，
+       输出 null 界面显示 --（显示一个荒谬的数字比诚实留空伤害大得多） */
+  const HK_INDEX_RE = /^hk(HSI|HSTECH|HSCEI|N225|KS11|STI|TWII)$/i;
+  const US_INDEX_RE = /^us(DJI|IXIC|INX|VIX)$/i;
+
   function amountScale(symbol) {
-    return /^(sh|sz|bj)/.test(symbol) ? 1e4 : 1;
+    if (/^(sh|sz|bj)/.test(symbol)) return 1e4;   // A股个股与指数
+    if (HK_INDEX_RE.test(symbol)) return 1e4;     // 港股指数
+    return 1;                                     // 港股/美股个股
+  }
+
+  function amountUsable(symbol) {
+    return !US_INDEX_RE.test(symbol);             // 美股指数 f[37] 不可用
   }
 
   /* [30] 行情时间（如 20260913150001 或 "20260913 15:00:01"）：源返回的真正行情
@@ -58,7 +71,7 @@ const TencentSource = (() => {
         low: num(f[34]),
         change, changePct,
         volume: num(f[36]) !== null ? num(f[36]) : num(f[6]),
-        amount: num(f[37]) !== null ? num(f[37]) * amountScale(symbol) : null,
+        amount: (!amountUsable(symbol) || num(f[37]) === null) ? null : num(f[37]) * amountScale(symbol),
         marketCap: num(f[45]) !== null ? num(f[45]) * 1e8 : null,
         quoteAt: /^(sh|sz|bj|hk)/.test(symbol) ? quoteTimeOf(f[30]) : null,
         updatedAt: Date.now(),
@@ -172,7 +185,7 @@ const TencentSource = (() => {
     } catch { return null; }
   }
 
-  return { getQuotes, getKline, getMinute, parse, amountScale, quoteTimeOf };
+  return { getQuotes, getKline, getMinute, parse, amountScale, amountUsable, quoteTimeOf };
 })();
 
 window.TencentSource = TencentSource;

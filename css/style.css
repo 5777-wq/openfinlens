@@ -653,7 +653,7 @@ html.splash-on .topbar, html.splash-on .main { opacity: 0; }
 /* 热度条图例：解释归一口径（P1-9），否则用户不知道长条代表几个点 */
 .chain-legend { font-size: 11px; color: var(--text-tertiary); padding: 8px 2px 10px; }
 .crow { display: grid;
-  grid-template-columns: 44px 130px 96px 90px 1fr 1fr 120px 20px;
+  grid-template-columns: 44px 130px 150px 90px 1fr 1fr 120px 20px;
   gap: 12px; align-items: center;
   padding: 10px 8px 10px 4px;
   border-bottom: 1px solid var(--border);
@@ -690,7 +690,9 @@ html.splash-on .topbar, html.splash-on .main { opacity: 0; }
   margin-top: 14px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .gcard { padding: 16px 14px 14px; border-right: 1px solid var(--border); min-width: 0; }
 .gcard:nth-child(6n) { border-right: none; }
-.gcard .hero-label { font-size: 11px; color: var(--text-tertiary); }
+/* 名称区固定两行高度：长短名混排（富时100/KOSPI）曾让同一行三个数字高低差 16px */
+.gcard .hero-label { font-size: 11px; color: var(--text-tertiary); min-height: 30px;
+  line-height: 1.35; align-items: flex-end; overflow: hidden; }
 .gcard .hero-value { font-size: 20px; }
 .gcard .hero-chg { font-size: 12px; }
 .gcard .flag { width: 14px; height: 10px; margin-right: 5px; }
