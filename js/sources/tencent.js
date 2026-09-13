@@ -2,7 +2,8 @@
    实测字段（2026-08 验证）：
    [1]名称 [2]代码 [3]现价 [4]昨收 [5]今开 [6]成交量(手) [31]涨跌额 [32]涨跌幅%
    [33]最高 [34]最低 [36]成交量(手) [37]成交额(万) [38]换手率 [44]流通市值(亿) [45]总市值(亿)
-   港股/美股用同一格式，涨跌额/幅同样在 [31][32]。 */
+   港股/美股用同一格式，涨跌额/幅同样在 [31][32]。
+   ⚠ [37] 的单位按市场分流（见 amountScale）：统一 ×1e4 曾把港美成交额放大一万倍。 */
 
 const TencentSource = (() => {
   const BASE = 'https://qt.gtimg.cn/q=';
@@ -13,6 +14,22 @@ const TencentSource = (() => {
     if (/^hk/.test(code)) return /^hk(HSI|HSTECH|HSCEI|N225|KS11|STI|TWII)$/i.test(code) ? 'index' : 'hk';
     if (/^us/.test(code)) return /^us(DJI|IXIC|INX|VIX)$/i.test(code) ? 'index' : 'us';
     return 'other';
+  }
+
+  /* [37] 成交额的单位按市场分流：A股与 A 股指数是"万"（×1e4），港股/美股及其
+     指数接口返回的已经是"元"（×1）。统一 ×1e4 曾把港美成交额放大一万倍
+     （腾讯控股显示 66.7 万亿港元、道琼斯显示 18.6 亿亿元）。 */
+  function amountScale(symbol) {
+    return /^(sh|sz|bj)/.test(symbol) ? 1e4 : 1;
+  }
+
+  /* [30] 行情时间（如 20260913150001 或 "20260913 15:00:01"）：源返回的真正行情
+     时刻，与"抓取时间"分开标注。美股字段是美东时间，固定 +8 折算会错时区，
+     只对沪深/港股（与北京时间同域）启用，美股显式 null（宁缺毋假）。 */
+  function quoteTimeOf(s) {
+    const m = /^(\d{4})(\d{2})(\d{2})[T ]?(\d{2}):?(\d{2}):?(\d{2})/.exec(String(s || ''));
+    if (!m) return null;
+    return Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6]) - 8 * 3600000;
   }
 
   function parse(text) {
@@ -41,8 +58,9 @@ const TencentSource = (() => {
         low: num(f[34]),
         change, changePct,
         volume: num(f[36]) !== null ? num(f[36]) : num(f[6]),
-        amount: num(f[37]) !== null ? num(f[37]) * 1e4 : null,
+        amount: num(f[37]) !== null ? num(f[37]) * amountScale(symbol) : null,
         marketCap: num(f[45]) !== null ? num(f[45]) * 1e8 : null,
+        quoteAt: /^(sh|sz|bj|hk)/.test(symbol) ? quoteTimeOf(f[30]) : null,
         updatedAt: Date.now(),
         source: 'tencent',
       });
@@ -118,7 +136,8 @@ const TencentSource = (() => {
   // ⚠️ 美股实测：param 用 usAAPL 只回 2 根脏数据，必须用带交易所后缀的完整代码（usAAPL.OQ）
   async function getKline(symbol, period = 'day', limit = 320) {
     const tryOnce = async (code) => {
-      const url = `https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=${code},${period},,,${limit},qfq`;
+      const url = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param='
+        + encodeURIComponent([code, period, '', '', limit, 'qfq'].join(','));
       const j = await request(url);
       const node = j && j.data && (j.data[code] || j.data[symbol]);
       if (!node) return [];
@@ -153,7 +172,7 @@ const TencentSource = (() => {
     } catch { return null; }
   }
 
-  return { getQuotes, getKline, getMinute, parse };
+  return { getQuotes, getKline, getMinute, parse, amountScale, quoteTimeOf };
 })();
 
 window.TencentSource = TencentSource;

@@ -72,6 +72,22 @@ window.GlobeView = (() => {
     hooks = opts || {};
     if (globe) return api;
     if (!window.Globe || !window.topojson || pending) return null;
+
+    // WebGL 可用性前置检查：globe.gl/three 内部的上下文创建失败是异步抛出，
+    // 下面的 try/catch 接不住（曾表现为"控制台报错 + 黑屏 + 兜底节点永隐"）。
+    // 先显式探一次，拿到确定性的降级路径。
+    const probe = document.createElement('canvas');
+    const gl = probe.getContext('webgl2') || probe.getContext('webgl')
+      || probe.getContext('experimental-webgl');
+    if (!gl) {
+      const fallbackEarly = document.getElementById('globeFallback');
+      if (fallbackEarly) {
+        fallbackEarly.hidden = false;
+        fallbackEarly.textContent = '此设备无法显示 3D 地球（WebGL 不可用），事件列表仍可正常使用';
+      }
+      if (hooks.onStatus) hooks.onStatus('3D 模块不可用 · 已降级为列表模式');
+      return null;
+    }
     pending = true;
 
     const fallback = document.getElementById('globeFallback');

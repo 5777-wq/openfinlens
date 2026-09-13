@@ -7,3 +7,4 @@ _probe_tmp/
 Thumbs.db
 .tmp-changes.txt
 .tmp-api-body.json
+.tmp-commit-msg.txt

@@ -31,12 +31,16 @@ const WorldBankSource = (() => {
       '?format=json&mrnev=1&per_page=30';
     try {
       const j = await request(url, { timeout: 12000 });
-      // 返回 [meta, rows]；国家无该指标数据时可能只有 meta 或空数组
+      // 返回 [meta, rows]；国家无该指标数据时可能只有 meta 或空数组。
+      // 索引键用 country.id（两位 ISO 码 CN，与 COUNTRIES 表的 c.iso 同一口径）：
+      // 旧实现用 countryiso3code（三位码 CHN）建索引、取数用两位码查，
+      // 永远对不上 → 所有指标为 null → 招牌的"世界经济仪表盘"整屏空白。
       const rows = Array.isArray(j) && j[1] ? j[1] : [];
       const out = {};
       rows.forEach(r => {
-        if (r && r.countryiso3code && typeof r.value === 'number') {
-          out[r.countryiso3code] = { v: r.value, date: String(r.date || '') };
+        const iso = r && r.country && r.country.id ? String(r.country.id).toUpperCase() : null;
+        if (iso && typeof r.value === 'number') {
+          out[iso] = { v: r.value, date: String(r.date || '') };
         }
       });
       return out;

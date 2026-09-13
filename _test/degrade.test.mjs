@@ -223,4 +223,7 @@ await test('最坏情况：所有源全挂 → 全部返回空数组、零异常
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);
-process.exit(fail ? 1 : 0);
+// 直接 process.exit 会掐断未关闭的 fetch keep-alive，Windows 上触发 libuv 断言（0xC0000409）
+// → 设退出码后短暂让出事件循环再退（boards 组同款修法）
+process.exitCode = fail ? 1 : 0;
+setTimeout(() => process.exit(fail ? 1 : 0), 500);

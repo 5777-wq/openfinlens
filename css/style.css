@@ -154,6 +154,10 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
   font-size: 30px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15;
   margin-top: 10px; color: var(--text); }
 .hero-chg { font-family: var(--font-mono); font-size: 12px; margin-top: 6px; color: var(--text-tertiary); }
+/* 复合选择器提高特异性：单类 .up/.down 与上面的 .hero-chg 平手且后者靠后，
+   曾把首屏四个大数字的涨跌行全部盖成灰色（P1-1） */
+.hero-chg.up { color: var(--up); }
+.hero-chg.down { color: var(--down); }
 
 /* ============================================================ 栏目（编号 + 细线） */
 .section { margin-bottom: 44px; }
@@ -452,6 +456,8 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; }
 .status-ok { color: var(--ok); }
 .status-bad { color: var(--warn); }
+/* 数据源状态已改为人话单句，异常时给警示色 */
+#sourceStatus.warn { color: var(--warn); }
 .selftest { margin-bottom: 32px; }
 .selftest summary { cursor: pointer; font-size: 11px; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--text-tertiary); }
@@ -537,7 +543,8 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
   .qr-price { grid-column: 2; grid-row: 1; font-size: 14px; }
   .qr-chg { grid-column: 2; grid-row: 2; }
   .qr-pct { grid-column: 3; grid-row: 1; font-size: 13px; }
-  .qr-amt { display: none; }
+  /* 成交额折到第二行小字而不是丢弃：活跃度核心指标，窄屏也不该消失（P1-3） */
+  .qr-amt { display: block; grid-column: 3; grid-row: 2; font-size: 10px; }
   .bc-lead { display: none; }
   .bchip { padding: 6px 9px; }
   .qrow .star { position: absolute; right: 4px; bottom: 8px; }
@@ -550,6 +557,10 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
   .tab { padding: 19px 0 15px; }
   .star { width: 32px; height: 32px; }
   .qrow { padding-top: 12px; padding-bottom: 12px; }
+  /* 详情页触控目标加大：星标（唯一收藏入口）曾 32px、返回 30px 高，低于 44px 通行下限 */
+  #detailStar { width: 40px; height: 40px; font-size: 18px; }
+  .back-btn { padding: 9px 16px; min-height: 40px; }
+  .icon-btn { height: 40px; }
 }
 
 /* ---- 手机端顶栏两行化：第一行 logo+搜索+设置，第二行 tabs 独占整行 ----
@@ -561,7 +572,10 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
   .topbar-actions { margin-left: auto; }
   .search-input { width: 138px; }
   .tabs { order: 3; flex: 0 0 100%; gap: 20px; min-width: 0; }
-  .tabs .tab { padding: 12px 0 13px; }
+  /* 触控热区 ≥40px（9 个 tab 挤 343px 曾只有 20-36px 宽）；右缘渐隐暗示可横滑 */
+  .tabs .tab { padding: 12px 8px 13px; min-height: 40px; display: inline-flex; align-items: center; }
+  .tabs { -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent 99%);
+    mask-image: linear-gradient(90deg, #000 90%, transparent 99%); }
 }
 
 /* ============================================================ splash 开屏 */
@@ -636,6 +650,8 @@ html.splash-on .topbar, html.splash-on .main { opacity: 0; }
 @keyframes crowFlash { 50% { background: rgba(255,122,24,0.12); } }
 
 .chain-table { border-top: 1px solid var(--border); }
+/* 热度条图例：解释归一口径（P1-9），否则用户不知道长条代表几个点 */
+.chain-legend { font-size: 11px; color: var(--text-tertiary); padding: 8px 2px 10px; }
 .crow { display: grid;
   grid-template-columns: 44px 130px 96px 90px 1fr 1fr 120px 20px;
   gap: 12px; align-items: center;

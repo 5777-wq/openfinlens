@@ -351,7 +351,7 @@
     const degTitle = deg === 'cache'
       ? '数据来自缓存 · ' + fmtTime(q.cachedAt || q.updatedAt)
       : '数据来自备用源';
-    const amt = q.amount ? fmtVol(q.amount) : (q.volume ? fmtVol(q.volume) : '');
+    const amt = q.amount ? fmtVol(q.amount) : '--';   // 成交额缺失显示 --，不用成交量顶替（量纲不同）
     const delay = (!animate || reduceMotion()) ? 0 : Math.min(idx, 12) * 60;
     return `<div class="qrow${animate && !reduceMotion() ? ' stagger-in' : ''}" data-symbol="${escapeHTML(q.symbol)}"
         tabindex="0" role="button" aria-label="${escapeHTML(q.name)} 详情"
@@ -421,13 +421,16 @@
      BTC 不给旗标：加密走自身 logo，再叠 coin 旗会出现两个 ₿（用户反馈） */
   const HERO_KEYS = ['sh000001', 'hkHSI', 'usINX'].concat(CRYPTO_ON ? ['BTCUSDT'] : []);
   const HERO_FLAG = { 'sh000001': 'cn', 'hkHSI': 'hk', 'usINX': 'us' };
+  // 等待数据时也显示中文名：裸 symbol（SH000001）是数据源内部代号，不该抛给用户
+  const HERO_LABEL = { 'sh000001': '上证指数', 'hkHSI': '恒生指数', 'usINX': '标普500', 'BTCUSDT': '比特币' };
   function renderHero() {
     const box = el.heroStrip;
     if (!box) return;
     const cells = HERO_KEYS.map(sym => {
       const q = state.quotes.get(sym);
       const flag = window.Flags ? window.Flags.flag(HERO_FLAG[sym]) : '';
-      if (!q) return `<div class="hero-cell"><div class="hero-label">${sym}</div><div class="hero-value">——</div><div class="hero-chg">等待数据</div></div>`;
+      const label = (q && q.name) || HERO_LABEL[sym] || sym;
+      if (!q) return `<div class="hero-cell"><div class="hero-label"><span>${flag}${escapeHTML(label)}</span></div><div class="hero-value">——</div><div class="hero-chg">等待数据</div></div>`;
       const digits = U.priceDigits(q.price);
       const cls = pctClass(q.changePct);
       const code = sym.startsWith('EM:') ? '' : escapeHTML(q.code || sym);
@@ -536,7 +539,7 @@
       }
       const amtNode = row.querySelector('.qr-amt');
       if (amtNode) {
-        const amt = q.amount ? fmtVol(q.amount) : (q.volume ? fmtVol(q.volume) : '');
+        const amt = q.amount ? fmtVol(q.amount) : '--';   // 成交额缺失显示 --，不用成交量顶替（量纲不同）
         if (amtNode.textContent !== amt) amtNode.textContent = amt;
       }
     });
@@ -697,7 +700,7 @@
     const via = state.heatVia[state.heatMode];
     const viaTxt = via === 'cache'
       ? '缓存 · ' + fmtTime(state.heatCachedAt[state.heatMode])
-      : via === 'backup' ? '备用源' : via ? '实时' : '等待数据';
+      : via === 'backup' ? '备用源' : via ? '主源直连' : '等待数据';
     const rangeTxt = state.heatMode === 'cn'
       ? (state.heatTopMode === 'top' ? ' · 市值 Top 500（宽度统计仍用全量）' : ' · 全市场')
       : '';
@@ -1245,6 +1248,9 @@
     const on = window.Store.watchlist.has(t.symbol);
     el.detailStar.textContent = on ? '★' : '☆';
     el.detailStar.classList.toggle('on', on);
+    // 读屏器需要知道按钮身份与收藏状态（卡片墙星标有，详情页这颗曾漏掉）
+    el.detailStar.setAttribute('aria-label', on ? '取消收藏' : '收藏');
+    el.detailStar.setAttribute('aria-pressed', String(on));
   }
 
   /* ==================== 新闻流 ==================== */
@@ -1473,13 +1479,18 @@
     const pts = state.eventsSub === 'map' ? (state.mapStatusPts || state.globeStatusPts) : state.globeStatusPts;
     if (!state.eventsVia) {
       el.globeStatus.classList.add('warn');
-      el.globeStatus.textContent = '暂无数据 · 采集任务未运行（GitHub Actions 每 5 分钟采集一轮）';
+      el.globeStatus.textContent = '数据更新中，请稍候 · 通常几分钟内自动恢复';
       return;
     }
-    const when = state.eventsGenAt ? fmtTime(state.eventsGenAt) : '时间未知';
+    // 更新时间带日期（跨天数据只写时刻会让用户误读成"今天早上"），
+    // 滞后时给出量化小时数而不是只写一个"滞后"
+    const when = state.eventsGenAt ? fmtNewsTime(state.eventsGenAt) : '时间未知';
+    const lagH = state.eventsGenAt
+      ? Math.max(0, Math.round((Date.now() - state.eventsGenAt) / 3600000)) : null;
     el.globeStatus.classList.toggle('warn', !!state.eventsStale);
     const src = (state.eventsVia === 'cache' ? '缓存 · ' : '') + (state.eventsSource || '') +
-      ' · 更新于 ' + when + (state.eventsStale ? ' · 滞后' : '');
+      ' · 更新于 ' + when +
+      (state.eventsStale ? ` · 数据已滞后 ${lagH === null ? '?' : lagH} 小时` : '');
     el.globeStatus.textContent = pts ? src + ' · ' + pts : src;
   }
 
@@ -1514,10 +1525,12 @@
       list = list.filter(e => e.publishedAt >= state.timelineFrom && e.publishedAt < to);
     }
     if (!list.length) {
-      el.eventList.innerHTML = '<div class="empty">' + (state.timelineFrom !== null ? '该时间段暂无事件 · 再点一次时间轴柱取消过滤' : '暂无事件数据 · 采集任务每 5 分钟运行一轮，工作流首次上线约 10 分钟内出数据') + '</div>';
+      el.eventList.innerHTML = '<div class="empty">' + (state.timelineFrom !== null ? '该时间段暂无事件 · 再点一次时间轴柱取消过滤' : '暂无事件数据 · 数据更新中，稍后自动出现') + '</div>';
       return;
     }
-    el.eventList.innerHTML = list.slice(0, 80).map(ev => {
+    // 列表截断到 80 条要有明示：否则"列表 80 条 vs 统计 102 条"看起来像丢了数据
+    const sliced = list.slice(0, 80);
+    el.eventList.innerHTML = sliced.map(ev => {
       const sel = state.selEvent && state.selEvent.id === ev.id;
       return `<div class="news-item event-row${sel ? ' sel' : ''}" data-ev="${escapeHTML(ev.id)}" tabindex="0" role="button"
           aria-label="${escapeHTML(ev.title)}">
@@ -1530,7 +1543,7 @@
         </div>
         <div class="news-title">${escapeHTML(ev.title)}</div>
       </div>`;
-    }).join('');
+    }).join('') + (list.length > 80 ? `<div class="empty">共 ${list.length} 条 · 仅显示最近 80 条</div>` : '');
   }
 
   function renderEventDetail(ev) {
@@ -1758,6 +1771,13 @@
         renderGlobeLegend();
       } else {
         state.globeFailed = true;   // vendor/WebGL 不可用：列表模式兜底，不再反复尝试
+        // WebGL 失败曾表现为"黑屏 + 兜底节点永隐"：给出人话说明与现成的平面地图出口
+        //（data-evsub 走既有点击委托 → setEventsSub('map')，平面地图是纯 Canvas 备选）
+        if (el.globeFallback) {
+          el.globeFallback.hidden = false;
+          el.globeFallback.innerHTML = '此设备无法显示 3D 地球（WebGL 不可用），事件列表仍可正常使用 ' +
+            '<button class="pill" data-evsub="map">切换到平面地图</button>';
+        }
       }
       return g;
     });
@@ -1827,7 +1847,7 @@
     if (!el.lhbBox) return;
     const res = state.lhb;
     if (!res || !res.rows.length) {
-      el.lhbBox.innerHTML = '<div class="empty">龙虎榜暂不可用（东财数据中心未响应，稍后自动重试）</div>';
+      el.lhbBox.innerHTML = '<div class="empty">龙虎榜暂不可用，稍后自动重试</div>';
       if (el.lhbVia) el.lhbVia.textContent = '';
       return;
     }
@@ -1892,7 +1912,7 @@
     if (!el.seatDir) return;
     const list = state.actors || [];
     if (!list.length) {
-      el.seatDir.innerHTML = '<div class="empty">席位明细暂不可用（东财数据中心未响应，稍后自动重试）</div>';
+      el.seatDir.innerHTML = '<div class="empty">席位明细暂不可用，稍后自动重试</div>';
       if (el.seatDirVia) el.seatDirVia.textContent = '';
       return;
     }
@@ -2059,7 +2079,7 @@
 
   function renderBrkEmpty() {
     if (!el.brkBox) return;
-    el.brkBox.innerHTML = '<div class="empty">暂无 13F 数据（采集任务未运行）。持仓数据必须来自 SEC 官方披露，本页不做任何编造。</div>';
+    el.brkBox.innerHTML = '<div class="empty">暂无伯克希尔持仓数据 · 数据来自 SEC 官方季度披露，更新中</div>';
     if (el.brkVia) el.brkVia.textContent = '';
   }
 
@@ -2174,20 +2194,21 @@
   async function loadMacro() {
     if (!el.macroBox) return;
     const c = Cache.raw('wbmacro');
-    if (c && Date.now() - c.at < 86400000) { renderMacro(c.val); return; }   // 年度数据缓存 24h
+    if (c && Date.now() - c.at < 86400000) { renderMacro(c.val, 'cache'); return; }   // 年度数据缓存 24h
     el.macroBox.innerHTML = '<div class="sk sk-row"></div>';
     const data = await window.WorldBankSource.getMacro();
     if (data) {
       Cache.set('wbmacro', data);
-      renderMacro(data);
+      renderMacro(data, 'live');
     } else if (c) {
-      renderMacro(c.val);
+      // 上游失败：展示上次成功值并标注缓存时间，不再与实时数据混为一谈
+      renderMacro(c.val, 'cache');
     } else {
       el.macroBox.innerHTML = '<div class="empty">世界银行数据暂不可用（年度指标，每日更新）</div>';
     }
   }
 
-  function renderMacro(data) {
+  function renderMacro(data, via) {
     if (!el.macroBox || !data) return;
     const inds = data.indicators;
     const keys = Object.keys(inds);
@@ -2213,7 +2234,7 @@
     };
     el.macroBox.innerHTML = `<div class="section-head">
         <h2 class="section-title">世界经济仪表盘</h2>
-        <span class="section-sub">世界银行年度指标（每国最新值）· 免密钥数据源</span>
+        <span class="section-sub">世界银行年度指标（每国最新值）· 免密钥数据源${via === 'cache' && data.updatedAt ? ' · 缓存于 ' + fmtTime(data.updatedAt) : ''}</span>
       </div>
       <div class="macro-table">
         <div class="mrow mhead"><span class="mcell mname">国家 / 指标</span>${keys.map(k => `<span class="mcell" title="${escapeHTML(inds[k].hint)}">${escapeHTML(inds[k].label)}</span>`).join('')}</div>
@@ -2269,7 +2290,7 @@
     if (!el.boardStrip) return;
     if (!state.boardItems.length) {
       // 降级：榜单拿不到时只藏这一小块，产业链表照常工作，绝不弹错误
-      el.boardStrip.innerHTML = '<span class="board-empty">概念榜单暂不可用（行情源未响应）</span>';
+      el.boardStrip.innerHTML = '<span class="board-empty">热门概念暂不可用，稍后自动重试</span>';
       el.boardVia.textContent = '';
       return;
     }
@@ -2406,13 +2427,16 @@
       const open = state.openChains.has(st.chain.id);
       const cls = pctClass(st.avg);
       const ratio = st.avg === null ? 0 : Math.min(1, Math.abs(st.avg) / maxAbs);
-      const mixTxt = [st.mix.A ? st.mix.A + 'A' : '', st.mix.H ? st.mix.H + 'H' : '', st.mix.US ? st.mix.US + 'US' : '']
-        .filter(Boolean).join('·');
+      // "15A · 2US"是维护口径；用户语言是"17 只（含港美股 2 只）"，明细放 title
+      const overseas = st.mix.H + st.mix.US;
+      const mixDetail = ['A ' + st.mix.A, st.mix.H ? 'H ' + st.mix.H : '', st.mix.US ? '美股 ' + st.mix.US : '']
+        .filter(Boolean).join(' · ');
+      const mixTxt = st.total + ' 只' + (overseas ? `（含港美股 ${overseas} 只）` : '');
       return `<div class="crow${open ? ' open' : ''}" data-chain="${st.chain.id}" tabindex="0" role="button"
           aria-expanded="${open}">
         <span class="cr-no num">${String(i + 1).padStart(2, '0')}</span>
         <span class="cr-name">${escapeHTML(st.chain.name)}</span>
-        <span class="cr-mix num" title="成分股市场分布">${mixTxt || '--'}</span>
+        <span class="cr-mix num" title="市场分布：${escapeHTML(mixDetail)}">${escapeHTML(mixTxt)}</span>
         <span class="cr-avg num ${cls}">${fmtPct(st.avg)}</span>
         <span class="cr-best num" title="领涨">${st.best ? escapeHTML(st.best.name) + ' <b class="up">' + fmtPct(st.best.pct) + '</b>' : '--'}</span>
         <span class="cr-worst num" title="领跌">${st.worst ? escapeHTML(st.worst.name) + ' <b class="down">' + fmtPct(st.worst.pct) + '</b>' : '--'}</span>
@@ -2421,7 +2445,9 @@
       </div>` +
       (open ? renderChainOpen(st.chain) : '');
     }).join('');
-    el.chainList.innerHTML = `<div class="chain-table">${rows || '<div class="empty">板块数据加载中…</div>'}</div>`;
+    // 热度条图例：说明归一口径，用户才知道长条代表几个点
+    el.chainList.innerHTML = `<div class="chain-legend">板块平均涨跌幅 · 热度条按当日最强板块（${fmtPct(maxAbs)}）归一</div>` +
+      `<div class="chain-table">${rows || '<div class="empty">板块数据加载中…</div>'}</div>`;
   }
 
   // 展开的单个板块：环节流程条 + 已展开环节的成分股
@@ -2626,6 +2652,9 @@
     }
     const view = VIEW_OF_TAB[tab] || 'market';
     setView(view);
+    // 标的计数跟随 tab：renderStatus 平时只在轮询 tick 里跑，不补这次的话
+    // 切板块后"47 个标的"要等下一个刷新周期才变
+    renderStatus();
     // 「全球市场」总览（hero + 全球指数条）只在「全部」出现；各板块用自己的标题（用户反馈：别到处粘）
     const MKT_TITLE = { all: '全球市场', cn: 'A股市场', hkus: '港美市场', crypto: '加密市场', fxmacro: '世界经济' };
     if (el.marketTitle) el.marketTitle.textContent = MKT_TITLE[tab] || '全球市场';
@@ -2887,16 +2916,48 @@
 
   /* ==================== 状态栏 / 自检 ==================== */
 
+  // 当前 tab 实际可见的标的数：状态栏的"47 个标的"曾取全局池大小，
+  // 在 A股/港美等板块下与所见行数对不上，用户以为没加载完
+  function visibleQuoteCount() {
+    const groups = new Set(groupsForTab(state.tab));
+    const tabFilter = { cn: 'cn', hkus: 'hkus', crypto: 'crypto', fxmacro: 'fxmacro' }[state.tab];
+    let n = 0;
+    state.quotes.forEach(q => {
+      const g = q.group || q.market;
+      if (!groups.has(g)) return;
+      if (tabFilter && g !== 'crypto') {
+        const meta = LABELS.get(q.symbol);
+        if (!meta || meta.tab !== tabFilter) return;
+      }
+      n++;
+    });
+    return n;
+  }
+
+  // 源返回的最新行情时刻（腾讯 quoteAt，沪深/港与北京同域）：与"抓取时间"分开标注，
+  // 休市日不再把"上周五收盘"伪装成"刚刚的实时行情"
+  function latestQuoteAt() {
+    let max = 0;
+    state.quotes.forEach(q => { if (q.quoteAt && q.quoteAt > max) max = q.quoteAt; });
+    return max;
+  }
+
   function renderStatus() {
+    // 数据源状态说人话：逐源代号对用户是噪音（细节保留在"开发者自检"区）
     const items = window.SourceState.all();
-    el.sourceStatus.innerHTML = items.map(([k, v]) =>
-      `<span class="${v.ok ? 'status-ok' : 'status-bad'}">${escapeHTML(k)} ${v.ok ? '正常' : '降级'}</span>`
-    ).join('') || '<span>初始化中…</span>';
+    const bad = items.filter(([, v]) => !v.ok);
+    el.sourceStatus.textContent = bad.length
+      ? '部分数据源响应异常 · 已自动切换备用源，数据仍在刷新'
+      : '数据源全部正常';
+    el.sourceStatus.classList.toggle('warn', bad.length > 0);
     const degCount = state.degraded.size;
-    el.updatedLine.textContent = '最后更新 ' + (state.lastUpdate ? fmtTime(state.lastUpdate) : '--') +
+    const quoteAt = latestQuoteAt();
+    const fetchAt = state.lastUpdate;
+    el.updatedLine.textContent = '行情 ' + (quoteAt ? fmtNewsTime(quoteAt) : '--') +
+      ' · 抓取 ' + (fetchAt ? fmtTime(fetchAt) : '--') +
       (degCount ? ` · ${degCount} 个标的使用备源/缓存` : '');
-    el.marketSub.textContent = `${state.quotes.size} 个标的 · 每 ${window.Store.settings.get().refresh}s 刷新 · ` +
-      '最后更新 ' + (state.lastUpdate ? fmtTime(state.lastUpdate) : '--');
+    el.marketSub.textContent = `${visibleQuoteCount()} 个标的 · 每 ${window.Store.settings.get().refresh}s 刷新 · ` +
+      '抓取 ' + (fetchAt ? fmtTime(fetchAt) : '--');
   }
 
   function renderSelfTest() {
@@ -3355,10 +3416,13 @@
     applySettings();
     bindEvents();
     renderStatus();
-    // 触屏设备上"滚轮/拖拽/右键"全是错词
-    if (el.heatHint && window.matchMedia('(pointer: coarse)').matches) {
-      el.heatHint.textContent = '单指拖动 · 双指缩放 · 长按查看';
+    // 触屏/无悬停设备上"滚轮/右键"全是错词，且复位入口要默认可见
+    //（否则触屏用户可能永远找不到复位）；坐标仍由 onViewportChange 维护
+    const touchLike = window.matchMedia('(pointer: coarse), (hover: none)').matches;
+    if (el.heatHint && touchLike) {
+      el.heatHint.textContent = '单指拖动 · 双指缩放 · 长按查看 · 点「复位」回初始视图';
     }
+    if (el.heatReset && touchLike) el.heatReset.hidden = false;
 
     // 开屏跳过：点击/按键立即 reveal
     const sp = document.getElementById('splash');

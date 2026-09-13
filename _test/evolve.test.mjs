@@ -264,4 +264,7 @@ await test('targetFromHashSymbol 前缀规则（与适配器对齐）', () => {
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);
-process.exit(fail ? 1 : 0);
+// 直接 process.exit 会掐断未关闭的 fetch keep-alive，Windows 上触发 libuv 断言（0xC0000409）
+// → 设退出码后短暂让出事件循环再退（boards 组同款修法）
+process.exitCode = fail ? 1 : 0;
+setTimeout(() => process.exit(fail ? 1 : 0), 500);

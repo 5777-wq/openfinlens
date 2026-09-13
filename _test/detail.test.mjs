@@ -37,6 +37,7 @@ const ctx = makeCtx();
 const load = (rel) => vm.runInContext(readFileSync(path.join(ROOT, rel), 'utf8'), ctx, { filename: rel });
 load('js/utils.js'); load('js/store.js'); load('js/proxy.js');
 load('js/sources/tencent.js'); load('js/sources/eastmoney.js'); load('js/sources/binance.js'); load('js/sources/okx.js');
+load('js/sources/worldbank.js');
 const W = vm.runInContext('window', ctx);
 
 /* ---- 从 app.js / charts.js 抽取"真函数"在测（旧写法是手工复刻副本，
@@ -61,6 +62,47 @@ await test('代码互转：腾讯 symbol ↔ 东财 secid 双向一致（含北�
     assert.equal(toSecid(sym), secid, sym + ' → secid');
     assert.equal(tencentOfSecid(secid), sym, secid + ' → symbol');
   });
+});
+
+/* ================= 成交额单位与行情时间（P0-1 回归） ================= */
+await test('成交额单位分流：A股/A股指数 ×1e4，港/美股及其指数 ×1', () => {
+  assert.equal(W.TencentSource.amountScale('sh600519'), 1e4);
+  assert.equal(W.TencentSource.amountScale('sh000001'), 1e4);
+  assert.equal(W.TencentSource.amountScale('sz300750'), 1e4);
+  assert.equal(W.TencentSource.amountScale('bj920001'), 1e4);
+  assert.equal(W.TencentSource.amountScale('hk00700'), 1);
+  assert.equal(W.TencentSource.amountScale('hkHSI'), 1);
+  assert.equal(W.TencentSource.amountScale('usAAPL'), 1);
+  assert.equal(W.TencentSource.amountScale('usINX'), 1);
+});
+
+await test('行情时间解析：北京域市场按 +8 折算，美股显式 null（时区诚实）', () => {
+  // 2026-09-13 15:00:01 北京时间 = 07:00:01 UTC
+  assert.equal(W.TencentSource.quoteTimeOf('20260913150001'), Date.UTC(2026, 8, 13, 7, 0, 1));
+  assert.equal(W.TencentSource.quoteTimeOf('20260913 15:00:01'), Date.UTC(2026, 8, 13, 7, 0, 1));
+  assert.equal(W.TencentSource.quoteTimeOf(''), null);
+});
+
+await test('实数据量级：港/美股成交额是元级（旧 bug 曾放大 1 万倍显示 66.7 万亿）', async () => {
+  const qs = await W.TencentSource.getQuotes(['sh600519', 'sh000001', 'hk00700', 'usAAPL']);
+  const by = Object.fromEntries(qs.map(q => [q.symbol, q]));
+  // A股：f[37] 单位是万，×1e4 后为元级（茅台日成交通常数十亿元）
+  assert.ok(by['sh600519'] && by['sh600519'].amount > 1e8 && by['sh600519'].amount < 1e12,
+    '茅台成交额应在亿~千亿级: ' + (by['sh600519'] || {}).amount);
+  assert.ok(by['sh000001'] && by['sh000001'].amount > 1e9 && by['sh000001'].amount < 5e13,
+    '上证成交额应在百亿~万亿级: ' + (by['sh000001'] || {}).amount);
+  // 港/美股：接口已是元，×1（旧 bug 值 6.7e13 必然越界）
+  assert.ok(by['hk00700'] && by['hk00700'].amount > 1e7 && by['hk00700'].amount < 5e11,
+    '腾讯控股成交额应约数十亿港元级: ' + (by['hk00700'] || {}).amount);
+  assert.ok(by['usAAPL'] && by['usAAPL'].amount > 1e7 && by['usAAPL'].amount < 5e11,
+    '苹果成交额应约数十亿美元级: ' + (by['usAAPL'] || {}).amount);
+});
+
+await test('世界银行：8 国 ×6 指标 ≥32 非空（P0-2 回归：码位错位时为 0）', async () => {
+  const data = await W.WorldBankSource.getMacro();
+  assert.ok(data, 'getMacro 不应返回 null（全部为空=索引键仍错位）');
+  const filled = data.rows.reduce((s, r) => s + Object.values(r.values).filter(Boolean).length, 0);
+  assert.ok(filled >= 32, '非空指标仅 ' + filled + ' / 48（应 ≥32，错位时为 0）');
 });
 
 /* ================= 三周期 K线（真实数据） ================= */
