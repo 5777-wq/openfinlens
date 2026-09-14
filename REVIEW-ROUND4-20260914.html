@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenFinLens 第四轮审核报告 · 2026-09-14</title>
+<style>
+:root{
+  --bg:#fbfbfa; --card:#fff; --ink:#1a1a1c; --ink2:#4a4a50; --ink3:#7c7c85;
+  --line:#e6e6e2; --line2:#f0f0ec;
+  --bad:#c0392b; --badbg:#fdf1ef; --badline:#f0c9c2;
+  --warn:#b5741a; --warnbg:#fdf7ec; --warnline:#f0dcb4;
+  --info:#3a6ea5; --infobg:#f1f5fa; --infoline:#cddcec;
+  --ok:#1f7a52; --okbg:#eff8f3; --okline:#c6e5d5;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:56px 32px 96px}
+code,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+code{background:#f3f3ef;border:1px solid var(--line);border-radius:3px;padding:1px 5px;font-size:12.5px}
+pre{background:#f7f7f4;border:1px solid var(--line);border-radius:5px;padding:13px 16px;overflow-x:auto;
+  font:12.5px/1.7 var(--mono);color:var(--ink2);margin:12px 0}
+.hd{border-bottom:2px solid var(--ink);padding-bottom:26px;margin-bottom:38px}
+.eyebrow{font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px}
+h1{font-size:32px;line-height:1.25;margin:0 0 12px;letter-spacing:-.02em;font-weight:700}
+.sub{color:var(--ink2);font-size:15.5px;max-width:78ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:20px;font:12.5px/1.6 var(--mono);color:var(--ink3)}
+.meta b{color:var(--ink2);font-weight:600}
+h2{font-size:22px;letter-spacing:-.01em;margin:52px 0 8px;padding-top:22px;border-top:1px solid var(--line);font-weight:700}
+h2 .cnt{font:600 12px/1 var(--mono);color:var(--ink3);vertical-align:middle;margin-left:8px}
+h3{font-size:16.5px;margin:28px 0 8px;font-weight:700}
+p{margin:10px 0;color:var(--ink2)}
+.lead{color:var(--ink);font-size:16px}
+ul,ol{margin:10px 0;padding-left:22px;color:var(--ink2)}
+li{margin:5px 0}
+strong{color:var(--ink);font-weight:650}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0 8px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.kpi .n{font:600 29px/1 var(--mono);letter-spacing:-.02em}
+.kpi .l{font-size:12.5px;color:var(--ink3);margin-top:7px}
+.kpi.good .n{color:var(--ok)} .kpi.warn .n{color:var(--warn)} .kpi.bad .n{color:var(--bad)} .kpi.info .n{color:var(--info)}
+.b{display:inline-block;font:700 10.5px/1 var(--mono);letter-spacing:.05em;padding:3px 7px;border-radius:3px;vertical-align:1px;white-space:nowrap}
+.b.ok{background:var(--ok);color:#fff} .b.warn{background:var(--warn);color:#fff}
+.b.info{background:var(--info);color:#fff} .b.bad{background:var(--bad);color:#fff} .b.g{background:#ecece8;color:var(--ink2)}
+.issue{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:5px;padding:20px 24px;margin:18px 0}
+.issue.bad{border-left-color:var(--bad)} .issue.warn{border-left-color:var(--warn)}
+.issue.info{border-left-color:var(--info)} .issue.ok{border-left-color:var(--ok)}
+.issue h3{margin:0 0 4px;font-size:17px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.issue .id{font:700 11px/1 var(--mono);color:var(--ink3);letter-spacing:.05em}
+.issue .one{color:var(--ink2);font-size:14.5px;margin:6px 0 14px;padding-bottom:13px;border-bottom:1px dashed var(--line)}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line2);vertical-align:top}
+th{font:700 10.5px/1.5 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr:hover{background:#fafaf7}
+td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+td.c,th.c{text-align:center}
+tr.good td{background:var(--okbg)} tr.bad td{background:var(--badbg)} tr.warn td{background:var(--warnbg)} tr.mute td{color:var(--ink3)}
+.note{border-radius:5px;padding:13px 17px;margin:14px 0;font-size:14px}
+.note.bad{background:var(--badbg);border:1px solid var(--badline)}
+.note.warn{background:var(--warnbg);border:1px solid var(--warnline)}
+.note.info{background:var(--infobg);border:1px solid var(--infoline)}
+.note.ok{background:var(--okbg);border:1px solid var(--okline)}
+.note .t{font-weight:700;font-size:13px;margin-bottom:5px}
+.note.bad .t{color:var(--bad)} .note.warn .t{color:var(--warn)}
+.note.info .t{color:var(--info)} .note.ok .t{color:var(--ok)}
+footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink3)}
+@media(max-width:820px){.wrap{padding:36px 20px 64px}.kpis{grid-template-columns:1fr 1fr}h1{font-size:25px}}
+@media(max-width:520px){.kpis{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hd">
+  <div class="eyebrow">Fourth Round Review · OpenFinLens · 2026-09-14</div>
+  <h1>金融看板第四轮审核报告</h1>
+  <p class="sub">本轮分两件事：<strong>复检</strong>（距上轮验收已过 21 小时，且今天从周日进入周一交易日，数据源状态完全不同）与<strong>对抗性抽查</strong>（不再问"有没有数据"，而是问"数据本身对不对"）。复检全过；抽查命中一个<strong>至今没人发现的一行代码缺陷</strong>。</p>
+  <div class="meta">
+    <span><b>审核对象</b> commit <code>6b0baf1</code>（与上轮同一版本，代码未改动）</span>
+    <span><b>审核时间</b> 2026-09-14 21:20–21:40</span>
+    <span><b>交易状态</b> 周一交易日（上轮为周日休市）</span>
+    <span><b>源码改动</b> 0</span>
+  </div>
+</div>
+
+<h2 style="border-top:none;padding-top:0;margin-top:0">结论</h2>
+<p class="lead">先说前提：<strong>代码自上一轮验收后没有任何改动</strong>（HEAD 仍是 <code>6b0baf1</code>，近 4 小时无文件写入）。所以本轮不是"验证新修复"，而是<strong>换一个时间点重新验证、并把上轮标"未验证"的项补上</strong>。</p>
+
+<div class="kpis">
+  <div class="kpi good"><div class="n">8/8</div><div class="l">上轮修复项 · 复检维持</div></div>
+  <div class="kpi good"><div class="n">1</div><div class="l">上轮"未验证"项 · 已补验通过</div></div>
+  <div class="kpi bad"><div class="n">1</div><div class="l">新发现 · 指标代码错误</div></div>
+  <div class="kpi warn"><div class="n">2</div><div class="l">新发现 · 数据呈现问题</div></div>
+</div>
+
+<h2>一、新发现：失业率指标代码是错的 <span class="cnt">一行修复 · 影响 1/6 的指标</span></h2>
+
+<div class="issue bad">
+  <h3><span class="id">N-1</span> 「失业率」整列永远是 <code>--</code>，因为世界银行根本没有这个指标代码 <span class="b bad">P1</span></h3>
+  <p class="one">世界经济仪表盘 6 个指标里，「失业率」这一列 8 个国家全部显示 <code>--</code>。上轮我把这当成"世界银行没发布数据"就放过了——<b>这是我的漏判</b>。这次我逐个核对了指标代码，发现是代码写错了。</p>
+
+  <div class="blk">
+    <p><code>js/sources/worldbank.js:14</code></p>
+    <pre>unemp: { code: 'SL.UEM.TOTL.ZG', label: '失业率', hint: '总失业 %' },
+                     ^^ 这个后缀不存在</pre>
+    <p>实测对比（同样的 8 国、同样的 <code>mrnev=1</code> 参数）：</p>
+    <table>
+      <thead><tr><th>指标代码</th><th>返回国家数</th><th>数据年份</th><th>样本值</th><th class="c">判定</th></tr></thead>
+      <tbody>
+        <tr class="bad"><td><code>SL.UEM.TOTL.<b>ZG</b></code>（现用）</td><td class="n">0</td><td>—</td><td>—</td><td class="c"><span class="b bad">无效代码</span></td></tr>
+        <tr class="good"><td><code>SL.UEM.TOTL.<b>ZS</b></code>（正确）</td><td class="n">8</td><td>全部 2025</td><td>中国 4.615% · 德国 3.711% · 法国 7.542% · 英国 4.746%</td><td class="c"><span class="b ok">可用</span></td></tr>
+      </tbody>
+    </table>
+    <p>世界银行的失业率标准口径就是 <code>SL.UEM.TOTL.ZS</code>（Unemployment, total — % of total labor force, modeled ILO estimate）。<code>ZG</code> 这个后缀在世行指标表里不存在，所以接口对它返回空数组——而代码把"空数组"当作"该国无数据"，于是一整列静默失效。</p>
+  </div>
+
+  <div class="note bad"><div class="t">为什么这个缺陷能躲过三轮验收</div>
+  第一轮我验证的是"世界经济表从空白变成有数据"（P0-2 修复）——当时看到 8 国 × 6 指标里"绝大多数有数"就通过了。<strong>但"有数据"和"数据齐"是两回事，而"数据齐"和"数据对"又是一回事。</strong>这一列从第一天起就是空的，没有任何变化，所以"修复前后对比"这种验证方式天然看不见它。<br>
+  这正是我在番茄钟那边强调的同一条：<b>验证要看数据本身对不对，不能只看"有数据"。</b></div>
+
+  <div class="note info"><div class="t">修复建议</div>
+  把 <code>'SL.UEM.TOTL.ZG'</code> 改成 <code>'SL.UEM.TOTL.ZS'</code>，一行。改完加一条断言：<b>6 个指标各自至少返回 6 个国家的非空值</b>——用"每列都要有数"来防这类静默失效，比"总共非空数 ≥ N"更严格（现在的测试用的是后者，一整列空缺并不会让它红）。</div>
+</div>
+
+<h2>二、新发现：世界经济表的数据呈现 <span class="cnt">2 项 · P2</span></h2>
+
+<div class="issue warn">
+  <h3><span class="id">N-2</span> 跨 34 年的数据被放进同一个色阶里横向比较</h3>
+  <p class="one">「政府债务」这一列的真实数据是这样的：</p>
+  <table>
+    <thead><tr><th>国家</th><th>显示值</th><th>数据年份</th><th>年份跨度</th></tr></thead>
+    <tbody>
+      <tr class="bad"><td>德国</td><td class="num">20.9%</td><td class="num">1990</td><td rowspan="5" style="vertical-align:middle">1990 → 2024<br><strong>跨度 34 年</strong></td></tr>
+      <tr class="bad"><td>印度</td><td class="num">46.5%</td><td class="num">2018</td></tr>
+      <tr><td>美国</td><td class="num">116%</td><td class="num">2024</td></tr>
+      <tr><td>英国</td><td class="num">131%</td><td class="num">2024</td></tr>
+      <tr><td>韩国</td><td class="num">47.8%</td><td class="num">2024</td></tr>
+      <tr class="mute"><td>中国 / 日本 / 法国</td><td class="num">--</td><td>—</td><td>该指标无数据</td></tr>
+    </tbody>
+  </table>
+  <p>界面上每格都标了年份（这点做得对），但<strong>「列内色阶热图」这件事本身隐含了"同一时间截面的横向比较"</strong>。用户扫一眼颜色深浅，会得出"德国债务水平最低"的结论——而那个 20.9% 是 1990 年的西德。<b>拿 1990 年的德国和 2024 年的美国比债务率，比出来的东西没有意义。</b></p>
+  <div class="note warn"><div class="t">建议</div>三个层次，任选：①色阶只在<strong>同年份</strong>的国家之间生效，跨年份的格子用中性底；②列头标注"数据年份跨度大，勿直接横比"；③把年份差异过大的行（德国 1990、印度 2018）视觉上分离出来（如加淡化或加"数据陈旧"标记）。</div>
+</div>
+
+<div class="issue warn">
+  <h3><span class="id">N-3</span> 「整列无数据」和「该年未发布」被当成同一件事</h3>
+  <p class="one">表格底部现在的说明是：「缺失 = 世界银行该年尚未发布」。但实际存在两种性质完全不同的缺失：</p>
+  <ul>
+    <li><strong>指标级缺失</strong>：失业率——该指标代码无效（N-1），8 国全空；政府债务——中国/日本/法国根本没有这个口径的数据（世行只提供中央政府债务）。</li>
+    <li><strong>年份级缺失</strong>：某国某年数据尚未发布。</li>
+  </ul>
+  <p>前者不是"等一等就会有"，用户对着它刷新是没用的。建议至少把「失业率」整列的情况说清楚（修掉 N-1 后这一列就正常了），并在政府债务列头注明它是"中央政府债务口径、覆盖不全"。</p>
+</div>
+
+<h2>三、上轮修复项复检 <span class="cnt">8 项 · 全部维持</span></h2>
+<p>今天从周日进入周一交易日，数据源状态与上轮完全不同（上轮全部休市、数据是上周五收盘；今天盘中数据实时），正好构成一次天然的换环境复验。</p>
+
+<table>
+  <thead><tr><th>项</th><th>上轮结论</th><th>本轮实测（周一交易日）</th><th class="c">结果</th></tr></thead>
+  <tbody>
+    <tr class="good"><td>成交额 · A股个股/指数</td><td>正确</td><td>上证 7792.81 亿 · 茅台 21.17 亿 · 宁德 88.72 亿</td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>成交额 · <b>港股指数</b>（回归修复项）</td><td>2284.31 亿</td><td><b>恒生 1926.25 亿 · 恒生科技 426.91 亿</b>（新交易日数据，量级正确）</td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>成交额 · 美股指数（诚实留空项）</td><td><code>--</code></td><td>道琼斯 / 纳斯达克 / 标普500 全部 <code>--</code>；详情页该统计格直接不渲染</td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>成交额 · 港美个股</td><td>正确</td><td>腾讯 48.92 亿 · 阿里 51.22 亿 · 苹果 168.96 亿 · 英伟达 195.54 亿</td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>成交额 · 无该字段的品类</td><td><code>--</code></td><td>外汇 6 + 商品 6 + 国债 6，共 18 个标的全部 <code>--</code>（不再用成交量顶替）</td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>首屏涨跌配色</td><td>红涨绿跌生效</td><td><code>down = rgb(46,189,133)</code> · <code>up = rgb(255,92,92)</code></td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>指数条对齐</td><td>6 格全对齐</td><td>6 格 <code>valTop</code> 全部 = 366（移动端 = 528）</td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>板块副标题</td><td>语境化摘要</td><td>全部 47/47 · A股 8/8 · 港美 15/15 · 加密 6/6；宏观「世界经济 · 8 国年度指标」· 事件「全球事件 82 条」· 聪明钱「龙虎榜 60 只上榜 · 席位 239 个」· 产业链「10 条产业链」· 自选「自选 0 只」</td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>产业链列宽</td><td>单行不折</td><td><code>height = scrollHeight = 15px</code>；文案「18 只（含港美股 3 只）」；图例「热度条按当日最强板块（+2.24%）归一」</td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>时间双口径</td><td>行情/抓取分列</td><td>「行情 16:14 · 抓取 21:23:31」；热力图角标「主源直连」；数据源状态「数据源全部正常」</td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>移动端 · 成交额折叠</td><td>可见</td><td>375px 下 <code>qr-amt</code> = <code>block</code>，行文本含「7792.81亿」</td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>移动端 · 触屏文案与复位</td><td>分叉生效</td><td><code>pointer:coarse = true</code> →「单指拖动 · 双指缩放 · 长按查看 · 点「复位」回初始视图」，复位按钮默认可见「复位 ×1.0」</td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>移动端 · 星标与返回</td><td>触控尺寸达标</td><td>星标 40×40 + <code>aria-label="收藏"/aria-pressed="false"</code>；返回 74×40</td><td class="c"><span class="b ok">维持</span></td></tr>
+    <tr class="good"><td>无横向溢出</td><td>—</td><td>375px：<code>scrollWidth = clientWidth = 375</code>；768px 同样相等</td><td class="c"><span class="b ok">维持</span></td></tr>
+  </tbody>
+</table>
+
+<h2>四、补验上轮标「未验证」的项：WebGL 兜底 <span class="cnt">1 项 · 通过</span></h2>
+
+<div class="issue ok">
+  <h3><span class="id">V-1</span> WebGL 不可用时，降级路径确实存在且可用 <span class="b ok">已补验</span></h3>
+  <p class="one">上轮我写的是"本机 WebGL 可用，未触发该分支"。这次我用 <code>--disable-gpu --disable-3d-apis --disable-webgl --disable-webgl2</code> 启动浏览器，把 WebGL 彻底关掉再跑事件页。</p>
+  <pre>canvas.getContext('webgl2') = null
+canvas.getContext('webgl')  = null
+canvas.getContext('experimental-webgl') = null      ← 环境确认：WebGL 真的不可用</pre>
+  <table>
+    <thead><tr><th>检查点</th><th>实测</th><th class="c">结果</th></tr></thead>
+    <tbody>
+      <tr class="good"><td>兜底节点是否显示</td><td><code>#globeFallback.hidden = false</code></td><td class="c"><span class="b ok">是</span></td></tr>
+      <tr class="good"><td>文案</td><td>「此设备无法显示 3D 地球（WebGL 不可用），事件列表仍可正常使用」</td><td class="c"><span class="b ok">人话</span></td></tr>
+      <tr class="good"><td>是否给出路</td><td>带一个「切换到平面地图」按钮</td><td class="c"><span class="b ok">有</span></td></tr>
+      <tr class="good"><td>点击按钮后</td><td><code>mapStage.hidden = false</code>、激活 pill = <code>map</code>、平面地图 canvas 已渲染</td><td class="c"><span class="b ok">真跳转</span></td></tr>
+      <tr class="good"><td>事件列表是否还能用</td><td>列表渲染 81 行；点击某条 → 详情展开正常</td><td class="c"><span class="b ok">可用</span></td></tr>
+      <tr class="good"><td>状态栏是否说明</td><td>「… · 3D 模块不可用 · 已降级为列表模式」</td><td class="c"><span class="b ok">如实</span></td></tr>
+      <tr class="good"><td>控制台异常</td><td><code>errors = []</code>（零未捕获异常）</td><td class="c"><span class="b ok">干净</span></td></tr>
+    </tbody>
+  </table>
+  <div class="note ok"><div class="t">评价</div>这处修复比我在上轮报告里建议的还多做了一步——我建议的是"给个提示"，实现给了提示 + <b>可点的出口</b>（复用既有的 <code>data-evsub</code> 点击委托切到纯 Canvas 的平面地图）。而且顺带解决了"平面地图本来就在旁边、只是用户点不到"这个信息架构问题。这是本轮看到的最漂亮的一处。</div>
+  <p style="font-size:13.5px;color:#7c7c85">一个小瑕疵：切到平面地图后，那条「此设备无法显示 3D 地球…」的提示<strong>仍然留在页面上</strong>（实测 <code>fallbackHiddenNow = false</code>）。用户刚点了"切换到平面地图"、事情已经办成了，提示却没撤，会让人怀疑是不是没点成功。建议切换成功后把它收起。</p>
+</div>
+
+<h2>五、一个必须澄清的环境问题：本地数据滞后 23 小时</h2>
+<div class="issue info">
+  <h3><span class="id">E-1</span> 事件数据滞后不是采集故障，是本地仓库没同步</h3>
+  <p class="one">页面显示「更新于 9-13 22:08 · <b>数据已滞后 23 小时</b>」。看起来像采集停摆，但查证后不是。</p>
+  <table>
+    <thead><tr><th>检查项</th><th>结果</th></tr></thead>
+    <tbody>
+      <tr><td>本地 <code>data/events/global-events.json</code></td><td><code>generatedAt = 2026-09-13T14:08:07Z</code>（= 北京 09-13 22:08）</td></tr>
+      <tr><td>本地仓库 HEAD</td><td><code>6b0baf1</code>（09-13 23:55）</td></tr>
+      <tr class="good"><td><b>远程仓库最新提交</b>（GitHub API 实测）</td><td><code>af025ef 2026-09-14T06:47Z</code> + <code>0e1543b 09-14T01:30Z</code> + <code>bc7851b 09-13T23:31Z</code> … —— <b>采集工作流一直在正常跑</b></td></tr>
+    </tbody>
+  </table>
+  <p><strong>结论：远程有 5 个更新的提交（含 4 次 data refresh），本地都没拉。</strong>页面上那个"滞后 23 小时"是本地预览的产物；部署到 GitHub Pages 的线上版本会拿到最新数据。做一次 <code>git pull</code> 即可消除（我没有执行——那会改动你的工作区）。</p>
+  <p>另外提醒：<code>data/actors/berkshire.json</code> 本地是 09-10 生成的，同样落后于远程。</p>
+</div>
+
+<h2>六、仍未修的两项（沿用上轮结论，非本轮新增）</h2>
+<table>
+  <thead><tr><th>项</th><th>性质</th><th>本轮实测</th></tr></thead>
+  <tbody>
+    <tr class="warn"><td>移动端 9 个一级 tab 放不下</td><td>信息架构（非 bug）</td><td>375px 下可见 6 个（全部/A股/港美/宏观/加密/事件），<b>聪明钱 / 产业链 / 自选 在屏外</b>；内容宽 540px / 容器 343px。768px 平板同样溢出（396/328）</td></tr>
+    <tr class="warn"><td>港股指数详情页的「成交量」是成交额同源值</td><td>P3 小瑕疵</td><td>恒生指数详情页：「成交量 <b>1926万</b>　成交额 <b>1926.25亿</b>」——两个数是同一字段（腾讯对港股指数 <code>f[36] ≈ f[37]</code>）。建议指数类隐藏该格</td></tr>
+  </tbody>
+</table>
+
+<h2>七、给下一位审核者的信息</h2>
+<ol>
+  <li><strong>本轮最有价值的产出是 N-1（失业率指标代码）</strong>，一行修复。建议优先处理，并且改完把测试断言从"非空总数 ≥ N"改成"<b>每个指标列都要有数</b>"——否则同类静默失效还会再来一次。</li>
+  <li><strong>代码在上轮验收后没有任何改动</strong>，所以上轮报告（<code>FIX-VERIFICATION-20260914.html</code>）的结论与本轮不冲突，两份可以合并看。</li>
+  <li><strong>上轮的"未验证"项已补验一项（WebGL 兜底）</strong>，结论是通过。剩下仍未验证的见第八节。</li>
+  <li><strong>不要被"滞后 23 小时"误导</strong>——那是本地 clone 未 pull，不是 bug。</li>
+</ol>
+
+<h2>八、验证方法与边界</h2>
+
+<div class="blk"><div class="t">怎么测的</div>
+<ul>
+  <li><strong>端到端复检</strong>：Edge + CDP 驱动真实交互，覆盖首屏 / 9 个板块 / 6 个标的的详情页 / 375px 移动端 / 768px 平板 / 触摸模拟；所有行情数值与 <code>qt.gtimg.cn</code> 原始字段对账。</li>
+  <li><strong>对抗性抽查</strong>：不再只问"有没有数据"，而是<strong>逐个核对世界银行 6 个指标代码的正确性</strong>（发现 N-1），并检查每列数据的<strong>年份新鲜度</strong>（发现 N-2/N-3）。</li>
+  <li><strong>环境变量控制</strong>：用 <code>--disable-3d-apis --disable-webgl</code> 构造"WebGL 不可用"环境，验证降级路径（V-1）。</li>
+  <li><strong>外部核对</strong>：用 GitHub API 查远程仓库提交历史，区分"采集停摆"与"本地未同步"（E-1）。</li>
+  <li><strong>源码改动 0 处</strong>；临时脚本都在 <code>_qa_shots/</code> 下。</li>
+</ul></div>
+
+<div class="blk"><div class="t">仍未验证（不算通过）</div>
+<table>
+  <thead><tr><th>项目</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>真机触屏手势（捏合缩放 / 长按 / 双指）</td><td>无头环境无法产生真实触摸序列，只能验证媒体特性分叉与 DOM 状态</td></tr>
+    <tr><td>3D 地球在真实 GPU 下的性能与手感</td><td>本机走 SwiftShader 软渲染，不代表真机帧率</td></tr>
+    <tr><td>Safari / Firefox 兼容性</td><td>本机只有 Chromium 内核</td></tr>
+    <tr><td>读屏器实际朗读效果</td><td>可验证 ARIA 属性齐全，但无法验证朗读体验</td></tr>
+    <tr><td>长时挂机内存增长</td><td>未做长跑采样</td></tr>
+    <tr><td>世界银行表其余 4 列的数值正确性</td><td>本轮只逐列核对了指标代码与年份，未对每个数值逐个与源站比对</td></tr>
+  </tbody>
+</table></div>
+
+<div class="blk"><div class="t">复现命令</div>
+<pre># 1. 起本地服务
+cd global-fin-dashboard && python -m http.server 8765 --bind 127.0.0.1
+
+# 2. N-1 的证据：同一个接口，两个指标代码
+curl -s 'https://api.worldbank.org/v2/country/US;CN;JP;DE;GB;FR;IN;KR/indicator/SL.UEM.TOTL.ZG?format=json&mrnev=1&per_page=30' | head -c 200
+#   → 返回 [{"page":1,...,"total":0}] 或空数组：无数据
+curl -s 'https://api.worldbank.org/v2/country/US;CN;JP;DE;GB;FR;IN;KR/indicator/SL.UEM.TOTL.ZS?format=json&mrnev=1&per_page=30' | head -c 300
+#   → 8 国 2025 年数据齐全
+
+# 3. E-1 的证据：远程是否在更新
+curl -s 'https://api.github.com/repos/5777-wq/openfinlens/commits?per_page=5' | grep -E '"date"|"message"'</pre></div>
+
+<footer>
+  <p><strong>审核对象</strong>：OpenFinLens（global-fin-dashboard）· commit <code>6b0baf1</code> · <strong>源码改动 0 处</strong></p>
+  <p>证据文件：<code>_qa_shots/cdp11-log.json</code>（复检全量数据）、<code>cdp10-log.json</code>（WebGL 兜底）、<code>cdp12-log.json</code>（移动端/平板）、截图在 <code>_qa_shots/shots4/</code>。</p>
+  <p>前序报告：<code>PRODUCT-REVIEW-20260913.html</code>（产品与体验首查）、<code>FIX-VERIFICATION-20260913.html</code>（第二轮）、<code>FIX-VERIFICATION-20260914.html</code>（第三轮）。</p>
+</footer>
+
+</div>
+</body>
+</html>

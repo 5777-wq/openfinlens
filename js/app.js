@@ -63,14 +63,11 @@
     boardOpenBk: null, boardStocks: [], boardGen: 0,
     voices: null, voicesAt: 0, voicesGen: 0, globeQuotes: null,
     events: null, eventsVia: null, eventsGenAt: null, eventsStale: true, eventsLoadedAt: 0,
-    eventsSub: Store.get('evMode', 'globe'),   // 事件页子视图：globe（3D 地球）| map（平面地图）| news（实时快讯）
+    eventsSub: Store.get('evMode', 'map'),     // 事件页子视图：map（平面地图）| news（实时快讯）；存量 'globe' 由 setEventsSub 归一
     eventsType: 'all',         // 事件类型过滤（all / macro / central_bank / …）
     eventsSource: '',          // 数据源名（状态行合成用）
-    globeStatusPts: null,      // 地球点数状态（onStatus 回调），与数据源状态行合并显示
-    mapStatusPts: null,        // 平面地图点数状态（onStatus 回调）
+    mapStatusPts: null,        // 平面地图点数状态（onStatus 回调），与数据源状态行合并显示
     selEvent: null,            // 当前选中的全球事件
-    globeReady: false,         // 3D 地球实例化完成标记
-    globeFailed: false,        // vendor/WebGL 不可用：列表模式兜底，不再反复初始化
     mapReady: false,           // 平面地图实例化完成标记
     mapFailed: false,          // 地图数据/Canvas 不可用：不再反复初始化
     countryFocus: null,        // { iso2, name }——平面地图点空白命中的国家（右侧国家详情）
@@ -100,7 +97,7 @@
     'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats',
     'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
-    'eventsSub', 'globeStage', 'globeMount', 'globeStatus', 'globeFallback', 'globeLegend', 'mapLegend',
+    'eventsSub', 'globeStatus', 'mapLegend',
     'evGlobePane', 'evNewsPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
     'mapLayers', 'evTimeline', 'countryDetail',
     'lhbBox', 'lhbVia', 'evtToggle', 'chartEventCard',
@@ -1144,10 +1141,13 @@
     el.detailPrice.className = 'detail-price num ' + cls;
     el.detailChg.innerHTML = `<span class="num">${fmtChg(q.change, digits)}</span><span class="num">${fmtPct(q.changePct)}</span>`;
     el.detailChg.className = 'detail-chg num ' + cls;
+    // 港/美指数的成交量与成交额同源（腾讯 f[36]≈f[37]），同屏两个一样的数是假象；
+    // A股指数成交量是真实手数，保留
+    const volIsFake = t.market === 'index' && !/^(sh|sz|bj)/.test(t.symbol || '');
     el.detailStats.innerHTML = [
       ['今开', fmt(q.open, digits)], ['昨收', fmt(q.prevClose, digits)],
       ['最高', fmt(q.high, digits)], ['最低', fmt(q.low, digits)],
-      ['成交量', fmtVol(q.volume)],
+      volIsFake ? null : ['成交量', fmtVol(q.volume)],
       q.amount ? ['成交额', fmtVol(q.amount)] : null,
       ['更新', fmtTime(q.updatedAt)],
     ].filter(Boolean).map(([k, v]) => `<div>${k}<b>${v}</b></div>`).join('');
@@ -1476,10 +1476,10 @@
     syncGeoViews();
   }
 
-  // 状态行合成：数据源新鲜度（采集时间/滞后/缓存）+ 地球点数，谁后到都不覆盖谁
+  // 状态行合成：数据源新鲜度（采集时间/滞后/缓存）+ 地图点数，谁后到都不覆盖谁
   function renderGlobeStatus() {
     if (!el.globeStatus) return;
-    const pts = state.eventsSub === 'map' ? (state.mapStatusPts || state.globeStatusPts) : state.globeStatusPts;
+    const pts = state.mapStatusPts;
     if (!state.eventsVia) {
       el.globeStatus.classList.add('warn');
       el.globeStatus.textContent = '数据更新中，请稍候 · 通常几分钟内自动恢复';
@@ -1515,8 +1515,6 @@
   function renderGlobeLegend() {
     const html = Array.from(new Set(eventsFiltered().map(e => e.type))).slice(0, 6).map(t =>
       `<span class="gl-item"><i class="ev-dot" style="background:${window.Events.typeColor(t)}"></i>${escapeHTML(window.Events.typeLabel(t))}</span>`).join('');
-    // 平面地图与 3D 地球共用一套类型色，图例必须两边都在（旧版只画在地球容器里，地图视图没有图例）
-    if (el.globeLegend) el.globeLegend.innerHTML = html;
     if (el.mapLegend) el.mapLegend.innerHTML = html;
   }
 
@@ -1717,16 +1715,11 @@
     if (el.countryDetail) el.countryDetail.hidden = true;
     renderEventList();
     renderEventDetail(ev);
-    if (state.eventsSub === 'map') {
-      if (window.WorldMapView && state.mapReady) window.WorldMapView.select(ev);   // 平移居中 + 脉冲环
-    } else if (window.GlobeView && state.globeReady) {
-      window.GlobeView.select(ev);   // 平滑转向 + 高亮环
-    }
+    if (window.WorldMapView && state.mapReady) window.WorldMapView.select(ev);   // 平移居中 + 脉冲环
   }
 
-  function syncGeoViews() {   // 事件数据/筛选变化：3D 地球与平面地图一起刷
+  function syncGeoViews() {   // 事件数据/筛选变化：刷新平面地图（唯一地理视图）
     const evs = eventsFiltered();
-    if (state.globeReady && window.GlobeView) window.GlobeView.setEvents(evs);
     if (state.mapReady && window.WorldMapView) window.WorldMapView.setEvents(evs);
   }
 
@@ -1754,35 +1747,9 @@
         window.WorldMapView.setEvents(eventsFiltered());
         renderGlobeStatus();
       } else {
-        state.mapFailed = true;   // 地图数据不可用：提示用 3D 地球，不再反复尝试
+        state.mapFailed = true;   // 地图数据不可用：不再反复尝试（事件列表/快讯仍可用）
       }
       return ok;
-    });
-  }
-
-  function ensureGlobe() {
-    // 必须挂到内层 #globeMount：globe.gl 会清空挂载点，挂在 #globeStage 上会连带删掉降级提示/图例
-    if (state.globeReady || state.globeFailed || !el.globeMount) return Promise.resolve(null);
-    return window.GlobeView.create(el.globeMount, {
-      onSelect: selectGlobalEvent,
-      onCluster: showCluster,
-      onStatus: (t) => { state.globeStatusPts = t; renderGlobeStatus(); },
-    }).then(g => {
-      if (g) {
-        state.globeReady = true;
-        window.GlobeView.setEvents(eventsFiltered());
-        renderGlobeLegend();
-      } else {
-        state.globeFailed = true;   // vendor/WebGL 不可用：列表模式兜底，不再反复尝试
-        // WebGL 失败曾表现为"黑屏 + 兜底节点永隐"：给出人话说明与现成的平面地图出口
-        //（data-evsub 走既有点击委托 → setEventsSub('map')，平面地图是纯 Canvas 备选）
-        if (el.globeFallback) {
-          el.globeFallback.hidden = false;
-          el.globeFallback.innerHTML = '此设备无法显示 3D 地球（WebGL 不可用），事件列表仍可正常使用 ' +
-            '<button class="pill" data-evsub="map">切换到平面地图</button>';
-        }
-      }
-      return g;
     });
   }
 
@@ -1794,25 +1761,20 @@
   }
 
   function setEventsSub(sub) {
-    if (sub !== 'news' && sub !== 'map') sub = 'globe';
+    // 'globe' 存量值归一为 'map'：3D 地球已按用户决策移除，平面地图是唯一地理视图
+    if (sub !== 'news' && sub !== 'map') sub = 'map';
     state.eventsSub = sub;
-    Store.set('evMode', sub);                 // 记住上次用的视图（3D / 平面 / 快讯）
+    Store.set('evMode', sub);                 // 记住上次用的视图（平面 / 快讯）
     document.querySelectorAll('[data-evsub]').forEach(b =>
       b.classList.toggle('active', b.dataset.evsub === state.eventsSub));
-    const newsMode = sub === 'news', mapMode = sub === 'map';
-    if (el.evGlobePane) el.evGlobePane.hidden = newsMode;
+    const newsMode = sub === 'news';
+    if (el.evGlobePane) el.evGlobePane.hidden = newsMode;   // 面板宿主（现仅平面地图）
     if (el.evNewsPane) el.evNewsPane.hidden = !newsMode;
-    if (el.mapStage) el.mapStage.hidden = !mapMode;
-    if (el.globeStage) el.globeStage.hidden = mapMode;
-    if (mapMode) {
+    if (!newsMode) {
       ensureWorldMap();
       refreshEventsData();
       renderMapLayers();
       renderTimeline();
-    } else if (!newsMode) {
-      ensureGlobe();
-      refreshEventsData();
-      if (state.globeReady && window.GlobeView && window.GlobeView.resize) window.GlobeView.resize();   // display:none 切回后重测尺寸
     } else if (!state.news.length) {
       state.newsCat = 'all';   // 进快讯面板重置板块过滤（旧新闻 tab 行为）
       el.newsList.innerHTML = '<div class="sk sk-row"></div>'.repeat(6);
@@ -2221,15 +2183,31 @@
       const txt = k === 'gdp' ? (v / 1e12).toFixed(2) + 'T' : v.toFixed(v >= 100 ? 0 : 1) + '%';
       return `<span class="num mv">${txt}</span><span class="num my">${escapeHTML(cell.date)}</span>`;
     };
-    // 色阶：每列按 min-max 归一（GDP 列量纲不同不着色）；通胀/债务/失业越高越"热"用橙阶
+    // 色阶：只在"同年份"的国家之间归一（GDP 列量纲不同不着色）。
+    // 旧实现把整列所有年份混进一个 min-max：拿 1990 年的德国和 2024 年的美国比
+    // 债务率没有意义，颜色深浅会误导出假结论（四轮审核 N-2）
     const colRange = {};
+    const colYear = {};
     keys.forEach(k => {
-      const vs = data.rows.map(r => r.values[k]).filter(Boolean).map(x => x.v);
-      colRange[k] = vs.length ? { min: Math.min(...vs), max: Math.max(...vs) } : null;
+      const cells = data.rows.map(r => r.values[k]).filter(Boolean);
+      const byYear = {};
+      cells.forEach(c => { (byYear[c.date] = byYear[c.date] || []).push(c.v); });
+      let bestYear = null, bestList = [];
+      Object.keys(byYear).forEach(y => {
+        if (byYear[y].length > bestList.length) { bestYear = y; bestList = byYear[y]; }
+      });
+      colYear[k] = bestYear;
+      colRange[k] = bestList.length ? { min: Math.min(...bestList), max: Math.max(...bestList) } : null;
     });
     const shade = (k, cell) => {
       const rg = colRange[k];
       if (k === 'gdp' || !rg || !cell || rg.max === rg.min) return '';
+      const yr = String(cell.date || '');
+      if (yr !== colYear[k]) {
+        // 非基准年份：中性底、不参与横比；特别老的年份标"数据陈旧"
+        const old = parseInt(yr.slice(0, 4), 10) < 2000;
+        return ` title="数据年份 ${escapeHTML(yr)}，${old ? '数据陈旧，' : ''}不参与同列色阶横比" style="background:rgba(255,255,255,0.04)"`;
+      }
       const t = (cell.v - rg.min) / (rg.max - rg.min);
       const warm = ['cpi', 'debt', 'unemp'].includes(k);
       const alpha = (0.08 + t * 0.30).toFixed(2);
@@ -2243,7 +2221,7 @@
         <div class="mrow mhead"><span class="mcell mname">国家 / 指标</span>${keys.map(k => `<span class="mcell" title="${escapeHTML(inds[k].hint)}">${escapeHTML(inds[k].label)}</span>`).join('')}</div>
         ${data.rows.map(r => `<div class="mrow"><span class="mcell mname">${window.Flags.flag(r.flag)}${escapeHTML(r.name)}</span>${keys.map(k => `<span class="mcell"${shade(k, r.values[k])}>${fmtVal(k, r.values[k])}</span>`).join('')}</div>`).join('')}
       </div>
-      <p class="insight-disclaimer">GDP 为总量（万亿美元）；增长/通胀/失业为百分比；政府债务与经常账户为占 GDP 比重。缺失 = 世界银行该年尚未发布。</p>`;
+      <p class="insight-disclaimer">GDP 为总量（万亿美元）；增长/通胀/失业为百分比；政府债务为中央政府口径占 GDP 比重（部分国家无此口径，恒为 --）。缺失分两种：指标级（该国无此口径，等不来）与年份级（该年尚未发布）；跨年份的数字不参与同列色阶横比。</p>`;
   }
 
   /* ==================== 产业链 ==================== */

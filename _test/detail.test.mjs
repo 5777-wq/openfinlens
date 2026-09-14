@@ -111,11 +111,15 @@ await test('实数据量级：六类样本各自落在真实区间（个股/指�
     '美股指数成交额应为 null: ' + (by['usINX'] || {}).amount);
 });
 
-await test('世界银行：8 国 ×6 指标 ≥32 非空（P0-2 回归：码位错位时为 0）', async () => {
+await test('世界银行：每个指标列各自 ≥5 国有数（N-1 回归：指标代码写错时该列为 0，总数断言不红）', async () => {
   const data = await W.WorldBankSource.getMacro();
   assert.ok(data, 'getMacro 不应返回 null（全部为空=索引键仍错位）');
-  const filled = data.rows.reduce((s, r) => s + Object.values(r.values).filter(Boolean).length, 0);
-  assert.ok(filled >= 32, '非空指标仅 ' + filled + ' / 48（应 ≥32，错位时为 0）');
+  Object.keys(data.indicators).forEach(k => {
+    const n = data.rows.filter(r => r.values[k]).length;
+    // 政府债务列因世行仅中央政府口径，中国/日本/法国恒空（5/8），阈值取 5；
+    // 失业率曾因代码 ZG 不存在整列归零，总数断言抓不住，必须按列查
+    assert.ok(n >= 5, `指标 ${k}（${data.indicators[k].code}）仅 ${n}/8 国有数据——单列静默失效`);
+  });
 });
 
 /* ================= 三周期 K线（真实数据） ================= */

@@ -467,7 +467,7 @@ window.WorldMapView = (() => {
     return clusters.length + ' 个事件点' + agg + ' · 覆盖 ' + n + ' 条事件';
   }
 
-  /* ---------- 对外 API（与 GlobeView 同形） ---------- */
+  /* ---------- 对外 API ---------- */
 
   function create(mount, userHooks) {
     container = mount;

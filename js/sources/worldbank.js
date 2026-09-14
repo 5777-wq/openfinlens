@@ -11,8 +11,10 @@ const WorldBankSource = (() => {
     gdp: { code: 'NY.GDP.MKTP.CD', label: 'GDP', hint: '总量（万亿美元）' },
     growth: { code: 'NY.GDP.MKTP.KD.ZG', label: 'GDP增长', hint: '实际同比 %' },
     cpi: { code: 'FP.CPI.TOTL.ZG', label: '通胀率', hint: 'CPI 同比 %' },
-    unemp: { code: 'SL.UEM.TOTL.ZG', label: '失业率', hint: '总失业 %' },
-    debt: { code: 'GC.DOD.TOTL.GD.ZS', label: '政府债务', hint: '占 GDP %' },
+    unemp: { code: 'SL.UEM.TOTL.ZS', label: '失业率', hint: '总失业 %（ILO 估计）' },
+    // ⚠️ 代码以 ZS 结尾（% of labor force）。曾误写成 ZG——世行无此指标，
+    // 接口返回空数组，失业率整列 8 国静默全空（第四轮审核 N-1）
+    debt: { code: 'GC.DOD.TOTL.GD.ZS', label: '政府债务', hint: '中央政府债务占 GDP %（世行仅此口径，中国/日本/法国等无此数据）' },
     cab: { code: 'BN.CAB.XOKA.GD.ZS', label: '经常账户', hint: '占 GDP %' },
   };
   const COUNTRIES = [

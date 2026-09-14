@@ -18,7 +18,7 @@ setTimeout(function () {
   if (s && s.parentNode) s.parentNode.removeChild(s);
 }, 2600);
 </script>
-<link rel="stylesheet" href="css/style.css?v=20260913b">
+<link rel="stylesheet" href="css/style.css?v=20260914a">
 </head>
 <body data-updown="red">
 
@@ -184,22 +184,13 @@ setTimeout(function () {
     <h1 class="page-title">全球事件</h1>
     <p class="page-sub" id="eventsSub">事件 → 宏观/地缘新闻 → 影响资产 → K线反应，四层联动</p>
     <div class="heat-toolbar">
-      <button class="pill active" data-evsub="globe">3D 地球</button>
-      <button class="pill" data-evsub="map">平面地图</button>
+      <button class="pill active" data-evsub="map">平面地图</button>
       <button class="pill" data-evsub="news">实时快讯</button>
       <span class="tool-status num" id="globeStatus">等待采集数据…</span>
     </div>
     <div id="evGlobePane">
       <div class="heat-toolbar" id="evTypeBar"></div>
-      <div class="globe-stage" id="globeStage">
-        <!-- globe.gl 初始化时会做 el.innerHTML=""（清空挂载点），所以地球必须挂在独立内层节点上：
-             否则同级的降级提示/图例/操作提示会被一起删掉（旧版就是如此，兜底提示从未生效） -->
-        <div class="geo-mount geo-content" id="globeMount"></div>
-        <div class="globe-fallback" id="globeFallback" hidden></div>
-        <div class="globe-legend" id="globeLegend" aria-hidden="true"></div>
-        <div class="globe-hint" aria-hidden="true">拖动旋转 · 滚轮缩放 · 点击事件点</div>
-      </div>
-      <div class="globe-stage" id="mapStage" hidden>
+      <div class="globe-stage" id="mapStage">
         <div class="map-layers" id="mapLayers" role="group" aria-label="地图图层"></div>
         <div class="globe-legend" id="mapLegend" aria-hidden="true"></div>
         <div class="globe-hint" aria-hidden="true">拖动平移 · 滚轮/双指缩放 · 双击放大 · 点事件看详情 · 点空白看国家</div>
@@ -390,47 +381,45 @@ setTimeout(function () {
 
 <!-- 图表库本地化（v4.2.3 锁版）：原 unpkg latest 不锁版本，上游发版或 CDN 不可达时详情页全废 -->
 <script src="lib/lightweight-charts.standalone.production.js?v=4.2.3"></script>
-<!-- 3D 地球（globe.gl 2.46.2 内置 three.js）、topojson、d3-geo：纯本地 vendor，禁止运行时海外 CDN（lib/THIRD_PARTY.md）。
-     d3-geo 只给平面地图用：geoEquirectangular 投影 + geoPath 在 ±180° 处切跨线几何（俄罗斯/斐济/南极）。
-     defer 加载不阻塞开屏，globe.js/worldmap.js 只在首次进入"事件"页时才真正使用它们 -->
-<script defer src="lib/globe.gl.min.js?v=2.46.2"></script>
+<!-- 平面地图的本地 vendor：topojson 解析国界、d3-geo 做投影 + 在 ±180° 处切跨线几何（俄罗斯/斐济/南极）
+     + geoContains 做点在多边形国家命中。禁止运行时海外 CDN（lib/THIRD_PARTY.md）。
+     defer 加载不阻塞开屏，worldmap.js 只在首次进入"事件"页时才真正使用它们 -->
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script src="js/utils.js?v=20260913b"></script>
-<script src="js/store.js?v=20260913b"></script>
-<script src="js/proxy.js?v=20260913b"></script>
-<script src="js/data/universe.js?v=20260913b"></script>
-<script src="js/data/industry-chains.js?v=20260913b"></script>
-<script src="js/data/explain.js?v=20260913b"></script>
-<script src="js/technical.js?v=20260913b"></script>
-<script src="js/flags.js?v=20260913b"></script>
-<script src="js/bus.js?v=20260913b"></script>
-<script src="js/events.js?v=20260913b"></script>
-<script src="js/actors.js?v=20260913b"></script>
-<script src="js/sources/tencent.js?v=20260913b"></script>
-<script src="js/sources/sina.js?v=20260913b"></script>
-<script src="js/sources/eastmoney.js?v=20260913b"></script>
-<script src="js/sources/okx.js?v=20260913b"></script>
-<script src="js/sources/binance.js?v=20260913b"></script>
-<script src="js/sources/fred.js?v=20260913b"></script>
-<script src="js/sources/news.js?v=20260913b"></script>
-<script src="js/sources/worldbank.js?v=20260913b"></script>
-<script src="js/sources/gdelt.js?v=20260913b"></script>
-<script src="js/sources/lhb.js?v=20260913b"></script>
-<script src="js/sources/sec.js?v=20260913b"></script>
-<script src="js/breadth.js?v=20260913b"></script>
-<script src="js/sessions.js?v=20260913b"></script>
-<script src="js/treemap.js?v=20260913b"></script>
-<script src="js/charts.js?v=20260913b"></script>
-<script src="js/engine/types.js?v=20260913b"></script>
-<script src="js/engine/geo.js?v=20260913b"></script>
-<script src="js/engine/news-engine.js?v=20260913b"></script>
-<script src="js/engine/event-engine.js?v=20260913b"></script>
-<script src="js/engine/impact-engine.js?v=20260913b"></script>
-<script src="js/engine/llm-provider.js?v=20260913b"></script>
-<script src="js/globe.js?v=20260913b"></script>
-<script src="js/worldmap.js?v=20260913b"></script>
-<script src="js/app.js?v=20260913b"></script>
+<script src="js/utils.js?v=20260914a"></script>
+<script src="js/store.js?v=20260914a"></script>
+<script src="js/proxy.js?v=20260914a"></script>
+<script src="js/data/universe.js?v=20260914a"></script>
+<script src="js/data/industry-chains.js?v=20260914a"></script>
+<script src="js/data/explain.js?v=20260914a"></script>
+<script src="js/technical.js?v=20260914a"></script>
+<script src="js/flags.js?v=20260914a"></script>
+<script src="js/bus.js?v=20260914a"></script>
+<script src="js/events.js?v=20260914a"></script>
+<script src="js/actors.js?v=20260914a"></script>
+<script src="js/sources/tencent.js?v=20260914a"></script>
+<script src="js/sources/sina.js?v=20260914a"></script>
+<script src="js/sources/eastmoney.js?v=20260914a"></script>
+<script src="js/sources/okx.js?v=20260914a"></script>
+<script src="js/sources/binance.js?v=20260914a"></script>
+<script src="js/sources/fred.js?v=20260914a"></script>
+<script src="js/sources/news.js?v=20260914a"></script>
+<script src="js/sources/worldbank.js?v=20260914a"></script>
+<script src="js/sources/gdelt.js?v=20260914a"></script>
+<script src="js/sources/lhb.js?v=20260914a"></script>
+<script src="js/sources/sec.js?v=20260914a"></script>
+<script src="js/breadth.js?v=20260914a"></script>
+<script src="js/sessions.js?v=20260914a"></script>
+<script src="js/treemap.js?v=20260914a"></script>
+<script src="js/charts.js?v=20260914a"></script>
+<script src="js/engine/types.js?v=20260914a"></script>
+<script src="js/engine/geo.js?v=20260914a"></script>
+<script src="js/engine/news-engine.js?v=20260914a"></script>
+<script src="js/engine/event-engine.js?v=20260914a"></script>
+<script src="js/engine/impact-engine.js?v=20260914a"></script>
+<script src="js/engine/llm-provider.js?v=20260914a"></script>
+<script src="js/worldmap.js?v=20260914a"></script>
+<script src="js/app.js?v=20260914a"></script>
 </body>
 </html>
