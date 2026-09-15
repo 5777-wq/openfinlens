@@ -80,7 +80,8 @@
     actor: null, actorGen: 0,  // 当前打开的席位档案
     pendingActivity: null,     // 从席位档案点进个股时携带的活动（K线上画席位标记）
     stockNames: (function () { try { return window.Store.get('stockNames', {}) || {}; } catch { return {}; } })(),
-    brk: null, brkAt: 0,       // 伯克希尔 13F 持仓（SEC 采集静态 JSON，季度）
+    brk: null, brkAt: 0,       // 多家机构 13F 持仓（SEC 采集静态 JSON，季度）
+    brkIdx: 0,                 // 13F 当前选中的机构下标（面板上的机构按钮）
     // 港股通（南向）持有个股：日频，浏览器直连（datacenter 带 CORS，无需采集层）
     southbound: null, southboundDate: null, southboundAt: 0,
     chartEventsOn: true,       // 详情页 K 线事件标记开关
@@ -2151,15 +2152,21 @@
     document.title = 'OpenFinLens · 全球金融看板';
   }
 
-  /* ==================== 机构持仓 · 伯克希尔（SEC 13F-HR → 静态 JSON） ====================
-     采集脚本 _scripts/collect-brk.mjs 跑在本地/Actions，浏览器只读静态文件。
-     口径诚实：13F 是季度披露的多头股票持仓（滞后最长 45 天），只有历史事实，无任何实时操作。 */
+  /* ==================== 机构持仓 · 13F（SEC → 静态 JSON，多家机构） ====================
+     采集脚本 _scripts/collect-13f.mjs 跑在本地/Actions，浏览器只读静态文件。
+     口径诚实：13F 是季度披露的多头持仓；**报告期末到提交日实测滞后 34~45 天**，
+     所以标题里必须写天数——否则会被当成"最近持仓"。期权行单列（kind=CALL/PUT），
+     其"股数"是名义合约股数，不是持股。 */
 
   function fmtUsd(v) {
     if (v === null || v === undefined || isNaN(v)) return '--';
-    const yi = v / 1e8;
-    if (Math.abs(yi) >= 10000) return (yi / 10000).toFixed(2) + ' 万亿美元';
-    return yi.toFixed(1) + ' 亿美元';
+    // 分级到"万"：13F 里期权行的市值常在百万美元级，只按"亿美元"取一位小数会显示成
+    // "0.0 亿美元"——比不显示更误导（实测 ARK 那张 Call = $71.9 万）。
+    const a = Math.abs(v);
+    if (a >= 1e12) return (v / 1e12).toFixed(2) + ' 万亿美元';
+    if (a >= 1e8) return (v / 1e8).toFixed(1) + ' 亿美元';
+    if (a >= 1e4) return (v / 1e4).toFixed(1) + ' 万美元';
+    return v.toFixed(0) + ' 美元';
   }
   const BRK_CHANGE_META = {
     NEW:  { label: '新进', cls: 'up' },
@@ -2172,12 +2179,11 @@
   async function loadBrk() {
     let d;
     try {
-      d = await window.SecSource.getBerkshire();   // 采集静态 JSON（sources/sec.js）
-      if (!d || !Array.isArray(d.holdings)) throw new Error('bad payload');
+      d = await window.SecSource.get13F();   // 采集静态 JSON（sources/sec.js）
       window.SourceState.ok('brk');
     } catch {
       const c = Cache.raw('brk');
-      if (c && c.val && Array.isArray(c.val.holdings) && c.val.holdings.length) {
+      if (c && c.val && Array.isArray(c.val.institutions) && c.val.institutions.length) {
         d = Object.assign({}, c.val, { via: 'cache' });
       } else {
         window.SourceState.fail('brk', 'SEC 13F 采集不可用');
@@ -2193,17 +2199,26 @@
 
   function renderBrkEmpty() {
     if (!el.brkBox) return;
-    el.brkBox.innerHTML = '<div class="empty">暂无伯克希尔持仓数据 · 数据来自 SEC 官方季度披露，更新中</div>';
+    el.brkBox.innerHTML = '<div class="empty">暂无 13F 持仓数据 · 数据来自 SEC 官方季度披露，更新中</div>';
     if (el.brkVia) el.brkVia.textContent = '';
   }
 
   function renderBrk() {
     if (!el.brkBox) return;
     const d = state.brk;
-    if (!d || !Array.isArray(d.holdings) || !d.holdings.length) { renderBrkEmpty(); return; }
+    const list = (d && Array.isArray(d.institutions)) ? d.institutions : [];
+    if (!list.length) { renderBrkEmpty(); return; }
+    const idx = Math.min(Math.max(state.brkIdx || 0, 0), list.length - 1);
+    state.brkIdx = idx;
+    const cur = list[idx];
     if (el.brkVia) {
+      // 滞后天数必须显示：13F 是季度披露，实测报告期末→提交日滞后 34~45 天，
+      // 不写天数用户会把它当成"最近持仓"。
       el.brkVia.textContent = (d.via === 'cache' ? '缓存 · ' : '') +
-        (d.reportDate || '?') + ' 报告期 · SEC 13F-HR · 季度披露 · 组合 ' + fmtUsd(d.totalValueUsd);
+        cur.reportDate + ' 报告期 · 提交 ' + (cur.filedAt || '?') +
+        (cur.lagDays === null || cur.lagDays === undefined ? '' : '（滞后 ' + cur.lagDays + ' 天）') +
+        ' · 组合 ' + fmtUsd(cur.totalValueUsd) +
+        (cur.optionRows ? ' · 含 ' + cur.optionRows + ' 项期权' : '');
     }
     const changeChip = (h) => {
       const m = BRK_CHANGE_META[h.change] || { label: '--', cls: 'flat' };
@@ -2212,19 +2227,31 @@
         ? ' ' + fmtPct(h.sharesChangePct) : '';
       return `<span class="brk-chg ${m.cls}">${m.label}${pctTxt}</span>`;
     };
-    el.brkBox.innerHTML = `<div class="brow-head" aria-hidden="true">
+    // 期权行必须与现货分开标注：kind=CALL/PUT 的"股数"是名义合约股数，不是持股
+    const kindTag = (h) => h.kind === 'CALL' ? '<span class="qc-flag">看涨期权</span>'
+      : h.kind === 'PUT' ? '<span class="qc-flag">看跌期权</span>' : '';
+    // 期权行**必须**出现在可见列表里：它们按市值排序常排到 Top40 之外（实测 ARK 那张 Call 就是），
+    // 但期权恰恰是"这家机构在做什么方向"最该看的东西。所以先取 Top40，再把漏掉的期权行补进来。
+    const top40 = cur.holdings.slice(0, 40);
+    const missingOpts = cur.holdings.filter(h => h.kind !== 'SH' && !top40.includes(h));
+    const shown = top40.concat(missingOpts);
+    el.brkBox.innerHTML = `<div class="heat-toolbar" role="tablist" aria-label="13F 申报机构">` +
+        list.map((x, i) => `<button class="pill ${i === idx ? 'active' : ''}" data-brk-idx="${i}"
+          role="tab" aria-selected="${i === idx}" title="${escapeHTML(x.reportDate + ' 报告期' + (x.viaNtAccession ? ' · 经 13F-NT 顺藤申报主体' : ''))}"
+          >${escapeHTML(x.name)}</button>`).join('') +
+      `</div><div class="brow-head" aria-hidden="true">
         <span>发行公司</span><span>持仓市值</span><span>持股数</span><span>占比</span><span>环比</span>
-      </div>` + d.holdings.slice(0, 40).map(h => `
+      </div>` + shown.map(h => `
       <div class="brow" tabindex="0" role="button"
-        aria-label="${escapeHTML(h.issuer)} 持仓 ${fmtUsd(h.valueUsd)}">
-        <span class="br-name">${escapeHTML(h.issuer)}<span class="lr-code num">${escapeHTML(h.cusip || '')}</span></span>
+        aria-label="${escapeHTML(h.issuer)}${h.kind === 'SH' ? '' : h.kind === 'CALL' ? ' 看涨期权' : ' 看跌期权'} 持仓 ${fmtUsd(h.valueUsd)}">
+        <span class="br-name">${kindTag(h)}${escapeHTML(h.issuer)}<span class="lr-code num">${escapeHTML(h.cusip || '')}</span></span>
         <span class="br-val num">${fmtUsd(h.valueUsd)}</span>
-        <span class="br-shares num">${h.shares === null ? '--' : fmtVol(h.shares) + ' 股'}</span>
+        <span class="br-shares num">${h.shares === null ? '--' : fmtVol(h.shares) + (h.kind === 'SH' ? ' 股' : ' 张')}</span>
         <span class="br-pct num">${h.pctOfTotal === null || h.pctOfTotal === undefined ? '--' : h.pctOfTotal.toFixed(1) + '%'}</span>
         <span class="br-chg-cell">${changeChip(h)}</span>
       </div>`).join('') +
-      (d.exits && d.exits.length
-        ? `<div class="brk-exits">上期持有、本期已退出：${d.exits.map(x => escapeHTML(x.issuer)).join('、')}</div>`
+      (cur.exits && cur.exits.length
+        ? `<div class="brk-exits">上期持有、本期已退出：${cur.exits.map(x => escapeHTML(x.issuer)).join('、')}</div>`
         : '');
   }
 
@@ -3363,6 +3390,12 @@
       }
       if (e.target.closest('[data-ceclose]')) { if (el.chartEventCard) el.chartEventCard.hidden = true; return; }
       // ---- 席位档案：目录行 / 事件卡里的"查看席位档案" ----
+      const brkBtn = e.target.closest('[data-brk-idx]');
+      if (brkBtn) {
+        state.brkIdx = +brkBtn.getAttribute('data-brk-idx') || 0;
+        renderBrk();
+        return;
+      }
       const sbRow = e.target.closest('[data-sb]');
       if (sbRow) {
         // 南向名单里多数股票不在 universe 内，走东财 secid（116.xxxxx = 港股）而不是腾讯 symbol

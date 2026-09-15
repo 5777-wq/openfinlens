@@ -33,22 +33,41 @@ await test('global-events.json：结构完整，坐标只允许 null 或有限�
   }
 });
 
-await test('berkshire.json：组合量级合理（百亿~万亿美元），占比 ≤100%，环比标签合法', async () => {
-  const f = path.join(ROOT, 'data/actors/berkshire.json');
+await test('13f.json：每家机构量级/占比/环比合法，期权单列且滞后天数可信', async () => {
+  const f = path.join(ROOT, 'data/actors/13f.json');
   if (!existsSync(f)) { console.log('   （种子尚未生成，跳过）'); return; }
   const d = JSON.parse(readFileSync(f, 'utf8'));
-  assert.equal(typeof d.reportDate, 'string');
-  assert.ok(d.totalValueUsd >= 1e10 && d.totalValueUsd <= 1e13,
-    `组合合计 ${d.totalValueUsd} 超出合理量级（value 口径 2023 起为整美元）`);
-  assert.ok(d.holdings.length > 0);
-  let pctSum = 0;
-  for (const h of d.holdings) {
-    assert.ok(typeof h.issuer === 'string' && h.issuer.length > 1);
-    assert.ok(h.valueUsd >= 0 && h.valueUsd <= d.totalValueUsd);
-    pctSum += h.pctOfTotal || 0;
-    assert.ok(['NEW', 'ADD', 'TRIM', 'HOLD', 'EXIT'].includes(h.change), '环比标签合法');
+  assert.ok(Array.isArray(d.institutions) && d.institutions.length > 0, 'institutions 应非空');
+  for (const inst of d.institutions) {
+    assert.equal(typeof inst.reportDate, 'string', `${inst.slug} reportDate`);
+    assert.equal(typeof inst.filedAt, 'string', `${inst.slug} filedAt`);
+    assert.ok(inst.totalValueUsd >= 1e8 && inst.totalValueUsd <= 1e13,
+      `${inst.slug} 组合合计 ${inst.totalValueUsd} 超出合理量级（value 口径 2023 起为整美元）`);
+    assert.ok(inst.holdings.length > 0, `${inst.slug} 应有持仓行`);
+    // 滞后天数必须存在且在合理区间（13F 法定截止 = 季末后 45 天；不该小到像实时、大到像坏数据）
+    assert.ok(Number.isFinite(inst.lagDays) && inst.lagDays >= 20 && inst.lagDays <= 120,
+      `${inst.slug} lagDays=${inst.lagDays} 不合理`);
+    let pctSum = 0;
+    for (const h of inst.holdings) {
+      assert.ok(typeof h.issuer === 'string' && h.issuer.length > 1, 'issuer 非空');
+      assert.ok(h.valueUsd >= 0 && h.valueUsd <= inst.totalValueUsd, '单行市值不超过组合合计');
+      assert.ok(['SH', 'CALL', 'PUT'].includes(h.kind), `${inst.slug} kind 非法: ${h.kind}`);
+      pctSum += h.pctOfTotal || 0;
+      assert.ok(['NEW', 'ADD', 'TRIM', 'HOLD', 'EXIT'].includes(h.change), '环比标签合法');
+    }
+    assert.ok(pctSum <= 100.5, `${inst.slug} 占比合计 ${pctSum}% 不该超过 100%`);
+    // 同一 CUSIP 允许多行，但只能因"正股 + 期权"这种不同 kind 而重复；
+    // 同 kind 重复即说明聚合键退回了纯 CUSIP（历史 bug：ARK 的 00214Q104 正股+Call 被并成一行）
+    const byCusip = new Map();
+    inst.holdings.forEach(h => {
+      if (!byCusip.has(h.cusip)) byCusip.set(h.cusip, []);
+      byCusip.get(h.cusip).push(h.kind);
+    });
+    byCusip.forEach((kinds, cusip) => {
+      assert.equal(new Set(kinds).size, kinds.length,
+        `${inst.slug} 的 ${cusip} 出现同 kind 重复行（聚合未按 CUSIP+kind 拆分）`);
+    });
   }
-  assert.ok(pctSum <= 100.5, `占比合计 ${pctSum}% 不该超过 100%`);
 });
 
 setTimeout(() => {

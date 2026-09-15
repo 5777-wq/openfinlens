@@ -29,14 +29,14 @@ jobs:
       - name: Collect GDELT + Sina global events
         run: node _scripts/collect-events.mjs
 
-      - name: Refresh Berkshire 13F (every ~6h, UTC 00/06/12/18)
+      - name: Refresh 13F holdings (multi-institution, every ~6h UTC 00/06/12/18)
         run: |
           # GitHub 定时在高负载整点常延迟数分钟：精确匹配 M=="00" 曾会因延迟跨跳
           # 静默跳过整个 6h 档。改用 10 分钟窗口（0:00/6:00/12:00/18:00 后 10 分钟内
           # 必中某一跳）；脚本自身幂等（无变化不写文件），重复执行无害。
           H=$(date -u +%H); M=$(date -u +%M); MINS=$((10#$H * 60 + 10#$M))
           if [ $(( MINS % 360 )) -lt 10 ]; then
-            node _scripts/collect-brk.mjs || echo "brk collect failed (keep old data)"
+            node _scripts/collect-13f.mjs || echo "13f collect failed (keep old data)"
           fi
 
       - name: Commit if changed

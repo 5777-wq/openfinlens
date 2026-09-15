@@ -42,7 +42,7 @@ docs/                      本文档 + WorldMonitor 分析
 
 ## 2. 后端架构（现状 + 触发条件）
 
-- **现在**：GitHub Actions 定时任务即"后端"——`_scripts/collect-events.mjs`（GDELT+新浪7x24，每 5 分钟）、`_scripts/collect-brk.mjs`（SEC 13F，每 6 小时）→ 产物为静态 JSON（`data/`）→ Pages 分发。采集脚本复用 `js/events.js` 的同一套 normalize/dedupe 逻辑（node 直载），**采集与浏览器共享数据模型**。
+- **现在**：GitHub Actions 定时任务即"后端"——`_scripts/collect-events.mjs`（GDELT+新浪7x24，每 5 分钟）、`_scripts/collect-13f.mjs`（SEC 13F 多家机构，每 6 小时）→ 产物为静态 JSON（`data/`）→ Pages 分发。采集脚本复用 `js/events.js` 的同一套 normalize/dedupe 逻辑（node 直载），**采集与浏览器共享数据模型**。
 - **演进触发条件**（满足任一才引入 Cloudflare Worker/Vercel Edge）：
   1. 需要密钥类新闻源（Reuters/Bloomberg API）；
   2. 需要 AI 摘要上线（密钥必须在服务端）；
