@@ -1,0 +1,19 @@
+{
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "projectname": "openfinlens-mp",
+  "libVersion": "3.7.0",
+  "setting": {
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": false,
+    "coverView": true,
+    "lazyloadPlaceholderEnable": false,
+    "ignoreUploadUnusedFiles": true
+  },
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  }
+}

@@ -1,0 +1,2 @@
+<!-- web-view 会自动铺满导航栏以下的整个页面 -->
+<web-view src="{{url}}"></web-view>

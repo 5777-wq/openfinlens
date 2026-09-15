@@ -1,0 +1,10 @@
+{
+  "pages": ["pages/webview/index"],
+  "window": {
+    "navigationBarTitleText": "OpenFinLens 全球看板",
+    "navigationBarBackgroundColor": "#0a0c0f",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0a0c0f"
+  },
+  "sitemapLocation": "sitemap.json"
+}

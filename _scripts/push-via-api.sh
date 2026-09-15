@@ -14,15 +14,16 @@ REMOTE=$(gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha)
 echo "remote HEAD = $REMOTE"
 
 # 祖先校验：沿远端 parent 链回溯，必须命中一个本地已知提交（cat-file 可找到）。
-# 断网期 Actions 的数据提交本地天然没有，跳过它们即可；回溯 15 个仍找不到则先 fetch 对齐。
+# 断网期 Actions/服务器的数据提交本地天然没有，跳过它们即可；远程积压的分叉/数据
+# 提交可能很多，回溯深度给到 40（15 曾不够用），仍找不到则先 fetch 对齐。
 cursor=$REMOTE
 anchor=""
-for i in $(seq 1 15); do
+for i in $(seq 1 40); do
   if git cat-file -e "$cursor" 2>/dev/null; then anchor=$cursor; break; fi
   cursor=$(gh api "repos/$REPO/git/commits/$cursor" --jq '.parents[0].sha')
 done
 if [ -z "$anchor" ]; then
-  echo "✗ 远端最近 15 个提交均不在本地历史：先 git fetch 并对齐后再推" >&2
+  echo "✗ 远端最近 40 个提交均不在本地历史：先 git fetch 并对齐后再推" >&2
   exit 1
 fi
 echo "本地已知祖先 = $anchor"
