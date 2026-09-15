@@ -166,6 +166,9 @@ const ImpactEngine = (() => {
     const edges = [];
     for (const rule of RULES[kind]) {
       const symbol = ASSET_SYMBOLS[rule.assetKind] ? ASSET_SYMBOLS[rule.assetKind](iso2) : null;
+      // 无该资产（未知国家的 equity_local、未接入的 insurance 等）→ 整条边不出：
+      // 显示"equity 行情未接入"这类原始 token 是噪音，宁缺毋假
+      if (symbol === null) continue;
       let { relationship, direction } = rule;
       // USD 基准货币对的报价方向与"本币方向"相反：出边时折算成 symbol 的价格方向
       if ((rule.assetKind === 'fx_base' || rule.assetKind === 'fx_target')

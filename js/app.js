@@ -1586,6 +1586,17 @@
   const DIR_ARROW = { up: '↑', down: '↓', flat: '→' };
   // relationship 的人话：机制/历史口径认为这个事件对资产是利好还是利空
   const DIR_TEXT = { positive: '利好', inverse: '利空', risk_off: '避险', risk_on: '风偏' };
+  // 事件种类的一句话机制综述：给用户"分析"的第一眼（口径描述，不是预测）
+  const KIND_SUMMARY = {
+    CENTRAL_BANK_HIKE: '政策利率上行 → 国债收益率与本币汇率倾向上行，股票估值与无息资产承压',
+    CENTRAL_BANK_CUT: '政策利率下行 → 收益率回落、估值受益；本币倾向走弱、黄金受益',
+    RATE_DECISION_HOLD: '利率不变没有机制性方向，各资产按决议后的政策措辞波动',
+    ARMED_CONFLICT: '风险偏好受挫 → 避险资产受益、股指承压；冲突未扩散时快速修复',
+    OIL_SUPPLY_SHOCK: '供给收缩推高油价 → 进口型经济体成本与通胀上升',
+    SANCTIONS: '资本外流与融资受限 → 被制裁方货币承压，避险资产受益',
+    TRADE_TARIFF: '贸易条件恶化 → 出口方货币与股市承压',
+    EARTHQUAKE: '生产中断与重建支出并存 → 本地股市短期承压为主',
+  };
 
   // 单条事件的资产影响边（News → Event → Impact → Asset 的"Impact"段）
   function renderImpactEdges(ev) {
@@ -1604,6 +1615,14 @@
       // 名称已在 chip 上，这里只报"现价"：现价是此刻实际行情，可以和预期方向相反
       return `<span class="imp-q num" title="该资产此刻的实际行情">现 ${fmtPrice(q.price)} <b class="${pctClass(pct)}">${fmtPct(pct)}</b></span>`;
     };
+    // 实时对照：当前涨跌与预期方向是否一致（按符号判定，纯描述不做评级）
+    const trackOf = (e) => {
+      const q = findQuote(e.assetSymbol);
+      if (!q || e.direction === 'flat' || q.changePct === null || q.changePct === undefined || isNaN(q.changePct) || q.changePct === 0) return '';
+      const same = (e.direction === 'up') === (q.changePct > 0);
+      return same ? '<span class="imp-track">与预期同向</span>'
+        : '<span class="imp-track rev" title="当前走势与该类事件的机制/历史方向相反——反向不代表会回转，只是如实标注">与预期相反</span>';
+    };
     const section = (kind) => {
       const meta = IMPACT_KIND_META[kind];
       const list = groups[kind] || [];
@@ -1616,13 +1635,15 @@
           return `<div class="imp-edge">
           <span class="imp-dir ${e.direction} num" title="这类事件对该资产的预期方向（规则/历史口径，非实时预测）">预期${DIR_ARROW[e.direction] || '→'}${relTxt}</span>
           <button class="rel-chip num" data-relsym="${escapeHTML(e.assetSymbol)}" title="${escapeHTML(e.assetSymbol)}">${escapeHTML(chipLabel)}</button>
-          ${quoteOf(e.assetSymbol)}
+          <span class="imp-live">${quoteOf(e.assetSymbol)}${trackOf(e)}</span>
           <span class="imp-conf num" title="该条影响的置信度（机制事实高于历史相关）">${Math.round(e.confidence * 100)}%</span>
           <div class="imp-note">${escapeHTML(e.evidence.note)}${e.historicalCases.length ? ' · 案例：' + escapeHTML(e.historicalCases.map(c => c.label + '（' + c.move + '）').join('；')) : ''}</div>
         </div>`;
         }).join('') + '</div>';
     };
+    const kind = edges[0].eventKind;
     return `<div class="evd-impacts"><div class="evd-rel-label">资产影响（证据分级）</div>
+      ${KIND_SUMMARY[kind] ? `<div class="imp-sum">${KIND_SUMMARY[kind]}</div>` : ''}
       ${section('DATA')}${section('CORRELATION')}${section('AI')}
       <div class="imp-disclaim">「预期」= 这类事件对该资产的机制/历史口径方向；「现」= 该资产此刻的实际行情，两者可以相反（如预期避险涨、现价暂跌）。非投资建议；点击资产查看行情。</div>
     </div>`;

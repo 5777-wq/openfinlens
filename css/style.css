@@ -838,12 +838,22 @@ html.splash-on .topbar, html.splash-on .main { opacity: 0; }
 .imp-kind.k-data { color: #2ebd85; border: 1px solid rgba(46,189,133,.4); }
 .imp-kind.k-corr { color: #e0a83c; border: 1px solid rgba(224,168,60,.4); }
 .imp-kind.k-ai { color: #b06ad4; border: 1px solid rgba(176,106,212,.4); }
-.imp-edge { display: grid; grid-template-columns: 18px auto 1fr auto; gap: 4px 8px;
-  align-items: baseline; padding: 6px 0; border-bottom: 1px dashed var(--border); }
+.imp-edge { display: grid; grid-template-columns: auto auto 1fr auto; gap: 4px 8px;
+  align-items: center; padding: 7px 0; border-bottom: 1px dashed var(--line); }
 .imp-edge:last-child { border-bottom: 0; }
-.imp-dir { font-family: var(--font-mono); font-weight: 700; }
-.imp-dir.up { color: var(--up); } .imp-dir.down { color: var(--down); }
-.imp-dir.flat { color: var(--text-tertiary); }
+/* 方向徽章：auto 列宽 + nowrap。旧版 18px 定宽是给单个箭头设计的，
+   放"预期↑ 利好"会一字一行竖排（视觉回归） */
+.imp-dir { font-family: var(--font-mono); font-weight: 700; white-space: nowrap;
+  font-size: 10.5px; border: 1px solid; border-radius: 3px; padding: 1px 7px;
+  justify-self: start; letter-spacing: .04em; }
+.imp-dir.up { color: var(--up); border-color: color-mix(in srgb, var(--up) 45%, transparent); }
+.imp-dir.down { color: var(--down); border-color: color-mix(in srgb, var(--down) 45%, transparent); }
+.imp-dir.flat { color: var(--text-tertiary); border-color: var(--border); }
+.imp-track { font-size: 10px; color: var(--text-tertiary); border: 1px solid var(--border);
+  border-radius: 3px; padding: 0 5px; white-space: nowrap; }
+.imp-track.rev { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
+.imp-live { display: flex; align-items: center; gap: 6px; min-width: 0; flex-wrap: wrap; }
+.imp-sum { font-size: 11.5px; color: var(--text-secondary); margin: 6px 0 2px; line-height: 1.6; }
 .imp-conf { color: var(--text-faint); font-size: 10px; }
 .imp-note { grid-column: 1 / -1; font-size: 11px; color: var(--text-tertiary); line-height: 1.6; }
 .imp-q { font-size: 11px; color: var(--text-secondary); }

@@ -253,11 +253,13 @@ await test('geo：110m feature.id（ISO numeric）→ ISO2 映射（地图点在
   assert.equal(W.EngineGeo.iso2OfNumeric('999'), null);       // 未收录（无独立多边形/不在引擎表）
 });
 
-await test('impact：未命中 kind → 类别兜底；未知国家 → 边仍可降级产出', () => {
-  const ev = { title: '某地发生强烈地震', countries: ['XX'], categories: ['natural_disaster'] };
-  const edges = W.ImpactEngine.inferImpacts(ev);
-  assert.ok(edges.length > 0, '兜底应产出边');
-  assert.equal(edges[0].evidence.kind, 'DATA');
+await test('impact：未命中 kind → 类别兜底产出；资产缺失的边整条跳过（不显示原始 token）', () => {
+  // 已知国家：earthquake → equity_local → 日经边（CORRELATION）
+  const jp = W.ImpactEngine.inferImpacts({ title: '某地发生强烈地震', countries: ['JP'], categories: ['natural_disaster'] });
+  assert.ok(jp.some(e => e.assetSymbol === 'nikkei'), '已知国家应有日经边');
+  // 未知国家：equity_local/insurance 都解析不出 symbol → 边整条跳过（旧版显示"equity 行情未接入"是噪音）
+  const xx = W.ImpactEngine.inferImpacts({ title: '某地发生强烈地震', countries: ['XX'], categories: ['natural_disaster'] });
+  assert.equal(xx.length, 0, '未知国家的地震不应产出 equity/insurance 原始 token 边');
 });
 
 await test('impact：冲突 → 黄金 risk_off；保险资产暂缺显式 null 不硬造', () => {
