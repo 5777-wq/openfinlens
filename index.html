@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark">
 <title>OpenFinLens · 全球金融看板</title>
 <meta name="description" content="全球金融情报终端：A股/港股/美股/加密/外汇/指数/大宗商品/宏观利率，3D 全球事件地图、热力图、K线事件标记、龙虎榜资金动向、新闻流与产业链。">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23D97757'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23e8a33d'/%3E%3C/svg%3E">
 <!-- PWA：手机浏览器"添加到主屏幕"后以独立窗口+品牌图标运行（个人主体上不了小程序 web-view 的替代体验） -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
@@ -15,33 +15,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
-<script>
-/* 开屏状态必须在 CSS 之前挂上（防 FOUC）；2.6s 是硬上限兜底，
-   JS 正常时 init 在数据就绪后主动 reveal（见 app.js 的 revealSplash）。 */
-document.documentElement.classList.add('splash-on');
-setTimeout(function () {
-  var de = document.documentElement;
-  de.classList.remove('splash-on');
-  var s = document.getElementById('splash');
-  if (s && s.parentNode) s.parentNode.removeChild(s);
-}, 2600);
-</script>
-<link rel="stylesheet" href="css/style.css?v=20260914f">
+<!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
+     对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
+<link rel="stylesheet" href="css/style.css?v=20260915b">
 </head>
 <body data-updown="red">
-
-<!-- ========== 开屏 ========== -->
-<div id="splash" aria-hidden="true">
-  <div class="sp-inner">
-    <div class="sp-word">OpenFinLens</div>
-    <div class="sp-sub">全球金融看板</div>
-    <div class="sp-load">
-      <span class="sp-track"><span class="sp-fill" id="spFill"></span></span>
-      <span class="sp-status" id="spStatus">正在连接行情源…</span>
-    </div>
-  </div>
-  <div class="sp-skip">点击任意处跳过</div>
-</div>
 
 <header class="topbar">
   <div class="logo"><span class="logo-dot"></span><span>OpenFinLens</span></div>
@@ -170,12 +148,12 @@ setTimeout(function () {
         <span class="ma-wrap">
           <button class="pill active" id="maToggle" title="叠加均线：勾选开关，数值可改（2~500）">均线 ▾</button>
           <span class="ma-menu" id="maMenu" hidden>
-            <label><input type="checkbox" data-maline="0"> MA <input type="number" min="2" max="500" data-man="0"> <i style="background:#D97757"></i></label>
-            <label><input type="checkbox" data-maline="1"> MA <input type="number" min="2" max="500" data-man="1"> <i style="background:#5b8def"></i></label>
-            <label><input type="checkbox" data-maline="2"> MA <input type="number" min="2" max="500" data-man="2"> <i style="background:#3fae72"></i></label>
-            <label><input type="checkbox" data-maline="3"> MA <input type="number" min="2" max="500" data-man="3"> <i style="background:#b06ad4"></i></label>
-            <label><input type="checkbox" data-maline="4"> EMA <input type="number" min="2" max="500" data-man="4"> <i style="background:#e0a83c"></i></label>
-            <label><input type="checkbox" data-maline="5"> EMA <input type="number" min="2" max="500" data-man="5"> <i style="background:#4db6ac"></i></label>
+            <label><input type="checkbox" data-maline="0"> MA <input type="number" min="2" max="500" data-man="0"> <i style="background:var(--ma-0)"></i></label>
+            <label><input type="checkbox" data-maline="1"> MA <input type="number" min="2" max="500" data-man="1"> <i style="background:var(--ma-1)"></i></label>
+            <label><input type="checkbox" data-maline="2"> MA <input type="number" min="2" max="500" data-man="2"> <i style="background:var(--ma-2)"></i></label>
+            <label><input type="checkbox" data-maline="3"> MA <input type="number" min="2" max="500" data-man="3"> <i style="background:var(--ma-3)"></i></label>
+            <label><input type="checkbox" data-maline="4"> EMA <input type="number" min="2" max="500" data-man="4"> <i style="background:var(--ma-4)"></i></label>
+            <label><input type="checkbox" data-maline="5"> EMA <input type="number" min="2" max="500" data-man="5"> <i style="background:var(--ma-5)"></i></label>
           </span>
         </span>
         <button class="pill active" id="evtToggle" title="在K线上叠加事件标记（宏观/新闻/龙虎榜）">事件</button>
@@ -394,39 +372,39 @@ setTimeout(function () {
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script src="js/utils.js?v=20260914f"></script>
-<script src="js/store.js?v=20260914f"></script>
-<script src="js/proxy.js?v=20260914f"></script>
-<script src="js/data/universe.js?v=20260914f"></script>
-<script src="js/data/industry-chains.js?v=20260914f"></script>
-<script src="js/data/explain.js?v=20260914f"></script>
-<script src="js/technical.js?v=20260914f"></script>
-<script src="js/flags.js?v=20260914f"></script>
-<script src="js/bus.js?v=20260914f"></script>
-<script src="js/events.js?v=20260914f"></script>
-<script src="js/actors.js?v=20260914f"></script>
-<script src="js/sources/tencent.js?v=20260914f"></script>
-<script src="js/sources/sina.js?v=20260914f"></script>
-<script src="js/sources/eastmoney.js?v=20260914f"></script>
-<script src="js/sources/okx.js?v=20260914f"></script>
-<script src="js/sources/binance.js?v=20260914f"></script>
-<script src="js/sources/fred.js?v=20260914f"></script>
-<script src="js/sources/news.js?v=20260914f"></script>
-<script src="js/sources/worldbank.js?v=20260914f"></script>
-<script src="js/sources/gdelt.js?v=20260914f"></script>
-<script src="js/sources/lhb.js?v=20260914f"></script>
-<script src="js/sources/sec.js?v=20260914f"></script>
-<script src="js/breadth.js?v=20260914f"></script>
-<script src="js/sessions.js?v=20260914f"></script>
-<script src="js/treemap.js?v=20260914f"></script>
-<script src="js/charts.js?v=20260914f"></script>
-<script src="js/engine/types.js?v=20260914f"></script>
-<script src="js/engine/geo.js?v=20260914f"></script>
-<script src="js/engine/news-engine.js?v=20260914f"></script>
-<script src="js/engine/event-engine.js?v=20260914f"></script>
-<script src="js/engine/impact-engine.js?v=20260914f"></script>
-<script src="js/engine/llm-provider.js?v=20260914f"></script>
-<script src="js/worldmap.js?v=20260914f"></script>
-<script src="js/app.js?v=20260914f"></script>
+<script src="js/utils.js?v=20260915b"></script>
+<script src="js/store.js?v=20260915b"></script>
+<script src="js/proxy.js?v=20260915b"></script>
+<script src="js/data/universe.js?v=20260915b"></script>
+<script src="js/data/industry-chains.js?v=20260915b"></script>
+<script src="js/data/explain.js?v=20260915b"></script>
+<script src="js/technical.js?v=20260915b"></script>
+<script src="js/flags.js?v=20260915b"></script>
+<script src="js/bus.js?v=20260915b"></script>
+<script src="js/events.js?v=20260915b"></script>
+<script src="js/actors.js?v=20260915b"></script>
+<script src="js/sources/tencent.js?v=20260915b"></script>
+<script src="js/sources/sina.js?v=20260915b"></script>
+<script src="js/sources/eastmoney.js?v=20260915b"></script>
+<script src="js/sources/okx.js?v=20260915b"></script>
+<script src="js/sources/binance.js?v=20260915b"></script>
+<script src="js/sources/fred.js?v=20260915b"></script>
+<script src="js/sources/news.js?v=20260915b"></script>
+<script src="js/sources/worldbank.js?v=20260915b"></script>
+<script src="js/sources/gdelt.js?v=20260915b"></script>
+<script src="js/sources/lhb.js?v=20260915b"></script>
+<script src="js/sources/sec.js?v=20260915b"></script>
+<script src="js/breadth.js?v=20260915b"></script>
+<script src="js/sessions.js?v=20260915b"></script>
+<script src="js/treemap.js?v=20260915b"></script>
+<script src="js/charts.js?v=20260915b"></script>
+<script src="js/engine/types.js?v=20260915b"></script>
+<script src="js/engine/geo.js?v=20260915b"></script>
+<script src="js/engine/news-engine.js?v=20260915b"></script>
+<script src="js/engine/event-engine.js?v=20260915b"></script>
+<script src="js/engine/impact-engine.js?v=20260915b"></script>
+<script src="js/engine/llm-provider.js?v=20260915b"></script>
+<script src="js/worldmap.js?v=20260915b"></script>
+<script src="js/app.js?v=20260915b"></script>
 </body>
 </html>

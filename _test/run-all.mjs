@@ -12,6 +12,7 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 const offlineOnly = process.argv.includes('--offline');
 
 const groups = [
+  { file: 'tokens.test.mjs', net: false },  // 设计令牌一致性/均线色距/发布卫生（读真实源文件）
   { file: 'logic.test.mjs', net: false },
   { file: 'insight.test.mjs', net: false },
   { file: 'evolve.test.mjs', net: false },  // 市场时段/情绪历史/请求去重（纯函数）

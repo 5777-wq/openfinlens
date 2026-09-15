@@ -34,6 +34,7 @@ window.WorldMapView = (() => {
   let drag = null, pinch = null, ready = false, failed = false;
   let resizeBound = null;
   let fontMono = 'monospace';                   // 帧循环里读 getComputedStyle 会强制样式重算，只取一次
+  let accentRgb = '232,163,61';                 // 事件点脉冲环的强调色分量（= css --accent-rgb，同上只取一次）
 
   /* 图层注册表（ARCHITECTURE.md §10）：新图层 = 注册表加项 + render 加一段绘制，
      visible 由设置面板开关；land 是底图恒显，selection 只在有选中时才有意义 */
@@ -235,7 +236,7 @@ window.WorldMapView = (() => {
   function ring(x, y, r, alpha) {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(217,119,87,' + alpha + ')';   // 主题橙
+    ctx.strokeStyle = 'rgba(' + accentRgb + ',' + alpha + ')';   // 交互强调色脉冲环
     ctx.lineWidth = 1.6;
     ctx.stroke();
   }
@@ -487,6 +488,7 @@ window.WorldMapView = (() => {
     ctx = canvas.getContext('2d');
     try {
       fontMono = getComputedStyle(document.body).getPropertyValue('--font-mono').trim() || 'monospace';
+      accentRgb = getComputedStyle(document.body).getPropertyValue('--accent-rgb').trim() || accentRgb;
     } catch { fontMono = 'monospace'; }
     bindEvents();
 

@@ -16,7 +16,14 @@ const test = (name, fn) => {
 
 // ---- 构造最小浏览器环境，加载真实源码 ----
 function makeCtx() {
-  const styleVals = { '--up': '#ff5c5c', '--down': '#2ebd85', '--accent-signature': '#D97757' };
+  /* 令牌不在这里另抄一份：直接从真实 css 解析，避免"测试里的第三份副本"——
+     历史缺口就是这样：把 css 的 --accent-rgb 改坏，测试照样全绿。
+     （一致性/色距的正面断言在 tokens.test.mjs，这里只负责给渲染取到真值。） */
+  const styleVals = {};
+  for (const m of readFileSync(path.join(ROOT, 'css/style.css'), 'utf8')
+    .matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+    if (!(m[1] in styleVals)) styleVals[m[1]] = m[2].trim();   // 首个定义优先（:root）
+  }
   const fakeStyle = { getPropertyValue: (k) => styleVals[k] || '' };
   const ctx = {
     console,

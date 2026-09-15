@@ -15,12 +15,15 @@
   const U = window.U;
   const { fmt, fmtPct, fmtChg, fmtPrice, fmtVol, fmtTime, fmtAgo, escapeHTML, num, Cache, debounce } = U;
 
+  /* 品牌强调色的 RGB 分量（= css 的 --accent-rgb，供需要 alpha 合成的内联样式用）。
+     不要在业务代码里再写字面量 rgba(…)：改色时它一定会漂。 */
+  const ACCENT_RGB = (getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb') || '').trim() || '232,163,61';
+
   const state = {
     tab: 'all',
     view: 'market',
     prevView: 'market',
     quotes: new Map(),        // symbol → quote
-    prevPrice: new Map(),     // symbol → 上一次价格（闪动用）
     degraded: new Map(),      // symbol → 'backup' | 'cache'
     heatMode: 'cn',
     heatSize: 'cap',
@@ -182,8 +185,6 @@
       if (meta && meta.group) q.group = meta.group;
       else q.group = q.group || q.market;
       if (meta && meta.label) q.name = meta.label;
-      const prev = state.quotes.get(q.symbol);
-      if (prev && prev.price !== null) state.prevPrice.set(q.symbol, prev.price);
       state.quotes.set(q.symbol, q);
       Cache.set('q:' + q.symbol, q);
       if (via === 'primary') state.degraded.delete(q.symbol);
@@ -448,15 +449,7 @@
       const digits = U.priceDigits(q.price);
       const v = cell.querySelector('.hero-value');
       const txt = fmt(q.price, digits);
-      const prev = state.prevPrice.get(sym);
-      if (v && v.textContent !== txt) {
-        v.textContent = txt;
-        if (prev !== undefined && prev !== null && q.price !== null && !reduceMotion()) {
-          v.classList.remove('flash-up', 'flash-down');
-          void v.offsetWidth;
-          v.classList.add(q.price > prev ? 'flash-up' : 'flash-down');
-        }
-      }
+      if (v && v.textContent !== txt) v.textContent = txt;
       const c = cell.querySelector('[data-hero-chg]');
       const cls = pctClass(q.changePct);
       const cTxt = `${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}`;
@@ -502,18 +495,7 @@
       const digits = isFxMacro ? 4 : U.priceDigits(q.price);
       const priceNode = row.querySelector('.qr-price');
       const txt = fmt(q.price, digits);
-      const prev = state.prevPrice.get(sym);
-      if (priceNode && priceNode.textContent !== txt) {
-        priceNode.textContent = txt;
-        if (prev !== undefined && prev !== null && q.price !== null && !reduceMotion()) {
-          const fl = q.price > prev ? 'flash-up' : q.price < prev ? 'flash-down' : null;
-          if (fl) {
-            priceNode.classList.remove('flash-up', 'flash-down');
-            void priceNode.offsetWidth;
-            priceNode.classList.add(fl);
-          }
-        }
-      }
+      if (priceNode && priceNode.textContent !== txt) priceNode.textContent = txt;
       const cls = pctClass(q.changePct);
       const chgNode = row.querySelector('.qr-chg');
       if (chgNode) {
@@ -2093,7 +2075,7 @@
     if (state.lhb && state.lhb.rows.length) {
       state.lhb.rows.forEach(r => {
         if (r.symbol === t.symbol && r.tradeDate) {
-          out.push({ time: r.tradeDate, color: '#D97757', text: '龙虎榜', ev: { kind: 'lhb', row: r } });
+          out.push({ time: r.tradeDate, color: 'rgb(' + ACCENT_RGB + ')', text: '龙虎榜', ev: { kind: 'lhb', row: r } });
         }
       });
     }
@@ -2137,7 +2119,7 @@
     if (first.ev && first.ev.kind === 'lhb') {
       const r = first.ev.row;
       el.chartEventCard.hidden = false;
-      el.chartEventCard.innerHTML = `<div class="ce-head"><span class="ce-tag" style="color:#D97757">龙虎榜 · ${escapeHTML(r.tradeDate)}</span>
+      el.chartEventCard.innerHTML = `<div class="ce-head"><span class="ce-tag" style="color:var(--accent-signature)">龙虎榜 · ${escapeHTML(r.tradeDate)}</span>
           <button class="evd-close" data-ceclose aria-label="关闭">×</button></div>
         <div class="ce-line num">净买 <b class="${pctClass(r.netAmt)}">${fmtAmt(r.netAmt)}</b> · 榜上成交 ${fmtAmt(r.dealAmt)}` +
         (r.d1 !== null ? ` · 次日 <b class="${pctClass(r.d1)}">${fmtPct(r.d1)}</b>` : '') +
@@ -2211,7 +2193,7 @@
       const t = (cell.v - rg.min) / (rg.max - rg.min);
       const warm = ['cpi', 'debt', 'unemp'].includes(k);
       const alpha = (0.08 + t * 0.30).toFixed(2);
-      return ` style="background:${warm ? `rgba(217,119,87,${alpha})` : `rgba(77,182,172,${alpha})`}"`;
+      return ` style="background:${warm ? `rgba(${ACCENT_RGB},${alpha})` : `rgba(77,182,172,${alpha})`}"`;
     };
     el.macroBox.innerHTML = `<div class="section-head">
         <h2 class="section-title">世界经济仪表盘</h2>
@@ -2347,8 +2329,6 @@
       via = 'backup';
     }
     list.forEach(q => {
-      const prev = state.chainQuotes.get(q.symbol);
-      if (prev && prev.price !== null) state.prevPrice.set(q.symbol, prev.price);
       state.chainQuotes.set(q.symbol, q);
       Cache.set('q:' + q.symbol, q);
       if (via !== 'primary') state.degraded.set(q.symbol, via);
@@ -3371,61 +3351,9 @@
 
   /* ==================== 启动 ==================== */
 
-  /* ---- 开屏（splash）：数据就绪后 reveal，最短展示 600ms，2.6s 硬上限在 HTML 内联 ---- */
-  const SPLASH_MIN = 600;
-  const splashT0 = Date.now();
-  /* 进度条：rAF 爬行器 + 真实里程碑校准。
-     爬行器保证慢网络下也有前进感（自发向 88% 爬），里程碑（行情到位/热力到位/渲染）
-     负责真实跳变，绝不倒退；状态行带百分比。动画走 rAF（禁令：不许 setInterval）。 */
-  const splashProgress = (() => {
-    let cur = 0, target = 8, txt = '正在连接行情源…', lastCrawl = 0, started = false;
-    function paint() {
-      const fill = document.getElementById('spFill');
-      const status = document.getElementById('spStatus');
-      if (!fill || !fill.isConnected) return false;   // 开屏已被移除（点击跳过/硬上限）→ 停表
-      if (reduceMotion()) cur = target;
-      else cur += (target - cur) * 0.10;
-      if (target >= 100 && cur > 99.2) cur = 100;
-      fill.style.transform = 'scaleX(' + (cur / 100).toFixed(4) + ')';
-      if (status) status.textContent = txt + ' ' + Math.min(100, Math.round(cur)) + '%';
-      return cur < 100;
-    }
-    function tick(now) {
-      if (now - lastCrawl > 120 && target < 88) { target = Math.min(88, target + 0.8); lastCrawl = now; }
-      if (paint()) requestAnimationFrame(tick);
-    }
-    return {
-      start() {
-        if (started) return;
-        started = true;
-        requestAnimationFrame(tick);
-      },
-      step(p, t) {
-        target = Math.max(target, Math.min(p, 100));
-        if (t) txt = t;
-      },
-      finish(t) {
-        if (t) txt = t;
-        target = 100;
-      },
-    };
-  })();
-  function splashStatus(txt) {
-    splashProgress.step(null, txt);
-  }
-  function revealSplash() {
-    const de = document.documentElement;
-    const sp = document.getElementById('splash');
-    if (!sp || !de.classList.contains('splash-on')) return;
-    de.classList.remove('splash-on');
-    sp.classList.add('leaving');
-    setTimeout(() => sp.remove(), 300);
-  }
-  function splashReady() {
-    splashProgress.finish('渲染视图…');
-    const wait = Math.max(0, SPLASH_MIN - (Date.now() - splashT0));
-    return new Promise(r => setTimeout(() => { revealSplash(); setTimeout(r, 120); }, wait));
-  }
+  /* 开屏（splash）2026-09-15 整体移除：进度条 + 里程碑文案属于落地页语法，
+     对数据终端只是把首屏数据推迟 0.6~2.6s。现在 .sk 骨架直接可见，行情到位即渲染。
+     相关 DOM（#splash / #spFill / #spStatus）、CSS（.sp-* / .splash-on）与内联脚本同步删除。 */
 
   async function init() {
     DOM_IDS.forEach(id => { el[id] = $(id); });
@@ -3441,27 +3369,17 @@
     }
     if (el.heatReset && touchLike) el.heatReset.hidden = false;
 
-    // 开屏跳过：点击/按键立即 reveal
-    const sp = document.getElementById('splash');
-    if (sp) {
-      sp.addEventListener('pointerdown', revealSplash);
-      sp.addEventListener('keydown', revealSplash);
-    }
-    // 开屏进度条开始爬行（rAF）；里程碑：行情 92% → 渲染 100%
-    splashProgress.start();
     // 首屏骨架：数据到达前先给结构（opacity 呼吸），不白屏
     el.cardWall.innerHTML = '<div class="section"><div class="card-grid">' +
       '<div class="sk sk-card"></div>'.repeat(8) + '</div></div>';
 
-    // 开屏只等行情（47 标的，数百毫秒级）；全市场热力图（56 页并发）改为后台加载——
+    // 首屏只等行情（47 标的，数百毫秒级）；全市场热力图（56 页并发）走后台加载——
     // 它曾把首屏阻塞 1-3 秒，是"打开变慢"的主因。到位后补画热力图并计算市场宽度。
     const heatBg = loadHeatCN().then(() => {
-      splashProgress.step(80, '热力图数据后台就绪');
       drawHeat();
       return loadMood();   // 市场宽度/情绪历史/加密宽度一并在后台算好
     }).catch(() => {});
-    await fetchAllQuotes().then(() => splashProgress.step(92, '行情数据到位'));
-    await splashReady();   // 进度条走满 + 最短展示，随后淡出开屏
+    await fetchAllQuotes();
     renderHero();
     renderCardWall();
     renderStatus();

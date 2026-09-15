@@ -32,12 +32,16 @@ const Charts = (() => {
     return chart[legacy[kind]](opts);
   }
 
+  /* 均线槽位回退色：正常取 CSS 的 --ma-0..5（单一来源），仅在变量缺失时兜底 */
+  const MA_FALLBACK = ['#e8a33d', '#5b8def', '#1fc2db', '#b06ad4', '#e0559b', '#aab82e'];
+
   function themeColors() {
     const s = getComputedStyle(document.body);
+    const varOf = (name, fb) => (s.getPropertyValue(name) || '').trim() || fb;
     return {
-      up: (s.getPropertyValue('--up') || '#ff5c5c').trim(),
-      down: (s.getPropertyValue('--down') || '#2ebd85').trim(),
-      accent: (s.getPropertyValue('--accent-signature') || '#D97757').trim(),
+      up: varOf('--up', '#ff5c5c'),
+      down: varOf('--down', '#2ebd85'),
+      lineColors: MA_FALLBACK.map((fb, i) => varOf('--ma-' + i, fb)),
     };
   }
 
@@ -45,7 +49,7 @@ const Charts = (() => {
   function createKline(el) {
     const L = LWC();
     if (!L) return null;
-    const { up, down, accent } = themeColors();
+    const { up, down, lineColors: LINE_COLORS } = themeColors();
     const chart = L.createChart(el, Object.assign(baseOptions(), { height: el.clientHeight || 420 }));
 
     const candle = addSeries(chart, 'Candlestick', {
@@ -57,8 +61,7 @@ const Charts = (() => {
     });
     chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 }, visible: false });
 
-    // 6 条均线槽位，颜色固定按槽位；类型与周期由外部配置驱动（详情页菜单可改任意周期）
-    const LINE_COLORS = [accent, '#5b8def', '#3fae72', '#b06ad4', '#e0a83c', '#4db6ac'];
+    // 6 条均线槽位，颜色由 CSS 调色板 --ma-0..5 决定；类型与周期由外部配置驱动（详情页菜单可改任意周期）
     const lineSeries = LINE_COLORS.map(color => addSeries(chart, 'Line', {
       color, lineWidth: 1, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false,
     }));
@@ -83,7 +86,7 @@ const Charts = (() => {
         .slice(0, 40)
         .map(e => ({
           time: e.time, position: 'aboveBar', shape: 'circle', size: 1,
-          color: e.color || '#D97757', text: e.text || '',
+          color: e.color || '#e8a33d', text: e.text || '',
         }))
         .sort((a, b) => tCmp(a.time, b.time));
       candle.setMarkers(ms);
