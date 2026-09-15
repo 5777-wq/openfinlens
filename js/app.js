@@ -106,6 +106,7 @@
     'lhbBox', 'lhbVia', 'evtToggle', 'chartEventCard',
     'seatDir', 'seatDirVia',
     'brkBox', 'brkVia', 'marketTitle', 'globalOverview', 'moodPanel',
+    'aFundsPanel', 'usFundsPanel',
     'actorBack', 'actorName', 'actorType', 'actorMeta', 'actorStats', 'actorStatsSub', 'actorTimeline'];
 
   const pctClass = (p) => (p === null || p === undefined || isNaN(p)) ? 'flat' : (p > 0 ? 'up' : p < 0 ? 'down' : 'flat');
@@ -2614,11 +2615,14 @@
 
   const VIEW_OF_TAB = {
     all: 'market', cn: 'market', hk: 'market', us: 'market', crypto: 'market', fxmacro: 'market',
-    events: 'events', funds: 'funds', chain: 'chain', watch: 'watch',
+    events: 'events', chain: 'chain', watch: 'watch',
     mood: 'market',   // 旧 hash：情绪已并入 A股板块
-    news: 'events', voices: 'funds',   // 旧 hash / 旧快捷键深链兼容：新闻→事件页，喊单→资金页
+    // 旧快捷方式/hash 兼容：新闻→事件页，喊单→事件页的公开言论，资金页→A股（席位/龙虎榜已归位到 A股）
+    news: 'events', voices: 'events', funds: 'market',
   };
-  const TAB_ALIAS = { news: 'events', voices: 'funds', mood: 'cn' };
+  /* 旧 hash → 现有 tab。资金页拆掉了：龙虎榜/席位动向 归 A股 tab，伯克希尔归美股 tab，
+     公开言论归事件页——所以 #tab=funds 落到 A股，用户要找的东西就在那一屏。 */
+  const TAB_ALIAS = { news: 'events', voices: 'events', funds: 'cn', mood: 'cn' };
 
   function setView(view) {
     state.view = view;
@@ -2695,9 +2699,10 @@
   }
 
   function setTab(tab, opts) {
-    // 旧 tab 名兼容：新闻→事件页(快讯子面板)，喊单→资金页，情绪→A股(已并入)
+    // 旧 tab 名兼容：新闻/喊单→事件页的快讯子面板（公开言论已并入该页），情绪→A股(已并入)，
+    // 资金页→A股（聪明钱 tab 已拆解：席位/龙虎榜归 A股、13F 归美股、公开言论归事件页）
     if (TAB_ALIAS[tab]) {
-      if (tab === 'news') state.eventsSub = 'news';
+      if (tab === 'news' || tab === 'voices') state.eventsSub = 'news';
       tab = TAB_ALIAS[tab];
     }
     if (tab === 'crypto' && !CRYPTO_ON) tab = 'all';   // 合规开关：加密深链/快捷键归位「全部」
@@ -2736,6 +2741,9 @@
     if (el.cardWall) el.cardWall.hidden = tab === 'fxmacro';
     // 情绪与市场宽度：A股板块底部的小节
     if (el.moodPanel) el.moodPanel.hidden = tab !== 'cn';
+    // 披露类区块按市场归位（原"聪明钱"tab）：席位/龙虎榜 在 A股，13F 在美股
+    if (el.aFundsPanel) el.aFundsPanel.hidden = tab !== 'cn';
+    if (el.usFundsPanel) el.usFundsPanel.hidden = tab !== 'us';
     // 市场视图：热力图只在"全部/A股/加密"下有意义
     const heatWasHidden = el.heatSection.hidden;
     // 热力图在 全部/A股/港股/美股/加密 下有意义（宏观 tab 是世行年度指标，不放热力图）
@@ -2758,21 +2766,24 @@
     if (tab === 'cn') {
       if (state.breadth) renderMood();
       loadMood();
-    }
-    if (view === 'funds') {
-      // 公开言论（旧喊单）：55s 过期重拉；龙虎榜 4 分钟；席位目录随 loadLhb 拉取。
-      // 注意：此块历史上曾重复出现两次（进资金页全链路双请求），只保留这一份
-      if (!state.voices || Date.now() - (state.voicesAt || 0) > 55000) loadVoices();
-      else renderVoices();
+      // 席位动向 + 今日龙虎榜（原"聪明钱"tab，按市场归位到 A股）：龙虎榜 4 分钟过期；
+      // 席位目录随 loadLhb 一起拉。注意：这块历史上曾重复出现两次（进页全链路双请求），只保留一份。
       if (!state.lhb || Date.now() - state.lhbAt > 240000) loadLhb().catch(() => { /* 降级角标 */ });
       else {
         renderLhb();
         if (!state.actors || Date.now() - state.actorsAt > 600000) loadSeatActors().catch(() => renderSeatDirectory());
         else renderSeatDirectory();
       }
-      // 伯克希尔 13F：季度数据，入页时过期(>6h)才拉
+    }
+    if (tab === 'us') {
+      // 伯克希尔 13F（原"聪明钱"tab，归位到美股）：季度数据，入页时过期(>6h)才拉
       if (!state.brk || Date.now() - (state.brkAt || 0) > 6 * 3600000) loadBrk().catch(() => {});
       else renderBrk();
+    }
+    if (view === 'events') {
+      // 公开言论（原"聪明钱"tab 第 4 块）：本质是"新闻流里出现人名"，与事件页同源，55s 过期重拉
+      if (!state.voices || Date.now() - (state.voicesAt || 0) > 55000) loadVoices();
+      else renderVoices();
     }
     if (view === 'chain') {
       renderChains();
@@ -2951,9 +2962,9 @@
       if (state.view !== 'chain') return;
       await loadBoards();
     }, 60000);
-    // 大V喊单 60s（现住资金页"公开言论"栏）；全球指数条 60s（仅市场视图）
+    // 公开言论 60s（现住事件页的快讯子页）；全球指数条 60s（仅市场视图）
     schedule('voices', async () => {
-      if (state.view !== 'funds') return;
+      if (state.view !== 'events') return;
       await loadVoices();
     }, 60000);
     // 全球事件 JSON：采集任务 5 分钟一轮，页面停留时 60s 拉一次（用户要求的分钟级新鲜度）
@@ -2962,9 +2973,9 @@
       if (state.view !== 'events' || state.eventsSub === 'news') return;
       await loadEvents();
     }, 60000);
-    // 龙虎榜：日频披露 + 当日 17:00 后陆续更新，5 分钟轮询足够
+    // 龙虎榜：日频披露 + 当日 17:00 后陆续更新，5 分钟轮询足够（现住 A股 tab）
     schedule('lhb', async () => {
-      if (state.view !== 'funds') return;
+      if (state.tab !== 'cn') return;
       await loadLhb();
     }, 300000);
     schedule('globe', async () => {
@@ -3026,7 +3037,6 @@
     const fetchTxt = '抓取 ' + (state.lastUpdate ? fmtTime(state.lastUpdate) : '--');
     if (VIEW_OF_TAB[tab] !== 'market') {
       if (tab === 'events') return `全球事件 ${(state.events || []).length} 条 · ${fetchTxt}`;
-      if (tab === 'funds') return `龙虎榜 ${(state.lhb && state.lhb.rows.length) || 0} 只上榜 · 席位 ${(state.actors || []).length} 个 · ${fetchTxt}`;
       if (tab === 'chain') return `${(window.INDUSTRY_CHAINS || []).length} 条产业链 · ${fetchTxt}`;
       if (tab === 'watch') return `自选 ${window.Store.watchlist.all().length} 只 · ${fetchTxt}`;
       return fetchTxt;
@@ -3034,6 +3044,14 @@
     if (tab === 'fxmacro') {
       const n = window.WorldBankSource ? window.WorldBankSource.COUNTRIES.length : 8;
       return `世界经济 · ${n} 国年度指标 · ${fetchTxt}`;
+    }
+    // 归位到市场 tab 的披露类数据也报个数（原"聪明钱"tab 的状态行）
+    if (tab === 'cn') {
+      return `${visibleQuoteCount()} 个标的 · 龙虎榜 ${(state.lhb && state.lhb.rows.length) || 0} 只上榜 · 席位 ${(state.actors || []).length} 个 · ${fetchTxt}`;
+    }
+    if (tab === 'us') {
+      const brkN = state.brk && state.brk.holdings ? state.brk.holdings.length : 0;
+      return `${visibleQuoteCount()} 个标的${brkN ? ' · 13F ' + brkN + ' 项持仓' : ''} · ${fetchTxt}`;
     }
     return `${visibleQuoteCount()} 个标的 · 每 ${window.Store.settings.get().refresh}s 刷新 · ${fetchTxt}`;
   }
