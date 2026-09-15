@@ -149,7 +149,8 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .hero-cell:first-child { border-left: none; padding-left: 4px; }
 .hero-cell:hover { background: var(--bg-hover); }
 .hero-label { font-size: 10px; letter-spacing: 0.14em; color: var(--text-tertiary);
-  text-transform: uppercase; display: flex; justify-content: space-between; }
+  text-transform: uppercase; display: flex; justify-content: space-between;
+  align-items: center; }
 .hero-value { font-family: var(--font-mono); font-variant-numeric: tabular-nums;
   font-size: 30px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15;
   margin-top: 10px; color: var(--text); }
@@ -678,7 +679,7 @@ html.splash-on .topbar, html.splash-on .main { opacity: 0; }
 
 /* LOGO（加密本地图标 / 美股 favicon；加载失败自动移除） */
 .qlogo { width: 16px; height: 16px; border-radius: 2px; margin-right: 8px; vertical-align: -3px; }
-.hero-logo-img { width: 14px; height: 14px; vertical-align: -2px; }
+.hero-logo-img { width: 14px; height: 14px; vertical-align: -2px; margin-right: 5px; }
 
 /* 加密情绪（与 A 股同构的第二块） */
 .mood-crypto { margin-bottom: 44px; }
@@ -699,7 +700,17 @@ html.splash-on .topbar, html.splash-on .main { opacity: 0; }
 
 /* 旗标通用尺寸（hero label / 宏观表 / 喊单徽章） */
 .flag { width: 16px; height: 11px; border-radius: 1.5px; vertical-align: -1px; margin-right: 6px; }
-.hero-label .flag { width: 14px; height: 10px; margin-right: 5px; }
+.hero-label .flag { width: 14px; height: 10px; margin-right: 5px; vertical-align: -2px; }
+/* 全球指数条：长短名（英国富时100/印度SENSEX）不换行，超长省略，数字行保持对齐 */
+.gcard .hero-label span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- 板块折叠：点标题收起/展开正文（聪明钱/情绪/热力图等长板块） ---- */
+[data-fold] > .section-head { cursor: pointer; user-select: none; }
+[data-fold] > .section-head::after { content: '▾'; margin-left: auto;
+  color: var(--text-faint); font-size: 10px; }
+[data-fold].folded > .section-head::after { content: '▸'; }
+[data-fold].folded > :not(.section-head) { display: none; }
+[data-fold] > .section-head:focus-visible { outline: 1px solid var(--border-hover); }
 
 /* 均线自定义菜单（详情页 toolbar 弹层） */
 .ma-wrap { position: relative; display: inline-block; }

@@ -3021,6 +3021,28 @@
   }
 
   function bindEvents() {
+    // 板块折叠：点标题收起/展开正文（聪明钱/情绪/热力图等长板块，按需收纳）
+    document.addEventListener('click', (e) => {
+      const head = e.target.closest('[data-fold] > .section-head');
+      if (!head || e.target.closest('button, a, input, .pill, .ses-chip')) return;
+      const sec = head.parentElement;
+      const folded = sec.classList.toggle('folded');
+      head.setAttribute('aria-expanded', String(!folded));
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const head = e.target.closest && e.target.closest('[data-fold] > .section-head');
+      if (!head) return;
+      e.preventDefault();
+      head.click();
+    });
+    // 可折叠标题的可访问性：按钮角色 + 初始展开态
+    document.querySelectorAll('[data-fold] > .section-head').forEach(h => {
+      h.setAttribute('role', 'button');
+      h.setAttribute('tabindex', '0');
+      h.setAttribute('aria-expanded', 'true');
+    });
+
     // tab
     el.tabs.addEventListener('click', (e) => {
       const b = e.target.closest('.tab');

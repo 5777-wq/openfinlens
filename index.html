@@ -26,7 +26,7 @@ setTimeout(function () {
   if (s && s.parentNode) s.parentNode.removeChild(s);
 }, 2600);
 </script>
-<link rel="stylesheet" href="css/style.css?v=20260914e">
+<link rel="stylesheet" href="css/style.css?v=20260914f">
 </head>
 <body data-updown="red">
 
@@ -91,7 +91,7 @@ setTimeout(function () {
 
     <div id="cardWall"></div>
 
-    <div class="section" id="heatSection">
+    <div class="section" id="heatSection" data-fold>
       <div class="section-head">
         <h2 class="section-title">热力图</h2>
         <span class="section-sub" id="heatSub">—</span>
@@ -114,7 +114,7 @@ setTimeout(function () {
     </div>
 
     <!-- ========== 情绪与市场宽度（原独立「情绪」tab 并入 A股板块底部） ========== -->
-    <div class="section" id="moodPanel" hidden>
+    <div class="section" id="moodPanel" hidden data-fold>
       <div class="section-head">
         <h2 class="section-title">情绪与市场宽度</h2>
         <span class="section-sub" id="moodSub">—</span>
@@ -224,7 +224,7 @@ setTimeout(function () {
   <section class="view tab-panel" id="view-funds" role="tabpanel" tabindex="-1" aria-label="funds">
     <h1 class="page-title">聪明钱</h1>
     <p class="page-sub">公开披露的资金行为：席位动向 / 龙虎榜 / 机构持仓，与公开发言严格区分口径</p>
-    <div class="section">
+    <div class="section" data-fold>
       <div class="section-head">
         <span class="sec-no">01</span>
         <h2 class="section-title">席位动向</h2>
@@ -234,7 +234,7 @@ setTimeout(function () {
       <div id="seatDir"><div class="sk sk-row"></div></div>
       <p class="insight-disclaimer">席位 = 交易所龙虎榜披露的营业部，档案页展示其近 90 天公开上榜轨迹（点击行进席位档案）。席位是营业部口径，不代表任何自然人账户。</p>
     </div>
-    <div class="section">
+    <div class="section" data-fold>
       <div class="section-head">
         <span class="sec-no">02</span>
         <h2 class="section-title">今日龙虎榜</h2>
@@ -244,7 +244,7 @@ setTimeout(function () {
       <div id="lhbBox"><div class="sk sk-row"></div></div>
       <p class="insight-disclaimer">龙虎榜是交易所公开披露的营业部/机构席位汇总（日频，次日常更新），不代表任何个人账户的实时交易；D1/D5 为该股历史次日/5日涨跌统计，不构成未来预测。点击行进 K 线详情并叠加「龙虎榜」标记。</p>
     </div>
-    <div class="section">
+    <div class="section" data-fold>
       <div class="section-head">
         <span class="sec-no">03</span>
         <h2 class="section-title">机构持仓 · 伯克希尔</h2>
@@ -254,7 +254,7 @@ setTimeout(function () {
       <div id="brkBox"><div class="sk sk-row"></div></div>
       <p class="insight-disclaimer">伯克希尔·哈撒韦 13F-HR 为美国 SEC 季度披露的美股多头持仓（滞后最长 45 天，不含空头/衍生品/非美资产），「环比」是与上一期 13F 的股数对比，全部为历史事实陈述，不构成任何建议。特朗普等公众人物的证券交易暂无可靠公开结构化数据源，本页不做编造。</p>
     </div>
-    <div class="section">
+    <div class="section" data-fold>
       <div class="section-head">
         <span class="sec-no">04</span>
         <h2 class="section-title">公开言论</h2>
@@ -394,39 +394,39 @@ setTimeout(function () {
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script src="js/utils.js?v=20260914e"></script>
-<script src="js/store.js?v=20260914e"></script>
-<script src="js/proxy.js?v=20260914e"></script>
-<script src="js/data/universe.js?v=20260914e"></script>
-<script src="js/data/industry-chains.js?v=20260914e"></script>
-<script src="js/data/explain.js?v=20260914e"></script>
-<script src="js/technical.js?v=20260914e"></script>
-<script src="js/flags.js?v=20260914e"></script>
-<script src="js/bus.js?v=20260914e"></script>
-<script src="js/events.js?v=20260914e"></script>
-<script src="js/actors.js?v=20260914e"></script>
-<script src="js/sources/tencent.js?v=20260914e"></script>
-<script src="js/sources/sina.js?v=20260914e"></script>
-<script src="js/sources/eastmoney.js?v=20260914e"></script>
-<script src="js/sources/okx.js?v=20260914e"></script>
-<script src="js/sources/binance.js?v=20260914e"></script>
-<script src="js/sources/fred.js?v=20260914e"></script>
-<script src="js/sources/news.js?v=20260914e"></script>
-<script src="js/sources/worldbank.js?v=20260914e"></script>
-<script src="js/sources/gdelt.js?v=20260914e"></script>
-<script src="js/sources/lhb.js?v=20260914e"></script>
-<script src="js/sources/sec.js?v=20260914e"></script>
-<script src="js/breadth.js?v=20260914e"></script>
-<script src="js/sessions.js?v=20260914e"></script>
-<script src="js/treemap.js?v=20260914e"></script>
-<script src="js/charts.js?v=20260914e"></script>
-<script src="js/engine/types.js?v=20260914e"></script>
-<script src="js/engine/geo.js?v=20260914e"></script>
-<script src="js/engine/news-engine.js?v=20260914e"></script>
-<script src="js/engine/event-engine.js?v=20260914e"></script>
-<script src="js/engine/impact-engine.js?v=20260914e"></script>
-<script src="js/engine/llm-provider.js?v=20260914e"></script>
-<script src="js/worldmap.js?v=20260914e"></script>
-<script src="js/app.js?v=20260914e"></script>
+<script src="js/utils.js?v=20260914f"></script>
+<script src="js/store.js?v=20260914f"></script>
+<script src="js/proxy.js?v=20260914f"></script>
+<script src="js/data/universe.js?v=20260914f"></script>
+<script src="js/data/industry-chains.js?v=20260914f"></script>
+<script src="js/data/explain.js?v=20260914f"></script>
+<script src="js/technical.js?v=20260914f"></script>
+<script src="js/flags.js?v=20260914f"></script>
+<script src="js/bus.js?v=20260914f"></script>
+<script src="js/events.js?v=20260914f"></script>
+<script src="js/actors.js?v=20260914f"></script>
+<script src="js/sources/tencent.js?v=20260914f"></script>
+<script src="js/sources/sina.js?v=20260914f"></script>
+<script src="js/sources/eastmoney.js?v=20260914f"></script>
+<script src="js/sources/okx.js?v=20260914f"></script>
+<script src="js/sources/binance.js?v=20260914f"></script>
+<script src="js/sources/fred.js?v=20260914f"></script>
+<script src="js/sources/news.js?v=20260914f"></script>
+<script src="js/sources/worldbank.js?v=20260914f"></script>
+<script src="js/sources/gdelt.js?v=20260914f"></script>
+<script src="js/sources/lhb.js?v=20260914f"></script>
+<script src="js/sources/sec.js?v=20260914f"></script>
+<script src="js/breadth.js?v=20260914f"></script>
+<script src="js/sessions.js?v=20260914f"></script>
+<script src="js/treemap.js?v=20260914f"></script>
+<script src="js/charts.js?v=20260914f"></script>
+<script src="js/engine/types.js?v=20260914f"></script>
+<script src="js/engine/geo.js?v=20260914f"></script>
+<script src="js/engine/news-engine.js?v=20260914f"></script>
+<script src="js/engine/event-engine.js?v=20260914f"></script>
+<script src="js/engine/impact-engine.js?v=20260914f"></script>
+<script src="js/engine/llm-provider.js?v=20260914f"></script>
+<script src="js/worldmap.js?v=20260914f"></script>
+<script src="js/app.js?v=20260914f"></script>
 </body>
 </html>
