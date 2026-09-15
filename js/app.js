@@ -109,6 +109,7 @@
     'seatDir', 'seatDirVia',
     'brkBox', 'brkVia', 'marketTitle', 'globalOverview', 'moodPanel',
     'aFundsPanel', 'usFundsPanel', 'hkFundsPanel', 'sbBox', 'sbVia',
+    'cryptoMoodPanel', 'usMoodPanel',
     'actorBack', 'actorName', 'actorType', 'actorMeta', 'actorStats', 'actorStatsSub', 'actorTimeline'];
 
   const pctClass = (p) => (p === null || p === undefined || isNaN(p)) ? 'flat' : (p > 0 ? 'up' : p < 0 ? 'down' : 'flat');
@@ -845,8 +846,7 @@
     const maxAbs = Math.max(...valid.map(r => Math.abs(r.changePct)), 0.0001);
     const movers = valid.slice().sort((a, b) => b.changePct - a.changePct);
     const heat = (v) => Math.min(1, Math.abs(v) / maxAbs).toFixed(3);
-    box.innerHTML = `<div class="section-head" style="margin-top:32px">
-        <span class="sec-no">02</span>
+    box.innerHTML = `<div class="section-head">
         <h2 class="section-title">加密宽度</h2>
         <span class="sec-line"></span>
         <span class="section-sub">${valid.length} 个 USDT 交易对 · 币安 · 每 ${window.Store.settings.get().refresh}s 刷新</span>
@@ -899,8 +899,9 @@
       window.Store.get('breadthHist', []), state.breadth.score, state.breadth.total);
     window.Store.set('breadthHist', state.breadthHist);
     renderMood();
-    if (CRYPTO_ON) ensureCryptoRows().then(renderMoodCrypto);   // 加密宽度：与 A 股并列，不再"只有 A 股"
-    ensureUSRows().then(renderMoodUS);           // 美股宽度：全球三大市场之一，不能缺席
+    // 加密宽度与美股宽度**不在这里拉**：它们与 A股 无关，挂在 A股 tab 的"情绪与市场宽度"里
+    // 既文不对题，又让 A股 tab 白跑一次美股全市场（139 页）。各自归位到 加密/美股 tab，
+    // 由那边的 setTab 触发（见 renderMoodCrypto/renderMoodUS 的调用点）。
   }
 
   /* ---- 港股全市场（东财 主板+GEM ≈ 2900 只）----
@@ -967,8 +968,7 @@
     const maxAbs = Math.max(...valid.map(r => Math.abs(r.changePct)), 0.0001);
     const movers = valid.slice().sort((a, b) => b.changePct - a.changePct);
     const heat = (v) => Math.min(1, Math.abs(v) / maxAbs).toFixed(3);
-    box.innerHTML = `<div class="section-head" style="margin-top:32px">
-        <span class="sec-no">03</span>
+    box.innerHTML = `<div class="section-head">
         <h2 class="section-title">美股宽度</h2>
         <span class="sec-line"></span>
         <span class="section-sub">${valid.length} 只 · NYSE/NASDAQ/AMEX 全市场 · 东财 · 缓存 5 分钟</span>
@@ -2799,6 +2799,9 @@
     if (el.aFundsPanel) el.aFundsPanel.hidden = tab !== 'cn';
     if (el.usFundsPanel) el.usFundsPanel.hidden = tab !== 'us';
     if (el.hkFundsPanel) el.hkFundsPanel.hidden = tab !== 'hk';
+    // 各市场的"情绪与宽度"只在各自的 tab 上出现（原本加密/美股宽度都塞在 A股 页里）
+    if (el.cryptoMoodPanel) el.cryptoMoodPanel.hidden = tab !== 'crypto';
+    if (el.usMoodPanel) el.usMoodPanel.hidden = tab !== 'us';
     // 市场视图：热力图只在"全部/A股/加密"下有意义
     const heatWasHidden = el.heatSection.hidden;
     // 热力图在 全部/A股/港股/美股/加密 下有意义（宏观 tab 是世行年度指标，不放热力图）
@@ -2836,6 +2839,12 @@
       // 伯克希尔 13F（原"聪明钱"tab，归位到美股）：季度数据，入页时过期(>6h)才拉
       if (!state.brk || Date.now() - (state.brkAt || 0) > 6 * 3600000) loadBrk().then(renderStatus).catch(() => {});
       else renderBrk();
+      // 美股宽度（原挂在 A股 页，现归位）
+      ensureUSRows().then(renderMoodUS);
+    }
+    if (tab === 'crypto' && CRYPTO_ON) {
+      // 加密宽度（原挂在 A股 页，现归位）
+      ensureCryptoRows().then(renderMoodCrypto);
     }
     if (tab === 'hk') {
       // 南向持股（港股口径的"聪明钱"）：日频、当日收盘后才发布，过期(>6h)才重拉
