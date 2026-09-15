@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
 <!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
      对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
-<link rel="stylesheet" href="css/style.css?v=20260915e">
+<link rel="stylesheet" href="css/style.css?v=20260915g">
 </head>
 <body data-updown="red">
 
@@ -26,9 +26,10 @@
   <nav class="tabs" id="tabs" role="tablist" aria-label="板块切换">
     <button class="tab active" data-tab="all" role="tab" aria-selected="true" aria-controls="view-market">全部</button>
     <button class="tab" data-tab="cn" role="tab" aria-selected="false" aria-controls="view-market">A股</button>
-    <button class="tab" data-tab="hkus" role="tab" aria-selected="false" aria-controls="view-market">港美</button>
-    <button class="tab" data-tab="fxmacro" role="tab" aria-selected="false" aria-controls="view-market">宏观</button>
+    <button class="tab" data-tab="hk" role="tab" aria-selected="false" aria-controls="view-market">港股</button>
+    <button class="tab" data-tab="us" role="tab" aria-selected="false" aria-controls="view-market">美股</button>
     <button class="tab crypto-only" data-tab="crypto" role="tab" aria-selected="false" aria-controls="view-market">加密</button>
+    <button class="tab" data-tab="fxmacro" role="tab" aria-selected="false" aria-controls="view-market">宏观</button>
     <button class="tab" data-tab="events" role="tab" aria-selected="false" aria-controls="view-events">事件</button>
     <button class="tab" data-tab="funds" role="tab" aria-selected="false" aria-controls="view-funds">聪明钱</button>
     <button class="tab" data-tab="chain" role="tab" aria-selected="false" aria-controls="view-chain">产业链</button>
@@ -61,7 +62,7 @@
       <h1 class="page-title" id="marketTitle">全球市场</h1>
       <p class="page-sub" id="marketSub">加载中…</p>
     </div>
-    <!-- 全球总览（大指数 + 全球指数条）只在「全部」出现；A股/港美/宏观只看各自的分区 -->
+    <!-- 全球总览（大指数 + 全球指数条）只在「全部」出现；A股/港股/美股/宏观只看各自的分区 -->
     <div id="globalOverview">
       <div class="hero-cap" id="heroCap" hidden></div>
       <div class="hero" id="heroStrip" role="group" aria-label="关键指数"></div>
@@ -373,39 +374,39 @@
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script src="js/utils.js?v=20260915e"></script>
-<script src="js/store.js?v=20260915e"></script>
-<script src="js/proxy.js?v=20260915e"></script>
-<script src="js/data/universe.js?v=20260915e"></script>
-<script src="js/data/industry-chains.js?v=20260915e"></script>
-<script src="js/data/explain.js?v=20260915e"></script>
-<script src="js/technical.js?v=20260915e"></script>
-<script src="js/flags.js?v=20260915e"></script>
-<script src="js/bus.js?v=20260915e"></script>
-<script src="js/events.js?v=20260915e"></script>
-<script src="js/actors.js?v=20260915e"></script>
-<script src="js/sources/tencent.js?v=20260915e"></script>
-<script src="js/sources/sina.js?v=20260915e"></script>
-<script src="js/sources/eastmoney.js?v=20260915e"></script>
-<script src="js/sources/okx.js?v=20260915e"></script>
-<script src="js/sources/binance.js?v=20260915e"></script>
-<script src="js/sources/fred.js?v=20260915e"></script>
-<script src="js/sources/news.js?v=20260915e"></script>
-<script src="js/sources/worldbank.js?v=20260915e"></script>
-<script src="js/sources/gdelt.js?v=20260915e"></script>
-<script src="js/sources/lhb.js?v=20260915e"></script>
-<script src="js/sources/sec.js?v=20260915e"></script>
-<script src="js/breadth.js?v=20260915e"></script>
-<script src="js/sessions.js?v=20260915e"></script>
-<script src="js/treemap.js?v=20260915e"></script>
-<script src="js/charts.js?v=20260915e"></script>
-<script src="js/engine/types.js?v=20260915e"></script>
-<script src="js/engine/geo.js?v=20260915e"></script>
-<script src="js/engine/news-engine.js?v=20260915e"></script>
-<script src="js/engine/event-engine.js?v=20260915e"></script>
-<script src="js/engine/impact-engine.js?v=20260915e"></script>
-<script src="js/engine/llm-provider.js?v=20260915e"></script>
-<script src="js/worldmap.js?v=20260915e"></script>
-<script src="js/app.js?v=20260915e"></script>
+<script src="js/utils.js?v=20260915g"></script>
+<script src="js/store.js?v=20260915g"></script>
+<script src="js/proxy.js?v=20260915g"></script>
+<script src="js/data/universe.js?v=20260915g"></script>
+<script src="js/data/industry-chains.js?v=20260915g"></script>
+<script src="js/data/explain.js?v=20260915g"></script>
+<script src="js/technical.js?v=20260915g"></script>
+<script src="js/flags.js?v=20260915g"></script>
+<script src="js/bus.js?v=20260915g"></script>
+<script src="js/events.js?v=20260915g"></script>
+<script src="js/actors.js?v=20260915g"></script>
+<script src="js/sources/tencent.js?v=20260915g"></script>
+<script src="js/sources/sina.js?v=20260915g"></script>
+<script src="js/sources/eastmoney.js?v=20260915g"></script>
+<script src="js/sources/okx.js?v=20260915g"></script>
+<script src="js/sources/binance.js?v=20260915g"></script>
+<script src="js/sources/fred.js?v=20260915g"></script>
+<script src="js/sources/news.js?v=20260915g"></script>
+<script src="js/sources/worldbank.js?v=20260915g"></script>
+<script src="js/sources/gdelt.js?v=20260915g"></script>
+<script src="js/sources/lhb.js?v=20260915g"></script>
+<script src="js/sources/sec.js?v=20260915g"></script>
+<script src="js/breadth.js?v=20260915g"></script>
+<script src="js/sessions.js?v=20260915g"></script>
+<script src="js/treemap.js?v=20260915g"></script>
+<script src="js/charts.js?v=20260915g"></script>
+<script src="js/engine/types.js?v=20260915g"></script>
+<script src="js/engine/geo.js?v=20260915g"></script>
+<script src="js/engine/news-engine.js?v=20260915g"></script>
+<script src="js/engine/event-engine.js?v=20260915g"></script>
+<script src="js/engine/impact-engine.js?v=20260915g"></script>
+<script src="js/engine/llm-provider.js?v=20260915g"></script>
+<script src="js/worldmap.js?v=20260915g"></script>
+<script src="js/app.js?v=20260915g"></script>
 </body>
 </html>

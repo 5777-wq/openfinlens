@@ -323,11 +323,12 @@
 
   function groupsForTab(tab) {
     const map = {
-      all: CRYPTO_ON
-        ? ['index', 'cn', 'hk', 'us', 'crypto', 'fx', 'commodity', 'macro']
-        : ['index', 'cn', 'hk', 'us', 'fx', 'commodity', 'macro'],
+      // "全部"只做总览：指数 + 热力图 + 情绪。各市场的 4~6 行残桩在"全部"页没有操作价值
+      // （用户反馈"这些其实在全部没必要显示"），每个市场都有自己的 tab 给全量列表。
+      all: ['index'],
       cn: ['index', 'cn'],
-      hkus: ['index', 'hk', 'us'],
+      hk: ['index', 'hk'],
+      us: ['index', 'us'],
       crypto: CRYPTO_ON ? ['crypto'] : [],
       fxmacro: ['fx', 'commodity', 'macro'],
     };
@@ -335,12 +336,13 @@
   }
 
   /* index 组的行本来就是按市场归的（universe.js 里的注释即"A股指数"/"美股指数"），
-     只有"全部" tab 才配得上"全球指数"这个标题。A股/港美 tab 上沿用全球指数
-     既名不副实，又让人以为混进了别市场的数据（用户反馈）。 */
+     只有"全部" tab 才配得上"全球指数"这个标题。分市场 tab 上沿用全球指数既名不副实，
+     又让人以为混进了别市场的数据（用户反馈）。 */
   function groupLabel(g, tab) {
     if (g.key === 'index') {
       if (tab === 'cn') return 'A股指数';
-      if (tab === 'hkus') return '港美指数';
+      if (tab === 'hk') return '港股指数';
+      if (tab === 'us') return '美股指数';
     }
     return g.label;
   }
@@ -385,7 +387,7 @@
     const tab = state.tab;
     refreshWatchSet();
     const groups = groupsForTab(tab);
-    const tabFilter = { cn: 'cn', hkus: 'hkus', crypto: 'crypto', fxmacro: 'fxmacro' }[tab];
+    const tabFilter = { cn: 'cn', hk: 'hk', us: 'us', crypto: 'crypto', fxmacro: 'fxmacro' }[tab];
     let html = '';
     let secNo = 0;
 
@@ -422,8 +424,8 @@
 
     if (!html) html = '<div class="empty">数据加载中，或该分类数据源维护中…</div>';
     el.cardWall.innerHTML = html;
-    // 两栏只在板块够多时才划算：A股/港美/宏观 tab 只有 2~3 块，兜两栏会让矮的那块
-    // 独占一栏、另一侧整片留白（实测 A股 tab）。≥4 块才开两栏，实际只有"全部" tab 命中。
+    // 两栏只在板块够多时才划算：本波起"全部"tab 只剩指数块，A股/港股/美股/宏观 各 2~3 块，
+    // 兜两栏会让矮的那块独占一栏、另一侧整片留白（实测 A股 tab）。≥4 块才开两栏。
     el.cardWall.dataset.cols = secNo >= 4 ? '2' : '1';
     if (animate) clearStagger(el.cardWall);
   }
@@ -2547,7 +2549,7 @@
   /* ==================== 视图路由 ==================== */
 
   const VIEW_OF_TAB = {
-    all: 'market', cn: 'market', hkus: 'market', crypto: 'market', fxmacro: 'market',
+    all: 'market', cn: 'market', hk: 'market', us: 'market', crypto: 'market', fxmacro: 'market',
     events: 'events', funds: 'funds', chain: 'chain', watch: 'watch',
     mood: 'market',   // 旧 hash：情绪已并入 A股板块
     news: 'events', voices: 'funds',   // 旧 hash / 旧快捷键深链兼容：新闻→事件页，喊单→资金页
@@ -2663,7 +2665,7 @@
     // 切板块后"47 个标的"要等下一个刷新周期才变
     renderStatus();
     // 「全球市场」总览（hero + 全球指数条）只在「全部」出现；各板块用自己的标题（用户反馈：别到处粘）
-    const MKT_TITLE = { all: '全球市场', cn: 'A股市场', hkus: '港美市场', crypto: '加密市场', fxmacro: '世界经济' };
+    const MKT_TITLE = { all: '全球市场', cn: 'A股市场', hk: '港股市场', us: '美股市场', crypto: '加密市场', fxmacro: '世界经济' };
     if (el.marketTitle) el.marketTitle.textContent = MKT_TITLE[tab] || '全球市场';
     if (el.globalOverview) el.globalOverview.hidden = tab !== 'all';
     // 宏观 tab 只看世界经济仪表盘，不再叠一墙行情卡
@@ -2928,10 +2930,10 @@
   /* ==================== 状态栏 / 自检 ==================== */
 
   // 当前 tab 实际可见的标的数：状态栏的"47 个标的"曾取全局池大小，
-  // 在 A股/港美等板块下与所见行数对不上，用户以为没加载完
+  // 在 A股/港股/美股等板块下与所见行数对不上，用户以为没加载完
   function visibleQuoteCount() {
     const groups = new Set(groupsForTab(state.tab));
-    const tabFilter = { cn: 'cn', hkus: 'hkus', crypto: 'crypto', fxmacro: 'fxmacro' }[state.tab];
+    const tabFilter = { cn: 'cn', hk: 'hk', us: 'us', crypto: 'crypto', fxmacro: 'fxmacro' }[state.tab];
     let n = 0;
     state.quotes.forEach(q => {
       const g = q.group || q.market;
@@ -3221,7 +3223,11 @@
       if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (/^[0-9]$/.test(e.key)) {
-        const order = ['all', 'cn', 'hkus', 'fxmacro', 'crypto', 'events', 'funds', 'chain', 'watch'];
+        // 顺序直接读 DOM 里**可见**的 tab（加密 tab 是合规开关下的 crypto-only，
+        // 关掉时不可见；写死数组会和实际可见数错位、导致数字键选错板块）。
+        const order = [...document.querySelectorAll('#tabs .tab')]
+          .filter(b => b.offsetParent !== null)
+          .map(b => b.dataset.tab);
         const tab = order[+e.key === 0 ? 9 : +e.key - 1];
         if (tab) { setTab(tab); e.preventDefault(); }
         return;

@@ -199,7 +199,7 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 
 /* ---- 宽屏密排：操盘手要在同屏做跨市场对比，而不是把 8 个板块竖排滚 4 屏 ----
    ≥1280px 时主列放宽到 1560px，并把行情区块（#cardWall）排成两栏——但**只在板块够多时**：
-   板块数由 app.js 写在 #cardWall[data-cols] 上（≥4 块才给 2）。A股/港美/宏观 tab 只有 2~3 块，
+   板块数由 app.js 写在 #cardWall[data-cols] 上（≥4 块才给 2）。A股/港股/美股/宏观 tab 只有 1~3 块，
    兜两栏会让矮的那块独占一栏、另一侧整片留白（实测 A股 tab 就是这个问题）。
    这里用 CSS columns（瀑布流）而不是 grid：各板块高度差很大
    （实测 全球指数 491px vs A股 244px），grid 会把同一行拉到最高者对齐、留下大段空洞；
