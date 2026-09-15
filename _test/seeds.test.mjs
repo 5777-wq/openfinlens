@@ -70,6 +70,32 @@ await test('13f.json：每家机构量级/占比/环比合法，期权单列且�
   }
 });
 
+await test('fundholds.json：报告期/滞后合理，增仓为正、减仓为负，变动金额量级可信', async () => {
+  const f = path.join(ROOT, 'data/actors/fundholds.json');
+  if (!existsSync(f)) { console.log('   （种子尚未生成，跳过）'); return; }
+  const d = JSON.parse(readFileSync(f, 'utf8'));
+  assert.equal(typeof d.reportDate, 'string', 'reportDate');
+  assert.ok(Number.isFinite(d.lagDays) && d.lagDays >= 15 && d.lagDays <= 200,
+    `lagDays=${d.lagDays} 不合理（季度披露，实测约 78 天）`);
+  assert.ok(Array.isArray(d.topAdd) && d.topAdd.length > 0, 'topAdd 应非空');
+  assert.ok(Array.isArray(d.topTrim) && d.topTrim.length > 0, 'topTrim 应非空');
+  for (const x of d.topAdd) {
+    assert.ok(x.code && x.name, '代码与名称非空');
+    assert.ok(x.chgShares > 0, `增仓榜出现非正变动: ${x.name} ${x.chgShares}`);
+    assert.ok(x.chgValue > 0, `增仓榜变动金额应为正: ${x.name} ${x.chgValue}`);
+    assert.equal(x.reportDate, d.reportDate, '增仓榜应全是同一报告期');
+  }
+  for (const x of d.topTrim) {
+    assert.ok(x.chgShares < 0, `减仓榜出现非负变动: ${x.name} ${x.chgShares}`);
+    assert.ok(x.chgValue < 0, `减仓榜变动金额应为负: ${x.name} ${x.chgValue}`);
+    assert.equal(x.reportDate, d.reportDate, '减仓榜应全是同一报告期');
+  }
+  // 排序契约：榜内按 |变动金额| 非递增（前端不再排序，直接渲染）
+  const desc = (arr) => arr.every((x, i) => i === 0 || Math.abs(arr[i - 1].chgValue) >= Math.abs(x.chgValue) - 1);
+  assert.ok(desc(d.topAdd), '增仓榜应按 |变动金额| 降序');
+  assert.ok(desc(d.topTrim), '减仓榜应按 |变动金额| 降序');
+});
+
 setTimeout(() => {
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exitCode = fail ? 1 : 0;

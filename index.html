@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
 <!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
      对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
-<link rel="stylesheet" href="css/style.css?v=20260915s">
+<link rel="stylesheet" href="css/style.css?v=20260915t">
 </head>
 <body data-updown="red">
 
@@ -137,26 +137,51 @@
       <div class="mood-crypto" id="moodUS"></div>
     </div>
 
-    <!-- ===== A股披露类：龙虎榜 / 席位动向（原"聪明钱"tab，按市场归位，仅 A股 tab 显示）=====
-         席位是龙虎榜披露口径，跟 A股 行情放一起才有上下文；单独一个 tab 时要来回切。 -->
+    <!-- ===== A股披露类：席位动向 / 今日龙虎榜 / 基金持仓（原"聪明钱"tab，按市场归位）=====
+         三块竖排会让这一屏越滚越长，所以用子页按钮切换（用户要求"别都堆在一起"）。
+         按钮 data-fundssub="<key>" ↔ 内容 data-fundspane="<key>"，由 app.js 统一切换。 -->
     <div id="aFundsPanel" hidden>
-      <div class="section" data-fold>
-        <div class="section-head">
-          <h2 class="section-title">席位动向</h2>
-          <span class="sec-line"></span>
-          <span class="section-sub" id="seatDirVia">—</span>
-        </div>
-        <div id="seatDir"><div class="sk sk-row"></div></div>
-        <p class="insight-disclaimer">席位 = 交易所龙虎榜披露的营业部，档案页展示其近 90 天公开上榜轨迹（点击行进席位档案）。席位是营业部口径，不代表任何自然人账户。「通道合计」（深股通/沪股通/机构专用）是聚合口径，不是可识别席位，故单列且不可点入档案。</p>
+      <div class="heat-toolbar" id="aFundsBar" role="tablist" aria-label="A股披露数据切换">
+        <button class="pill active" data-fundssub="seat" role="tab" aria-selected="true">席位动向</button>
+        <button class="pill" data-fundssub="lhb" role="tab" aria-selected="false">今日龙虎榜</button>
+        <button class="pill" data-fundssub="fund" role="tab" aria-selected="false">基金持仓</button>
       </div>
-      <div class="section" data-fold>
-        <div class="section-head">
-          <h2 class="section-title">今日龙虎榜</h2>
-          <span class="sec-line"></span>
-          <span class="section-sub" id="lhbVia">—</span>
+      <div data-fundspane="seat">
+        <div class="section" data-fold>
+          <div class="section-head">
+            <h2 class="section-title">席位动向</h2>
+            <span class="sec-line"></span>
+            <span class="section-sub" id="seatDirVia">—</span>
+          </div>
+          <div id="seatDir"><div class="sk sk-row"></div></div>
+          <p class="insight-disclaimer">席位 = 交易所龙虎榜披露的营业部，档案页展示其近 90 天公开上榜轨迹（点击行进席位档案）。席位是营业部口径，不代表任何自然人账户。「通道合计」（深股通/沪股通/机构专用）是聚合口径，不是可识别席位，故单列且不可点入档案。</p>
         </div>
-        <div id="lhbBox"><div class="sk sk-row"></div></div>
-        <p class="insight-disclaimer">龙虎榜是交易所公开披露的营业部/机构席位汇总（日频，次日常更新），不代表任何个人账户的实时交易；「次日/5日」为该股上榜后 T+1 / T+5 的涨跌幅，数据源在对应交易日收盘后才补齐，所以最新披露日这两列必然为空——是延迟，不是字段缺失。点击行进 K 线详情并叠加「龙虎榜」标记。</p>
+      </div>
+      <div data-fundspane="lhb" hidden>
+        <div class="section" data-fold>
+          <div class="section-head">
+            <h2 class="section-title">今日龙虎榜</h2>
+            <span class="sec-line"></span>
+            <span class="section-sub" id="lhbVia">—</span>
+          </div>
+          <div id="lhbBox"><div class="sk sk-row"></div></div>
+          <p class="insight-disclaimer">龙虎榜是交易所公开披露的营业部/机构席位汇总（日频，次日常更新），不代表任何个人账户的实时交易；「次日/5日」为该股上榜后 T+1 / T+5 的涨跌幅，数据源在对应交易日收盘后才补齐，所以最新披露日这两列必然为空——是延迟，不是字段缺失。点击行进 K 线详情并叠加「龙虎榜」标记。</p>
+        </div>
+      </div>
+      <div data-fundspane="fund" hidden>
+        <div class="section" data-fold>
+          <div class="section-head">
+            <h2 class="section-title">基金持仓变动</h2>
+            <span class="sec-line"></span>
+            <span class="section-sub" id="fundVia">—</span>
+          </div>
+          <div class="heat-toolbar" role="tablist" aria-label="基金持仓方向">
+            <button class="pill active" data-funddir="add" role="tab" aria-selected="true">增仓最多</button>
+            <button class="pill" data-funddir="trim" role="tab" aria-selected="false">减仓最多</button>
+          </div>
+          <div id="fundBox"><div class="sk sk-row"></div></div>
+          <p class="insight-disclaimer">口径是<strong>基金合计持仓</strong>（东财「基金」口径，<strong>含 ETF / 指数基金</strong>）——被动申赎同样体现为加仓/减仓，所以榜单前列常是宽基权重股，<strong>不能读成"主动基金经理在买"</strong>。季度披露、滞后大（标题写的是距报告期末的天数）。排序列是<strong>变动金额</strong>（变动股数 × 隐含单价，隐含单价 = 该股基金合计持仓市值 ÷ 持股数）。该接口按股票聚合，所以本页回答的是"哪些股票被基金整体增减持"，回答不了"某只基金买了什么"。历史事实陈述，不构成任何建议。</p>
+        </div>
       </div>
     </div>
 
@@ -398,40 +423,41 @@
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script src="js/utils.js?v=20260915s"></script>
-<script src="js/store.js?v=20260915s"></script>
-<script src="js/proxy.js?v=20260915s"></script>
-<script src="js/data/universe.js?v=20260915s"></script>
-<script src="js/data/industry-chains.js?v=20260915s"></script>
-<script src="js/data/explain.js?v=20260915s"></script>
-<script src="js/technical.js?v=20260915s"></script>
-<script src="js/flags.js?v=20260915s"></script>
-<script src="js/bus.js?v=20260915s"></script>
-<script src="js/events.js?v=20260915s"></script>
-<script src="js/actors.js?v=20260915s"></script>
-<script src="js/sources/tencent.js?v=20260915s"></script>
-<script src="js/sources/sina.js?v=20260915s"></script>
-<script src="js/sources/eastmoney.js?v=20260915s"></script>
-<script src="js/sources/okx.js?v=20260915s"></script>
-<script src="js/sources/binance.js?v=20260915s"></script>
-<script src="js/sources/fred.js?v=20260915s"></script>
-<script src="js/sources/news.js?v=20260915s"></script>
-<script src="js/sources/worldbank.js?v=20260915s"></script>
-<script src="js/sources/gdelt.js?v=20260915s"></script>
-<script src="js/sources/lhb.js?v=20260915s"></script>
-<script src="js/sources/southbound.js?v=20260915s"></script>
-<script src="js/sources/sec.js?v=20260915s"></script>
-<script src="js/breadth.js?v=20260915s"></script>
-<script src="js/sessions.js?v=20260915s"></script>
-<script src="js/treemap.js?v=20260915s"></script>
-<script src="js/charts.js?v=20260915s"></script>
-<script src="js/engine/types.js?v=20260915s"></script>
-<script src="js/engine/geo.js?v=20260915s"></script>
-<script src="js/engine/news-engine.js?v=20260915s"></script>
-<script src="js/engine/event-engine.js?v=20260915s"></script>
-<script src="js/engine/impact-engine.js?v=20260915s"></script>
-<script src="js/engine/llm-provider.js?v=20260915s"></script>
-<script src="js/worldmap.js?v=20260915s"></script>
-<script src="js/app.js?v=20260915s"></script>
+<script src="js/utils.js?v=20260915t"></script>
+<script src="js/store.js?v=20260915t"></script>
+<script src="js/proxy.js?v=20260915t"></script>
+<script src="js/data/universe.js?v=20260915t"></script>
+<script src="js/data/industry-chains.js?v=20260915t"></script>
+<script src="js/data/explain.js?v=20260915t"></script>
+<script src="js/technical.js?v=20260915t"></script>
+<script src="js/flags.js?v=20260915t"></script>
+<script src="js/bus.js?v=20260915t"></script>
+<script src="js/events.js?v=20260915t"></script>
+<script src="js/actors.js?v=20260915t"></script>
+<script src="js/sources/tencent.js?v=20260915t"></script>
+<script src="js/sources/sina.js?v=20260915t"></script>
+<script src="js/sources/eastmoney.js?v=20260915t"></script>
+<script src="js/sources/okx.js?v=20260915t"></script>
+<script src="js/sources/binance.js?v=20260915t"></script>
+<script src="js/sources/fred.js?v=20260915t"></script>
+<script src="js/sources/news.js?v=20260915t"></script>
+<script src="js/sources/worldbank.js?v=20260915t"></script>
+<script src="js/sources/gdelt.js?v=20260915t"></script>
+<script src="js/sources/lhb.js?v=20260915t"></script>
+<script src="js/sources/southbound.js?v=20260915t"></script>
+<script src="js/sources/fundholds.js?v=20260915t"></script>
+<script src="js/sources/sec.js?v=20260915t"></script>
+<script src="js/breadth.js?v=20260915t"></script>
+<script src="js/sessions.js?v=20260915t"></script>
+<script src="js/treemap.js?v=20260915t"></script>
+<script src="js/charts.js?v=20260915t"></script>
+<script src="js/engine/types.js?v=20260915t"></script>
+<script src="js/engine/geo.js?v=20260915t"></script>
+<script src="js/engine/news-engine.js?v=20260915t"></script>
+<script src="js/engine/event-engine.js?v=20260915t"></script>
+<script src="js/engine/impact-engine.js?v=20260915t"></script>
+<script src="js/engine/llm-provider.js?v=20260915t"></script>
+<script src="js/worldmap.js?v=20260915t"></script>
+<script src="js/app.js?v=20260915t"></script>
 </body>
 </html>

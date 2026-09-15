@@ -37,6 +37,7 @@ jobs:
           H=$(date -u +%H); M=$(date -u +%M); MINS=$((10#$H * 60 + 10#$M))
           if [ $(( MINS % 360 )) -lt 10 ]; then
             node _scripts/collect-13f.mjs || echo "13f collect failed (keep old data)"
+            node _scripts/collect-fundholds.mjs || echo "fundholds collect failed (keep old data)"
           fi
 
       - name: Commit if changed

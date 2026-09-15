@@ -84,6 +84,8 @@
     brkIdx: 0,                 // 13F 当前选中的机构下标（面板上的机构按钮）
     // 港股通（南向）持有个股：日频，浏览器直连（datacenter 带 CORS，无需采集层）
     southbound: null, southboundDate: null, southboundAt: 0,
+    // A股 基金持仓变动（东财采集静态 JSON，季度）：fundDir = add | trim
+    fundHolds: null, fundHoldsAt: 0, fundDir: 'add',
     chartEventsOn: true,       // 详情页 K 线事件标记开关
     lastUpdate: null,
     timers: {},
@@ -110,7 +112,7 @@
     'seatDir', 'seatDirVia',
     'brkBox', 'brkVia', 'marketTitle', 'globalOverview', 'moodPanel',
     'aFundsPanel', 'usFundsPanel', 'hkFundsPanel', 'sbBox', 'sbVia',
-    'cryptoMoodPanel', 'usMoodPanel',
+    'cryptoMoodPanel', 'usMoodPanel', 'fundBox', 'fundVia',
     'actorBack', 'actorName', 'actorType', 'actorMeta', 'actorStats', 'actorStatsSub', 'actorTimeline'];
 
   const pctClass = (p) => (p === null || p === undefined || isNaN(p)) ? 'flat' : (p > 0 ? 'up' : p < 0 ? 'down' : 'flat');
@@ -2005,6 +2007,76 @@
     }).join('');
   }
 
+  /* ---- A股 基金持仓变动（季度，采集静态 JSON）----
+     口径必须随数据一起讲清楚：这是**基金合计**（含 ETF/指数基金），被动申赎也体现为加仓/减仓，
+     榜单前列常是宽基权重股——不能读成"主动基金经理在买"。 */
+  async function loadFundHolds() {
+    try {
+      const d = await window.FundHoldsSource.getFundHolds();
+      state.fundHolds = d;
+      state.fundHoldsAt = Date.now();
+      Cache.set('fundholds', d);
+    } catch {
+      const c = Cache.raw('fundholds');
+      if (c && c.val) state.fundHolds = c.val;
+    }
+    renderFundHolds();
+  }
+
+  function renderFundHolds() {
+    if (!el.fundBox) return;
+    const d = state.fundHolds;
+    if (!d) {
+      el.fundBox.innerHTML = '<div class="empty">基金持仓暂不可用，稍后自动重试</div>';
+      if (el.fundVia) el.fundVia.textContent = '';
+      return;
+    }
+    const isAdd = state.fundDir !== 'trim';
+    const rows = (isAdd ? d.topAdd : d.topTrim) || [];
+    document.querySelectorAll('[data-funddir]').forEach(b => {
+      const on = b.getAttribute('data-funddir') === (isAdd ? 'add' : 'trim');
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', String(on));
+    });
+    if (el.fundVia) {
+      el.fundVia.textContent = (d.reportDate || '?') + (d.reportDateName ? ' ' + d.reportDateName : '') +
+        (d.lagDays === null || d.lagDays === undefined ? '' : '（距期末 ' + d.lagDays + ' 天）') +
+        ' · 基金合计口径（含 ETF）· 按变动金额 Top ' + rows.length;
+    }
+    el.fundBox.innerHTML = `<div class="srow-head" aria-hidden="true">
+        <span>#</span><span>股票 / 代码</span><span>基金占流通</span><span>持仓市值</span><span>变动金额</span><span>变动幅度</span><span></span>
+      </div>` + rows.slice(0, 40).map((x, i) => {
+      // 用东财 secucode（300308.SZ）反推腾讯 symbol（sz300308），走详情页已有的 A股 路径
+      const [code, ex] = String(x.secucode || '').split('.');
+      const sym = code ? ((ex === 'SH' ? 'sh' : 'sz') + code) : '';
+      return `<div class="srow" ${sym ? `data-fundsym="${escapeHTML(sym)}"` : ''} data-fundname="${escapeHTML(x.name)}"
+          tabindex="0" role="button" aria-label="${escapeHTML(x.name)} 基金${isAdd ? '增持' : '减持'} ${fmtAmt(x.chgValue)}">
+        <span class="sr-no num">${String(i + 1).padStart(2, '0')}</span>
+        <span class="sr-name" title="${escapeHTML(x.name)}">${escapeHTML(x.name)}</span>
+        <span class="sr-net num">${x.freeRatio === null ? '--' : x.freeRatio.toFixed(2) + '%'}</span>
+        <span class="sr-buy num">${fmtAmt(x.holdValue)}</span>
+        <span class="sr-sell num ${pctClass(x.chgValue)}">${fmtAmt(x.chgValue)}</span>
+        <span class="sr-count num">${x.chgRatio === null ? '--' : fmtPct(x.chgRatio)}</span>
+        <span class="sr-arrow">${sym ? '▸' : ''}</span>
+      </div>`;
+    }).join('');
+  }
+
+  /* 披露面板的子页切换：按钮 data-fundssub="<key>" ↔ 内容 data-fundspane="<key>"。
+     加基金持仓后 A股 面板有三块，竖排会让这一屏越滚越长（用户要求"别都堆在一起"）。 */
+  function switchFundsSub(bar, key) {
+    const panel = bar.parentElement;
+    if (!panel) return;
+    bar.querySelectorAll('[data-fundssub]').forEach(b => {
+      const on = b.getAttribute('data-fundssub') === key;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', String(on));
+    });
+    panel.querySelectorAll('[data-fundspane]').forEach(p => {
+      p.hidden = p.getAttribute('data-fundspane') !== key;
+    });
+  }
+
   function renderSeatDirectory() {
     if (!el.seatDir) return;
     const list = state.actors || [];
@@ -2861,6 +2933,9 @@
       }
       // 状态行的"龙虎榜 N 只上榜"要等数据到了才准，否则首次进页永远是旧值
       renderStatus();
+      // 基金持仓（采集静态 JSON，季度）：入页时过期(>6h)才重拉
+      if (!state.fundHolds || Date.now() - (state.fundHoldsAt || 0) > 6 * 3600000) loadFundHolds();
+      else renderFundHolds();
     }
     if (tab === 'us') {
       // 伯克希尔 13F（原"聪明钱"tab，归位到美股）：季度数据，入页时过期(>6h)才拉
@@ -3390,6 +3465,26 @@
       }
       if (e.target.closest('[data-ceclose]')) { if (el.chartEventCard) el.chartEventCard.hidden = true; return; }
       // ---- 席位档案：目录行 / 事件卡里的"查看席位档案" ----
+      // ---- 披露面板的子页按钮 / 基金持仓方向 / 基金持仓行 ----
+      const subBtn = e.target.closest('[data-fundssub]');
+      if (subBtn) {
+        const bar = subBtn.closest('.heat-toolbar');
+        if (bar) switchFundsSub(bar, subBtn.getAttribute('data-fundssub'));
+        return;
+      }
+      const dirBtn = e.target.closest('[data-funddir]');
+      if (dirBtn) {
+        state.fundDir = dirBtn.getAttribute('data-funddir') === 'trim' ? 'trim' : 'add';
+        renderFundHolds();
+        return;
+      }
+      const fundRow = e.target.closest('[data-fundsym]');
+      if (fundRow) {
+        const sym = fundRow.getAttribute('data-fundsym');
+        openDetail({ symbol: sym, name: fundRow.getAttribute('data-fundname') || sym,
+          code: sym.slice(2), market: 'cn' });
+        return;
+      }
       const brkBtn = e.target.closest('[data-brk-idx]');
       if (brkBtn) {
         state.brkIdx = +brkBtn.getAttribute('data-brk-idx') || 0;
