@@ -7,6 +7,14 @@
 <title>OpenFinLens · 全球金融看板</title>
 <meta name="description" content="全球金融情报终端：A股/港股/美股/加密/外汇/指数/大宗商品/宏观利率，3D 全球事件地图、热力图、K线事件标记、龙虎榜资金动向、新闻流与产业链。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23D97757'/%3E%3C/svg%3E">
+<!-- PWA：手机浏览器"添加到主屏幕"后以独立窗口+品牌图标运行（个人主体上不了小程序 web-view 的替代体验） -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0c0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OpenFinLens">
 <script>
 /* 开屏状态必须在 CSS 之前挂上（防 FOUC）；2.6s 是硬上限兜底，
    JS 正常时 init 在数据就绪后主动 reveal（见 app.js 的 revealSplash）。 */

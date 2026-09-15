@@ -1,0 +1,15 @@
+{
+  "name": "OpenFinLens 全球看板",
+  "short_name": "OpenFinLens",
+  "description": "全球金融看板：A股/港美/加密行情、市场宽度、全球事件与影响链",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0c0f",
+  "theme_color": "#0a0c0f",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
