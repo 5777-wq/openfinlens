@@ -22,7 +22,10 @@
 # - 依赖：Node ≥18、git、flock（util-linux，主流 Linux 自带）。
 
 set -euo pipefail
-cd "$(git rev-parse --show-toplevel 2>/dev/null || echo "${OPENFINLENS_DIR:?请在本仓库内运行或设 OPENFINLENS_DIR}")"
+# 仓库根从脚本自身位置推导（cron 的工作目录是 $HOME，不能用 git rev-parse 探测；
+# 需要 Hack 时可设 OPENFINLENS_DIR 覆盖）
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+cd "${OPENFINLENS_DIR:-$SCRIPT_DIR/..}"
 
 # 防重入：上一轮没跑完就直接跳过（cron 每 2 分钟一跳，采集本身 ~30s）
 exec 9>"/tmp/openfinlens-collect.lock"
