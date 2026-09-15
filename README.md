@@ -73,6 +73,9 @@ python -m http.server 8765   # → http://127.0.0.1:8765
 海外源（GDELT / SEC EDGAR）**不在浏览器里请求**：`.github/workflows/collect.yml` 每 5 分钟抓取、清洗、
 去重、地理定位后提交一份静态 JSON，浏览器只读自己的数据——核心功能不要求用户能直连海外接口。
 国内的新浪 7x24 快讯作为全球事件的第二来源（GDELT 不可达时的兜底），同样只走采集层。
+**注意**：GitHub 对免费仓库的 schedule 高负载时延迟严重（实测 `*/5` 被拖成 4~6 小时一次），
+要保证事件新鲜度请把采集搬到自己的服务器：见 [docs/SERVER-COLLECT.md](docs/SERVER-COLLECT.md)
+（cron 每 2 分钟，端到端 2~5 分钟；GDELT 不可达时自动降级为新浪源）。
 *Overseas sources are collected server-side (GitHub Actions) into a static JSON; the browser only
 ever talks to its own data plus domestic endpoints.*
 
