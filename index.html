@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
 <!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
      对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
-<link rel="stylesheet" href="css/style.css?v=20260915k">
+<link rel="stylesheet" href="css/style.css?v=20260915m">
 </head>
 <body data-updown="red">
 
@@ -164,6 +164,21 @@
         </div>
         <div id="brkBox"><div class="sk sk-row"></div></div>
         <p class="insight-disclaimer">伯克希尔·哈撒韦 13F-HR 为美国 SEC 季度披露的美股多头持仓。<strong>滞后最长 45 天</strong>（季度末持仓要到次季首月才披露），不含空头/衍生品/非美资产；「环比」是与上一期 13F 的股数对比。全部为历史事实陈述，不构成任何建议。特朗普等公众人物的证券交易暂无可靠公开结构化数据源，本页不做编造。</p>
+      </div>
+    </div>
+
+    <!-- ===== 港股披露类：南向（港股通）持股，仅 港股 tab 显示 =====
+         注：港股没有美股 13F 那种可按机构拆分的免费结构化披露——HKEX 权益披露只有 HTML 交互，
+         CCASS 明细虽细但使用条款 2.3 明文禁止程序化访问。所以这一块是**通道合计**口径，如实标注。 -->
+    <div id="hkFundsPanel" hidden>
+      <div class="section" data-fold>
+        <div class="section-head">
+          <h2 class="section-title">南向资金持股 · 港股通</h2>
+          <span class="sec-line"></span>
+          <span class="section-sub" id="sbVia">—</span>
+        </div>
+        <div id="sbBox"><div class="sk sk-row"></div></div>
+        <p class="insight-disclaimer">内地资金经港股通持有港股的合计（交易所/结算披露口径，日频，当日收盘后发布）。这是<strong>通道合计</strong>，不是某家机构的持仓：港股没有按机构拆分的免费结构化披露源，所以本页不呈现"某基金持有什么"。增减按当日持仓市值变动排序，供判断南向资金的流向，不构成任何建议。</p>
       </div>
     </div>
   </section>
@@ -377,39 +392,40 @@
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script src="js/utils.js?v=20260915k"></script>
-<script src="js/store.js?v=20260915k"></script>
-<script src="js/proxy.js?v=20260915k"></script>
-<script src="js/data/universe.js?v=20260915k"></script>
-<script src="js/data/industry-chains.js?v=20260915k"></script>
-<script src="js/data/explain.js?v=20260915k"></script>
-<script src="js/technical.js?v=20260915k"></script>
-<script src="js/flags.js?v=20260915k"></script>
-<script src="js/bus.js?v=20260915k"></script>
-<script src="js/events.js?v=20260915k"></script>
-<script src="js/actors.js?v=20260915k"></script>
-<script src="js/sources/tencent.js?v=20260915k"></script>
-<script src="js/sources/sina.js?v=20260915k"></script>
-<script src="js/sources/eastmoney.js?v=20260915k"></script>
-<script src="js/sources/okx.js?v=20260915k"></script>
-<script src="js/sources/binance.js?v=20260915k"></script>
-<script src="js/sources/fred.js?v=20260915k"></script>
-<script src="js/sources/news.js?v=20260915k"></script>
-<script src="js/sources/worldbank.js?v=20260915k"></script>
-<script src="js/sources/gdelt.js?v=20260915k"></script>
-<script src="js/sources/lhb.js?v=20260915k"></script>
-<script src="js/sources/sec.js?v=20260915k"></script>
-<script src="js/breadth.js?v=20260915k"></script>
-<script src="js/sessions.js?v=20260915k"></script>
-<script src="js/treemap.js?v=20260915k"></script>
-<script src="js/charts.js?v=20260915k"></script>
-<script src="js/engine/types.js?v=20260915k"></script>
-<script src="js/engine/geo.js?v=20260915k"></script>
-<script src="js/engine/news-engine.js?v=20260915k"></script>
-<script src="js/engine/event-engine.js?v=20260915k"></script>
-<script src="js/engine/impact-engine.js?v=20260915k"></script>
-<script src="js/engine/llm-provider.js?v=20260915k"></script>
-<script src="js/worldmap.js?v=20260915k"></script>
-<script src="js/app.js?v=20260915k"></script>
+<script src="js/utils.js?v=20260915m"></script>
+<script src="js/store.js?v=20260915m"></script>
+<script src="js/proxy.js?v=20260915m"></script>
+<script src="js/data/universe.js?v=20260915m"></script>
+<script src="js/data/industry-chains.js?v=20260915m"></script>
+<script src="js/data/explain.js?v=20260915m"></script>
+<script src="js/technical.js?v=20260915m"></script>
+<script src="js/flags.js?v=20260915m"></script>
+<script src="js/bus.js?v=20260915m"></script>
+<script src="js/events.js?v=20260915m"></script>
+<script src="js/actors.js?v=20260915m"></script>
+<script src="js/sources/tencent.js?v=20260915m"></script>
+<script src="js/sources/sina.js?v=20260915m"></script>
+<script src="js/sources/eastmoney.js?v=20260915m"></script>
+<script src="js/sources/okx.js?v=20260915m"></script>
+<script src="js/sources/binance.js?v=20260915m"></script>
+<script src="js/sources/fred.js?v=20260915m"></script>
+<script src="js/sources/news.js?v=20260915m"></script>
+<script src="js/sources/worldbank.js?v=20260915m"></script>
+<script src="js/sources/gdelt.js?v=20260915m"></script>
+<script src="js/sources/lhb.js?v=20260915m"></script>
+<script src="js/sources/southbound.js?v=20260915m"></script>
+<script src="js/sources/sec.js?v=20260915m"></script>
+<script src="js/breadth.js?v=20260915m"></script>
+<script src="js/sessions.js?v=20260915m"></script>
+<script src="js/treemap.js?v=20260915m"></script>
+<script src="js/charts.js?v=20260915m"></script>
+<script src="js/engine/types.js?v=20260915m"></script>
+<script src="js/engine/geo.js?v=20260915m"></script>
+<script src="js/engine/news-engine.js?v=20260915m"></script>
+<script src="js/engine/event-engine.js?v=20260915m"></script>
+<script src="js/engine/impact-engine.js?v=20260915m"></script>
+<script src="js/engine/llm-provider.js?v=20260915m"></script>
+<script src="js/worldmap.js?v=20260915m"></script>
+<script src="js/app.js?v=20260915m"></script>
 </body>
 </html>
