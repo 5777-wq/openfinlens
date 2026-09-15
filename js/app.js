@@ -28,10 +28,11 @@
     heatMode: 'cn',
     heatSize: 'cap',
     heatTopMode: 'top',    // A股热力图范围：top=市值 Top500（默认）| all=全市场
-    heatItems: { cn: [], crypto: [] },
+    // 每个市场的全量行：hk/us 同时供"热力图"与"市场宽度"共用（us 原本就为宽度而抓）
+    heatItems: { cn: [], hk: [], us: [], crypto: [] },
     // 按视图分开记录来源状态：单槽位会被后加载的源覆盖，导致来源标注张冠李戴
-    heatVia: { cn: null, crypto: null },
-    heatCachedAt: { cn: null, crypto: null },
+    heatVia: { cn: null, hk: null, us: null, crypto: null },
+    heatCachedAt: { cn: null, hk: null, us: null, crypto: null },
     heat: null,
     heatFetchedAt: 0,         // 全市场最近一次成功抓取时间（情绪页保活判断用）
     news: [],
@@ -671,12 +672,18 @@
     }
   }
 
+  /* 只有 A股 提供"全市场"探索（5500 行尚可承受）；港股 2900、美股 13800 一律取市值 Top 500
+     ——1.38 万块塞进一屏平均每块不到 3×3px，物理上放不下任何文字。
+     加密只有 80 个币，不切片。切片只影响"画出来的块"，宽度/情绪统计始终用全量数据。 */
+  const HEAT_RANGE_MODES = { cn: true };
+  // 各市场的取数入口（函数声明已提升，这里只是把它们收成一张表，避免 switchHeat 里堆三元）
+  const HEAT_LOADERS = { cn: loadHeatCN, crypto: loadHeatCrypto, hk: ensureHKRows, us: ensureUSRows };
+
   function heatItemsForRender() {
     let rows = state.heatItems[state.heatMode] || [];
-    // A股默认只画市值 Top 500（TradingView/finviz 同款思路）：
-    // 5500 只塞一屏平均每块 9×9px，物理上放不下文字，"整体行情"也主要靠头部市值。
-    // 开关可切回全市场（供放大探索），宽度/情绪统计始终用全量数据，不受影响。
-    if (state.heatMode === 'cn' && state.heatTopMode !== 'all' && rows.length > 500) {
+    const sliceTop = state.heatMode !== 'crypto' &&
+      (HEAT_RANGE_MODES[state.heatMode] ? state.heatTopMode !== 'all' : true);
+    if (sliceTop && rows.length > 500) {
       rows = rows.slice().sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0)).slice(0, 500);
     }
     return rows.map(r => ({
@@ -691,7 +698,13 @@
       onClick: (item) => {
         const p = item.payload;
         if (state.heatMode === 'crypto') openDetail({ symbol: p.code, name: p.name, code: p.code, market: 'crypto', binance: p.binance || p.code });
-        else openDetail({ symbol: p.secid ? 'EM:' + p.secid : p.code, name: p.name, code: p.code, market: 'cn', secid: p.secid, tencent: tencentOfSecid(p.secid) });
+        else openDetail({
+          symbol: p.secid ? 'EM:' + p.secid : p.code, name: p.name, code: p.code,
+          // 市场按 secid 反查，不再写死 'cn'——港股/美股热力图点进去必须落到正确市场
+          // （market 决定币种与成交额单位分档、以及详情页的"交易时段"口径）
+          market: marketFromSecid(p.secid) || 'cn',
+          secid: p.secid, tencent: tencentOfSecid(p.secid),
+        });
       },
       // 加密热力图 tile 印 LOGO（本地化图标集）；A 股无免费 logo 源，维持文字
       iconFor: (item) => (item.payload && item.payload.market === 'crypto')
@@ -729,7 +742,8 @@
       : via === 'backup' ? '备用源' : via ? '主源直连' : '等待数据';
     const rangeTxt = state.heatMode === 'cn'
       ? (state.heatTopMode === 'top' ? ' · 市值 Top 500（宽度统计仍用全量）' : ' · 全市场')
-      : '';
+      : (state.heatMode === 'hk' || state.heatMode === 'us')
+        ? ' · 市值 Top 500（全市场共 ' + n + ' 只）' : '';
     el.heatSub.textContent = `${n} 个标的 · 面积=${state.heatMode === 'crypto' && state.heatSize === 'cap' ? '24h成交额' : state.heatSize === 'cap' ? '市值' : '涨跌幅'}${rangeTxt} · ${viaTxt}`;
     // 空态：全源失败时给明确文案，而不是黑画布 + "0 个标的 · 等待数据"
     let empty = document.getElementById('heatEmpty');
@@ -886,20 +900,50 @@
     ensureUSRows().then(renderMoodUS);           // 美股宽度：全球三大市场之一，不能缺席
   }
 
+  /* ---- 港股全市场（东财 主板+GEM ≈ 2900 只）----
+     与美股同一套影子：一次全量抓取，同时供"港股热力图"（未来也可供港股宽度）使用，缓存 5 分钟。
+     市场过滤常量在 sources/eastmoney.js（FS_HK）——裸 m:116 会混进 1.7 万条权证。 */
+  async function ensureHKRows() {
+    if (state.heatItems.hk && state.heatItems.hk.length) return state.heatItems.hk;
+    const c = Cache.raw('heat:hk');
+    if (c && Date.now() - c.at < 300000) {
+      state.heatItems.hk = c.val; state.heatVia.hk = 'cache'; state.heatCachedAt.hk = c.at;
+      return c.val;
+    }
+    const rows = await window.EastmoneySource.getFullMarket({
+      fs: window.EastmoneySource.FS_HK, maxCount: 3000, concurrency: 12,
+    });
+    if (rows.length) {
+      state.heatItems.hk = rows; state.heatVia.hk = 'primary';
+      Cache.set('heat:hk', rows);
+    } else {
+      const cc = Cache.raw('heat:hk');
+      if (cc) { state.heatItems.hk = cc.val; state.heatVia.hk = 'cache'; state.heatCachedAt.hk = cc.at; }
+    }
+    return state.heatItems.hk;
+  }
+
   /* ---- 美股宽度（东财美股全市场 m:105,106,107 ≈ 1.38 万只，全量抓避免排序偏差）----
-     与加密宽度同构的独立卡片；无涨跌停概念，不展示 limit 口径。缓存 5 分钟。 */
+     与加密宽度同构的独立卡片；无涨跌停概念，不展示 limit 口径。缓存 5 分钟。
+     同一份行数据也供"美股热力图"使用（按市值取 Top 500 后画）。 */
   async function ensureUSRows() {
     if (state.heatItems.us && state.heatItems.us.length) return state.heatItems.us;
     const c = Cache.raw('heat:us');
-    if (c && Date.now() - c.at < 300000) return c.val;
+    if (c && Date.now() - c.at < 300000) {
+      state.heatItems.us = c.val; state.heatVia.us = 'cache'; state.heatCachedAt.us = c.at;
+      return c.val;
+    }
     const rows = await window.EastmoneySource.getFullMarket({
-      fs: 'm:105,m:106,m:107', maxCount: 13800, concurrency: 16,
+      fs: window.EastmoneySource.FS_US, maxCount: 13800, concurrency: 16,
     });
     if (rows.length) {
-      state.heatItems.us = rows;
+      state.heatItems.us = rows; state.heatVia.us = 'primary';
       Cache.set('heat:us', rows);
+    } else {
+      const cc = Cache.raw('heat:us');
+      if (cc) { state.heatItems.us = cc.val; state.heatVia.us = 'cache'; state.heatCachedAt.us = cc.at; }
     }
-    return rows;
+    return state.heatItems.us;
   }
 
   function renderMoodUS(rows) {
@@ -2674,9 +2718,10 @@
     if (el.moodPanel) el.moodPanel.hidden = tab !== 'cn';
     // 市场视图：热力图只在"全部/A股/加密"下有意义
     const heatWasHidden = el.heatSection.hidden;
-    el.heatSection.hidden = !['all', 'cn', 'crypto'].includes(tab);
-    if (tab === 'crypto') switchHeat('crypto');
-    else if (tab === 'cn') switchHeat('cn');
+    // 热力图在 全部/A股/港股/美股/加密 下有意义（宏观 tab 是世行年度指标，不放热力图）
+    el.heatSection.hidden = !['all', 'cn', 'hk', 'us', 'crypto'].includes(tab);
+    // 进哪个市场 tab 就自动切到该市场的热力图，不用手点
+    if (['cn', 'hk', 'us', 'crypto'].includes(tab)) switchHeat(tab);
     // 世界经济仪表盘只在外汇宏观 tab 显示；全球指数条首次进市场视图时加载
     if (el.macroBox) el.macroBox.hidden = tab !== 'fxmacro';
     if (tab === 'fxmacro') loadMacro();
@@ -2723,12 +2768,12 @@
     if (state.heatMode === mode) return;
     state.heatMode = mode;
     document.querySelectorAll('[data-heat]').forEach(b => b.classList.toggle('active', b.dataset.heat === mode));
-    // 范围开关只对 A股有意义（加密就 80 块，块块有字）
-    if (el.heatTopToggle) el.heatTopToggle.hidden = mode !== 'cn';
+    // 范围开关只对 A股有意义：加密只有 80 个币（块块有字），港股/美股一律按市值取 Top 500
+    if (el.heatTopToggle) el.heatTopToggle.hidden = !HEAT_RANGE_MODES[mode];
     // 换视图重置视口：否则从 ×6 的 A股视图切到加密，进来是一个陌生的放大视图
     if (state.heat) state.heat.resetView();
     if (!state.heatItems[mode].length) {
-      (mode === 'cn' ? loadHeatCN() : loadHeatCrypto()).then(drawHeat);
+      HEAT_LOADERS[mode]().then(drawHeat);
     } else drawHeat();
   }
 
@@ -2850,7 +2895,7 @@
 
     schedule('heat', async () => {
       if (state.view !== 'market' || el.heatSection.hidden) return;
-      if (state.heatMode === 'cn') await loadHeatCN(); else await loadHeatCrypto();
+      if (HEAT_LOADERS[state.heatMode]) await HEAT_LOADERS[state.heatMode]();
       const rows = state.heatItems[state.heatMode] || [];
       if (!state.heat) return;
       // 数量对比必须用"当前渲染子集"的块数：A股默认 Top500 只画 500 块，
