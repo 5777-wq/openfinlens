@@ -81,6 +81,8 @@
     pendingActivity: null,     // 从席位档案点进个股时携带的活动（K线上画席位标记）
     stockNames: (function () { try { return window.Store.get('stockNames', {}) || {}; } catch { return {}; } })(),
     brk: null, brkAt: 0,       // 伯克希尔 13F 持仓（SEC 采集静态 JSON，季度）
+    // 港股通（南向）持有个股：日频，浏览器直连（datacenter 带 CORS，无需采集层）
+    southbound: null, southboundDate: null, southboundAt: 0,
     chartEventsOn: true,       // 详情页 K 线事件标记开关
     lastUpdate: null,
     timers: {},
@@ -106,7 +108,7 @@
     'lhbBox', 'lhbVia', 'evtToggle', 'chartEventCard',
     'seatDir', 'seatDirVia',
     'brkBox', 'brkVia', 'marketTitle', 'globalOverview', 'moodPanel',
-    'aFundsPanel', 'usFundsPanel',
+    'aFundsPanel', 'usFundsPanel', 'hkFundsPanel', 'sbBox', 'sbVia',
     'actorBack', 'actorName', 'actorType', 'actorMeta', 'actorStats', 'actorStatsSub', 'actorTimeline'];
 
   const pctClass = (p) => (p === null || p === undefined || isNaN(p)) ? 'flat' : (p > 0 ? 'up' : p < 0 ? 'down' : 'flat');
@@ -1950,6 +1952,58 @@
     try { window.Store.set('stockNames', state.stockNames); } catch { /* 存储满不致命 */ }
   }
 
+  /* ---- 港股通（南向）持有个股（日频）----
+     与"席位/龙虎榜"并列的第三类披露口径：这是**通道合计**（内地资金经港股通合计持有多少），
+     不是可识别机构——港股没有美股 13F 那种可按机构拆分的免费结构化披露（HKEX 权益披露只有
+     HTML 交互、CCASS 条款明文禁止程序化访问），所以到这一层为止，界面上必须这么标。 */
+  async function loadSouthbound() {
+    try {
+      const { date, rows } = await window.SouthboundSource.latest();
+      if (rows.length) {
+        state.southbound = rows; state.southboundDate = date; state.southboundAt = Date.now();
+        Cache.set('sb', { date, rows });
+        return;
+      }
+    } catch (e) { /* 落到缓存 */ }
+    const c = Cache.raw('sb');
+    if (c && c.val) { state.southbound = c.val.rows; state.southboundDate = c.val.date; }
+  }
+
+  function renderSouthbound() {
+    if (!el.sbBox) return;
+    const list = state.southbound || [];
+    if (!list.length) {
+      el.sbBox.innerHTML = '<div class="empty">南向持仓暂不可用，稍后自动重试</div>';
+      if (el.sbVia) el.sbVia.textContent = '';
+      return;
+    }
+    // 排序用"当日持仓市值变动"（股数 × 收盘价）而不是持股比：比的是**今天动了多少钱**，
+    // 否则一个持仓占比极小、但当日翻倍的票会挤掉真正的大额增减。
+    const ranked = list
+      .map(x => Object.assign({}, x, {
+        chgValue: (x.changeShares !== null && x.price !== null) ? x.changeShares * x.price : null,
+      }))
+      .filter(x => x.chgValue !== null)
+      .sort((a, b) => Math.abs(b.chgValue) - Math.abs(a.chgValue));
+    if (el.sbVia) el.sbVia.textContent =
+      state.southboundDate + ' 持仓 · 共 ' + list.length + ' 只 · 按当日持仓市值变动 Top 30 · 点击进 K 线';
+    el.sbBox.innerHTML = `<div class="srow-head" aria-hidden="true">
+        <span>#</span><span>股票 / 代码</span><span>南向持股比</span><span>持股市值</span><span>当日增减</span><span>参与券商</span><span></span>
+      </div>` + ranked.slice(0, 30).map((x, i) => {
+      const cls = pctClass(x.chgValue);
+      return `<div class="srow" data-sb="${escapeHTML(x.code)}" data-sb-name="${escapeHTML(x.name)}"
+          tabindex="0" role="button" aria-label="${escapeHTML(x.name)} 南向持股 ${x.ratio === null ? '未知' : x.ratio + '%'} 当日增减 ${fmtAmt(x.chgValue)}">
+        <span class="sr-no num">${String(i + 1).padStart(2, '0')}</span>
+        <span class="sr-name" title="${escapeHTML(x.name)}">${escapeHTML(x.name)}</span>
+        <span class="sr-net num">${x.ratio === null ? '--' : x.ratio.toFixed(2) + '%'}</span>
+        <span class="sr-buy num">${fmtAmt(x.marketCap)}</span>
+        <span class="sr-sell num ${cls}">${fmtAmt(x.chgValue)}</span>
+        <span class="sr-count num">${x.participants === null ? '--' : x.participants}</span>
+        <span class="sr-arrow">▸</span>
+      </div>`;
+    }).join('');
+  }
+
   function renderSeatDirectory() {
     if (!el.seatDir) return;
     const list = state.actors || [];
@@ -2744,6 +2798,7 @@
     // 披露类区块按市场归位（原"聪明钱"tab）：席位/龙虎榜 在 A股，13F 在美股
     if (el.aFundsPanel) el.aFundsPanel.hidden = tab !== 'cn';
     if (el.usFundsPanel) el.usFundsPanel.hidden = tab !== 'us';
+    if (el.hkFundsPanel) el.hkFundsPanel.hidden = tab !== 'hk';
     // 市场视图：热力图只在"全部/A股/加密"下有意义
     const heatWasHidden = el.heatSection.hidden;
     // 热力图在 全部/A股/港股/美股/加密 下有意义（宏观 tab 是世行年度指标，不放热力图）
@@ -2774,11 +2829,19 @@
         if (!state.actors || Date.now() - state.actorsAt > 600000) loadSeatActors().catch(() => renderSeatDirectory());
         else renderSeatDirectory();
       }
+      // 状态行的"龙虎榜 N 只上榜"要等数据到了才准，否则首次进页永远是旧值
+      renderStatus();
     }
     if (tab === 'us') {
       // 伯克希尔 13F（原"聪明钱"tab，归位到美股）：季度数据，入页时过期(>6h)才拉
-      if (!state.brk || Date.now() - (state.brkAt || 0) > 6 * 3600000) loadBrk().catch(() => {});
+      if (!state.brk || Date.now() - (state.brkAt || 0) > 6 * 3600000) loadBrk().then(renderStatus).catch(() => {});
       else renderBrk();
+    }
+    if (tab === 'hk') {
+      // 南向持股（港股口径的"聪明钱"）：日频、当日收盘后才发布，过期(>6h)才重拉
+      if (!state.southbound || Date.now() - (state.southboundAt || 0) > 6 * 3600000) {
+        loadSouthbound().then(() => { renderSouthbound(); renderStatus(); });
+      } else renderSouthbound();
     }
     if (view === 'events') {
       // 公开言论（原"聪明钱"tab 第 4 块）：本质是"新闻流里出现人名"，与事件页同源，55s 过期重拉
@@ -2978,6 +3041,12 @@
       if (state.tab !== 'cn') return;
       await loadLhb();
     }, 300000);
+    // 南向持股：同样日频、当日收盘后发布，10 分钟轮询足够（现住 港股 tab）
+    schedule('southbound', async () => {
+      if (state.tab !== 'hk') return;
+      await loadSouthbound();
+      renderSouthbound();
+    }, 600000);
     schedule('globe', async () => {
       if (state.view !== 'market' || !state.globeQuotes) return;
       await loadGlobe();
@@ -3052,6 +3121,10 @@
     if (tab === 'us') {
       const brkN = state.brk && state.brk.holdings ? state.brk.holdings.length : 0;
       return `${visibleQuoteCount()} 个标的${brkN ? ' · 13F ' + brkN + ' 项持仓' : ''} · ${fetchTxt}`;
+    }
+    if (tab === 'hk') {
+      const sbN = (state.southbound || []).length;
+      return `${visibleQuoteCount()} 个标的${sbN ? ' · 南向持仓 ' + sbN + ' 只' : ''} · ${fetchTxt}`;
     }
     return `${visibleQuoteCount()} 个标的 · 每 ${window.Store.settings.get().refresh}s 刷新 · ${fetchTxt}`;
   }
@@ -3281,6 +3354,15 @@
       }
       if (e.target.closest('[data-ceclose]')) { if (el.chartEventCard) el.chartEventCard.hidden = true; return; }
       // ---- 席位档案：目录行 / 事件卡里的"查看席位档案" ----
+      const sbRow = e.target.closest('[data-sb]');
+      if (sbRow) {
+        // 南向名单里多数股票不在 universe 内，走东财 secid（116.xxxxx = 港股）而不是腾讯 symbol
+        const code = sbRow.getAttribute('data-sb');
+        const secid = '116.' + code;
+        openDetail({ symbol: 'EM:' + secid, name: sbRow.getAttribute('data-sb-name') || code,
+          code, market: 'hk', secid, tencent: tencentOfSecid(secid) });
+        return;
+      }
       const actorRow = e.target.closest('[data-actor]');
       if (actorRow) { openActor(actorRow.getAttribute('data-actor')); return; }
       const sr = e.target.closest('.sr-item');
