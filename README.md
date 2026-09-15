@@ -41,21 +41,21 @@ python -m http.server 8765   # → http://127.0.0.1:8765
 
 | | 功能 | 说明 |
 |---|---|---|
-| 🖥️ | **行情总览** | 9 个板块：全部 / A股 / 港美 / 宏观 / 加密 / 事件 / 聪明钱 / 产业链 / 自选；「全球市场」总览只住「全部」，各板块只看自己（10s 轮询，红涨绿跌可切换） |
-| 🌏 | **3D 全球事件** | globe.gl 地球（本地 vendor），GDELT + 新浪7x24 事件按类别着色落点，缩放级别自适应聚类，点事件→详情→关联资产直达 K 线 |
-| 🗺️ | **平面世界地图** | 同一套事件数据的 2D 视图：Canvas 等距圆柱投影自绘（复用 3D 同一份世界轮廓，零新库），拖拽平移 / 滚轮缩放 / 悬停提示 / 点击聚合簇展开清单，与 3D 地球一键互切（记忆上次选择） |
+| 🖥️ | **行情总览** | 9 个板块：全部 / A股 / 港股 / 美股 / 加密 / 宏观 / 事件 / 产业链 / 自选；「全部」只做总览（指数 + 热力图），各板块只看自己（10s 轮询，红涨绿跌可切换）。**宽屏 ≥1280px 自动两栏密排**，同屏做跨市场对比 |
+| 🎯 | **首屏归属操盘手** | hero 四个大数字优先显示**你的自选**，不足 4 格用主指数补齐（没有自选时就是上证/恒指/标普/BTC）——首屏先给自己的票 |
+| 🗺️ | **平面世界地图（事件页唯一地图视图）** | GDELT + 新浪7x24 事件按类别着色落点，Canvas 等距圆柱投影自绘（d3-geo + topojson 本地 vendor，禁运行时海外 CDN），拖拽平移 / 滚轮缩放 / 悬停提示 / 点击聚合簇展开清单。3D 地球版已于 2026-09 按用户决策移除（同屏信息量不如平面图） |
 | ⚡ | **Event-on-Chart** | 宏观/央行/贸易/冲突事件与龙虎榜按日期画上 K 线（圆点 marker），点击弹出事件卡——把事件和价格反应放在同一屏 |
-| 🧠 | **聪明钱** | Actor-centric：席位动向目录 → 席位档案（近 90 天轨迹 + 完整上榜原因）→ 今日龙虎榜 → 伯克希尔 13F 季度持仓（SEC EDGAR，含环比增持/减持）→ 公开言论。发言 ≠ 交易，口径严格分开 |
-| 🔥 | **全市场热力图** | A股 ~5500 只 + 加密 80 币，手写 squarify + canvas；滚轮以光标为锚缩放、拖拽平移、双指捏合、右键复位 |
+| 🧠 | **披露类资金（按市场归位）** | 原「聪明钱」独立 tab 已拆解到各市场：**席位动向 + 今日龙虎榜**在 A股 tab（席位可点进近 90 天档案）、**多机构 13F** 在美股 tab（伯克希尔/桥水/ARK/Pershing，可切换）、**南向资金持股**在港股 tab（日频）、**公开言论**在事件页。发言 ≠ 交易，口径严格分开 |
+| 🔥 | **全市场热力图** | **A股 ~5500 只 / 港股 ~2900 只 / 美股 ~13800 只 / 加密 80 币**（港股/美股/加密各自一个 tab，与 A股 同一套逻辑），手写 squarify + canvas；滚轮以光标为锚缩放、拖拽平移、双指捏合、右键复位 |
 | 📈 | **K线详情** | 分时/日/周/**月**，成交量副图，MA5/10/20/60 + EMA12/26 六线自由开关（localStorage 记忆） |
 | 🧪 | **技术面面板** | RSI(14) · MACD(12,26,9) · KDJ(9,3,3) · BOLL(20,2) · ATR(14) · 量比 · 均线排列——每条都是日K手算，附常用读法，绝不荐股 |
-| 🌡️ | **情绪与市场宽度** | 情绪小节并入 A股板块底部：A股（~5500 只）/ 美股（~13800 只全量）/ 加密（80 对）温度计、涨跌家数、七段分布、逐日快照走势 |
+| 🌡️ | **情绪与市场宽度** | **各市场放进各自的 tab**：A股 tab 底部是 A股（~5500 只）温度计、涨跌家数、七段分布、逐日快照走势；美股 tab / 加密 tab 各有自己的宽度卡（不再混在 A股 页里） |
 | 🗺️ | **产业链图谱** | 10 条链 · 49 个环节 · 163 只成分股（逐一实测代码），环节强度 = 成分股涨跌幅实时均值 |
 | 📡 | **今日热门概念** | 东财 500+ 概念板块实时涨幅榜 → 命中人工链条直接跳转，未命中展开领涨成分股兜底 |
-| 📰 | **快讯 + 公开言论** | 快讯按产业链板块分类过滤；马斯克/特朗普/黄仁勋/奥尔特曼等 10 人发言聚合（新闻口径，诚实标注，住"聪明钱"页） |
+| 📰 | **快讯 + 公开言论** | 快讯按产业链板块分类过滤；马斯克/特朗普/黄仁勋/奥尔特曼等 10 人发言聚合（新闻口径，诚实标注，住**事件页**的快讯子页） |
 | 🌍 | **世界经济仪表盘** | 宏观板块独占整屏：世界银行 API，美中日德英法印韩 × GDP/增长/通胀/失业/债务/经常账户，列内色阶热图 |
 | ⭐ | **自选 + 搜索** | 跨市场收藏（localStorage）、组合概览、按涨跌幅排序；搜索支持中文/代码/拼音 |
-| ⌨️ | **细节** | 市场时段徽章（夏令时正确）、hash 深链、键盘 1-9/0 切 tab、`/` 搜索、`Backspace` 返回、开屏真实进度条；加密内容有**内置合规开关**（默认开，界面无入口，`?crypto=off` 关闭后加密板块/行情/新闻/热力图整体隐藏，其余功能不受影响——微信小程序合规预留） |
+| ⌨️ | **细节** | 市场时段徽章（夏令时正确）、hash 深链、键盘 1-9/0 切 tab、`/` 搜索、`Backspace` 返回；加密内容有**内置合规开关**（默认开，界面无入口，`?crypto=off` 关闭后加密板块/行情/新闻/热力图整体隐藏，其余功能不受影响——微信小程序合规预留） |
 
 ## 它怎么工作 · How it works
 
@@ -65,8 +65,8 @@ python -m http.server 8765   # → http://127.0.0.1:8765
 │     主源 ──失败──▶ 备源 ──失败──▶ localStorage 缓存（带时间戳）
 │                                    │
 ├── app.js    轮询调度（setTimeout 链）→ 增量 patch DOM，不整墙重建
-├── treemap/charts/technical/events  纯函数计算层，全部可单测
-├── globe.js + bus.js    3D 事件地球 ↔ K线 ↔ 资金，通过轻量事件总线联动
+├── treemap/charts/technical/events  纯函数计算层，全部可单测（14 组 188 条断言）
+├── worldmap.js + bus.js  平面事件地图 ↔ K线 ↔ 资金，通过轻量事件总线联动
 └── 永不白屏：任何一层挂掉都是"降级角标 + 旧数据/骨架"，绝无弹窗报错
 ```
 
@@ -89,14 +89,16 @@ DOM updates are incremental patches, and nothing ever throws a blank screen at y
 |---|---|---|---|
 | A股 / 港股 / 美股 / 全球指数 | 腾讯 `qt.gtimg.cn`（GBK） | 东财 `push2delay` | 缓存 |
 | A股全市场（热力图/宽度） | 东财 `clist` 分页并发 | 腾讯精选 | 缓存 |
-| 美股全市场（宽度） | 东财 `m:105,106,107`（~13800 只全量） | — | 缓存 5min |
+| 港股全市场（热力图/宽度） | 东财 `m:116+t:3,m:116+t:4`（~2900 只正股；裸 `m:116` 会混进 1.7 万条权证） | — | 缓存 5min |
+| 美股全市场（热力图/宽度） | 东财 `m:105,106,107`（~13800 只全量） | — | 缓存 5min |
 | 加密 | 币安 `data-api.binance.vision` | OKX | 缓存 |
 | 外汇 / 商品 / 国债收益率 | 东财 secid（119/133、101-103、171） | 新浪（需代理） | 缓存 |
 | K线 / 分时 | 腾讯 `ifzq`（前复权） | 东财 → 空态 | 不白屏 |
 | 概念板块榜 / 成分股 | 东财 `clist`（`m:90+t:3` / `b:BKxxxx`） | — | 隐藏榜单 |
-| A股龙虎榜 | 东财 datacenter-web（净买额榜 + 席位明细，CORS 直连） | — | 空态 + 重试 |
+| A股龙虎榜 / 席位 | 东财 datacenter-web（净买额榜 + 席位明细，CORS 直连） | — | 空态 + 重试 |
+| 港股南向持股 | 东财 datacenter-web `RPT_MUTUAL_STOCK_HOLDRANKS`（日频 660 只，CORS 直连） | — | 内存缓存 |
 | 全球事件 | **GDELT + 新浪7x24 → Actions 每 5 分钟采集** → 静态 JSON | localStorage 缓存 | 诚实空态 |
-| 伯克希尔 13F | **SEC EDGAR → Actions 每 6 小时采集** → 静态 JSON（季度披露） | 缓存 | 诚实空态 |
+| 机构持仓 13F | **SEC EDGAR → Actions 每 6 小时采集** → 静态 JSON（**多机构**：伯克希尔/桥水/ARK/Pershing；季度披露，滞后 34~45 天） | 缓存 | 诚实空态 |
 | 新闻 | 新浪 roll（JSONP） | 东财 `np-listapi` | 缓存 60s |
 | 宏观年度指标 | 世界银行 `api.worldbank.org` | — | 缓存 24h |
 | 搜索 | 东财 searchapi（中文/代码） | codetable（拼音） | 空态 |
@@ -138,7 +140,7 @@ DOM updates are incremental patches, and nothing ever throws a blank screen at y
 ```bash
 cd android && bash build.sh
 # 构建链：aapt2 + javac + d8 + uber-apk-signer（便携工具链放 toolchain/，TUNA/阿里云镜像，不用海外 CDN）
-# 产物：OpenFinLens-v1.0.1.apk（应用名 OpenFinLens；版本号在 AndroidManifest.xml）
+# 产物：OpenFinLens-v1.0.2.apk（应用名 OpenFinLens；版本号在 AndroidManifest.xml，OFL_VERSION=x.y.z 可覆盖产物名）
 ```
 
 ## 自己部署一份 · Deploy your own
@@ -169,7 +171,7 @@ node _test/run-all.mjs --offline  # 只跑离线 9 组 113 项（断网/CI 友�
 - 免费接口有延迟（东财 `push2delay` 名字里就写着 delay），**不构成投资建议**；
 - 全球事件的坐标是**关键词地理定位（国家/地区级）**，不是精确地理编码；事件在 K 线上按"报道日期"落位，不是成交时间——两者都诚实标注；
 - 龙虎榜 D1/D5 列是该股历史次日/5日涨跌的**统计**，不是预测；"某席位 = 某游资"这类推断未展示（上游不公开个人身份）；
-- ARK 每日交易 / SEC Form 4 / 13F 未接入：免费直连源不稳定且 data.sec.gov 不带 CORS，需要采集层支持，做了会补上——**宁可缺，不放假数据**；
+- ARK 每日交易 / SEC Form 4 未接入：免费直连源不稳定且 data.sec.gov 不带 CORS，需要采集层支持，做了会补上——**宁可缺，不放假数据**（13F 已接入多机构）；
 - 外汇/商品的日K 无免费直连源（详见踩坑实录第一条），报价与情绪不受影响；
 - 加密"市值"用 24h 成交额代理——真实流通量免费拿不到；
 - 美股分时盘前盘后只有 1 个点（上游限制），会自动降级为日K；
@@ -186,7 +188,7 @@ endpoints and may be delayed or wrong. Trade at your own risk.*
 
 <div align="center">
 
-**技术栈：** 原生 HTML/CSS/JS · [lightweight-charts](https://github.com/tradingview/lightweight-charts) v4.2.3（vendored, Apache-2.0）· [globe.gl](https://github.com/vasturiano/globe.gl) 2.46（vendored, MIT，内置 three.js）· [topojson-client](https://github.com/topojson/topojson-client)（vendored, ISC）· 手写 squarify · 腾讯/东财/币安/新浪/世界银行/GDELT 公开接口（许可证详见 `lib/THIRD_PARTY.md`）
+**技术栈：** 原生 HTML/CSS/JS · [lightweight-charts](https://github.com/tradingview/lightweight-charts) v4.2.3（vendored, Apache-2.0）· [topojson-client](https://github.com/topojson/topojson-client) / d3-geo / d3-array（vendored, ISC）· 手写 squarify · 腾讯/东财/币安/新浪/世界银行/GDELT 公开接口（许可证详见 `lib/THIRD_PARTY.md`）
 
 *如果它帮你省了一个付费行情软件的订阅，star 就是最好的咖啡。*
 *If this saved you a market-data subscription, a star is the cheapest coffee.* ☕

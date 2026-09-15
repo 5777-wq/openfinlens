@@ -2,8 +2,8 @@
 <!-- 仅 INTERNET 一个权限：壳只做网页加载，不收集任何设备/身份信息 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.openfinlens.app"
-    android:versionCode="2"
-    android:versionName="1.0.1">
+    android:versionCode="3"
+    android:versionName="1.0.2">
 
     <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="29" />
 
