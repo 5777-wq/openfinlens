@@ -147,12 +147,13 @@ window.WorldMapView = (() => {
     repaintNow();
   }
 
-  function clampTx(tx) {
-    // 横向自由循环，但世界副本整体不许离开视口（否则一侧全黑一侧重世界）
-    const cw = container ? container.clientWidth : 0;
-    const span = W * view.s;
+  function clampTxVal(tx, cw, s) {
+    const span = W * s;
     if (span <= cw) return (cw - span) / 2;
     return clamp(tx, cw - span, 0);
+  }
+  function clampTx(tx) {
+    return clampTxVal(tx, container ? container.clientWidth : 0, view.s);
   }
 
   function fitView() {
@@ -167,7 +168,10 @@ window.WorldMapView = (() => {
   function setCenter(wxp, wyp, targetS, animate) {
     const cw = container.clientWidth, ch = container.clientHeight;
     const s = clamp(targetS || view.s, fit, fit * 18);
-    const to = { s, tx: clampTx(cw / 2 - wxp * s), ty: clampTy(ch / 2 - wyp * s) };
+    // 钳制必须用"目标缩放比" s——曾用内部 view.s（旧值）：从 fit 态第一次 select 时
+    // span 恰等于屏宽 → clampTx 返回 0 → 镜头永远落到世界 x=81.8（美国中部），
+    // 表现为"点任何事件都飞到美国"
+    const to = { s, tx: clampTxVal(cw / 2 - wxp * s, cw, s), ty: clampTyVal(ch / 2 - wyp * s, ch, s) };
     if (!animate || reduceMotion()) {
       view = to; camAnim = null; regroup(); repaintNow(); return;
     }
@@ -551,7 +555,7 @@ window.WorldMapView = (() => {
     },
     layerState: () => Object.assign({}, layers),
     /* 纯几何，供离线单测：底图与事件点必须共用 wx/wy，二者一旦分叉点就会落在海里 */
-    geo: { bucketForZoomAt, wrapSx, clampTyVal, wx, wy, buildLandPath, d3Proj, featureAt },
+    geo: { bucketForZoomAt, wrapSx, clampTyVal, clampTxVal, wx, wy, buildLandPath, d3Proj, featureAt },
     /* 自检探针：当前视图 + 全部聚簇的（数据坐标→屏幕坐标）投影，用于核对点与底图对齐 */
     _debug: () => ({
       fit, view: Object.assign({}, view), bucket, landRings: land ? land.rings : -1,

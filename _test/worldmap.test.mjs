@@ -185,6 +185,20 @@ await test('wrapSx：拖过任意多个世界接缝后，点始终规范到离�
   }
 });
 
+await test('clampTxVal：setCenter 必须用目标缩放比钳制（回归：旧值钳制让首击事件总飞到美国）', () => {
+  const near = (v, x) => Math.abs(v - x) < 0.1;
+  // 场景复现：容器 1224，fit=3.4；从 fit 态首次 select → 目标缩放 2.2×fit=7.48，
+  // 点中国事件（wx=296.4）。钳制若用旧缩放比（span 恰=屏宽 → 返回 0）→ tx=0
+  // → 镜头中心 = 世界 x 81.8 = 经度 -98.2（美国中部），"点任何事件都飞到美国"
+  const tx = WM.geo.clampTxVal(1224 / 2 - 296.4 * 7.48, 1224, 7.48);
+  assert.ok(near(tx, -1468.8), '应钳到下界 cw-span=-1468.8，实得 ' + tx);
+  const centerLng = (1224 / 2 - tx) / 7.48 - 180;
+  assert.ok(centerLng > 0, '中国事件的镜头中心应在东经（旧 bug 是 -98.2 美国中部），实得 ' + centerLng);
+  // 美国事件（wx=103）：无钳制，居中经度 -98.2（美国中部）✓ 本来就对
+  const txUs = WM.geo.clampTxVal(1224 / 2 - 103 * 7.48, 1224, 7.48);
+  assert.ok(near((1224 / 2 - txUs) / 7.48 - 180, -98.2), '美国事件应居中 -98.2');
+});
+
 await test('clampTyVal：纵向拖不露出界，缩得比容器小时锁垂直居中', () => {
   const S = 1.794;                     // 世界高 180*1.794 ≈ 322.9
   const near = (v, x) => Math.abs(v - x) < 0.1;
