@@ -32,10 +32,38 @@ echo "本地已知祖先 = $anchor"
 BASE_TREE=$(gh api "repos/$REPO/git/commits/$REMOTE" --jq .tree.sha)
 
 # --no-renames：R 行拆成 A+D，执行端只认 M/A/D
-git diff --name-status --no-renames "$anchor" HEAD > .tmp-changes.txt
+git diff --name-status --no-renames "$anchor" HEAD > .tmp-changes.txt.raw
+
+if [ ! -s .tmp-changes.txt.raw ]; then
+  echo "本地与远端已知祖先无差异 —— 无需推送（本地/远端 sha 分叉属 API 推送的预期，网络恢复后 hard reset 对齐）"
+  rm -f .tmp-changes.txt.raw
+  exit 0
+fi
+
+# 内容去重：远端树上已与本地逐字节一致的文件不必重传。
+# 为什么需要：API 推送产生的远端提交不在本地对象库里，祖先校验只能回退到更老的提交
+# （典型是上一次 git fetch 到的那个），于是每次推送都会把"历史上所有改动"重新上传一遍——
+# 内容虽然等价，但白传几十个 blob、远端提交的 diff 也永远是全量。
+# 判据用 git blob sha：本地 git hash-object，远端取 base_tree 的递归清单，相同即跳过。
+REMOTE_TREE=$(gh api "repos/$REPO/git/trees/$BASE_TREE?recursive=1" \
+  --jq '.tree[] | select(.type=="blob") | "\(.sha)\t\(.path)"')
+: > .tmp-changes.txt
+skipped=0
+while IFS=$'\t' read -r st p; do
+  [ -z "$st" ] && continue
+  [ "$st" = "D" ] && { printf '%s\t%s\n' "$st" "$p" >> .tmp-changes.txt; continue; }
+  # --no-filters 是必须的：不加时 git hash-object 会对路径做属性/EOL 转换（本仓库 autocrlf=true
+  # 且为 CRLF/LF 混合），而 mjs 上传的是 readFileSync 的原始字节 —— 两者 sha 永远不等，去重会全部失效。
+  local_sha=$(git hash-object --no-filters "$p")
+  remote_sha=$(printf '%s\n' "$REMOTE_TREE" | awk -F'\t' -v path="$p" '$2==path {print $1; exit}')
+  if [ "$local_sha" = "$remote_sha" ]; then skipped=$((skipped + 1)); continue; fi
+  printf '%s\t%s\n' "$st" "$p" >> .tmp-changes.txt
+done < .tmp-changes.txt.raw
+rm -f .tmp-changes.txt.raw
+echo "内容去重：跳过 $skipped 个远端已一致的文件"
 
 if [ ! -s .tmp-changes.txt ]; then
-  echo "本地与远端已知祖先无差异 —— 无需推送（本地/远端 sha 分叉属 API 推送的预期，网络恢复后 hard reset 对齐）"
+  echo "全部改动远端已有一致内容 —— 无需推送"
   exit 0
 fi
 
