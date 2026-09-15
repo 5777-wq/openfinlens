@@ -6,7 +6,8 @@
    · 字号极端对比：10px 大写宽字距标签 ↔ 30-56px mono 主数字
    · 全部数字 mono + tabular，右对齐，小数位恒定，显式 +/-
    · 圆角只有 6 / 3px 两档；没有胶囊按钮
-   · 签名橙全页 ≤5 处：激活 tab 下划线、星标/聚焦、品牌点、进度条
+   · 交互强调色 --accent-signature：tab 下划线 / 聚焦环 / 星标 / 开关 / 时间轴等交互态，
+     不参与涨跌编码。改色时必须同步改 --accent-rgb（alpha 合成用），两者是一对
    · 留白不对称：区间 56 / 组间 24 / 组内 8
    ============================================================ */
 
@@ -21,7 +22,28 @@
   --text-faint: #5c5c63;       /* 仅装饰符号（序号/轴线），不承载信息 */
   --border: rgba(255,255,255,0.07);
   --border-hover: rgba(255,255,255,0.16);
-  --accent-signature: #D97757;
+  /* 2026-09-15：原值 #D97757 就是 Claude/Anthropic 的品牌赭橙，是全站辨识度最高的
+     "AI 生成"信号，改为终端琥珀（Bloomberg 系）。改色时 --accent-rgb 必须同值同步，
+     它是 rgba() 合成半透明描边/底色的唯一来源（此前散落的 rgba(217,119,87,·) 就是这么漂的）。 */
+  --accent-signature: #e8a33d;
+  --accent-rgb: 232,163,61;
+  /* 均线调色板：按槽位固定，charts.js（实际画线）与 index.html（均线菜单色块）都读这里。
+     此前两处各写一份字面量，改色必然漂移；现在有 _test/tokens.test.mjs 守着。
+     选色约束（均由 CIEDE2000 实测，不是手感）：
+       · 槽位两两 ΔE ≥ 15（低于此两条线人眼难分）
+       · 与涨跌色 ΔE ≥ 15（均线与蜡烛同画布，绿系必须避开"跌"绿）
+       · 对图表底 #101013 对比度 4~9:1（过暗看不见，过亮会盖过蜡烛）
+     本次被迫与顺带调整：
+       · --ma-4 原 #e0a83c，与新的 --ma-0 琥珀 ΔE 仅 4.0，必须换 → 品红 #e0559b
+       · --ma-2 原 #3fae72 是既有缺陷：与"跌"绿 ΔE 仅 4.8，均线和阴线几乎同色 → 青 #1fc2db
+       · --ma-5 原 #4db6ac 同理偏低（对"跌"绿 13.4）→ 橄榄 #aab82e
+     调整后全调色板最小色距 16.3，无一对低于 15。 */
+  --ma-0: #e8a33d;
+  --ma-1: #5b8def;
+  --ma-2: #1fc2db;
+  --ma-3: #b06ad4;
+  --ma-4: #e0559b;
+  --ma-5: #aab82e;
   --up: #ff5c5c;
   --down: #2ebd85;
   --up-bg: rgba(255,92,92,0.08);
@@ -30,7 +52,6 @@
   --ok: #2ebd85;
   --warn: #ff5c5c;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --dur-fast: 0.2s; --dur-med: 0.4s; --dur-slow: 0.8s;
   --topbar-h: 56px;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "JetBrains Mono", monospace;
@@ -47,7 +68,7 @@ html { -webkit-text-size-adjust: 100%; scrollbar-width: thin; scrollbar-color: r
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border: 3px solid transparent; background-clip: padding-box; }
 ::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,0.24); }
 ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
-::selection { background: rgba(217,119,87,0.30); color: #fff; }
+::selection { background: rgba(var(--accent-rgb),0.30); color: #fff; }
 
 body {
   background: var(--bg);
@@ -106,7 +127,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
 }
 .search-input::placeholder { color: var(--text-faint); }
-.search-input:focus { outline: none; background: var(--bg-elevated); border-color: rgba(217,119,87,0.5); }
+.search-input:focus { outline: none; background: var(--bg-elevated); border-color: rgba(var(--accent-rgb),0.5); }
 .search-results {
   position: absolute; top: calc(100% + 8px); right: 0; width: 320px; max-width: calc(100vw - 24px);
   background: var(--bg-elevated); border: 1px solid var(--border);
@@ -141,6 +162,9 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .page-sub { font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono); }
 
 /* ============================================================ 主行情 hero（一屏唯一的大） */
+/* hero 归属自选时的一行说明（标题不占位：无自选时 [hidden]，与板块头同语言） */
+.hero-cap { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+  color: var(--text-faint); text-transform: uppercase; margin-bottom: 8px; }
 .hero { display: grid; grid-template-columns: repeat(4, 1fr);
   border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
   margin-bottom: 44px; }
@@ -172,6 +196,20 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 
 /* ============================================================ 行情行（hairline 表） */
 .card-grid { display: block; }
+
+/* ---- 宽屏密排：操盘手要在同屏做跨市场对比，而不是把 8 个板块竖排滚 4 屏 ----
+   ≥1280px 时主列放宽到 1560px，并把行情区块（#cardWall）排成两栏——但**只在板块够多时**：
+   板块数由 app.js 写在 #cardWall[data-cols] 上（≥4 块才给 2）。A股/港股/美股/宏观 tab 只有 1~3 块，
+   兜两栏会让矮的那块独占一栏、另一侧整片留白（实测 A股 tab 就是这个问题）。
+   这里用 CSS columns（瀑布流）而不是 grid：各板块高度差很大
+   （实测 全球指数 491px vs A股 244px），grid 会把同一行拉到最高者对齐、留下大段空洞；
+   columns 按高度分栏才能把留白压掉。.section 加 break-inside: avoid 保证板块不被拦腰截断。
+   #cardWall 之外的区块（热力图、情绪、宏观表）保持整幅宽度——热力图越宽越好用。 */
+@media (min-width: 1280px) {
+  .main { max-width: 1560px; }
+  #cardWall[data-cols="2"] { columns: 2; column-gap: 40px; }
+  #cardWall[data-cols="2"] > .section { break-inside: avoid; margin-bottom: 32px; }
+}
 .qrow { display: grid;
   grid-template-columns: minmax(110px, 1.5fr) 90px 90px 90px minmax(64px, 0.9fr) 28px;
   gap: 12px; align-items: center;
@@ -202,16 +240,19 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .star:hover { color: var(--accent-signature); }
 .star.on { color: var(--accent-signature); }
 
+/* 席位表：通道合计与可识别席位之间的分组间隔（两段共用同一套 .srow 行样式） */
+.srow-gap { height: 18px; }
+
 .degrade-dot { display: none; }
 .qc-flag { display: inline-block; margin-right: 8px; padding: 0 5px;
   border: 1px solid var(--border-hover); font-size: 9px; letter-spacing: 0.08em;
   color: var(--text-tertiary); vertical-align: 1px; }
 
-/* 入场 stagger / 价格闪动 */
+/* 入场 stagger */
 .stagger-in { opacity: 0; transform: translateY(6px); animation: fadeUp 0.32s var(--ease-out) forwards; }
 @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
-@keyframes pricePulse { from { opacity: 0.3; } }
-.flash-up, .flash-down { animation: pricePulse 0.24s var(--ease-out); }
+/* 价格闪动（pricePulse）2026-09-15 移除：10s 刷新下一动一次的透明度脉冲在交易场景是干扰不是信息。
+   app.js 仍会在价格变动时切换 .flash-up/.flash-down，保留为无语义钩子（当前无样式，可安全接回）。 */
 
 /* ============================================================ 热力图 */
 .heat-toolbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -317,7 +358,7 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
 .rating { flex-shrink: 0; padding: 1px 8px; font-size: 11px; border: 1px solid var(--border);
   font-family: var(--font-mono); margin-top: 2px; }
 .rt-buy { color: var(--up); border-color: rgba(255,92,92,0.3); }
-.rt-add { color: var(--accent-signature); border-color: rgba(217,119,87,0.3); }
+.rt-add { color: var(--accent-signature); border-color: rgba(var(--accent-rgb),0.3); }
 .rt-hold { color: var(--text-secondary); }
 .rt-sell { color: var(--down); border-color: rgba(46,189,133,0.3); }
 .rt-none { color: var(--text-tertiary); }
@@ -444,7 +485,7 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
 .modal-close:hover { color: var(--text); border-color: var(--border-hover); }
 .switch { width: 36px; height: 20px; border-radius: 2px; background: rgba(255,255,255,0.1);
   position: relative; transition: background var(--dur-fast) var(--ease-out); flex-shrink: 0; }
-.switch.on { background: rgba(217,119,87,0.35); }
+.switch.on { background: rgba(var(--accent-rgb),0.35); }
 .switch::after { content: ''; position: absolute; top: 3px; left: 3px;
   width: 14px; height: 14px; border-radius: 1px; background: var(--text-secondary);
   transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
@@ -508,9 +549,6 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
   *, *::before, *::after { animation-duration: 0.001s !important; animation-delay: 0s !important;
     transition-duration: 0.001s !important; }
   .stagger-in { opacity: 1; transform: none; }
-  #splash { display: none !important; }
-  html.splash-on { overflow: auto; }
-  html.splash-on .topbar, html.splash-on .main { opacity: 1; }
   .sk { animation: none; opacity: 0.55; }
   .link-bar, .thermo-fill, .dist-bar { transition: none; }
 }
@@ -578,35 +616,6 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
   .tabs { -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent 99%);
     mask-image: linear-gradient(90deg, #000 90%, transparent 99%); }
 }
-
-/* ============================================================ splash 开屏 */
-#splash { position: fixed; inset: 0; z-index: 400; background: var(--bg);
-  display: none; align-items: center; justify-content: center;
-  transition: opacity 0.28s var(--ease-out); }
-html.splash-on #splash { display: flex; }
-html.splash-on { overflow: hidden; }
-html.splash-on .topbar, html.splash-on .main { opacity: 0; }
-.topbar, .page-head, .page-title, .page-sub { transition: opacity var(--dur-med) var(--ease-out),
-  transform var(--dur-med) var(--ease-out); }
-#splash.leaving { opacity: 0; pointer-events: none; }
-.sp-inner { display: flex; flex-direction: column; align-items: center; }
-.sp-word { font-family: var(--font-mono); font-size: 15px; font-weight: 600;
-  letter-spacing: 0.42em; text-indent: 0.42em; color: var(--text);
-  animation: spRise 0.5s var(--ease-out) both; }
-.sp-sub { margin-top: 10px; font-size: 10px; letter-spacing: 0.3em; text-indent: 0.3em;
-  color: var(--text-faint); animation: spRise 0.4s var(--ease-out) 0.15s both; }
-.sp-load { margin-top: 34px; display: flex; flex-direction: column; align-items: center; gap: 12px;
-  animation: spRise 0.4s var(--ease-out) 0.28s both; }
-.sp-track { width: 160px; height: 2px; background: rgba(255,255,255,0.1); overflow: hidden; }
-.sp-fill { display: block; height: 100%; background: var(--accent-signature);
-  transform: scaleX(0); transform-origin: left center; }
-  /* 无 CSS transition：进度由 app.js 的 rAF 爬行器逐帧驱动，CSS 过渡叠加会产生拖影 */
-.sp-status { font-size: 10px; color: var(--text-faint); min-height: 15px;
-  font-family: var(--font-mono); letter-spacing: 0.08em; }
-.sp-skip { position: absolute; bottom: 36px; font-size: 10px; letter-spacing: 0.14em;
-  color: var(--text-faint); font-family: var(--font-mono); }
-.sp-matrix { display: none; }
-@keyframes spRise { from { opacity: 0; transform: translateY(10px); } }
 
 /* ============================================================ 板块热度表（产业链入口） ============================================================ */
 /* 今日热门概念：实时榜单（东财）→ 静态图谱（人工链条）的两层入口 */
@@ -828,18 +837,7 @@ html.splash-on .topbar, html.splash-on .main { opacity: 0; }
 .map-layers { position: absolute; z-index: 2; left: 8px; top: 8px; display: flex; gap: 6px; }
 .map-layers .pill { padding: 2px 8px; font-size: 10px; }
 
-/* 底部事件时间轴：最近 72h，3h 一柱，点选过滤事件列表 */
-.ev-timeline { display: flex; gap: 2px; align-items: flex-end; height: 44px;
-  padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px;
-  margin-bottom: 12px; background: var(--bg-card); }
-.tl-cap { font-size: 9px; color: var(--text-faint); letter-spacing: .06em;
-  align-self: center; font-family: var(--font-mono); }
-.tl-col { flex: 1 1 0; height: 100%; display: flex; align-items: flex-end;
-  background: none; border: 0; padding: 0 1px; cursor: pointer; min-width: 6px; }
-.tl-col i { display: block; width: 100%; min-height: 2px; border-radius: 1px 1px 0 0;
-  background: rgba(217,119,87,0.55); transition: background var(--dur-fast) var(--ease-out); }
-.tl-col:hover i { background: rgba(217,119,87,0.85); }
-.tl-col.on i { background: var(--accent-signature); }
+/* 底部事件时间轴（最近 72h）与样式随之在第五轮移除，此处不再保留空规则 */
 
 /* 事件详情：影响边（证据分级 DATA/CORRELATION/AI 视觉强区分） */
 .evd-impacts { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-# gen_icons.py —— 生成启动图标（与网页版 logo 同语言：黑底 + signature orange 圆点）
+# gen_icons.py —— 生成启动图标（与网页版 logo 同语言：黑底 + 交互强调色圆点）
 # 用 PIL 画，避免引入任何二进制素材；产物进 res/mipmap-*/
 from PIL import Image, ImageDraw
 import os
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "res")
 BG = (10, 10, 11, 255)        # #0a0a0b
-ACCENT = (217, 119, 87, 255)  # #D97757
+ACCENT = (232, 163, 61, 255)  # #e8a33d（2026-09-15 由 #D97757 改来，与 css --accent-signature 同值）
 DARK = (28, 28, 30, 255)
 
 SIZES = {"mipmap-mdpi": 48, "mipmap-hdpi": 72, "mipmap-xhdpi": 96,

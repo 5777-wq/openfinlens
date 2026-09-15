@@ -58,6 +58,28 @@ await test('腾讯分时：A股/港股/美股 均返回分钟点', async () => {
 });
 
 /* ---------- 2. 东财：全市场 / 通用报价 / 搜索 / 研报 ---------- */
+// 港股/美股的市场过滤常量（热力图与美股宽度共用）：裸 m:116 会混进 1.7 万条权证/牛熊证，
+// 必须带 t: 类型位。同时验证"按市值排序取 Top"这条路径——热力图的市值 Top 500 就靠它。
+await test('东财港股/美股市场过滤：Top 段都是有市值的正股，可按市值排序取 Top', async () => {
+  const cases = [
+    { name: '港股', fs: 'm:116+t:3,m:116+t:4', minTotal: 1000 },
+    { name: '美股', fs: 'm:105,m:106,m:107', minTotal: 3000 },
+  ];
+  for (const c of cases) {
+    const mk = (fid) => `https://push2delay.eastmoney.com/api/qt/clist/get?pn=1&pz=100&po=1&np=1&fltt=2&invt=2&fid=${fid}&fs=${c.fs}&fields=f2,f3,f12,f13,f14,f20`;
+    const byCap = await (await get(mk('f20'))).json();
+    const rows = byCap && byCap.data && byCap.data.diff;
+    assert.ok(rows && rows.length === 100, c.name + '：按市值排序首屏应 100 条');
+    assert.ok(byCap.data.total > c.minTotal, c.name + '：总数 ' + byCap.data.total + ' 低于预期（过滤值可能已失效）');
+    // 权证/牛熊证没有市值，按市值排序会落到末尾；Top20 必须全部有市值
+    const noCap = rows.slice(0, 20).filter(x => !(typeof x.f20 === 'number' && x.f20 > 0));
+    assert.equal(noCap.length, 0, c.name + '：Top20 里混进无市值条目 ' + noCap.map(x => x.f14).join(','));
+    const first = rows[0];
+    assert.ok(first.f14 && String(first.f14).length > 0, c.name + '：首条名称为空');
+    console.log(`   （${c.name} 全市场 ${byCap.data.total} 只，市值第一 ${first.f14}）`);
+  }
+});
+
 await test('东财全市场：分页可取满 5000+ 且字段完整', async () => {
   const FS = 'm:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23,m:0+t:81+s:2048';
   const mk = (pn) => `https://push2delay.eastmoney.com/api/qt/clist/get?pn=${pn}&pz=100&po=1&np=1&fltt=2&invt=2&fid=f3&fs=${FS}&fields=f2,f3,f4,f12,f13,f14,f20`;

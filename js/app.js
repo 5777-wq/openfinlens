@@ -15,20 +15,24 @@
   const U = window.U;
   const { fmt, fmtPct, fmtChg, fmtPrice, fmtVol, fmtTime, fmtAgo, escapeHTML, num, Cache, debounce } = U;
 
+  /* 品牌强调色的 RGB 分量（= css 的 --accent-rgb，供需要 alpha 合成的内联样式用）。
+     不要在业务代码里再写字面量 rgba(…)：改色时它一定会漂。 */
+  const ACCENT_RGB = (getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb') || '').trim() || '232,163,61';
+
   const state = {
     tab: 'all',
     view: 'market',
     prevView: 'market',
     quotes: new Map(),        // symbol → quote
-    prevPrice: new Map(),     // symbol → 上一次价格（闪动用）
     degraded: new Map(),      // symbol → 'backup' | 'cache'
     heatMode: 'cn',
     heatSize: 'cap',
     heatTopMode: 'top',    // A股热力图范围：top=市值 Top500（默认）| all=全市场
-    heatItems: { cn: [], crypto: [] },
+    // 每个市场的全量行：hk/us 同时供"热力图"与"市场宽度"共用（us 原本就为宽度而抓）
+    heatItems: { cn: [], hk: [], us: [], crypto: [] },
     // 按视图分开记录来源状态：单槽位会被后加载的源覆盖，导致来源标注张冠李戴
-    heatVia: { cn: null, crypto: null },
-    heatCachedAt: { cn: null, crypto: null },
+    heatVia: { cn: null, hk: null, us: null, crypto: null },
+    heatCachedAt: { cn: null, hk: null, us: null, crypto: null },
     heat: null,
     heatFetchedAt: 0,         // 全市场最近一次成功抓取时间（情绪页保活判断用）
     news: [],
@@ -102,6 +106,7 @@
     'lhbBox', 'lhbVia', 'evtToggle', 'chartEventCard',
     'seatDir', 'seatDirVia',
     'brkBox', 'brkVia', 'marketTitle', 'globalOverview', 'moodPanel',
+    'aFundsPanel', 'usFundsPanel',
     'actorBack', 'actorName', 'actorType', 'actorMeta', 'actorStats', 'actorStatsSub', 'actorTimeline'];
 
   const pctClass = (p) => (p === null || p === undefined || isNaN(p)) ? 'flat' : (p > 0 ? 'up' : p < 0 ? 'down' : 'flat');
@@ -182,8 +187,6 @@
       if (meta && meta.group) q.group = meta.group;
       else q.group = q.group || q.market;
       if (meta && meta.label) q.name = meta.label;
-      const prev = state.quotes.get(q.symbol);
-      if (prev && prev.price !== null) state.prevPrice.set(q.symbol, prev.price);
       state.quotes.set(q.symbol, q);
       Cache.set('q:' + q.symbol, q);
       if (via === 'primary') state.degraded.delete(q.symbol);
@@ -322,15 +325,28 @@
 
   function groupsForTab(tab) {
     const map = {
-      all: CRYPTO_ON
-        ? ['index', 'cn', 'hk', 'us', 'crypto', 'fx', 'commodity', 'macro']
-        : ['index', 'cn', 'hk', 'us', 'fx', 'commodity', 'macro'],
+      // "全部"只做总览：指数 + 热力图 + 情绪。各市场的 4~6 行残桩在"全部"页没有操作价值
+      // （用户反馈"这些其实在全部没必要显示"），每个市场都有自己的 tab 给全量列表。
+      all: ['index'],
       cn: ['index', 'cn'],
-      hkus: ['index', 'hk', 'us'],
+      hk: ['index', 'hk'],
+      us: ['index', 'us'],
       crypto: CRYPTO_ON ? ['crypto'] : [],
       fxmacro: ['fx', 'commodity', 'macro'],
     };
     return map[tab] || map.all;
+  }
+
+  /* index 组的行本来就是按市场归的（universe.js 里的注释即"A股指数"/"美股指数"），
+     只有"全部" tab 才配得上"全球指数"这个标题。分市场 tab 上沿用全球指数既名不副实，
+     又让人以为混进了别市场的数据（用户反馈）。 */
+  function groupLabel(g, tab) {
+    if (g.key === 'index') {
+      if (tab === 'cn') return 'A股指数';
+      if (tab === 'hk') return '港股指数';
+      if (tab === 'us') return '美股指数';
+    }
+    return g.label;
   }
 
   // 行式行情表（去 AI 卡片墙的核心动作）：hairline 行 + 右对齐 mono 数字
@@ -373,7 +389,7 @@
     const tab = state.tab;
     refreshWatchSet();
     const groups = groupsForTab(tab);
-    const tabFilter = { cn: 'cn', hkus: 'hkus', crypto: 'crypto', fxmacro: 'fxmacro' }[tab];
+    const tabFilter = { cn: 'cn', hk: 'hk', us: 'us', crypto: 'crypto', fxmacro: 'fxmacro' }[tab];
     let html = '';
     let secNo = 0;
 
@@ -401,7 +417,7 @@
       secNo += 1;
       html += `<div class="section"><div class="section-head">
           <span class="sec-no">0${secNo}</span>
-          <h2 class="section-title">${g.label}</h2>
+          <h2 class="section-title">${groupLabel(g, tab)}</h2>
           <span class="sec-line"></span>
           ${sesHtml}
           <span class="section-sub">${items.length}</span>
@@ -410,21 +426,56 @@
 
     if (!html) html = '<div class="empty">数据加载中，或该分类数据源维护中…</div>';
     el.cardWall.innerHTML = html;
+    // 两栏只在板块够多时才划算：本波起"全部"tab 只剩指数块，A股/港股/美股/宏观 各 2~3 块，
+    // 兜两栏会让矮的那块独占一栏、另一侧整片留白（实测 A股 tab）。≥4 块才开两栏。
+    el.cardWall.dataset.cols = secNo >= 4 ? '2' : '1';
     if (animate) clearStagger(el.cardWall);
   }
 
-  /* ---- hero：一屏唯一的大数字（上证 / 恒指 / 标普 / BTC，带市场旗标）----
-     BTC 不给旗标：加密走自身 logo，再叠 coin 旗会出现两个 ₿（用户反馈） */
-  const HERO_KEYS = ['sh000001', 'hkHSI', 'usINX'].concat(CRYPTO_ON ? ['BTCUSDT'] : []);
+  /* ---- hero：一屏唯一的大数字。**归属交给操盘手**：优先展示自选，不足 4 格时用市场主指数补齐。
+     改前是固定 4 个编辑口径挑的指数（上证/恒指/标普/BTC），操盘手自己的持仓与关注在上面没有位置；
+     而且上证/恒生同时出现在 hero、"全球指数"条和"01 全球指数"板块里，首屏同一数字重复三遍。
+     自选为空时行为与改前完全一致（四个主指数），所以老用户不会看到空 hero。
+     BTC 不给旗标：加密走自身 logo，再叠 coin 旗会出现两个 ₿（用户反馈）。 */
+  const HERO_FALLBACK = ['sh000001', 'hkHSI', 'usINX'].concat(CRYPTO_ON ? ['BTCUSDT'] : []);
+  const HERO_SLOTS = 4;
   const HERO_FLAG = { 'sh000001': 'cn', 'hkHSI': 'hk', 'usINX': 'us' };
   // 等待数据时也显示中文名：裸 symbol（SH000001）是数据源内部代号，不该抛给用户
   const HERO_LABEL = { 'sh000001': '上证指数', 'hkHSI': '恒生指数', 'usINX': '标普500', 'BTCUSDT': '比特币' };
+
+  /* symbol/market → 旗标代码。Flags.flag 对未知代码返回空串，所以不必穷举市场。 */
+  function heroFlagCode(sym, market) {
+    if (market === 'cn' || market === 'hk' || market === 'us') return market;
+    if (/^(sh|sz)/i.test(sym)) return 'cn';
+    if (/^hk/i.test(sym)) return 'hk';
+    if (/^us/i.test(sym)) return 'us';
+    return '';
+  }
+
+  /* hero 的 4 个槽位：自选在前，缺口用主指数补齐（去重）。 */
+  function heroKeys() {
+    const wl = (window.Store.watchlist.all() || []).map(w => w && w.symbol).filter(Boolean);
+    const out = [];
+    wl.concat(HERO_FALLBACK).forEach(sym => {
+      if (out.length < HERO_SLOTS && !out.includes(sym)) out.push(sym);
+    });
+    return out;
+  }
+
   function renderHero() {
     const box = el.heroStrip;
     if (!box) return;
-    const cells = HERO_KEYS.map(sym => {
-      const q = state.quotes.get(sym);
-      const flag = window.Flags ? window.Flags.flag(HERO_FLAG[sym]) : '';
+    const keys = heroKeys();
+    const cap = document.getElementById('heroCap');
+    if (cap) {
+      // 首屏四格归属自选时说明一句，否则"我的 2 个标的 + 标普 + BTC"看起来像混排错误
+      const ownCount = keys.filter(k => !HERO_FALLBACK.slice(0, HERO_SLOTS).includes(k)).length;
+      cap.hidden = !ownCount;
+      cap.textContent = ownCount ? '你的自选 · 取前 ' + ownCount + ' 个，其余用主指数补齐' : '';
+    }
+    const cells = keys.map(sym => {
+      const q = findQuote(sym);
+      const flag = window.Flags ? window.Flags.flag(heroFlagCode(sym, q && q.market)) : '';
       const label = (q && q.name) || HERO_LABEL[sym] || sym;
       if (!q) return `<div class="hero-cell"><div class="hero-label"><span>${flag}${escapeHTML(label)}</span></div><div class="hero-value">——</div><div class="hero-chg">等待数据</div></div>`;
       const digits = U.priceDigits(q.price);
@@ -443,20 +494,12 @@
     if (!el.heroStrip) return;
     el.heroStrip.querySelectorAll('.hero-cell[data-symbol]').forEach(cell => {
       const sym = cell.getAttribute('data-symbol');
-      const q = state.quotes.get(sym);
+      const q = findQuote(sym);
       if (!q || q.price === null) return;
       const digits = U.priceDigits(q.price);
       const v = cell.querySelector('.hero-value');
       const txt = fmt(q.price, digits);
-      const prev = state.prevPrice.get(sym);
-      if (v && v.textContent !== txt) {
-        v.textContent = txt;
-        if (prev !== undefined && prev !== null && q.price !== null && !reduceMotion()) {
-          v.classList.remove('flash-up', 'flash-down');
-          void v.offsetWidth;
-          v.classList.add(q.price > prev ? 'flash-up' : 'flash-down');
-        }
-      }
+      if (v && v.textContent !== txt) v.textContent = txt;
       const c = cell.querySelector('[data-hero-chg]');
       const cls = pctClass(q.changePct);
       const cTxt = `${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}`;
@@ -502,18 +545,7 @@
       const digits = isFxMacro ? 4 : U.priceDigits(q.price);
       const priceNode = row.querySelector('.qr-price');
       const txt = fmt(q.price, digits);
-      const prev = state.prevPrice.get(sym);
-      if (priceNode && priceNode.textContent !== txt) {
-        priceNode.textContent = txt;
-        if (prev !== undefined && prev !== null && q.price !== null && !reduceMotion()) {
-          const fl = q.price > prev ? 'flash-up' : q.price < prev ? 'flash-down' : null;
-          if (fl) {
-            priceNode.classList.remove('flash-up', 'flash-down');
-            void priceNode.offsetWidth;
-            priceNode.classList.add(fl);
-          }
-        }
-      }
+      if (priceNode && priceNode.textContent !== txt) priceNode.textContent = txt;
       const cls = pctClass(q.changePct);
       const chgNode = row.querySelector('.qr-chg');
       if (chgNode) {
@@ -641,12 +673,18 @@
     }
   }
 
+  /* 只有 A股 提供"全市场"探索（5500 行尚可承受）；港股 2900、美股 13800 一律取市值 Top 500
+     ——1.38 万块塞进一屏平均每块不到 3×3px，物理上放不下任何文字。
+     加密只有 80 个币，不切片。切片只影响"画出来的块"，宽度/情绪统计始终用全量数据。 */
+  const HEAT_RANGE_MODES = { cn: true };
+  // 各市场的取数入口（函数声明已提升，这里只是把它们收成一张表，避免 switchHeat 里堆三元）
+  const HEAT_LOADERS = { cn: loadHeatCN, crypto: loadHeatCrypto, hk: ensureHKRows, us: ensureUSRows };
+
   function heatItemsForRender() {
     let rows = state.heatItems[state.heatMode] || [];
-    // A股默认只画市值 Top 500（TradingView/finviz 同款思路）：
-    // 5500 只塞一屏平均每块 9×9px，物理上放不下文字，"整体行情"也主要靠头部市值。
-    // 开关可切回全市场（供放大探索），宽度/情绪统计始终用全量数据，不受影响。
-    if (state.heatMode === 'cn' && state.heatTopMode !== 'all' && rows.length > 500) {
+    const sliceTop = state.heatMode !== 'crypto' &&
+      (HEAT_RANGE_MODES[state.heatMode] ? state.heatTopMode !== 'all' : true);
+    if (sliceTop && rows.length > 500) {
       rows = rows.slice().sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0)).slice(0, 500);
     }
     return rows.map(r => ({
@@ -661,7 +699,13 @@
       onClick: (item) => {
         const p = item.payload;
         if (state.heatMode === 'crypto') openDetail({ symbol: p.code, name: p.name, code: p.code, market: 'crypto', binance: p.binance || p.code });
-        else openDetail({ symbol: p.secid ? 'EM:' + p.secid : p.code, name: p.name, code: p.code, market: 'cn', secid: p.secid, tencent: tencentOfSecid(p.secid) });
+        else openDetail({
+          symbol: p.secid ? 'EM:' + p.secid : p.code, name: p.name, code: p.code,
+          // 市场按 secid 反查，不再写死 'cn'——港股/美股热力图点进去必须落到正确市场
+          // （market 决定币种与成交额单位分档、以及详情页的"交易时段"口径）
+          market: marketFromSecid(p.secid) || 'cn',
+          secid: p.secid, tencent: tencentOfSecid(p.secid),
+        });
       },
       // 加密热力图 tile 印 LOGO（本地化图标集）；A 股无免费 logo 源，维持文字
       iconFor: (item) => (item.payload && item.payload.market === 'crypto')
@@ -699,7 +743,8 @@
       : via === 'backup' ? '备用源' : via ? '主源直连' : '等待数据';
     const rangeTxt = state.heatMode === 'cn'
       ? (state.heatTopMode === 'top' ? ' · 市值 Top 500（宽度统计仍用全量）' : ' · 全市场')
-      : '';
+      : (state.heatMode === 'hk' || state.heatMode === 'us')
+        ? ' · 市值 Top 500（全市场共 ' + n + ' 只）' : '';
     el.heatSub.textContent = `${n} 个标的 · 面积=${state.heatMode === 'crypto' && state.heatSize === 'cap' ? '24h成交额' : state.heatSize === 'cap' ? '市值' : '涨跌幅'}${rangeTxt} · ${viaTxt}`;
     // 空态：全源失败时给明确文案，而不是黑画布 + "0 个标的 · 等待数据"
     let empty = document.getElementById('heatEmpty');
@@ -856,20 +901,50 @@
     ensureUSRows().then(renderMoodUS);           // 美股宽度：全球三大市场之一，不能缺席
   }
 
+  /* ---- 港股全市场（东财 主板+GEM ≈ 2900 只）----
+     与美股同一套影子：一次全量抓取，同时供"港股热力图"（未来也可供港股宽度）使用，缓存 5 分钟。
+     市场过滤常量在 sources/eastmoney.js（FS_HK）——裸 m:116 会混进 1.7 万条权证。 */
+  async function ensureHKRows() {
+    if (state.heatItems.hk && state.heatItems.hk.length) return state.heatItems.hk;
+    const c = Cache.raw('heat:hk');
+    if (c && Date.now() - c.at < 300000) {
+      state.heatItems.hk = c.val; state.heatVia.hk = 'cache'; state.heatCachedAt.hk = c.at;
+      return c.val;
+    }
+    const rows = await window.EastmoneySource.getFullMarket({
+      fs: window.EastmoneySource.FS_HK, maxCount: 3000, concurrency: 12,
+    });
+    if (rows.length) {
+      state.heatItems.hk = rows; state.heatVia.hk = 'primary';
+      Cache.set('heat:hk', rows);
+    } else {
+      const cc = Cache.raw('heat:hk');
+      if (cc) { state.heatItems.hk = cc.val; state.heatVia.hk = 'cache'; state.heatCachedAt.hk = cc.at; }
+    }
+    return state.heatItems.hk;
+  }
+
   /* ---- 美股宽度（东财美股全市场 m:105,106,107 ≈ 1.38 万只，全量抓避免排序偏差）----
-     与加密宽度同构的独立卡片；无涨跌停概念，不展示 limit 口径。缓存 5 分钟。 */
+     与加密宽度同构的独立卡片；无涨跌停概念，不展示 limit 口径。缓存 5 分钟。
+     同一份行数据也供"美股热力图"使用（按市值取 Top 500 后画）。 */
   async function ensureUSRows() {
     if (state.heatItems.us && state.heatItems.us.length) return state.heatItems.us;
     const c = Cache.raw('heat:us');
-    if (c && Date.now() - c.at < 300000) return c.val;
+    if (c && Date.now() - c.at < 300000) {
+      state.heatItems.us = c.val; state.heatVia.us = 'cache'; state.heatCachedAt.us = c.at;
+      return c.val;
+    }
     const rows = await window.EastmoneySource.getFullMarket({
-      fs: 'm:105,m:106,m:107', maxCount: 13800, concurrency: 16,
+      fs: window.EastmoneySource.FS_US, maxCount: 13800, concurrency: 16,
     });
     if (rows.length) {
-      state.heatItems.us = rows;
+      state.heatItems.us = rows; state.heatVia.us = 'primary';
       Cache.set('heat:us', rows);
+    } else {
+      const cc = Cache.raw('heat:us');
+      if (cc) { state.heatItems.us = cc.val; state.heatVia.us = 'cache'; state.heatCachedAt.us = cc.at; }
     }
-    return rows;
+    return state.heatItems.us;
   }
 
   function renderMoodUS(rows) {
@@ -1816,9 +1891,11 @@
       if (el.lhbVia) el.lhbVia.textContent = '';
       return;
     }
-    if (el.lhbVia) el.lhbVia.textContent = res.tradeDate + ' 披露 · 东财数据中心 · 净买额前 60 · 点击行进K线';
+    // 条数写死在文案里会跟着取数上限漂（曾写"前 60"而实际已是 73 行）——用真实行数
+    if (el.lhbVia) el.lhbVia.textContent =
+      res.tradeDate + ' 披露 · 东财数据中心 · 按净买额降序 ' + res.rows.length + ' 只 · 点击行进K线';
     el.lhbBox.innerHTML = `<div class="lrow-head" aria-hidden="true">
-        <span>#</span><span>股票 / 代码</span><span>涨跌幅</span><span>龙虎榜净买</span><span>榜上成交</span><span>次日</span><span>5日</span><span>上榜原因</span>
+        <span>#</span><span>股票 / 代码</span><span>涨跌幅</span><span>龙虎榜净买</span><span>榜上成交</span><span title="上榜后第一个交易日的涨跌幅，T+1 收盘后才由数据源补齐；最新披露日必然为空">次日</span><span title="上榜后第 5 个交易日的涨跌幅，T+5 收盘后才有值；最新约 5 个披露日都会是空">5日</span><span>上榜原因</span>
       </div>` + res.rows.map((r, i) => `<div class="lrow" data-lhb="${escapeHTML(r.symbol)}" tabindex="0" role="button"
         aria-label="${escapeHTML(r.name)} 龙虎榜净买 ${fmtAmt(r.netAmt)}">
       <span class="lr-no num">${String(i + 1).padStart(2, '0')}</span>
@@ -1881,23 +1958,41 @@
       if (el.seatDirVia) el.seatDirVia.textContent = '';
       return;
     }
+    // 深股通专用 / 沪股通专用 / 机构专用不是"可识别的营业部席位"，而是通道合计：
+    // 实测单日 深股通专用 买 39.2 亿 / 卖 30.8 亿，净额只 +8.4 亿——把两个方向的巨额对冲
+    // 压成一个数字排在真实营业部榜的前列（实测它常占第 1、第 2 名），读者会误读成
+    // "某个聪明钱席位在大举买入"。拆成独立分组：既不丢信息，也不再冒充席位。
+    const isChannel = (a) => /专用$/.test(a.name);
+    const channels = list.filter(isChannel);
+    const seats = list.filter(a => !isChannel(a));
     if (el.seatDirVia) el.seatDirVia.textContent =
-      state.actorsDate + ' · 按净额绝对值 Top 30 · 共 ' + list.length + ' 个上榜席位 · 点击进席位档案';
-    el.seatDir.innerHTML = `<div class="srow-head" aria-hidden="true">
-        <span>#</span><span>席位（营业部）</span><span>净额</span><span>买入</span><span>卖出</span><span>动向</span><span></span>
-      </div>` + list.slice(0, 30).map((a, i) => {
+      state.actorsDate + ' · 按净额绝对值 Top 30 · 可识别席位 ' + seats.length + ' 个' +
+      (channels.length ? ' + 通道合计 ' + channels.length + ' 个' : '') + ' · 点击进席位档案';
+    const rowOf = (a, i, mode) => {
       const cls = pctClass(a.stats.net);
-      return `<div class="srow" data-actor="${escapeHTML(a.id)}" tabindex="0" role="button"
-          aria-label="${escapeHTML(a.name)} 净买 ${fmtAmt(a.stats.net)}">
+      const lastCol = mode === 'channel'
+        ? '<span class="sr-count num">全市场汇总</span>'
+        : `<span class="sr-count num">${a.stats.stockCount} 股 / ${a.stats.activityCount} 次</span>`;
+      // 通道行不给 data-actor：通道没有"席位档案"（90 天轨迹对聚合口径无意义），避免点进空档案
+      const attrs = mode === 'channel'
+        ? 'aria-label="' + escapeHTML(a.name) + ' 净额 ' + fmtAmt(a.stats.net) + '（通道合计）"'
+        : 'data-actor="' + escapeHTML(a.id) + '" tabindex="0" role="button" aria-label="' + escapeHTML(a.name) + ' 净买 ' + fmtAmt(a.stats.net) + '"';
+      return `<div class="srow" ${attrs}>
         <span class="sr-no num">${String(i + 1).padStart(2, '0')}</span>
         <span class="sr-name" title="${escapeHTML(a.name)}">${escapeHTML(a.name)}</span>
         <span class="sr-net num ${cls}">${fmtAmt(a.stats.net)}</span>
         <span class="sr-buy num up">${fmtAmt(a.stats.buy)}</span>
         <span class="sr-sell num down">${fmtAmt(a.stats.sell)}</span>
-        <span class="sr-count num">${a.stats.stockCount} 股 / ${a.stats.activityCount} 次</span>
-        <span class="sr-arrow">▸</span>
+        ${lastCol}
+        <span class="sr-arrow">${mode === 'channel' ? '' : '▸'}</span>
       </div>`;
-    }).join('');
+    };
+    const chanHtml = channels.length ? `<div class="srow-head" aria-hidden="true">
+        <span>#</span><span>通道合计（不是可识别席位）</span><span>净额</span><span>买入</span><span>卖出</span><span>口径</span><span></span>
+      </div>` + channels.map((a, i) => rowOf(a, i, 'channel')).join('') + '<div class="srow-gap" aria-hidden="true"></div>' : '';
+    el.seatDir.innerHTML = chanHtml + `<div class="srow-head" aria-hidden="true">
+        <span>#</span><span>席位（营业部）</span><span>净额</span><span>买入</span><span>卖出</span><span>动向</span><span></span>
+      </div>` + seats.slice(0, 30).map((a, i) => rowOf(a, i, 'seat')).join('');
   }
 
   /* ---- 席位档案（#actor=seat:CODE 深链，一级视图） ---- */
@@ -2093,7 +2188,7 @@
     if (state.lhb && state.lhb.rows.length) {
       state.lhb.rows.forEach(r => {
         if (r.symbol === t.symbol && r.tradeDate) {
-          out.push({ time: r.tradeDate, color: '#D97757', text: '龙虎榜', ev: { kind: 'lhb', row: r } });
+          out.push({ time: r.tradeDate, color: 'rgb(' + ACCENT_RGB + ')', text: '龙虎榜', ev: { kind: 'lhb', row: r } });
         }
       });
     }
@@ -2137,7 +2232,7 @@
     if (first.ev && first.ev.kind === 'lhb') {
       const r = first.ev.row;
       el.chartEventCard.hidden = false;
-      el.chartEventCard.innerHTML = `<div class="ce-head"><span class="ce-tag" style="color:#D97757">龙虎榜 · ${escapeHTML(r.tradeDate)}</span>
+      el.chartEventCard.innerHTML = `<div class="ce-head"><span class="ce-tag" style="color:var(--accent-signature)">龙虎榜 · ${escapeHTML(r.tradeDate)}</span>
           <button class="evd-close" data-ceclose aria-label="关闭">×</button></div>
         <div class="ce-line num">净买 <b class="${pctClass(r.netAmt)}">${fmtAmt(r.netAmt)}</b> · 榜上成交 ${fmtAmt(r.dealAmt)}` +
         (r.d1 !== null ? ` · 次日 <b class="${pctClass(r.d1)}">${fmtPct(r.d1)}</b>` : '') +
@@ -2211,7 +2306,7 @@
       const t = (cell.v - rg.min) / (rg.max - rg.min);
       const warm = ['cpi', 'debt', 'unemp'].includes(k);
       const alpha = (0.08 + t * 0.30).toFixed(2);
-      return ` style="background:${warm ? `rgba(217,119,87,${alpha})` : `rgba(77,182,172,${alpha})`}"`;
+      return ` style="background:${warm ? `rgba(${ACCENT_RGB},${alpha})` : `rgba(77,182,172,${alpha})`}"`;
     };
     el.macroBox.innerHTML = `<div class="section-head">
         <h2 class="section-title">世界经济仪表盘</h2>
@@ -2347,8 +2442,6 @@
       via = 'backup';
     }
     list.forEach(q => {
-      const prev = state.chainQuotes.get(q.symbol);
-      if (prev && prev.price !== null) state.prevPrice.set(q.symbol, prev.price);
       state.chainQuotes.set(q.symbol, q);
       Cache.set('q:' + q.symbol, q);
       if (via !== 'primary') state.degraded.set(q.symbol, via);
@@ -2521,12 +2614,15 @@
   /* ==================== 视图路由 ==================== */
 
   const VIEW_OF_TAB = {
-    all: 'market', cn: 'market', hkus: 'market', crypto: 'market', fxmacro: 'market',
-    events: 'events', funds: 'funds', chain: 'chain', watch: 'watch',
+    all: 'market', cn: 'market', hk: 'market', us: 'market', crypto: 'market', fxmacro: 'market',
+    events: 'events', chain: 'chain', watch: 'watch',
     mood: 'market',   // 旧 hash：情绪已并入 A股板块
-    news: 'events', voices: 'funds',   // 旧 hash / 旧快捷键深链兼容：新闻→事件页，喊单→资金页
+    // 旧快捷方式/hash 兼容：新闻→事件页，喊单→事件页的公开言论，资金页→A股（席位/龙虎榜已归位到 A股）
+    news: 'events', voices: 'events', funds: 'market',
   };
-  const TAB_ALIAS = { news: 'events', voices: 'funds', mood: 'cn' };
+  /* 旧 hash → 现有 tab。资金页拆掉了：龙虎榜/席位动向 归 A股 tab，伯克希尔归美股 tab，
+     公开言论归事件页——所以 #tab=funds 落到 A股，用户要找的东西就在那一屏。 */
+  const TAB_ALIAS = { news: 'events', voices: 'events', funds: 'cn', mood: 'cn' };
 
   function setView(view) {
     state.view = view;
@@ -2603,9 +2699,10 @@
   }
 
   function setTab(tab, opts) {
-    // 旧 tab 名兼容：新闻→事件页(快讯子面板)，喊单→资金页，情绪→A股(已并入)
+    // 旧 tab 名兼容：新闻/喊单→事件页的快讯子面板（公开言论已并入该页），情绪→A股(已并入)，
+    // 资金页→A股（聪明钱 tab 已拆解：席位/龙虎榜归 A股、13F 归美股、公开言论归事件页）
     if (TAB_ALIAS[tab]) {
-      if (tab === 'news') state.eventsSub = 'news';
+      if (tab === 'news' || tab === 'voices') state.eventsSub = 'news';
       tab = TAB_ALIAS[tab];
     }
     if (tab === 'crypto' && !CRYPTO_ON) tab = 'all';   // 合规开关：加密深链/快捷键归位「全部」
@@ -2637,18 +2734,22 @@
     // 切板块后"47 个标的"要等下一个刷新周期才变
     renderStatus();
     // 「全球市场」总览（hero + 全球指数条）只在「全部」出现；各板块用自己的标题（用户反馈：别到处粘）
-    const MKT_TITLE = { all: '全球市场', cn: 'A股市场', hkus: '港美市场', crypto: '加密市场', fxmacro: '世界经济' };
+    const MKT_TITLE = { all: '全球市场', cn: 'A股市场', hk: '港股市场', us: '美股市场', crypto: '加密市场', fxmacro: '世界经济' };
     if (el.marketTitle) el.marketTitle.textContent = MKT_TITLE[tab] || '全球市场';
     if (el.globalOverview) el.globalOverview.hidden = tab !== 'all';
     // 宏观 tab 只看世界经济仪表盘，不再叠一墙行情卡
     if (el.cardWall) el.cardWall.hidden = tab === 'fxmacro';
     // 情绪与市场宽度：A股板块底部的小节
     if (el.moodPanel) el.moodPanel.hidden = tab !== 'cn';
+    // 披露类区块按市场归位（原"聪明钱"tab）：席位/龙虎榜 在 A股，13F 在美股
+    if (el.aFundsPanel) el.aFundsPanel.hidden = tab !== 'cn';
+    if (el.usFundsPanel) el.usFundsPanel.hidden = tab !== 'us';
     // 市场视图：热力图只在"全部/A股/加密"下有意义
     const heatWasHidden = el.heatSection.hidden;
-    el.heatSection.hidden = !['all', 'cn', 'crypto'].includes(tab);
-    if (tab === 'crypto') switchHeat('crypto');
-    else if (tab === 'cn') switchHeat('cn');
+    // 热力图在 全部/A股/港股/美股/加密 下有意义（宏观 tab 是世行年度指标，不放热力图）
+    el.heatSection.hidden = !['all', 'cn', 'hk', 'us', 'crypto'].includes(tab);
+    // 进哪个市场 tab 就自动切到该市场的热力图，不用手点
+    if (['cn', 'hk', 'us', 'crypto'].includes(tab)) switchHeat(tab);
     // 世界经济仪表盘只在外汇宏观 tab 显示；全球指数条首次进市场视图时加载
     if (el.macroBox) el.macroBox.hidden = tab !== 'fxmacro';
     if (tab === 'fxmacro') loadMacro();
@@ -2665,21 +2766,24 @@
     if (tab === 'cn') {
       if (state.breadth) renderMood();
       loadMood();
-    }
-    if (view === 'funds') {
-      // 公开言论（旧喊单）：55s 过期重拉；龙虎榜 4 分钟；席位目录随 loadLhb 拉取。
-      // 注意：此块历史上曾重复出现两次（进资金页全链路双请求），只保留这一份
-      if (!state.voices || Date.now() - (state.voicesAt || 0) > 55000) loadVoices();
-      else renderVoices();
+      // 席位动向 + 今日龙虎榜（原"聪明钱"tab，按市场归位到 A股）：龙虎榜 4 分钟过期；
+      // 席位目录随 loadLhb 一起拉。注意：这块历史上曾重复出现两次（进页全链路双请求），只保留一份。
       if (!state.lhb || Date.now() - state.lhbAt > 240000) loadLhb().catch(() => { /* 降级角标 */ });
       else {
         renderLhb();
         if (!state.actors || Date.now() - state.actorsAt > 600000) loadSeatActors().catch(() => renderSeatDirectory());
         else renderSeatDirectory();
       }
-      // 伯克希尔 13F：季度数据，入页时过期(>6h)才拉
+    }
+    if (tab === 'us') {
+      // 伯克希尔 13F（原"聪明钱"tab，归位到美股）：季度数据，入页时过期(>6h)才拉
       if (!state.brk || Date.now() - (state.brkAt || 0) > 6 * 3600000) loadBrk().catch(() => {});
       else renderBrk();
+    }
+    if (view === 'events') {
+      // 公开言论（原"聪明钱"tab 第 4 块）：本质是"新闻流里出现人名"，与事件页同源，55s 过期重拉
+      if (!state.voices || Date.now() - (state.voicesAt || 0) > 55000) loadVoices();
+      else renderVoices();
     }
     if (view === 'chain') {
       renderChains();
@@ -2695,12 +2799,12 @@
     if (state.heatMode === mode) return;
     state.heatMode = mode;
     document.querySelectorAll('[data-heat]').forEach(b => b.classList.toggle('active', b.dataset.heat === mode));
-    // 范围开关只对 A股有意义（加密就 80 块，块块有字）
-    if (el.heatTopToggle) el.heatTopToggle.hidden = mode !== 'cn';
+    // 范围开关只对 A股有意义：加密只有 80 个币（块块有字），港股/美股一律按市值取 Top 500
+    if (el.heatTopToggle) el.heatTopToggle.hidden = !HEAT_RANGE_MODES[mode];
     // 换视图重置视口：否则从 ×6 的 A股视图切到加密，进来是一个陌生的放大视图
     if (state.heat) state.heat.resetView();
     if (!state.heatItems[mode].length) {
-      (mode === 'cn' ? loadHeatCN() : loadHeatCrypto()).then(drawHeat);
+      HEAT_LOADERS[mode]().then(drawHeat);
     } else drawHeat();
   }
 
@@ -2822,7 +2926,7 @@
 
     schedule('heat', async () => {
       if (state.view !== 'market' || el.heatSection.hidden) return;
-      if (state.heatMode === 'cn') await loadHeatCN(); else await loadHeatCrypto();
+      if (HEAT_LOADERS[state.heatMode]) await HEAT_LOADERS[state.heatMode]();
       const rows = state.heatItems[state.heatMode] || [];
       if (!state.heat) return;
       // 数量对比必须用"当前渲染子集"的块数：A股默认 Top500 只画 500 块，
@@ -2858,9 +2962,9 @@
       if (state.view !== 'chain') return;
       await loadBoards();
     }, 60000);
-    // 大V喊单 60s（现住资金页"公开言论"栏）；全球指数条 60s（仅市场视图）
+    // 公开言论 60s（现住事件页的快讯子页）；全球指数条 60s（仅市场视图）
     schedule('voices', async () => {
-      if (state.view !== 'funds') return;
+      if (state.view !== 'events') return;
       await loadVoices();
     }, 60000);
     // 全球事件 JSON：采集任务 5 分钟一轮，页面停留时 60s 拉一次（用户要求的分钟级新鲜度）
@@ -2869,9 +2973,9 @@
       if (state.view !== 'events' || state.eventsSub === 'news') return;
       await loadEvents();
     }, 60000);
-    // 龙虎榜：日频披露 + 当日 17:00 后陆续更新，5 分钟轮询足够
+    // 龙虎榜：日频披露 + 当日 17:00 后陆续更新，5 分钟轮询足够（现住 A股 tab）
     schedule('lhb', async () => {
-      if (state.view !== 'funds') return;
+      if (state.tab !== 'cn') return;
       await loadLhb();
     }, 300000);
     schedule('globe', async () => {
@@ -2902,10 +3006,10 @@
   /* ==================== 状态栏 / 自检 ==================== */
 
   // 当前 tab 实际可见的标的数：状态栏的"47 个标的"曾取全局池大小，
-  // 在 A股/港美等板块下与所见行数对不上，用户以为没加载完
+  // 在 A股/港股/美股等板块下与所见行数对不上，用户以为没加载完
   function visibleQuoteCount() {
     const groups = new Set(groupsForTab(state.tab));
-    const tabFilter = { cn: 'cn', hkus: 'hkus', crypto: 'crypto', fxmacro: 'fxmacro' }[state.tab];
+    const tabFilter = { cn: 'cn', hk: 'hk', us: 'us', crypto: 'crypto', fxmacro: 'fxmacro' }[state.tab];
     let n = 0;
     state.quotes.forEach(q => {
       const g = q.group || q.market;
@@ -2933,7 +3037,6 @@
     const fetchTxt = '抓取 ' + (state.lastUpdate ? fmtTime(state.lastUpdate) : '--');
     if (VIEW_OF_TAB[tab] !== 'market') {
       if (tab === 'events') return `全球事件 ${(state.events || []).length} 条 · ${fetchTxt}`;
-      if (tab === 'funds') return `龙虎榜 ${(state.lhb && state.lhb.rows.length) || 0} 只上榜 · 席位 ${(state.actors || []).length} 个 · ${fetchTxt}`;
       if (tab === 'chain') return `${(window.INDUSTRY_CHAINS || []).length} 条产业链 · ${fetchTxt}`;
       if (tab === 'watch') return `自选 ${window.Store.watchlist.all().length} 只 · ${fetchTxt}`;
       return fetchTxt;
@@ -2941,6 +3044,14 @@
     if (tab === 'fxmacro') {
       const n = window.WorldBankSource ? window.WorldBankSource.COUNTRIES.length : 8;
       return `世界经济 · ${n} 国年度指标 · ${fetchTxt}`;
+    }
+    // 归位到市场 tab 的披露类数据也报个数（原"聪明钱"tab 的状态行）
+    if (tab === 'cn') {
+      return `${visibleQuoteCount()} 个标的 · 龙虎榜 ${(state.lhb && state.lhb.rows.length) || 0} 只上榜 · 席位 ${(state.actors || []).length} 个 · ${fetchTxt}`;
+    }
+    if (tab === 'us') {
+      const brkN = state.brk && state.brk.holdings ? state.brk.holdings.length : 0;
+      return `${visibleQuoteCount()} 个标的${brkN ? ' · 13F ' + brkN + ' 项持仓' : ''} · ${fetchTxt}`;
     }
     return `${visibleQuoteCount()} 个标的 · 每 ${window.Store.settings.get().refresh}s 刷新 · ${fetchTxt}`;
   }
@@ -3064,6 +3175,8 @@
         if (on) fetchWatchQuotes().then(() => { if (state.view === 'watch') patchCards(el.watchWall); });
         if (state.view === 'watch') renderWatchlist(true);   // 收/取星不重播入场动画
         if (state.detail && state.detail.symbol === sym) updateStar();
+        // hero 以自选为归属：收藏状态一变，首屏四格就必须跟着重排（否则新星标要等下次刷新才出现）
+        renderHero();
         return;
       }
       const card = e.target.closest('.qrow, .hero-cell, .quote-card');
@@ -3193,7 +3306,11 @@
       if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (/^[0-9]$/.test(e.key)) {
-        const order = ['all', 'cn', 'hkus', 'fxmacro', 'crypto', 'events', 'funds', 'chain', 'watch'];
+        // 顺序直接读 DOM 里**可见**的 tab（加密 tab 是合规开关下的 crypto-only，
+        // 关掉时不可见；写死数组会和实际可见数错位、导致数字键选错板块）。
+        const order = [...document.querySelectorAll('#tabs .tab')]
+          .filter(b => b.offsetParent !== null)
+          .map(b => b.dataset.tab);
         const tab = order[+e.key === 0 ? 9 : +e.key - 1];
         if (tab) { setTab(tab); e.preventDefault(); }
         return;
@@ -3242,8 +3359,10 @@
     el.detailStar.addEventListener('click', () => {
       const t = state.detail;
       if (!t) return;
-      window.Store.watchlist.toggle({ symbol: t.symbol, name: t.name, market: t.market });
+      const on = window.Store.watchlist.toggle({ symbol: t.symbol, name: t.name, market: t.market });
       updateStar();
+      if (on) fetchWatchQuotes();
+      renderHero();   // 首屏四格以自选为归属，收/取星后立刻重排
     });
     // 均线菜单：打开时按真实配置回显勾选与周期数值（否则菜单全空、用户以为"都关了"图上还有线）
     el.maToggle.addEventListener('click', () => {
@@ -3371,61 +3490,9 @@
 
   /* ==================== 启动 ==================== */
 
-  /* ---- 开屏（splash）：数据就绪后 reveal，最短展示 600ms，2.6s 硬上限在 HTML 内联 ---- */
-  const SPLASH_MIN = 600;
-  const splashT0 = Date.now();
-  /* 进度条：rAF 爬行器 + 真实里程碑校准。
-     爬行器保证慢网络下也有前进感（自发向 88% 爬），里程碑（行情到位/热力到位/渲染）
-     负责真实跳变，绝不倒退；状态行带百分比。动画走 rAF（禁令：不许 setInterval）。 */
-  const splashProgress = (() => {
-    let cur = 0, target = 8, txt = '正在连接行情源…', lastCrawl = 0, started = false;
-    function paint() {
-      const fill = document.getElementById('spFill');
-      const status = document.getElementById('spStatus');
-      if (!fill || !fill.isConnected) return false;   // 开屏已被移除（点击跳过/硬上限）→ 停表
-      if (reduceMotion()) cur = target;
-      else cur += (target - cur) * 0.10;
-      if (target >= 100 && cur > 99.2) cur = 100;
-      fill.style.transform = 'scaleX(' + (cur / 100).toFixed(4) + ')';
-      if (status) status.textContent = txt + ' ' + Math.min(100, Math.round(cur)) + '%';
-      return cur < 100;
-    }
-    function tick(now) {
-      if (now - lastCrawl > 120 && target < 88) { target = Math.min(88, target + 0.8); lastCrawl = now; }
-      if (paint()) requestAnimationFrame(tick);
-    }
-    return {
-      start() {
-        if (started) return;
-        started = true;
-        requestAnimationFrame(tick);
-      },
-      step(p, t) {
-        target = Math.max(target, Math.min(p, 100));
-        if (t) txt = t;
-      },
-      finish(t) {
-        if (t) txt = t;
-        target = 100;
-      },
-    };
-  })();
-  function splashStatus(txt) {
-    splashProgress.step(null, txt);
-  }
-  function revealSplash() {
-    const de = document.documentElement;
-    const sp = document.getElementById('splash');
-    if (!sp || !de.classList.contains('splash-on')) return;
-    de.classList.remove('splash-on');
-    sp.classList.add('leaving');
-    setTimeout(() => sp.remove(), 300);
-  }
-  function splashReady() {
-    splashProgress.finish('渲染视图…');
-    const wait = Math.max(0, SPLASH_MIN - (Date.now() - splashT0));
-    return new Promise(r => setTimeout(() => { revealSplash(); setTimeout(r, 120); }, wait));
-  }
+  /* 开屏（splash）2026-09-15 整体移除：进度条 + 里程碑文案属于落地页语法，
+     对数据终端只是把首屏数据推迟 0.6~2.6s。现在 .sk 骨架直接可见，行情到位即渲染。
+     相关 DOM（#splash / #spFill / #spStatus）、CSS（.sp-* / .splash-on）与内联脚本同步删除。 */
 
   async function init() {
     DOM_IDS.forEach(id => { el[id] = $(id); });
@@ -3441,27 +3508,17 @@
     }
     if (el.heatReset && touchLike) el.heatReset.hidden = false;
 
-    // 开屏跳过：点击/按键立即 reveal
-    const sp = document.getElementById('splash');
-    if (sp) {
-      sp.addEventListener('pointerdown', revealSplash);
-      sp.addEventListener('keydown', revealSplash);
-    }
-    // 开屏进度条开始爬行（rAF）；里程碑：行情 92% → 渲染 100%
-    splashProgress.start();
     // 首屏骨架：数据到达前先给结构（opacity 呼吸），不白屏
     el.cardWall.innerHTML = '<div class="section"><div class="card-grid">' +
       '<div class="sk sk-card"></div>'.repeat(8) + '</div></div>';
 
-    // 开屏只等行情（47 标的，数百毫秒级）；全市场热力图（56 页并发）改为后台加载——
+    // 首屏只等行情（47 标的，数百毫秒级）；全市场热力图（56 页并发）走后台加载——
     // 它曾把首屏阻塞 1-3 秒，是"打开变慢"的主因。到位后补画热力图并计算市场宽度。
     const heatBg = loadHeatCN().then(() => {
-      splashProgress.step(80, '热力图数据后台就绪');
       drawHeat();
       return loadMood();   // 市场宽度/情绪历史/加密宽度一并在后台算好
     }).catch(() => {});
-    await fetchAllQuotes().then(() => splashProgress.step(92, '行情数据到位'));
-    await splashReady();   // 进度条走满 + 最短展示，随后淡出开屏
+    await fetchAllQuotes();
     renderHero();
     renderCardWall();
     renderStatus();

@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark">
 <title>OpenFinLens · 全球金融看板</title>
 <meta name="description" content="全球金融情报终端：A股/港股/美股/加密/外汇/指数/大宗商品/宏观利率，3D 全球事件地图、热力图、K线事件标记、龙虎榜资金动向、新闻流与产业链。">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23D97757'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23e8a33d'/%3E%3C/svg%3E">
 <!-- PWA：手机浏览器"添加到主屏幕"后以独立窗口+品牌图标运行（个人主体上不了小程序 web-view 的替代体验） -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
@@ -15,44 +15,22 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
-<script>
-/* 开屏状态必须在 CSS 之前挂上（防 FOUC）；2.6s 是硬上限兜底，
-   JS 正常时 init 在数据就绪后主动 reveal（见 app.js 的 revealSplash）。 */
-document.documentElement.classList.add('splash-on');
-setTimeout(function () {
-  var de = document.documentElement;
-  de.classList.remove('splash-on');
-  var s = document.getElementById('splash');
-  if (s && s.parentNode) s.parentNode.removeChild(s);
-}, 2600);
-</script>
-<link rel="stylesheet" href="css/style.css?v=20260914f">
+<!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
+     对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
+<link rel="stylesheet" href="css/style.css?v=20260915k">
 </head>
 <body data-updown="red">
-
-<!-- ========== 开屏 ========== -->
-<div id="splash" aria-hidden="true">
-  <div class="sp-inner">
-    <div class="sp-word">OpenFinLens</div>
-    <div class="sp-sub">全球金融看板</div>
-    <div class="sp-load">
-      <span class="sp-track"><span class="sp-fill" id="spFill"></span></span>
-      <span class="sp-status" id="spStatus">正在连接行情源…</span>
-    </div>
-  </div>
-  <div class="sp-skip">点击任意处跳过</div>
-</div>
 
 <header class="topbar">
   <div class="logo"><span class="logo-dot"></span><span>OpenFinLens</span></div>
   <nav class="tabs" id="tabs" role="tablist" aria-label="板块切换">
     <button class="tab active" data-tab="all" role="tab" aria-selected="true" aria-controls="view-market">全部</button>
     <button class="tab" data-tab="cn" role="tab" aria-selected="false" aria-controls="view-market">A股</button>
-    <button class="tab" data-tab="hkus" role="tab" aria-selected="false" aria-controls="view-market">港美</button>
-    <button class="tab" data-tab="fxmacro" role="tab" aria-selected="false" aria-controls="view-market">宏观</button>
+    <button class="tab" data-tab="hk" role="tab" aria-selected="false" aria-controls="view-market">港股</button>
+    <button class="tab" data-tab="us" role="tab" aria-selected="false" aria-controls="view-market">美股</button>
     <button class="tab crypto-only" data-tab="crypto" role="tab" aria-selected="false" aria-controls="view-market">加密</button>
+    <button class="tab" data-tab="fxmacro" role="tab" aria-selected="false" aria-controls="view-market">宏观</button>
     <button class="tab" data-tab="events" role="tab" aria-selected="false" aria-controls="view-events">事件</button>
-    <button class="tab" data-tab="funds" role="tab" aria-selected="false" aria-controls="view-funds">聪明钱</button>
     <button class="tab" data-tab="chain" role="tab" aria-selected="false" aria-controls="view-chain">产业链</button>
     <button class="tab" data-tab="watch" role="tab" aria-selected="false" aria-controls="view-watch">自选</button>
   </nav>
@@ -83,8 +61,9 @@ setTimeout(function () {
       <h1 class="page-title" id="marketTitle">全球市场</h1>
       <p class="page-sub" id="marketSub">加载中…</p>
     </div>
-    <!-- 全球总览（大指数 + 全球指数条）只在「全部」出现；A股/港美/宏观只看各自的分区 -->
+    <!-- 全球总览（大指数 + 全球指数条）只在「全部」出现；A股/港股/美股/宏观只看各自的分区 -->
     <div id="globalOverview">
+      <div class="hero-cap" id="heroCap" hidden></div>
       <div class="hero" id="heroStrip" role="group" aria-label="关键指数"></div>
       <div class="globe-grid" id="globeBar" aria-label="全球指数"><span class="gcell num">全球指数加载中…</span></div>
     </div>
@@ -98,6 +77,8 @@ setTimeout(function () {
       </div>
       <div class="heat-toolbar">
         <button class="pill active" data-heat="cn">A股全市场</button>
+        <button class="pill" data-heat="hk">港股全市场</button>
+        <button class="pill" data-heat="us">美股全市场</button>
         <button class="pill crypto-only" data-heat="crypto">加密市值</button>
         <button class="pill" id="heatSizeToggle" data-size="cap">面积：市值</button>
         <button class="pill" id="heatTopToggle">范围：市值 Top 500</button>
@@ -149,6 +130,42 @@ setTimeout(function () {
       <div class="mood-crypto crypto-only" id="moodCrypto"></div>
       <div class="mood-crypto" id="moodUS"></div>
     </div>
+
+    <!-- ===== A股披露类：龙虎榜 / 席位动向（原"聪明钱"tab，按市场归位，仅 A股 tab 显示）=====
+         席位是龙虎榜披露口径，跟 A股 行情放一起才有上下文；单独一个 tab 时要来回切。 -->
+    <div id="aFundsPanel" hidden>
+      <div class="section" data-fold>
+        <div class="section-head">
+          <h2 class="section-title">席位动向</h2>
+          <span class="sec-line"></span>
+          <span class="section-sub" id="seatDirVia">—</span>
+        </div>
+        <div id="seatDir"><div class="sk sk-row"></div></div>
+        <p class="insight-disclaimer">席位 = 交易所龙虎榜披露的营业部，档案页展示其近 90 天公开上榜轨迹（点击行进席位档案）。席位是营业部口径，不代表任何自然人账户。「通道合计」（深股通/沪股通/机构专用）是聚合口径，不是可识别席位，故单列且不可点入档案。</p>
+      </div>
+      <div class="section" data-fold>
+        <div class="section-head">
+          <h2 class="section-title">今日龙虎榜</h2>
+          <span class="sec-line"></span>
+          <span class="section-sub" id="lhbVia">—</span>
+        </div>
+        <div id="lhbBox"><div class="sk sk-row"></div></div>
+        <p class="insight-disclaimer">龙虎榜是交易所公开披露的营业部/机构席位汇总（日频，次日常更新），不代表任何个人账户的实时交易；「次日/5日」为该股上榜后 T+1 / T+5 的涨跌幅，数据源在对应交易日收盘后才补齐，所以最新披露日这两列必然为空——是延迟，不是字段缺失。点击行进 K 线详情并叠加「龙虎榜」标记。</p>
+      </div>
+    </div>
+
+    <!-- ===== 美股披露类：机构持仓 13F（原"聪明钱"tab，仅 美股 tab 显示）===== -->
+    <div id="usFundsPanel" hidden>
+      <div class="section" data-fold>
+        <div class="section-head">
+          <h2 class="section-title">机构持仓 · 伯克希尔 13F</h2>
+          <span class="sec-line"></span>
+          <span class="section-sub" id="brkVia">—</span>
+        </div>
+        <div id="brkBox"><div class="sk sk-row"></div></div>
+        <p class="insight-disclaimer">伯克希尔·哈撒韦 13F-HR 为美国 SEC 季度披露的美股多头持仓。<strong>滞后最长 45 天</strong>（季度末持仓要到次季首月才披露），不含空头/衍生品/非美资产；「环比」是与上一期 13F 的股数对比。全部为历史事实陈述，不构成任何建议。特朗普等公众人物的证券交易暂无可靠公开结构化数据源，本页不做编造。</p>
+      </div>
+    </div>
   </section>
 
   <!-- ========== 详情 ========== -->
@@ -170,12 +187,12 @@ setTimeout(function () {
         <span class="ma-wrap">
           <button class="pill active" id="maToggle" title="叠加均线：勾选开关，数值可改（2~500）">均线 ▾</button>
           <span class="ma-menu" id="maMenu" hidden>
-            <label><input type="checkbox" data-maline="0"> MA <input type="number" min="2" max="500" data-man="0"> <i style="background:#D97757"></i></label>
-            <label><input type="checkbox" data-maline="1"> MA <input type="number" min="2" max="500" data-man="1"> <i style="background:#5b8def"></i></label>
-            <label><input type="checkbox" data-maline="2"> MA <input type="number" min="2" max="500" data-man="2"> <i style="background:#3fae72"></i></label>
-            <label><input type="checkbox" data-maline="3"> MA <input type="number" min="2" max="500" data-man="3"> <i style="background:#b06ad4"></i></label>
-            <label><input type="checkbox" data-maline="4"> EMA <input type="number" min="2" max="500" data-man="4"> <i style="background:#e0a83c"></i></label>
-            <label><input type="checkbox" data-maline="5"> EMA <input type="number" min="2" max="500" data-man="5"> <i style="background:#4db6ac"></i></label>
+            <label><input type="checkbox" data-maline="0"> MA <input type="number" min="2" max="500" data-man="0"> <i style="background:var(--ma-0)"></i></label>
+            <label><input type="checkbox" data-maline="1"> MA <input type="number" min="2" max="500" data-man="1"> <i style="background:var(--ma-1)"></i></label>
+            <label><input type="checkbox" data-maline="2"> MA <input type="number" min="2" max="500" data-man="2"> <i style="background:var(--ma-2)"></i></label>
+            <label><input type="checkbox" data-maline="3"> MA <input type="number" min="2" max="500" data-man="3"> <i style="background:var(--ma-3)"></i></label>
+            <label><input type="checkbox" data-maline="4"> EMA <input type="number" min="2" max="500" data-man="4"> <i style="background:var(--ma-4)"></i></label>
+            <label><input type="checkbox" data-maline="5"> EMA <input type="number" min="2" max="500" data-man="5"> <i style="background:var(--ma-5)"></i></label>
           </span>
         </span>
         <button class="pill active" id="evtToggle" title="在K线上叠加事件标记（宏观/新闻/龙虎榜）">事件</button>
@@ -217,52 +234,18 @@ setTimeout(function () {
       </div>
       <div class="heat-toolbar news-catbar" id="newsCatBar"></div>
       <div class="news-list" id="newsList"></div>
-    </div>
-  </section>
 
-  <!-- ========== 聪明钱（Actor-centric Smart Money / Public Activity） ========== -->
-  <section class="view tab-panel" id="view-funds" role="tabpanel" tabindex="-1" aria-label="funds">
-    <h1 class="page-title">聪明钱</h1>
-    <p class="page-sub">公开披露的资金行为：席位动向 / 龙虎榜 / 机构持仓，与公开发言严格区分口径</p>
-    <div class="section" data-fold>
-      <div class="section-head">
-        <span class="sec-no">01</span>
-        <h2 class="section-title">席位动向</h2>
-        <span class="sec-line"></span>
-        <span class="section-sub" id="seatDirVia">—</span>
+      <!-- 公开言论（原"聪明钱"tab 第 4 块）：它本来就是"新闻流里出现了人名"，
+           与事件页同源同性质，放这里比单独占一个 tab 合理；口径照旧标注"发言 ≠ 交易" -->
+      <div class="section" data-fold style="margin-top:32px">
+        <div class="section-head">
+          <h2 class="section-title">公开言论</h2>
+          <span class="sec-line"></span>
+          <span class="section-sub">Public Statements · 发言 ≠ 交易</span>
+        </div>
+        <p class="page-sub" id="voicesSub">马斯克 · 特朗普 · 黄仁勋 · 奥尔特曼 等的公开发言动向</p>
+        <div class="news-list" id="voicesList"></div>
       </div>
-      <div id="seatDir"><div class="sk sk-row"></div></div>
-      <p class="insight-disclaimer">席位 = 交易所龙虎榜披露的营业部，档案页展示其近 90 天公开上榜轨迹（点击行进席位档案）。席位是营业部口径，不代表任何自然人账户。</p>
-    </div>
-    <div class="section" data-fold>
-      <div class="section-head">
-        <span class="sec-no">02</span>
-        <h2 class="section-title">今日龙虎榜</h2>
-        <span class="sec-line"></span>
-        <span class="section-sub" id="lhbVia">—</span>
-      </div>
-      <div id="lhbBox"><div class="sk sk-row"></div></div>
-      <p class="insight-disclaimer">龙虎榜是交易所公开披露的营业部/机构席位汇总（日频，次日常更新），不代表任何个人账户的实时交易；D1/D5 为该股历史次日/5日涨跌统计，不构成未来预测。点击行进 K 线详情并叠加「龙虎榜」标记。</p>
-    </div>
-    <div class="section" data-fold>
-      <div class="section-head">
-        <span class="sec-no">03</span>
-        <h2 class="section-title">机构持仓 · 伯克希尔</h2>
-        <span class="sec-line"></span>
-        <span class="section-sub" id="brkVia">—</span>
-      </div>
-      <div id="brkBox"><div class="sk sk-row"></div></div>
-      <p class="insight-disclaimer">伯克希尔·哈撒韦 13F-HR 为美国 SEC 季度披露的美股多头持仓（滞后最长 45 天，不含空头/衍生品/非美资产），「环比」是与上一期 13F 的股数对比，全部为历史事实陈述，不构成任何建议。特朗普等公众人物的证券交易暂无可靠公开结构化数据源，本页不做编造。</p>
-    </div>
-    <div class="section" data-fold>
-      <div class="section-head">
-        <span class="sec-no">04</span>
-        <h2 class="section-title">公开言论</h2>
-        <span class="sec-line"></span>
-        <span class="section-sub">Public Statements · 发言 ≠ 交易</span>
-      </div>
-      <p class="page-sub" id="voicesSub">马斯克 · 特朗普 · 黄仁勋 · 奥尔特曼 等的公开发言动向</p>
-      <div class="news-list" id="voicesList"></div>
     </div>
   </section>
 
@@ -394,39 +377,39 @@ setTimeout(function () {
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script src="js/utils.js?v=20260914f"></script>
-<script src="js/store.js?v=20260914f"></script>
-<script src="js/proxy.js?v=20260914f"></script>
-<script src="js/data/universe.js?v=20260914f"></script>
-<script src="js/data/industry-chains.js?v=20260914f"></script>
-<script src="js/data/explain.js?v=20260914f"></script>
-<script src="js/technical.js?v=20260914f"></script>
-<script src="js/flags.js?v=20260914f"></script>
-<script src="js/bus.js?v=20260914f"></script>
-<script src="js/events.js?v=20260914f"></script>
-<script src="js/actors.js?v=20260914f"></script>
-<script src="js/sources/tencent.js?v=20260914f"></script>
-<script src="js/sources/sina.js?v=20260914f"></script>
-<script src="js/sources/eastmoney.js?v=20260914f"></script>
-<script src="js/sources/okx.js?v=20260914f"></script>
-<script src="js/sources/binance.js?v=20260914f"></script>
-<script src="js/sources/fred.js?v=20260914f"></script>
-<script src="js/sources/news.js?v=20260914f"></script>
-<script src="js/sources/worldbank.js?v=20260914f"></script>
-<script src="js/sources/gdelt.js?v=20260914f"></script>
-<script src="js/sources/lhb.js?v=20260914f"></script>
-<script src="js/sources/sec.js?v=20260914f"></script>
-<script src="js/breadth.js?v=20260914f"></script>
-<script src="js/sessions.js?v=20260914f"></script>
-<script src="js/treemap.js?v=20260914f"></script>
-<script src="js/charts.js?v=20260914f"></script>
-<script src="js/engine/types.js?v=20260914f"></script>
-<script src="js/engine/geo.js?v=20260914f"></script>
-<script src="js/engine/news-engine.js?v=20260914f"></script>
-<script src="js/engine/event-engine.js?v=20260914f"></script>
-<script src="js/engine/impact-engine.js?v=20260914f"></script>
-<script src="js/engine/llm-provider.js?v=20260914f"></script>
-<script src="js/worldmap.js?v=20260914f"></script>
-<script src="js/app.js?v=20260914f"></script>
+<script src="js/utils.js?v=20260915k"></script>
+<script src="js/store.js?v=20260915k"></script>
+<script src="js/proxy.js?v=20260915k"></script>
+<script src="js/data/universe.js?v=20260915k"></script>
+<script src="js/data/industry-chains.js?v=20260915k"></script>
+<script src="js/data/explain.js?v=20260915k"></script>
+<script src="js/technical.js?v=20260915k"></script>
+<script src="js/flags.js?v=20260915k"></script>
+<script src="js/bus.js?v=20260915k"></script>
+<script src="js/events.js?v=20260915k"></script>
+<script src="js/actors.js?v=20260915k"></script>
+<script src="js/sources/tencent.js?v=20260915k"></script>
+<script src="js/sources/sina.js?v=20260915k"></script>
+<script src="js/sources/eastmoney.js?v=20260915k"></script>
+<script src="js/sources/okx.js?v=20260915k"></script>
+<script src="js/sources/binance.js?v=20260915k"></script>
+<script src="js/sources/fred.js?v=20260915k"></script>
+<script src="js/sources/news.js?v=20260915k"></script>
+<script src="js/sources/worldbank.js?v=20260915k"></script>
+<script src="js/sources/gdelt.js?v=20260915k"></script>
+<script src="js/sources/lhb.js?v=20260915k"></script>
+<script src="js/sources/sec.js?v=20260915k"></script>
+<script src="js/breadth.js?v=20260915k"></script>
+<script src="js/sessions.js?v=20260915k"></script>
+<script src="js/treemap.js?v=20260915k"></script>
+<script src="js/charts.js?v=20260915k"></script>
+<script src="js/engine/types.js?v=20260915k"></script>
+<script src="js/engine/geo.js?v=20260915k"></script>
+<script src="js/engine/news-engine.js?v=20260915k"></script>
+<script src="js/engine/event-engine.js?v=20260915k"></script>
+<script src="js/engine/impact-engine.js?v=20260915k"></script>
+<script src="js/engine/llm-provider.js?v=20260915k"></script>
+<script src="js/worldmap.js?v=20260915k"></script>
+<script src="js/app.js?v=20260915k"></script>
 </body>
 </html>

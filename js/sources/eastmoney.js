@@ -10,6 +10,12 @@ const EastmoneySource = (() => {
   const HOST = 'https://push2delay.eastmoney.com';
   // 沪深京 A 股：主板 + 创业板 + 深主板 + 科创板
   const FS_A = 'm:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23,m:0+t:81+s:2048';
+  /* 港股：必须带类型位。裸 m:116 会混进 1.7 万条权证/牛熊证（名称如"广汽摩通六乙购A"、市值为空），
+     t:3=主板 + t:4=GEM，实测 2925 只，都是有市值的正股。 */
+  const FS_HK = 'm:116+t:3,m:116+t:4';
+  /* 美股：纳斯达克 + 纽交所 + AMEX。含权证（名称带 _WS / Wt、市值为空），
+     由"按市值取 Top N"自然滤掉。 */
+  const FS_US = 'm:105,m:106,m:107';
 
   function fieldsToQuote(d) {
     const price = num(d.f2);
@@ -68,11 +74,17 @@ const EastmoneySource = (() => {
   // A股全市场（热力图数据源）：分页并发，每页 100 条
   // in-flight 去重（方法论：Kong/swrv 的请求合并）：热力图与情绪页的调度可能在同一段
   // 时间窗内各自触发全市场抓取（56 页请求），并发期间第二次调用直接共享第一次的 Promise。
-  let _fullInflight = null;
+  /* 同一时刻只允许"同一市场"有一个全量抓取在飞：并发期间第二次调用共享第一次的 Promise。
+     必须按 fs 分桶——A股全市场（56 页）与美股全市场（139 页）是两套完全不同的数据，
+     共用一个槽位会让后发者拿到先发者的结果（美股宽度会算出 A股 的数、热力图跟着串）。
+     concurrency/maxCount 不参与分桶：同市场的共享在语义上是对的。 */
+  const _fullInflight = new Map();
   function getFullMarket(opts) {
-    if (_fullInflight) return _fullInflight;
-    _fullInflight = getFullMarketInner(opts).finally(() => { _fullInflight = null; });
-    return _fullInflight;
+    const fs = (opts && opts.fs) || FS_A;
+    if (_fullInflight.has(fs)) return _fullInflight.get(fs);
+    const p = getFullMarketInner(opts).finally(() => { _fullInflight.delete(fs); });
+    _fullInflight.set(fs, p);
+    return p;
   }
 
   async function getFullMarketInner({ maxCount = 6000, concurrency = 12, fs = FS_A } = {}) {
@@ -243,7 +255,8 @@ const EastmoneySource = (() => {
     }
   }
 
-  return { getQuotes, getFullMarket, search, getKline, getBoardRank, getBoardStocks, marketOfSecid };
+  return { getQuotes, getFullMarket, search, getKline, getBoardRank, getBoardStocks, marketOfSecid,
+    FS_A, FS_HK, FS_US };
 })();
 
 window.EastmoneySource = EastmoneySource;
