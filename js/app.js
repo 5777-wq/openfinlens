@@ -71,7 +71,6 @@
     mapReady: false,           // 平面地图实例化完成标记
     mapFailed: false,          // 地图数据/Canvas 不可用：不再反复初始化
     countryFocus: null,        // { iso2, name }——平面地图点空白命中的国家（右侧国家详情）
-    timelineFrom: null,        // 时间轴点选的时间桶起点（ms）或 null=全部
     lhb: null, lhbAt: 0,       // A股龙虎榜（东财直连，日频披露）
     actors: null, actorsAt: 0, actorsDate: null,   // 席位目录（当日 LHB 明细聚合）
     actor: null, actorGen: 0,  // 当前打开的席位档案
@@ -99,7 +98,7 @@
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
     'eventsSub', 'globeStatus', 'mapLegend',
     'evGlobePane', 'evNewsPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
-    'mapLayers', 'evTimeline', 'countryDetail',
+    'mapLayers', 'countryDetail',
     'lhbBox', 'lhbVia', 'evtToggle', 'chartEventCard',
     'seatDir', 'seatDirVia',
     'brkBox', 'brkVia', 'marketTitle', 'globalOverview', 'moodPanel',
@@ -1472,29 +1471,29 @@
     renderEventList();
     renderGlobeLegend();
     applyDetailEvents();   // 新事件可能补上 K 线标记
-    renderTimeline();      // 底部时间轴随事件数据刷新
     syncGeoViews();
   }
 
-  // 状态行合成：数据源新鲜度（采集时间/滞后/缓存）+ 地图点数，谁后到都不覆盖谁
+  // 状态行：新鲜度看"最新事件的年龄"而不是文件生成时间——
+  // "2 小时没有新事件"是世界太平，不是数据坏了；只有最新事件本身变旧才是真滞后。
+  // （旧逻辑按 generatedAt+30min 判滞后，采集节奏一慢就永久亮"滞后"吓人）
   function renderGlobeStatus() {
     if (!el.globeStatus) return;
-    const pts = state.mapStatusPts;
     if (!state.eventsVia) {
       el.globeStatus.classList.add('warn');
       el.globeStatus.textContent = '数据更新中，请稍候 · 通常几分钟内自动恢复';
       return;
     }
-    // 更新时间带日期（跨天数据只写时刻会让用户误读成"今天早上"），
-    // 滞后时给出量化小时数而不是只写一个"滞后"
-    const when = state.eventsGenAt ? fmtNewsTime(state.eventsGenAt) : '时间未知';
-    const lagH = state.eventsGenAt
-      ? Math.max(0, Math.round((Date.now() - state.eventsGenAt) / 3600000)) : null;
-    el.globeStatus.classList.toggle('warn', !!state.eventsStale);
+    const evs = state.events || [];
+    const newest = evs.reduce((m, e) => Math.max(m, e.publishedAt || 0), 0);
+    const ageMs = newest ? Date.now() - newest : 0;
+    const stale = !newest || ageMs > 2 * 3600 * 1000;   // 最新事件也老过 2 小时 = 上游真停了
+    el.globeStatus.classList.toggle('warn', stale);
+    const ageTxt = newest ? fmtAgo(newest) : '时间未知';
     const src = (state.eventsVia === 'cache' ? '缓存 · ' : '') + (state.eventsSource || '') +
-      ' · 更新于 ' + when +
-      (state.eventsStale ? ` · 数据已滞后 ${lagH === null ? '?' : lagH} 小时` : '');
-    el.globeStatus.textContent = pts ? src + ' · ' + pts : src;
+      ' · 最新事件 ' + ageTxt +
+      (stale ? ' · 上游疑似停更' : '');
+    el.globeStatus.textContent = state.mapStatusPts ? src + ' · ' + state.mapStatusPts : src;
   }
 
   function renderEvTypeBar() {
@@ -1520,13 +1519,9 @@
 
   function renderEventList() {
     if (!el.eventList) return;
-    let list = eventsFiltered();
-    if (state.timelineFrom !== null) {       // 时间轴点选：只看该 3h 桶内的事件
-      const to = state.timelineFrom + 3 * 3600 * 1000;
-      list = list.filter(e => e.publishedAt >= state.timelineFrom && e.publishedAt < to);
-    }
+    const list = eventsFiltered();
     if (!list.length) {
-      el.eventList.innerHTML = '<div class="empty">' + (state.timelineFrom !== null ? '该时间段暂无事件 · 再点一次时间轴柱取消过滤' : '暂无事件数据 · 数据更新中，稍后自动出现') + '</div>';
+      el.eventList.innerHTML = '<div class="empty">暂无事件数据 · 数据更新中，稍后自动出现</div>';
       return;
     }
     // 列表截断到 80 条要有明示：否则"列表 80 条 vs 统计 102 条"看起来像丢了数据
@@ -1589,6 +1584,8 @@
     AI: { label: 'AI 分析', cls: 'k-ai' },
   };
   const DIR_ARROW = { up: '↑', down: '↓', flat: '→' };
+  // relationship 的人话：机制/历史口径认为这个事件对资产是利好还是利空
+  const DIR_TEXT = { positive: '利好', inverse: '利空', risk_off: '避险', risk_on: '风偏' };
 
   // 单条事件的资产影响边（News → Event → Impact → Asset 的"Impact"段）
   function renderImpactEdges(ev) {
@@ -1603,53 +1600,36 @@
     const quoteOf = (sym) => {
       const q = findQuote(sym);
       if (!q) return '<span class="imp-q imp-q-na num">行情未接入</span>';
-      // 行情对象的涨跌幅字段是 changePct（旧代码读不存在的 q.pct → 恒 "--" 且恒标跌色）
       const pct = q.changePct;
-      return `<span class="imp-q num">${escapeHTML(q.name || sym)} ${fmtPrice(q.price)} <b class="${pctClass(pct)}">${fmtPct(pct)}</b></span>`;
+      // 名称已在 chip 上，这里只报"现价"：现价是此刻实际行情，可以和预期方向相反
+      return `<span class="imp-q num" title="该资产此刻的实际行情">现 ${fmtPrice(q.price)} <b class="${pctClass(pct)}">${fmtPct(pct)}</b></span>`;
     };
     const section = (kind) => {
       const meta = IMPACT_KIND_META[kind];
-      return groups[kind] ? `<div class="imp-group"><span class="imp-kind ${meta.cls}">${meta.label}</span>` +
-        groups[kind].map(e => {
+      const list = groups[kind] || [];
+      if (!list.length) return '';   // 空数组也是真值：曾渲染出光秃秃的"AI 分析"标签
+      return `<div class="imp-group"><span class="imp-kind ${meta.cls}">${meta.label}</span>` +
+        list.map(e => {
           const q = findQuote(e.assetSymbol);
           const chipLabel = (q && q.name) || e.assetSymbol;
+          const relTxt = DIR_TEXT[e.relationship] ? ' ' + DIR_TEXT[e.relationship] : '';
           return `<div class="imp-edge">
-          <span class="imp-dir ${e.direction} num">${DIR_ARROW[e.direction] || '→'}</span>
+          <span class="imp-dir ${e.direction} num" title="这类事件对该资产的预期方向（规则/历史口径，非实时预测）">预期${DIR_ARROW[e.direction] || '→'}${relTxt}</span>
           <button class="rel-chip num" data-relsym="${escapeHTML(e.assetSymbol)}" title="${escapeHTML(e.assetSymbol)}">${escapeHTML(chipLabel)}</button>
           ${quoteOf(e.assetSymbol)}
-          <span class="imp-conf num">${Math.round(e.confidence * 100)}%</span>
+          <span class="imp-conf num" title="该条影响的置信度（机制事实高于历史相关）">${Math.round(e.confidence * 100)}%</span>
           <div class="imp-note">${escapeHTML(e.evidence.note)}${e.historicalCases.length ? ' · 案例：' + escapeHTML(e.historicalCases.map(c => c.label + '（' + c.move + '）').join('；')) : ''}</div>
         </div>`;
-        }).join('') + '</div>' : '';
+        }).join('') + '</div>';
     };
     return `<div class="evd-impacts"><div class="evd-rel-label">资产影响（证据分级）</div>
       ${section('DATA')}${section('CORRELATION')}${section('AI')}
-      <div class="imp-disclaim">影响方向为规则/历史统计口径，非投资建议；点击资产查看行情。</div>
+      <div class="imp-disclaim">「预期」= 这类事件对该资产的机制/历史口径方向；「现」= 该资产此刻的实际行情，两者可以相反（如预期避险涨、现价暂跌）。非投资建议；点击资产查看行情。</div>
     </div>`;
   }
 
-  /* 底部时间轴：最近 72h，3h 一柱；点选桶过滤事件列表 */
-  function renderTimeline() {
-    if (!el.evTimeline) return;
-    const list = eventsFiltered().filter(e => e.lat !== null || e.country);
-    const now = Date.now();
-    const N = 24, step = 3 * 3600 * 1000;
-    const start = now - N * step;
-    const counts = new Array(N).fill(0);
-    list.forEach(e => {
-      const k = Math.floor((e.publishedAt - start) / step);
-      if (k >= 0 && k < N) counts[k]++;
-    });
-    const max = Math.max(1, ...counts);
-    el.evTimeline.innerHTML = `<span class="tl-cap num">-72h</span>` + counts.map((c, i) => {
-      const on = state.timelineFrom !== null && start + i * step === state.timelineFrom;
-      const hh = new Date(start + (i + 1) * step).getHours();
-      return `<button class="tl-col${on ? ' on' : ''}" data-tl="${start + i * step}"
-        title="${c} 条 · ${String(hh).padStart(2, '0')}:00 前" aria-label="${c} 条事件">
-        <i style="height:${c ? Math.round(18 + 82 * Math.log2(1 + c) / Math.log2(1 + max)) : 2}%"></i></button>`;
-    }).join('') + `<span class="tl-cap num">现在</span>`;
-  }
-
+  /* 72h 时间轴已按用户决策移除（"这个表没用"）：无新事件时它几乎全空，
+     滞后信息由状态行的"最新事件 N 前"承担 */
   /* 平面地图图层开关条 */
   function renderMapLayers() {
     if (!el.mapLayers || !window.WorldMapView) return;
@@ -1774,7 +1754,6 @@
       ensureWorldMap();
       refreshEventsData();
       renderMapLayers();
-      renderTimeline();
     } else if (!state.news.length) {
       state.newsCat = 'all';   // 进快讯面板重置板块过滤（旧新闻 tab 行为）
       el.newsList.innerHTML = '<div class="sk sk-row"></div>'.repeat(6);
@@ -3107,14 +3086,6 @@
         const id = maplayer.dataset.maplayer;
         window.WorldMapView.setLayerVisible(id, !window.WorldMapView.layerState()[id]);
         renderMapLayers();
-        return;
-      }
-      const tlCol = e.target.closest('[data-tl]');
-      if (tlCol) {
-        const t = Number(tlCol.dataset.tl);
-        state.timelineFrom = state.timelineFrom === t ? null : t;   // 再点同柱取消过滤
-        renderTimeline();
-        renderEventList();
         return;
       }
       if (e.target.closest('[data-cdclose]')) {
