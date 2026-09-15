@@ -1890,9 +1890,11 @@
       if (el.lhbVia) el.lhbVia.textContent = '';
       return;
     }
-    if (el.lhbVia) el.lhbVia.textContent = res.tradeDate + ' 披露 · 东财数据中心 · 净买额前 60 · 点击行进K线';
+    // 条数写死在文案里会跟着取数上限漂（曾写"前 60"而实际已是 73 行）——用真实行数
+    if (el.lhbVia) el.lhbVia.textContent =
+      res.tradeDate + ' 披露 · 东财数据中心 · 按净买额降序 ' + res.rows.length + ' 只 · 点击行进K线';
     el.lhbBox.innerHTML = `<div class="lrow-head" aria-hidden="true">
-        <span>#</span><span>股票 / 代码</span><span>涨跌幅</span><span>龙虎榜净买</span><span>榜上成交</span><span>次日</span><span>5日</span><span>上榜原因</span>
+        <span>#</span><span>股票 / 代码</span><span>涨跌幅</span><span>龙虎榜净买</span><span>榜上成交</span><span title="上榜后第一个交易日的涨跌幅，T+1 收盘后才由数据源补齐；最新披露日必然为空">次日</span><span title="上榜后第 5 个交易日的涨跌幅，T+5 收盘后才有值；最新约 5 个披露日都会是空">5日</span><span>上榜原因</span>
       </div>` + res.rows.map((r, i) => `<div class="lrow" data-lhb="${escapeHTML(r.symbol)}" tabindex="0" role="button"
         aria-label="${escapeHTML(r.name)} 龙虎榜净买 ${fmtAmt(r.netAmt)}">
       <span class="lr-no num">${String(i + 1).padStart(2, '0')}</span>
@@ -1955,23 +1957,41 @@
       if (el.seatDirVia) el.seatDirVia.textContent = '';
       return;
     }
+    // 深股通专用 / 沪股通专用 / 机构专用不是"可识别的营业部席位"，而是通道合计：
+    // 实测单日 深股通专用 买 39.2 亿 / 卖 30.8 亿，净额只 +8.4 亿——把两个方向的巨额对冲
+    // 压成一个数字排在真实营业部榜的前列（实测它常占第 1、第 2 名），读者会误读成
+    // "某个聪明钱席位在大举买入"。拆成独立分组：既不丢信息，也不再冒充席位。
+    const isChannel = (a) => /专用$/.test(a.name);
+    const channels = list.filter(isChannel);
+    const seats = list.filter(a => !isChannel(a));
     if (el.seatDirVia) el.seatDirVia.textContent =
-      state.actorsDate + ' · 按净额绝对值 Top 30 · 共 ' + list.length + ' 个上榜席位 · 点击进席位档案';
-    el.seatDir.innerHTML = `<div class="srow-head" aria-hidden="true">
-        <span>#</span><span>席位（营业部）</span><span>净额</span><span>买入</span><span>卖出</span><span>动向</span><span></span>
-      </div>` + list.slice(0, 30).map((a, i) => {
+      state.actorsDate + ' · 按净额绝对值 Top 30 · 可识别席位 ' + seats.length + ' 个' +
+      (channels.length ? ' + 通道合计 ' + channels.length + ' 个' : '') + ' · 点击进席位档案';
+    const rowOf = (a, i, mode) => {
       const cls = pctClass(a.stats.net);
-      return `<div class="srow" data-actor="${escapeHTML(a.id)}" tabindex="0" role="button"
-          aria-label="${escapeHTML(a.name)} 净买 ${fmtAmt(a.stats.net)}">
+      const lastCol = mode === 'channel'
+        ? '<span class="sr-count num">全市场汇总</span>'
+        : `<span class="sr-count num">${a.stats.stockCount} 股 / ${a.stats.activityCount} 次</span>`;
+      // 通道行不给 data-actor：通道没有"席位档案"（90 天轨迹对聚合口径无意义），避免点进空档案
+      const attrs = mode === 'channel'
+        ? 'aria-label="' + escapeHTML(a.name) + ' 净额 ' + fmtAmt(a.stats.net) + '（通道合计）"'
+        : 'data-actor="' + escapeHTML(a.id) + '" tabindex="0" role="button" aria-label="' + escapeHTML(a.name) + ' 净买 ' + fmtAmt(a.stats.net) + '"';
+      return `<div class="srow" ${attrs}>
         <span class="sr-no num">${String(i + 1).padStart(2, '0')}</span>
         <span class="sr-name" title="${escapeHTML(a.name)}">${escapeHTML(a.name)}</span>
         <span class="sr-net num ${cls}">${fmtAmt(a.stats.net)}</span>
         <span class="sr-buy num up">${fmtAmt(a.stats.buy)}</span>
         <span class="sr-sell num down">${fmtAmt(a.stats.sell)}</span>
-        <span class="sr-count num">${a.stats.stockCount} 股 / ${a.stats.activityCount} 次</span>
-        <span class="sr-arrow">▸</span>
+        ${lastCol}
+        <span class="sr-arrow">${mode === 'channel' ? '' : '▸'}</span>
       </div>`;
-    }).join('');
+    };
+    const chanHtml = channels.length ? `<div class="srow-head" aria-hidden="true">
+        <span>#</span><span>通道合计（不是可识别席位）</span><span>净额</span><span>买入</span><span>卖出</span><span>口径</span><span></span>
+      </div>` + channels.map((a, i) => rowOf(a, i, 'channel')).join('') + '<div class="srow-gap" aria-hidden="true"></div>' : '';
+    el.seatDir.innerHTML = chanHtml + `<div class="srow-head" aria-hidden="true">
+        <span>#</span><span>席位（营业部）</span><span>净额</span><span>买入</span><span>卖出</span><span>动向</span><span></span>
+      </div>` + seats.slice(0, 30).map((a, i) => rowOf(a, i, 'seat')).join('');
   }
 
   /* ---- 席位档案（#actor=seat:CODE 深链，一级视图） ---- */

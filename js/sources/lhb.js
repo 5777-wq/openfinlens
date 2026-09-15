@@ -22,7 +22,11 @@ const LhbSource = (() => {
       reportName: 'RPT_DAILYBILLBOARD_DETAILSNEW',
       columns: COLUMNS,
       filter: `(TRADE_DATE='${date}')`,
-      pageNumber: '1', pageSize: '60',
+      // pageSize 曾写 60，而实测单日 70+ 行（2026-09-15 为 73 行）。排序是
+      // BILLBOARD_NET_AMT 降序，被截掉的恰恰是"净卖出最多"的那几只——
+      // "今天谁在被大举出货"这条最有价值的信息被静默丢弃，榜单系统性偏向净买入。
+      // 接口上限 500，取 200 留足余量。
+      pageNumber: '1', pageSize: '200',
       sortTypes: '-1', sortColumns: 'BILLBOARD_NET_AMT',
       source: 'WEB', client: 'WEB',
     });

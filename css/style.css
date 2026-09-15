@@ -240,6 +240,9 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .star:hover { color: var(--accent-signature); }
 .star.on { color: var(--accent-signature); }
 
+/* 席位表：通道合计与可识别席位之间的分组间隔（两段共用同一套 .srow 行样式） */
+.srow-gap { height: 18px; }
+
 .degrade-dot { display: none; }
 .qc-flag { display: inline-block; margin-right: 8px; padding: 0 5px;
   border: 1px solid var(--border-hover); font-size: 9px; letter-spacing: 0.08em;
