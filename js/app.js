@@ -334,6 +334,17 @@
     return map[tab] || map.all;
   }
 
+  /* index 组的行本来就是按市场归的（universe.js 里的注释即"A股指数"/"美股指数"），
+     只有"全部" tab 才配得上"全球指数"这个标题。A股/港美 tab 上沿用全球指数
+     既名不副实，又让人以为混进了别市场的数据（用户反馈）。 */
+  function groupLabel(g, tab) {
+    if (g.key === 'index') {
+      if (tab === 'cn') return 'A股指数';
+      if (tab === 'hkus') return '港美指数';
+    }
+    return g.label;
+  }
+
   // 行式行情表（去 AI 卡片墙的核心动作）：hairline 行 + 右对齐 mono 数字
   function rowHTML(q, animate = true, idx = 0) {
     const starred = watchSet.has(q.symbol);
@@ -402,7 +413,7 @@
       secNo += 1;
       html += `<div class="section"><div class="section-head">
           <span class="sec-no">0${secNo}</span>
-          <h2 class="section-title">${g.label}</h2>
+          <h2 class="section-title">${groupLabel(g, tab)}</h2>
           <span class="sec-line"></span>
           ${sesHtml}
           <span class="section-sub">${items.length}</span>
@@ -411,6 +422,9 @@
 
     if (!html) html = '<div class="empty">数据加载中，或该分类数据源维护中…</div>';
     el.cardWall.innerHTML = html;
+    // 两栏只在板块够多时才划算：A股/港美/宏观 tab 只有 2~3 块，兜两栏会让矮的那块
+    // 独占一栏、另一侧整片留白（实测 A股 tab）。≥4 块才开两栏，实际只有"全部" tab 命中。
+    el.cardWall.dataset.cols = secNo >= 4 ? '2' : '1';
     if (animate) clearStagger(el.cardWall);
   }
 
