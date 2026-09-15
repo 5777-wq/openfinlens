@@ -194,9 +194,9 @@ await test('clampTxVal：setCenter 必须用目标缩放比钳制（回归：旧
   assert.ok(near(tx, -1468.8), '应钳到下界 cw-span=-1468.8，实得 ' + tx);
   const centerLng = (1224 / 2 - tx) / 7.48 - 180;
   assert.ok(centerLng > 0, '中国事件的镜头中心应在东经（旧 bug 是 -98.2 美国中部），实得 ' + centerLng);
-  // 美国事件（wx=103）：无钳制，居中经度 -98.2（美国中部）✓ 本来就对
+  // 美国事件（wx=103）：无钳制，居中经度 = 事件自身经度 -77 ✓ 本来就对
   const txUs = WM.geo.clampTxVal(1224 / 2 - 103 * 7.48, 1224, 7.48);
-  assert.ok(near((1224 / 2 - txUs) / 7.48 - 180, -98.2), '美国事件应居中 -98.2');
+  assert.ok(near((1224 / 2 - txUs) / 7.48 - 180, -77), '美国事件应居中 -77，实得 ' + ((1224 / 2 - txUs) / 7.48 - 180));
 });
 
 await test('clampTyVal：纵向拖不露出界，缩得比容器小时锁垂直居中', () => {
