@@ -193,6 +193,18 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 
 /* ============================================================ 行情行（hairline 表） */
 .card-grid { display: block; }
+
+/* ---- 宽屏密排：操盘手要在同屏做跨市场对比，而不是把 8 个板块竖排滚 4 屏 ----
+   ≥1280px 时主列放宽到 1560px，并把行情区块（#cardWall）排成两栏。
+   这里用 CSS columns（瀑布流）而不是 grid：各板块高度差很大
+   （实测 全球指数 491px vs A股 244px），grid 会把同一行拉到最高者对齐、留下大段空洞；
+   columns 按高度分栏才能把留白压掉。.section 加 break-inside: avoid 保证板块不被拦腰截断。
+   #cardWall 之外的区块（热力图、情绪、宏观表）保持整幅宽度——热力图越宽越好用。 */
+@media (min-width: 1280px) {
+  .main { max-width: 1560px; }
+  #cardWall { columns: 2; column-gap: 40px; }
+  #cardWall > .section { break-inside: avoid; margin-bottom: 32px; }
+}
 .qrow { display: grid;
   grid-template-columns: minmax(110px, 1.5fr) 90px 90px 90px minmax(64px, 0.9fr) 28px;
   gap: 12px; align-items: center;
