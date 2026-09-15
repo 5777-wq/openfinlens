@@ -414,18 +414,50 @@
     if (animate) clearStagger(el.cardWall);
   }
 
-  /* ---- hero：一屏唯一的大数字（上证 / 恒指 / 标普 / BTC，带市场旗标）----
-     BTC 不给旗标：加密走自身 logo，再叠 coin 旗会出现两个 ₿（用户反馈） */
-  const HERO_KEYS = ['sh000001', 'hkHSI', 'usINX'].concat(CRYPTO_ON ? ['BTCUSDT'] : []);
+  /* ---- hero：一屏唯一的大数字。**归属交给操盘手**：优先展示自选，不足 4 格时用市场主指数补齐。
+     改前是固定 4 个编辑口径挑的指数（上证/恒指/标普/BTC），操盘手自己的持仓与关注在上面没有位置；
+     而且上证/恒生同时出现在 hero、"全球指数"条和"01 全球指数"板块里，首屏同一数字重复三遍。
+     自选为空时行为与改前完全一致（四个主指数），所以老用户不会看到空 hero。
+     BTC 不给旗标：加密走自身 logo，再叠 coin 旗会出现两个 ₿（用户反馈）。 */
+  const HERO_FALLBACK = ['sh000001', 'hkHSI', 'usINX'].concat(CRYPTO_ON ? ['BTCUSDT'] : []);
+  const HERO_SLOTS = 4;
   const HERO_FLAG = { 'sh000001': 'cn', 'hkHSI': 'hk', 'usINX': 'us' };
   // 等待数据时也显示中文名：裸 symbol（SH000001）是数据源内部代号，不该抛给用户
   const HERO_LABEL = { 'sh000001': '上证指数', 'hkHSI': '恒生指数', 'usINX': '标普500', 'BTCUSDT': '比特币' };
+
+  /* symbol/market → 旗标代码。Flags.flag 对未知代码返回空串，所以不必穷举市场。 */
+  function heroFlagCode(sym, market) {
+    if (market === 'cn' || market === 'hk' || market === 'us') return market;
+    if (/^(sh|sz)/i.test(sym)) return 'cn';
+    if (/^hk/i.test(sym)) return 'hk';
+    if (/^us/i.test(sym)) return 'us';
+    return '';
+  }
+
+  /* hero 的 4 个槽位：自选在前，缺口用主指数补齐（去重）。 */
+  function heroKeys() {
+    const wl = (window.Store.watchlist.all() || []).map(w => w && w.symbol).filter(Boolean);
+    const out = [];
+    wl.concat(HERO_FALLBACK).forEach(sym => {
+      if (out.length < HERO_SLOTS && !out.includes(sym)) out.push(sym);
+    });
+    return out;
+  }
+
   function renderHero() {
     const box = el.heroStrip;
     if (!box) return;
-    const cells = HERO_KEYS.map(sym => {
-      const q = state.quotes.get(sym);
-      const flag = window.Flags ? window.Flags.flag(HERO_FLAG[sym]) : '';
+    const keys = heroKeys();
+    const cap = document.getElementById('heroCap');
+    if (cap) {
+      // 首屏四格归属自选时说明一句，否则"我的 2 个标的 + 标普 + BTC"看起来像混排错误
+      const ownCount = keys.filter(k => !HERO_FALLBACK.slice(0, HERO_SLOTS).includes(k)).length;
+      cap.hidden = !ownCount;
+      cap.textContent = ownCount ? '你的自选 · 取前 ' + ownCount + ' 个，其余用主指数补齐' : '';
+    }
+    const cells = keys.map(sym => {
+      const q = findQuote(sym);
+      const flag = window.Flags ? window.Flags.flag(heroFlagCode(sym, q && q.market)) : '';
       const label = (q && q.name) || HERO_LABEL[sym] || sym;
       if (!q) return `<div class="hero-cell"><div class="hero-label"><span>${flag}${escapeHTML(label)}</span></div><div class="hero-value">——</div><div class="hero-chg">等待数据</div></div>`;
       const digits = U.priceDigits(q.price);
@@ -444,7 +476,7 @@
     if (!el.heroStrip) return;
     el.heroStrip.querySelectorAll('.hero-cell[data-symbol]').forEach(cell => {
       const sym = cell.getAttribute('data-symbol');
-      const q = state.quotes.get(sym);
+      const q = findQuote(sym);
       if (!q || q.price === null) return;
       const digits = U.priceDigits(q.price);
       const v = cell.querySelector('.hero-value');
@@ -3044,6 +3076,8 @@
         if (on) fetchWatchQuotes().then(() => { if (state.view === 'watch') patchCards(el.watchWall); });
         if (state.view === 'watch') renderWatchlist(true);   // 收/取星不重播入场动画
         if (state.detail && state.detail.symbol === sym) updateStar();
+        // hero 以自选为归属：收藏状态一变，首屏四格就必须跟着重排（否则新星标要等下次刷新才出现）
+        renderHero();
         return;
       }
       const card = e.target.closest('.qrow, .hero-cell, .quote-card');
@@ -3222,8 +3256,10 @@
     el.detailStar.addEventListener('click', () => {
       const t = state.detail;
       if (!t) return;
-      window.Store.watchlist.toggle({ symbol: t.symbol, name: t.name, market: t.market });
+      const on = window.Store.watchlist.toggle({ symbol: t.symbol, name: t.name, market: t.market });
       updateStar();
+      if (on) fetchWatchQuotes();
+      renderHero();   // 首屏四格以自选为归属，收/取星后立刻重排
     });
     // 均线菜单：打开时按真实配置回显勾选与周期数值（否则菜单全空、用户以为"都关了"图上还有线）
     el.maToggle.addEventListener('click', () => {
