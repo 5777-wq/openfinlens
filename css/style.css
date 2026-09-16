@@ -1236,3 +1236,70 @@ body.no-crypto .crypto-only { display: none !important; }
   :root { --tape-h: 0px; }
   .tape { display: none; }
 }
+
+/* ---- K线/分时图例（十字光标 OHLC 读数，2026-09-17）----
+   覆盖在图表容器左上角：光标悬停读任意 bar，离开回落到最新一根。pointer-events 关闭，
+   不能挡住图表手势。 */
+#klineChart { position: relative; }
+.k-legend {
+  position: absolute; top: 8px; left: 10px; z-index: 5; pointer-events: none;
+  display: flex; flex-wrap: wrap; gap: 4px 12px; max-width: calc(100% - 20px);
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--text-tertiary); font-variant-numeric: tabular-nums;
+}
+.k-legend b { font-weight: 500; }
+.k-legend .kl-time { color: var(--text-secondary); }
+.k-legend .kl-dim { color: var(--text-faint); }
+
+/* ---- 到价提醒（2026-09-17）：顶栏铃铛面板 / 详情按钮 / 创建弹层 / toast ---- */
+.alert-badge {
+  display: inline-block; min-width: 15px; height: 15px; margin-left: 5px;
+  padding: 0 4px; border-radius: 8px; background: var(--accent-signature); color: #0a0a0b;
+  font-size: 10px; line-height: 15px; text-align: center; vertical-align: 1px;
+}
+.icon-btn[aria-expanded="true"] { background: var(--bg-hover); border-color: var(--border-hover); }
+.alert-panel {
+  position: absolute; top: calc(100% + 10px); right: 0; width: 340px; max-width: calc(100vw - 24px);
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 4px;
+  padding: 14px; z-index: 130;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+}
+.al-head { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-tertiary); margin-bottom: 10px; }
+.al-list { max-height: 320px; overflow-y: auto; }
+.al-empty { font-size: 12px; color: var(--text-tertiary); padding: 10px 2px; line-height: 1.6; }
+.al-cap { font-size: 10px; color: var(--text-faint); letter-spacing: 0.14em;
+  padding: 10px 2px 4px; border-top: 1px solid var(--border); margin-top: 6px; }
+.al-row {
+  display: flex; align-items: center; gap: 10px; padding: 8px 6px;
+  border-bottom: 1px solid var(--border); cursor: pointer; border-radius: 3px;
+  transition: background var(--dur-fast) var(--ease-out); font-size: 12px;
+}
+.al-row:hover { background: var(--bg-hover); }
+.al-row.hit { opacity: 0.55; }
+.al-sym { flex: 0 0 auto; max-width: 88px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.al-cond { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.al-del { flex: 0 0 auto; width: 20px; height: 20px; line-height: 18px; text-align: center;
+  border: 1px solid var(--border); border-radius: 3px; color: var(--text-tertiary); font-size: 13px; }
+.al-del:hover { color: var(--warn); border-color: var(--warn); }
+.al-hint { font-size: 11px; color: var(--text-faint); line-height: 1.6; margin-top: 10px; }
+.alert-form { display: flex; flex-direction: column; gap: 10px; margin: 16px 0 4px; }
+.alert-form select, .alert-form input {
+  width: 100%; padding: 8px 10px; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-size: 13px;
+}
+.alert-form select:focus, .alert-form input:focus { outline: none; border-color: rgba(var(--accent-rgb),0.5); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.modal-actions .pill.active { background: rgba(var(--accent-rgb),0.16); border-color: rgba(var(--accent-rgb),0.5); color: var(--text); }
+.ofl-toast {
+  position: fixed; right: 20px; bottom: 20px; z-index: 300;
+  max-width: 360px; padding: 12px 16px;
+  background: var(--bg-elevated); border: 1px solid rgba(var(--accent-rgb),0.5);
+  border-left: 3px solid var(--accent-signature); border-radius: 4px;
+  color: var(--text); font-size: 13px; line-height: 1.5;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+  opacity: 0; transform: translateY(8px); visibility: hidden;
+  transition: opacity 0.24s var(--ease-out), transform 0.24s var(--ease-out), visibility 0.24s;
+}
+.ofl-toast.on { opacity: 1; transform: translateY(0); visibility: visible; }

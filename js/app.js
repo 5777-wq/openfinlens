@@ -112,7 +112,7 @@
     'searchInput', 'searchResults', 'settingsBtn', 'settingsModal', 'settingsClose',
     'segUpdown', 'segRefresh', 'swDegraded', 'sourceStatus', 'updatedLine',
     'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats',
-    'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle',
+    'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle', 'intradaySeg',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
     'eventsSub', 'globeStatus', 'mapLegend',
     'evGlobePane', 'evNewsPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
@@ -126,7 +126,11 @@
     // 基金对比：视图模块自己持有这些节点的引用（app.js 只负责在 init 时把节点交出去）
     'cmpBar', 'cmpInput', 'cmpResults', 'cmpAdd', 'cmpStatus', 'cmpRetry', 'cmpPresets',
     'cmpChips', 'cmpChipsSub', 'cmpSub', 'cmpStart', 'cmpEnd', 'cmpQuick', 'cmpLog', 'cmpNormHint',
-    'cmpChartBox', 'cmpChart', 'cmpLegend', 'cmpMetrics', 'cmpMetricsSub', 'cmpYearly', 'cmpCorr', 'cmpNote'];
+    'cmpChartBox', 'cmpChart', 'cmpLegend', 'cmpMetrics', 'cmpMetricsSub', 'cmpYearly', 'cmpCorr', 'cmpNote',
+    // 到价提醒（AlertCenter 视图模块，alerts.js）
+    'alertBell', 'alertPanel', 'alertBadge', 'alertPerm', 'alertList', 'alertHint',
+    'alertModal', 'alertModalTarget', 'alertDir', 'alertPrice', 'alertNote',
+    'alertCancel', 'alertSave', 'alertDetailBtn'];
 
   const pctClass = (p) => (p === null || p === undefined || isNaN(p)) ? 'flat' : (p > 0 ? 'up' : p < 0 ? 'down' : 'flat');
   // 缓存 matchMedia 结果：渲染期每张卡片查 2 次，整墙渲染就是上百次 matchMedia 调用
@@ -331,6 +335,8 @@
     await fetchAllQuotes();
     patchHero();
     patchTape();
+    // 到价提醒判定（读缓存行情，不发请求）
+    if (window.AlertCenter) window.AlertCenter.check();
     if (state.view === 'market') { patchCards(el.cardWall); refreshSesChips(); }
     if (state.view === 'watch') patchCards(el.watchWall);
     if (state.view === 'detail') {
@@ -854,6 +860,7 @@
         const oldNum = parseFloat(priceNode.textContent.replace(/,/g, ''));
         if (!isNaN(oldNum)) flashPrice(priceNode, q.price >= oldNum ? 'up' : 'down');
         priceNode.textContent = txt;
+      }
       const cls = pctClass(q.changePct);
       const chgNode = row.querySelector('.qr-chg');
       if (chgNode) {
@@ -1469,6 +1476,16 @@
 
   /* ==================== 详情页 + K线 ==================== */
 
+  // 分钟级周期只对有数据源的市场开放（2026-09-17 实测：腾讯 mkline 仅 A股/A股指数；
+  // 加密走币安分钟K。港股/美股的该端点为空，按钮按市场隐藏）
+  const INTRADAY_PERIODS = ['m5', 'm15', 'm60'];
+  function intradayAvailable(t) {
+    if (!t) return false;
+    if (t.market === 'crypto') return true;
+    if (t.market === 'cn') return true;
+    return t.market === 'index' && /^(sh|sz|bj)/.test(t.symbol || '');
+  }
+
   async function openDetail(target, opts) {
     if (target && target.market === 'crypto' && !CRYPTO_ON) return;   // 合规开关：加密标的详情不放行
     // 防御：hashchange/popstate 曾在 IIFE 顶层注册（早于 init 填充 el），
@@ -1476,6 +1493,9 @@
     if (!el.detailName) return;
     state.prevView = state.view === 'detail' ? state.prevView : state.tab;
     state.detail = target;
+    // 上个标的留下的分钟级周期在新市场没有数据源时回退日K，避免按钮亮着却白屏
+    if (!intradayAvailable(target) && INTRADAY_PERIODS.includes(state.detailPeriod)) state.detailPeriod = 'day';
+    if (el.intradaySeg) el.intradaySeg.hidden = !intradayAvailable(target);
     setView('detail');
     if (!opts || opts.push !== false) navigate('#symbol=' + encodeURIComponent(target.symbol));
     el.detailName.textContent = target.name || target.code || '--';
@@ -1536,6 +1556,8 @@
 
   function disposeChart() {
     if (state.chart) { state.chart.remove(); state.chart = null; state.chartKind = null; }
+    // 提醒价格线挂在旧图表系列上，图表销毁必须解绑
+    if (window.AlertCenter) window.AlertCenter.attachChart(null);
     el.klineChart.innerHTML = '';
   }
 
@@ -1551,7 +1573,8 @@
     let kind = period === 'min' ? 'trend' : 'kline';
 
     if (t.market === 'crypto') {
-      const iv = period === 'min' ? '5m' : period === 'week' ? '1w' : period === 'month' ? '1M' : '1d';
+      const CRYPTO_IV = { min: '5m', m5: '5m', m15: '15m', m60: '1h', week: '1w', month: '1M' };
+      const iv = CRYPTO_IV[period] || '1d';
       data = await window.BinanceSource.getKline(t.binance || t.code, iv, period === 'min' ? 288 : 320);
       kind = 'kline';   // 加密 24h 交易，分时用 5 分钟 K 更可读
     } else if (period === 'min') {
@@ -1596,6 +1619,8 @@
     }
     // 事件标记层：全球事件 + 龙虎榜按 symbol 落位（分时为 no-op）
     applyDetailEvents();
+    // 提醒价格线：只有 K 线（有 candle 系列）能画；分时图不画
+    if (window.AlertCenter) window.AlertCenter.attachChart(kind === 'kline' ? state.chart : null, t);
     // 分时下 MA 无意义（加密的 5 分钟 K 除外），禁用开关以免"看起来坏了"
     if (el.maToggle) el.maToggle.disabled = (kind === 'trend' && t.market !== 'crypto');
   }
@@ -1613,6 +1638,11 @@
 
   async function klineForRaw(t, period) {
     const sym = t.tencent || tencentOfSecid(t.secid);
+    if (INTRADAY_PERIODS.includes(period)) {
+      // 分钟级K：腾讯 mkline 仅 A股/A股指数（openDetail 已按市场挡掉港美，加密走币安分支）
+      if (t.market === 'crypto' || !sym) return [];
+      return window.TencentSource.getMinuteKline(sym, period, 320);
+    }
     if (sym) {
       const d = await window.TencentSource.getKline(sym, period);
       if (d.length) return d;
@@ -4223,6 +4253,18 @@
         openDetail,
         tencentOfSecid,
       });
+    }
+
+    // 到价提醒：节点与依赖交给视图模块（规则存 Store.alerts，tick 里判定）
+    if (window.AlertCenter) {
+      window.AlertCenter.mount({
+        bell: el.alertBell, panel: el.alertPanel, badge: el.alertBadge,
+        perm: el.alertPerm, list: el.alertList, hint: el.alertHint,
+        modal: el.alertModal, target: el.alertModalTarget, dir: el.alertDir,
+        price: el.alertPrice, note: el.alertNote,
+        cancel: el.alertCancel, save: el.alertSave, detailBtn: el.alertDetailBtn,
+        toastRoot: document.body,
+      }, { findQuote, openDetail, targetFromSymbol, getDetail: () => state.detail });
     }
 
     // 全球事件 + 龙虎榜：开屏后后台预取（K 线事件标记要用，事件页/资金页进来秒显）

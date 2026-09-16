@@ -52,6 +52,12 @@ const Charts = (() => {
     const { up, down, lineColors: LINE_COLORS } = themeColors();
     const chart = L.createChart(el, Object.assign(baseOptions(), { height: el.clientHeight || 420 }));
 
+    // 图例层（2026-09-17）：十字光标处的 OHLC/量/涨跌幅 + 均线读数，随光标移动；
+    // 光标离开画布回退到最新一根。数据自查即所得，不弹窗（TradingView 的左上读数法）。
+    const legend = document.createElement('div');
+    legend.className = 'k-legend';
+    el.appendChild(legend);
+
     const candle = addSeries(chart, 'Candlestick', {
       upColor: up, downColor: down, borderVisible: false,
       wickUpColor: up, wickDownColor: down,
@@ -67,6 +73,8 @@ const Charts = (() => {
     }));
 
     let lastKlines = [];
+    // 每条均线的完整序列（renderMA 时缓存一份），十字光标读数按时间下标取值
+    let maData = [];
     // 事件标记层（Event-on-Chart）：宏观/新闻/龙虎榜等事件画到对应日期K线上，
     // 点击 marker 通过 Bus 抛给详情页弹事件卡。数据结构见 js/events.js toChartEvent。
     let chartEvents = [];
@@ -120,6 +128,7 @@ const Charts = (() => {
       candle.applyOptions({ upColor: c.up, downColor: c.down, wickUpColor: c.up, wickDownColor: c.down });
       lineSeries.forEach((s, i) => s.applyOptions({ color: LINE_COLORS[i] }));
       if (lastKlines.length) setVolume(lastKlines, c);
+      paintLegend(lastKlines.length - 1);
     }
 
     function setVolume(klines, c) {
@@ -128,6 +137,48 @@ const Charts = (() => {
         value: k.volume || 0,
         color: (k.close >= k.open ? c.up : c.down) + '66',
       })));
+    }
+
+    /* ---- 十字光标图例 ---- */
+    const fmtVolShort = (v) => {
+      const F = window.U && window.U.fmtVol ? window.U.fmtVol : null;
+      return F ? F(v) : String(v);
+    };
+
+    function legendHTML(idx) {
+      const k = lastKlines[idx];
+      if (!k) return '';
+      const c = themeColors();
+      const col = k.close >= k.open ? c.up : c.down;
+      const prev = lastKlines[idx - 1];
+      const chg = (prev && prev.close) ? (k.close - prev.close) / prev.close * 100 : null;
+      const ma = maLines.map((l, i) => {
+        if (!l.on) return '';
+        const pt = maData[i] && maData[i][idx];
+        if (!pt || pt.value === null || pt.value === undefined || !Number.isFinite(pt.value)) return '';
+        return `<span style="color:${LINE_COLORS[i]}">${l.type.toUpperCase()}${l.n} ${pt.value}</span>`;
+      }).join('');
+      return `<span class="kl-time">${tKey(k.time)}</span>` +
+        `<span>开 <b style="color:${col}">${k.open}</b></span>` +
+        `<span>高 <b style="color:${col}">${k.high}</b></span>` +
+        `<span>低 <b style="color:${col}">${k.low}</b></span>` +
+        `<span>收 <b style="color:${col}">${k.close}</b></span>` +
+        (chg !== null ? `<span class="${chg >= 0 ? 'up' : 'down'}">${(chg >= 0 ? '+' : '') + chg.toFixed(2)}%</span>` : '') +
+        (k.volume ? `<span>量 <b>${fmtVolShort(k.volume)}</b></span>` : '') + ma;
+    }
+
+    function paintLegend(idx) {
+      legend.innerHTML = lastKlines.length ? legendHTML(idx === null || idx === undefined ? lastKlines.length - 1 : idx) : '';
+    }
+
+    if (typeof chart.subscribeCrosshairMove === 'function') {
+      chart.subscribeCrosshairMove((param) => {
+        if (!lastKlines.length) return;
+        if (!param || param.time === undefined || param.time === null) { paintLegend(null); return; }
+        const key = tKey(param.time);
+        const idx = lastKlines.findIndex(k => tKey(k.time) === key);
+        paintLegend(idx >= 0 ? idx : lastKlines.length - 1);
+      });
     }
 
     function setData(klines) {
@@ -142,12 +193,14 @@ const Charts = (() => {
       setVolume(lastKlines, c);
       renderMA();
       chart.timeScale().fitContent();
+      paintLegend(lastKlines.length - 1);
     }
 
     function renderMA() {
       const closes = lastKlines.map(k => k.close);
+      maData = [];
       maLines.forEach((l, i) => {
-        if (!l.on || lastKlines.length < l.n) { lineSeries[i].setData([]); return; }
+        if (!l.on || lastKlines.length < l.n) { lineSeries[i].setData([]); maData[i] = []; return; }
         // 两条序列同形为 [{time,value}]：calcMA 原生对象；emaSeries 是数字数组（null 会在
         // 下面的 p.value 上炸掉——腾讯日K 盘后会出现 null 收盘bar，必须在此归一）
         const seq = l.type === 'ema'
@@ -156,7 +209,9 @@ const Charts = (() => {
               value: (closes[k] === null || closes[k] === undefined) ? null : v,
             }))
           : calcMA(lastKlines, l.n);
-        lineSeries[i].setData(seq.filter(p => p && p.value !== null && Number.isFinite(p.value)));
+        const clean = seq.filter(p => p && p.value !== null && Number.isFinite(p.value));
+        lineSeries[i].setData(clean);
+        maData[i] = seq;
       });
     }
 
@@ -189,6 +244,11 @@ const Charts = (() => {
     const chart = L.createChart(el, Object.assign(baseOptions(), { height: el.clientHeight || 420 }));
     const { up, down } = themeColors();
 
+    // 分时图例：时间 + 价格 + 相对昨收涨跌（十字光标跟随，同 K 线图例）
+    const legend = document.createElement('div');
+    legend.className = 'k-legend';
+    el.appendChild(legend);
+
     const area = addSeries(chart, 'Area', {
       lineWidth: 2, lineColor: up,
       topColor: up + '40', bottomColor: up + '02',
@@ -202,6 +262,38 @@ const Charts = (() => {
     let points = [];
     let prevClose = null;
 
+    const tKey2 = (t) => typeof t === 'number' ? hhmm(t) : String(t);
+    const hhmm = (sec) => {
+      const d = new Date(sec * 1000);
+      return String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0');
+    };
+
+    function legendHTML(idx) {
+      const p = points[idx];
+      if (!p) return '';
+      const c = themeColors();
+      const last = points.length ? points[points.length - 1].value : null;
+      const col = prevClose === null || p.value === null ? c.up : (p.value >= prevClose ? c.up : c.down);
+      const chg = (prevClose && p.value !== null) ? (p.value - prevClose) / prevClose * 100 : null;
+      return `<span class="kl-time">${tKey2(p.time)}</span>` +
+        `<span>价 <b style="color:${col}">${p.value}</b></span>` +
+        (chg !== null ? `<span class="${chg >= 0 ? 'up' : 'down'}">${(chg >= 0 ? '+' : '') + chg.toFixed(2)}%</span>` : '') +
+        `<span class="kl-dim">昨收 ${prevClose !== null ? prevClose : '--'} · 最新 ${last !== null ? last : '--'}</span>`;
+    }
+
+    function paintLegend(idx) {
+      legend.innerHTML = points.length ? legendHTML(idx === null || idx === undefined ? points.length - 1 : idx) : '';
+    }
+
+    if (typeof chart.subscribeCrosshairMove === 'function') {
+      chart.subscribeCrosshairMove((param) => {
+        if (!points.length) return;
+        if (!param || param.time === undefined || param.time === null) { paintLegend(null); return; }
+        const idx = points.findIndex(p => p.time === param.time);
+        paintLegend(idx >= 0 ? idx : points.length - 1);
+      });
+    }
+
     function paint() {
       const c = themeColors();
       const last = points.length ? points[points.length - 1].value : null;
@@ -211,6 +303,7 @@ const Charts = (() => {
       area.setData(points.map(p => ({ time: p.time, value: p.value })));
       vol.setData(points.map(p => ({ time: p.time, value: p.volume || 0, color: col + '55' })));
       chart.timeScale().fitContent();
+      paintLegend(points.length - 1);
     }
 
     function setData(pts, prev) {

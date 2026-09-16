@@ -34,6 +34,33 @@ const Store = {
     },
     set(s) { Store.set('settings', Object.assign(this.get(), s)); },
   },
+
+  // 到价提醒（2026-09-17）：纯本地规则，行情 tick 里判定。
+  // alert = { id, symbol, name, market, dir:'above'|'below', price, note,
+  //           createdAt, triggeredAt:null, triggeredPrice:null }
+  alerts: {
+    all() { return Store.get('alerts', []); },
+    active() { return this.all().filter(x => !x.triggeredAt); },
+    add(a) {
+      const list = this.all();
+      const rec = Object.assign({
+        id: 'al_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        createdAt: Date.now(), triggeredAt: null, triggeredPrice: null, note: '',
+      }, a);
+      list.push(rec);
+      Store.set('alerts', list);
+      return rec;
+    },
+    remove(id) { Store.set('alerts', this.all().filter(x => x.id !== id)); },
+    update(id, patch) {
+      const list = this.all();
+      const i = list.findIndex(x => x.id === id);
+      if (i < 0) return null;
+      Object.assign(list[i], patch);
+      Store.set('alerts', list);
+      return list[i];
+    },
+  },
 };
 
 window.Store = Store;

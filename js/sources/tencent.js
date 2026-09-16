@@ -145,6 +145,34 @@ const TencentSource = (() => {
     } catch { return []; }
   }
 
+  // 分钟级K线（m5/m15/m30/m60）：kline/mkline 端点。
+  // 实测（2026-09-17，ifzq 裸域与 web 子域同一后端）：仅 A股与 A股指数有数据，
+  // 港股/美股该端点返回空对象——上层按市场隐藏对应周期按钮，不给港美发这种请求。
+  // param 第 4 段是数量（param=code,m5,,320 → 恰好 320 根）；行序与 fqkline 一致：
+  // [time, open, close, high, low, volume]，time 形如 "202609161500"。
+  async function getMinuteKline(symbol, period = 'm5', limit = 320) {
+    const sym = String(symbol || '');
+    if (!/^[a-z]{2}[0-9a-z.]{1,12}$/i.test(sym)) return [];
+    if (!/^m(5|15|30|60)$/.test(period)) return [];
+    try {
+      const u = new URL('https://web.ifzq.gtimg.cn/appstock/app/kline/mkline');
+      u.searchParams.set('param', [sym, period, '', limit].join(','));
+      const j = await request(u.href);
+      const node = j && j.data && (j.data[sym] || j.data[sym.split('.')[0]]);
+      if (!node) return [];
+      const rows = node[period] || [];
+      return rows.map(r => {
+        // 交易所墙钟时间直接按数字构造伪 UTC（与 getMinute 同法），不经本地时区换算
+        const m = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(String(r[0] || ''));
+        return {
+          time: m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) / 1000 : null,
+          open: num(r[1]), close: num(r[2]), high: num(r[3]), low: num(r[4]),
+          volume: num(r[5]) || 0,
+        };
+      }).filter(k => k.time !== null && k.open !== null && k.close !== null);
+    } catch { return []; }
+  }
+
   // 日K / 周K：web.ifzq.gtimg.cn fqkline（qfq 前复权）
   // ⚠️ 美股实测：param 用 usAAPL 只回 2 根脏数据，必须用带交易所后缀的完整代码（usAAPL.OQ）
   async function getKline(symbol, period = 'day', limit = 320) {
@@ -185,7 +213,7 @@ const TencentSource = (() => {
     } catch { return null; }
   }
 
-  return { getQuotes, getKline, getMinute, parse, amountScale, amountUsable, quoteTimeOf };
+  return { getQuotes, getKline, getMinuteKline, getMinute, parse, amountScale, amountUsable, quoteTimeOf };
 })();
 
 window.TencentSource = TencentSource;

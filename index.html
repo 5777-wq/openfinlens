@@ -36,6 +36,15 @@
     <button class="tab" data-tab="compare" role="tab" aria-selected="false" aria-controls="view-compare">基金对比</button>
   </nav>
   <div class="topbar-actions">
+    <button id="alertBell" class="icon-btn" title="到价提醒" aria-haspopup="true" aria-expanded="false">提醒<span id="alertBadge" class="alert-badge num" hidden>0</span></button>
+    <div id="alertPanel" class="alert-panel" hidden>
+      <div class="al-head">
+        <span>到价提醒</span>
+        <button class="pill" id="alertPerm" hidden>开启浏览器通知</button>
+      </div>
+      <div id="alertList" class="al-list"></div>
+      <p class="al-hint" id="alertHint"></p>
+    </div>
     <div class="search-wrap">
       <span class="search-icon" aria-hidden="true">⌕</span>
       <input id="searchInput" class="search-input" type="search" placeholder="搜索代码 / 名称"
@@ -279,6 +288,11 @@
     <div class="detail-stats num" id="detailStats"></div>
       <div class="heat-toolbar">
         <button class="pill" data-period="min">分时</button>
+        <span id="intradaySeg" role="group" aria-label="分钟级周期（仅A股/加密有数据源）">
+          <button class="pill" data-period="m5">5分</button>
+          <button class="pill" data-period="m15">15分</button>
+          <button class="pill" data-period="m60">60分</button>
+        </span>
         <button class="pill active" data-period="day">日K</button>
         <button class="pill" data-period="week">周K</button>
         <button class="pill" data-period="month">月K</button>
@@ -294,6 +308,7 @@
           </span>
         </span>
         <button class="pill active" id="evtToggle" title="在K线上叠加事件标记（宏观/新闻/龙虎榜）">事件</button>
+        <button class="pill" id="alertDetailBtn" title="为此标的设置到价提醒（价格线上画虚线）">提醒</button>
       </div>
     <div class="chart-box" id="chartBox">
       <div id="klineChart"></div>
@@ -564,6 +579,27 @@
   </div>
 </div>
 
+<!-- ========== 到价提醒：创建弹层（从详情页「提醒」按钮进入） ========== -->
+<div class="modal-overlay" id="alertModal" role="dialog" aria-modal="true" aria-label="设置到价提醒">
+  <div class="modal">
+    <h2>到价提醒</h2>
+    <p class="setting-hint" id="alertModalTarget">—</p>
+    <div class="alert-form">
+      <select id="alertDir" aria-label="触发方向">
+        <option value="above">价格高于</option>
+        <option value="below">价格低于</option>
+      </select>
+      <input type="number" id="alertPrice" step="any" min="0" placeholder="触发价" aria-label="触发价">
+      <input type="text" id="alertNote" maxlength="40" placeholder="备注（可选）" aria-label="备注">
+    </div>
+    <p class="setting-hint">提醒在页面打开时生效，命中后弹 toast / 浏览器通知；K 线上会画一条虚线。规则只存在本机。</p>
+    <div class="modal-actions">
+      <button class="pill" id="alertCancel">取消</button>
+      <button class="pill active" id="alertSave">创建提醒</button>
+    </div>
+  </div>
+</div>
+
 <!-- 图表库本地化（v4.2.3 锁版）：原 unpkg latest 不锁版本，上游发版或 CDN 不可达时详情页全废 -->
 <script src="lib/lightweight-charts.standalone.production.js?v=4.2.3"></script>
 <!-- 平面地图的本地 vendor：topojson 解析国界、d3-geo 做投影 + 在 ±180° 处切跨线几何（俄罗斯/斐济/南极）
@@ -612,6 +648,7 @@
 <script src="js/worldmap.js?v=20260917a"></script>
 <script src="js/compare.js?v=20260917a"></script>
 <script src="js/compareview.js?v=20260917a"></script>
+<script src="js/alerts.js?v=20260917a"></script>
 <script src="js/app.js?v=20260917a"></script>
 </body>
 </html>
