@@ -48,6 +48,12 @@
   --down: #2ebd85;
   --up-bg: rgba(255,92,92,0.08);
   --down-bg: rgba(46,189,133,0.08);
+  /* 价格闪烁（WAAPI）用的 RGB 三元组：与 --up/--down 同步反转（下方 data-updown 块）。
+     不直接动画 --up：CSS 变量进不了 Web Animations 的插值，只认具体色值。 */
+  --up-rgb: 255,92,92;
+  --down-rgb: 46,189,133;
+  /* 吸顶跑马条高度：.main 的 padding-top 读它；<1100px 时隐藏并归零（见文件尾部媒体块） */
+  --tape-h: 34px;
   /* 状态语义色（数据源正常/降级）：与涨跌色解耦，不随红绿模式反转（保留上轮契约） */
   --ok: #2ebd85;
   --warn: #ff5c5c;
@@ -60,6 +66,7 @@
 body[data-updown="green"] {
   --up: #2ebd85; --down: #ff5c5c;
   --up-bg: rgba(46,189,133,0.08); --down-bg: rgba(255,92,92,0.08);
+  --up-rgb: 46,189,133; --down-rgb: 255,92,92;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -151,7 +158,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .icon-btn:hover { color: var(--text); border-color: var(--border-hover); }
 
 /* ============================================================ 布局 */
-.main { max-width: 1180px; margin: 0 auto; padding: calc(var(--topbar-h) + 32px) 28px 72px; }
+.main { max-width: 1180px; margin: 0 auto; padding: calc(var(--topbar-h) + var(--tape-h) + 32px) 28px 72px; }
 .view { display: none; }
 .view.active { display: block; animation: viewRise 0.32s var(--ease-out); }
 @keyframes viewRise { from { opacity: 0; transform: translateY(6px); } }
@@ -554,7 +561,7 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
 }
 
 @media (max-width: 960px) {
-  .main { padding: calc(var(--topbar-h) + 24px) 16px 56px; }
+  .main { padding: calc(var(--topbar-h) + var(--tape-h) + 24px) 16px 56px; }
   .topbar { padding: 0 16px; gap: 16px; }
   .hero { grid-template-columns: repeat(2, 1fr); }
   .hero-cell:nth-child(3) { border-left: none; }
@@ -1170,4 +1177,62 @@ body.no-crypto .crypto-only { display: none !important; }
   .wcard { padding: 12px 12px 10px; }
   .wcard .hero-value { font-size: 18px; }
   .hero-cell .spark, .wcard .spark { height: 26px; }
+}
+
+/* ============================================================ 吸顶指数跑马条（2026-09-17）
+   TradingView ticker tape 的终端版：fixed 在顶栏下沿，横向滚动，数据来自已轮询的
+   universe 指数（零额外请求）。窄屏隐藏：移动端顶栏换行成两行，fixed 定位对不齐。 */
+.tape {
+  position: fixed; top: var(--topbar-h); left: 0; right: 0; height: var(--tape-h);
+  display: flex; align-items: stretch;
+  overflow-x: auto; scrollbar-width: none;
+  background: rgba(10,10,11,0.82);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  z-index: 90;
+}
+.tape::-webkit-scrollbar { display: none; }
+.tape-cell {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 0 16px; border-right: 1px solid var(--border);
+  font-size: 11px; white-space: nowrap; flex: 0 0 auto;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.tape-cell:hover { background: rgba(255,255,255,0.04); }
+.tape-cell:first-child { padding-left: 28px; }
+.tp-name { color: var(--text-tertiary); }
+.tp-price { color: var(--text); }
+.tp-pct { min-width: 52px; text-align: right; }
+
+/* ---- Movers 三榜（涨幅/跌幅/成交额）：复用热力图全市场行，零额外请求 ---- */
+.movers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 28px; margin-top: 4px; }
+.mv-col { min-width: 0; }
+.mv-col-head {
+  font-size: 10px; letter-spacing: 0.14em; color: var(--text-tertiary);
+  padding: 8px 8px 6px; border-bottom: 1px solid var(--border);
+}
+.mv-col-head b { color: var(--text-secondary); font-weight: 600; }
+.mv-row {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 7px 8px; border-bottom: 1px solid var(--border);
+  font-size: 12px; text-align: left; min-width: 0;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.mv-row:hover { background: var(--bg-hover); }
+.mv-rank { flex: 0 0 18px; color: var(--text-faint); font-size: 10px; }
+.mv-name { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.mv-nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mv-code { font-size: 10px; color: var(--text-faint); }
+.mv-price { flex: 0 0 auto; color: var(--text-secondary); }
+.mv-metric { flex: 0 0 64px; text-align: right; }
+@media (max-width: 960px) {
+  .movers-grid { grid-template-columns: 1fr; gap: 20px; }
+  .mv-col-head { padding-top: 0; }
+}
+
+/* 跑马条只在桌面宽度出现：移动端顶栏折成两行（--topbar-h: 92px），fixed 跑马条对不齐，
+   且小屏横向空间宝贵；--tape-h 同步归零，.main 的顶部留白不会多出一条空带 */
+@media (max-width: 1099px) {
+  :root { --tape-h: 0px; }
+  .tape { display: none; }
 }

@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
 <!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
      对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
-<link rel="stylesheet" href="css/style.css?v=20260916g">
+<link rel="stylesheet" href="css/style.css?v=20260917a">
 </head>
 <body data-updown="red">
 
@@ -46,6 +46,10 @@
     <button id="settingsBtn" class="icon-btn" title="设置" aria-label="设置">设置</button>
   </div>
 </header>
+
+<!-- 吸顶全球指数跑马条（TradingView ticker tape 的终端版）：数据零额外请求，
+     全部来自已轮询的 universe 指数；点击任一格进该指数详情。窄屏隐藏（顶栏已两行）。 -->
+<div class="tape" id="tape" role="group" aria-label="全球指数速览"></div>
 
 <noscript>
   <div class="noscript-box">
@@ -82,6 +86,18 @@
     </div>
 
     <div id="cardWall"></div>
+
+    <!-- ===== Movers 三榜（涨幅榜 / 跌幅榜 / 成交额榜）：TradingView 式"零配置预设"，
+         数据复用热力图的全市场行（state.heatItems），不新增任何网络请求。
+         只在 A股/港股/美股 tab 显示（全部/加密/宏观无全市场行）。 ===== -->
+    <div class="section" id="moversSection" hidden data-fold>
+      <div class="section-head">
+        <h2 class="section-title" id="moversTitle">市场焦点</h2>
+        <span class="sec-line"></span>
+        <span class="section-sub" id="moversSub">—</span>
+      </div>
+      <div class="movers-grid" id="moversGrid"></div>
+    </div>
 
     <div class="section" id="heatSection" data-fold>
       <div class="section-head">
@@ -556,46 +572,46 @@
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script src="js/utils.js?v=20260916g"></script>
-<script src="js/store.js?v=20260916g"></script>
-<script src="js/proxy.js?v=20260916g"></script>
-<script src="js/data/universe.js?v=20260916g"></script>
-<script src="js/data/industry-chains.js?v=20260916g"></script>
-<script src="js/data/explain.js?v=20260916g"></script>
-<script src="js/technical.js?v=20260916g"></script>
-<script src="js/flags.js?v=20260916g"></script>
-<script src="js/bus.js?v=20260916g"></script>
-<script src="js/events.js?v=20260916g"></script>
-<script src="js/actors.js?v=20260916g"></script>
-<script src="js/sources/tencent.js?v=20260916g"></script>
-<script src="js/sources/sina.js?v=20260916g"></script>
-<script src="js/sources/eastmoney.js?v=20260916g"></script>
-<script src="js/sources/okx.js?v=20260916g"></script>
-<script src="js/sources/binance.js?v=20260916g"></script>
-<script src="js/sources/fred.js?v=20260916g"></script>
-<script src="js/sources/news.js?v=20260916g"></script>
-<script src="js/sources/worldbank.js?v=20260916g"></script>
-<script src="js/sources/gdelt.js?v=20260916g"></script>
-<script src="js/sources/lhb.js?v=20260916g"></script>
-<script src="js/sources/southbound.js?v=20260916g"></script>
-<script src="js/sources/fundholds.js?v=20260916g"></script>
-<script src="js/sources/etf.js?v=20260916g"></script>
-<script src="js/sources/sec.js?v=20260916g"></script>
-<script src="js/sources/history.js?v=20260916g"></script>
-<script src="js/breadth.js?v=20260916g"></script>
-<script src="js/sessions.js?v=20260916g"></script>
-<script src="js/treemap.js?v=20260916g"></script>
-<script src="js/spark.js?v=20260916g"></script>
-<script src="js/charts.js?v=20260916g"></script>
-<script src="js/engine/types.js?v=20260916g"></script>
-<script src="js/engine/geo.js?v=20260916g"></script>
-<script src="js/engine/news-engine.js?v=20260916g"></script>
-<script src="js/engine/event-engine.js?v=20260916g"></script>
-<script src="js/engine/impact-engine.js?v=20260916g"></script>
-<script src="js/engine/llm-provider.js?v=20260916g"></script>
-<script src="js/worldmap.js?v=20260916g"></script>
-<script src="js/compare.js?v=20260916g"></script>
-<script src="js/compareview.js?v=20260916g"></script>
-<script src="js/app.js?v=20260916g"></script>
+<script src="js/utils.js?v=20260917a"></script>
+<script src="js/store.js?v=20260917a"></script>
+<script src="js/proxy.js?v=20260917a"></script>
+<script src="js/data/universe.js?v=20260917a"></script>
+<script src="js/data/industry-chains.js?v=20260917a"></script>
+<script src="js/data/explain.js?v=20260917a"></script>
+<script src="js/technical.js?v=20260917a"></script>
+<script src="js/flags.js?v=20260917a"></script>
+<script src="js/bus.js?v=20260917a"></script>
+<script src="js/events.js?v=20260917a"></script>
+<script src="js/actors.js?v=20260917a"></script>
+<script src="js/sources/tencent.js?v=20260917a"></script>
+<script src="js/sources/sina.js?v=20260917a"></script>
+<script src="js/sources/eastmoney.js?v=20260917a"></script>
+<script src="js/sources/okx.js?v=20260917a"></script>
+<script src="js/sources/binance.js?v=20260917a"></script>
+<script src="js/sources/fred.js?v=20260917a"></script>
+<script src="js/sources/news.js?v=20260917a"></script>
+<script src="js/sources/worldbank.js?v=20260917a"></script>
+<script src="js/sources/gdelt.js?v=20260917a"></script>
+<script src="js/sources/lhb.js?v=20260917a"></script>
+<script src="js/sources/southbound.js?v=20260917a"></script>
+<script src="js/sources/fundholds.js?v=20260917a"></script>
+<script src="js/sources/etf.js?v=20260917a"></script>
+<script src="js/sources/sec.js?v=20260917a"></script>
+<script src="js/sources/history.js?v=20260917a"></script>
+<script src="js/breadth.js?v=20260917a"></script>
+<script src="js/sessions.js?v=20260917a"></script>
+<script src="js/treemap.js?v=20260917a"></script>
+<script src="js/spark.js?v=20260917a"></script>
+<script src="js/charts.js?v=20260917a"></script>
+<script src="js/engine/types.js?v=20260917a"></script>
+<script src="js/engine/geo.js?v=20260917a"></script>
+<script src="js/engine/news-engine.js?v=20260917a"></script>
+<script src="js/engine/event-engine.js?v=20260917a"></script>
+<script src="js/engine/impact-engine.js?v=20260917a"></script>
+<script src="js/engine/llm-provider.js?v=20260917a"></script>
+<script src="js/worldmap.js?v=20260917a"></script>
+<script src="js/compare.js?v=20260917a"></script>
+<script src="js/compareview.js?v=20260917a"></script>
+<script src="js/app.js?v=20260917a"></script>
 </body>
 </html>

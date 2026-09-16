@@ -89,6 +89,9 @@
     // 美股 因子 ETF 持仓（Invesco 采集静态 JSON，日更）：etfSub = spmo | splv | both
     etf: null, etfAt: 0, etfSub: 'spmo',
     chartEventsOn: true,       // 详情页 K 线事件标记开关
+    // Movers 三榜的行载荷（data-symbol → 全市场行）：行不在 universe 轮询全集里，
+    // 点击进详情需要 secid/market 映射，渲染时顺手登记
+    moversRows: new Map(),
     lastUpdate: null,
     timers: {},
     stopped: false,
@@ -97,6 +100,8 @@
   const $ = (id) => document.getElementById(id);
   const el = {};
   const DOM_IDS = ['tabs', 'cardWall', 'watchWall', 'marketSub', 'selftestOut', 'selftest',
+    // 吸顶跑马条 + Movers 三榜（2026-09-17）
+    'tape', 'moversSection', 'moversGrid', 'moversTitle', 'moversSub',
     // 首屏下方的「我的自选」块与全球涨跌概览条
     'watchSection', 'watchGrid', 'watchSub', 'watchMore', 'globeSum',
     'heatCanvas', 'heatTip', 'heatWrap', 'heatSection', 'heatSub', 'heatSizeToggle', 'heatTopToggle',
@@ -325,6 +330,7 @@
   async function quotesTick() {
     await fetchAllQuotes();
     patchHero();
+    patchTape();
     if (state.view === 'market') { patchCards(el.cardWall); refreshSesChips(); }
     if (state.view === 'watch') patchCards(el.watchWall);
     if (state.view === 'detail') {
@@ -684,6 +690,131 @@
       <span class="gs-txt"><span class="up num">${up}</span> 涨 · <span class="down num">${down}</span> 跌 · 共 ${valid.length} 个全球指数</span>`;
   }
 
+  /* ==================== 吸顶指数跑马条（2026-09-17） ====================
+     TradingView ticker tape 的终端版：常驻顶栏下方，一屏扫全球。数据零额外请求——
+     全部来自已轮询 universe（指数/汇率/黄金/原油/BTC）；点击任一格进该标的详情。 */
+  const TAPE_KEYS = ['sh000001', 'sz399001', 'sz399006', 'sh000688', 'hkHSI', 'hkHSTECH',
+    'usDJI', 'usIXIC', 'usINX', 'EM:100.UDI', 'EM:133.USDCNH', 'EM:101.GC00Y', 'EM:102.CL00Y']
+    .concat(CRYPTO_ON ? ['BTCUSDT'] : []);
+
+  function tapeLabel(sym) {
+    const u = [...window.TENCENT_UNIVERSE, ...window.EM_UNIVERSE].find(x => x.symbol === sym);
+    return u ? u.label : sym;
+  }
+
+  function renderTape() {
+    if (!el.tape) return;
+    el.tape.innerHTML = TAPE_KEYS.map(sym =>
+      `<button class="tape-cell" data-symbol="${escapeHTML(sym)}" aria-label="${escapeHTML(tapeLabel(sym))} 详情">
+        <span class="tp-name">${escapeHTML(tapeLabel(sym))}</span>
+        <span class="tp-price num" data-tape-price="${escapeHTML(sym)}">--</span>
+        <span class="tp-pct num flat" data-tape-pct="${escapeHTML(sym)}">--</span>
+      </button>`).join('');
+    patchTape();
+  }
+
+  function patchTape() {
+    if (!el.tape) return;
+    TAPE_KEYS.forEach(sym => {
+      const q = findQuote(sym);
+      if (!q) return;
+      const isFxMacro = q.market === 'macro' || q.market === 'fx';
+      const digits = isFxMacro ? 4 : U.priceDigits(q.price);
+      const price = fmt(q.price, digits);
+      const pct = fmtPct(q.changePct);
+      const cls = pctClass(q.changePct);
+      const p = el.tape.querySelector('[data-tape-price="' + sym + '"]');
+      const pc = el.tape.querySelector('[data-tape-pct="' + sym + '"]');
+      if (p && p.textContent !== price) {
+        const oldNum = parseFloat(p.textContent.replace(/,/g, ''));
+        // 首次填充（占位 "--" → 数字）不算涨跌，不闪
+        if (!isNaN(oldNum)) flashPrice(p, q.price >= oldNum ? 'up' : 'down');
+        p.textContent = price;
+      }
+      if (pc && (pc.textContent !== pct || !pc.classList.contains(cls))) {
+        pc.textContent = pct;
+        pc.classList.remove('up', 'down', 'flat');
+        pc.classList.add(cls);
+      }
+    });
+  }
+
+  /* 价格闪烁（TradingView 的"数字会呼吸"）：涨/跌时给格子一次背景色淡出。
+     用 Web Animations API 而不是类名开关——不需要 void offsetWidth 强制重排，
+     动画结束即自动释放，重复触发天然重启。 */
+  function flashPrice(node, dir) {
+    if (!node || reduceMotion() || typeof node.animate !== 'function') return;
+    const rgb = (getComputedStyle(document.body).getPropertyValue(dir === 'up' ? '--up-rgb' : '--down-rgb') || '').trim();
+    if (!rgb) return;
+    node.animate(
+      [{ backgroundColor: 'rgba(' + rgb + ', 0.20)' }, { backgroundColor: 'rgba(0,0,0,0)' }],
+      { duration: 900, easing: 'ease-out' }
+    );
+  }
+
+  /* ==================== Movers 三榜（2026-09-17） ====================
+     涨幅榜/跌幅榜/成交额榜：TradingView 式"零配置预设"。数据复用热力图的全市场行
+     （state.heatItems，A股权重由情绪调度器保活、港/美为会话级缓存），零额外网络请求；
+     只在 A股/港股/美股 tab 显示。 */
+  const MOVERS_DEFS = {
+    cn: { title: 'A股焦点', loader: () => loadHeatCN(), rows: () => state.heatItems.cn },
+    hk: { title: '港股焦点', loader: () => ensureHKRows(), rows: () => state.heatItems.hk },
+    us: { title: '美股焦点', loader: () => ensureUSRows(), rows: () => state.heatItems.us },
+  };
+
+  function validMoverRows(rows) {
+    return (rows || []).filter(r => r && r.name && typeof r.changePct === 'number' &&
+      !isNaN(r.changePct) && r.price !== null && r.price !== undefined && isFinite(r.price));
+  }
+
+  function moversBoardHTML(list, label, metric) {
+    const rows = list.map((r, i) => {
+      const sym = 'EM:' + r.secid;
+      state.moversRows.set(sym, r);
+      const cls = pctClass(r.changePct);
+      const metricTxt = metric === 'amount' ? fmtVol(r.amount || 0) : fmtPct(r.changePct);
+      return `<button class="mv-row" data-mv="${escapeHTML(sym)}" title="${escapeHTML(r.name)}（${escapeHTML(r.code)}）">
+        <span class="mv-rank num">${i + 1}</span>
+        <span class="mv-name"><span class="mv-nm">${escapeHTML(r.name)}</span><span class="mv-code num">${escapeHTML(r.code)}</span></span>
+        <span class="mv-price num">${fmt(r.price, U.priceDigits(r.price))}</span>
+        <span class="mv-metric num ${cls}">${metricTxt}</span>
+      </button>`;
+    }).join('');
+    return `<div class="mv-col"><div class="mv-col-head"><b>${label}</b></div>${rows}</div>`;
+  }
+
+  function renderMovers() {
+    if (!el.moversSection || !el.moversGrid) return;
+    const def = MOVERS_DEFS[state.tab];
+    if (!def) { el.moversSection.hidden = true; return; }
+    el.moversSection.hidden = false;
+    el.moversTitle.textContent = def.title;
+    const rows = validMoverRows(def.rows());
+    if (rows.length < 5) {
+      el.moversGrid.innerHTML = '<div class="sk sk-row"></div>';
+      el.moversSub.textContent = '等待全市场行情…';
+      return;
+    }
+    const byPct = rows.slice().sort((a, b) => b.changePct - a.changePct);
+    // 成交额榜按活跃度排（指标本身就是成交额），主列给成交额、涨跌幅保留颜色扫读
+    const active = rows.slice().sort((a, b) => (b.amount || 0) - (a.amount || 0)).slice(0, 10);
+    el.moversSub.innerHTML = `全市场 ${rows.length} 只 · 今日涨跌幅 / 成交额 · 60s 重排`;
+    el.moversGrid.innerHTML =
+      moversBoardHTML(byPct.slice(0, 10), '涨幅榜', 'pct') +
+      moversBoardHTML(byPct.slice(-10).reverse(), '跌幅榜', 'pct') +
+      moversBoardHTML(active, '成交额榜', 'amount');
+  }
+
+  /* 只补空缓存，不做周期抓取（A股权重由情绪调度器保活、港/美会话级缓存）——
+     Movers 的刷新是纯重排（schedule('movers')），不放大对上游的请求量 */
+  async function loadMovers() {
+    const def = MOVERS_DEFS[state.tab];
+    if (!def) return;
+    if (validMoverRows(def.rows()).length >= 5) { renderMovers(); return; }
+    try { await def.loader(); } catch { /* 降级：下面用已缓存行渲染 */ }
+    if (state.view === 'market' && MOVERS_DEFS[state.tab]) renderMovers();
+  }
+
   // 入场动画结束后摘掉 stagger 类与 delay：
   // 否则元素长期带 animation-delay，浏览器/辅助工具会一直认为它"未稳定"，点击与命中测试受影响。
   function clearStagger(root) {
@@ -719,7 +850,10 @@
       const digits = isFxMacro ? 4 : U.priceDigits(q.price);
       const priceNode = row.querySelector('.qr-price');
       const txt = fmt(q.price, digits);
-      if (priceNode && priceNode.textContent !== txt) priceNode.textContent = txt;
+      if (priceNode && priceNode.textContent !== txt) {
+        const oldNum = parseFloat(priceNode.textContent.replace(/,/g, ''));
+        if (!isNaN(oldNum)) flashPrice(priceNode, q.price >= oldNum ? 'up' : 'down');
+        priceNode.textContent = txt;
       const cls = pctClass(q.changePct);
       const chgNode = row.querySelector('.qr-chg');
       if (chgNode) {
@@ -3161,6 +3295,13 @@
     const heatWasHidden = el.heatSection.hidden;
     // 热力图在 全部/A股/港股/美股/加密 下有意义（宏观 tab 是世行年度指标，不放热力图）
     el.heatSection.hidden = !['all', 'cn', 'hk', 'us', 'crypto'].includes(tab);
+    // Movers 三榜：只对有全市场行情的市场 tab 显示（2026-09-17）
+    if (MOVERS_DEFS[tab]) {
+      renderMovers();
+      if (validMoverRows(MOVERS_DEFS[tab].rows()).length < 5) loadMovers();
+    } else if (el.moversSection) {
+      el.moversSection.hidden = true;
+    }
     // 进哪个市场 tab 就自动切到该市场的热力图，不用手点
     if (['cn', 'hk', 'us', 'crypto'].includes(tab)) switchHeat(tab);
     // 世界经济仪表盘只在外汇宏观 tab 显示；全球指数条首次进市场视图时加载
@@ -3432,6 +3573,13 @@
       if (state.view !== 'market' || !state.globeQuotes) return;
       await loadGlobe();
     }, 60000);
+    // Movers 三榜：60s 纯重排（读 state.heatItems 缓存行，不新增网络请求）；
+    // 行数不足说明首拉还没到，补一次 loadMovers
+    schedule('movers', async () => {
+      if (state.view !== 'market' || !MOVERS_DEFS[state.tab]) return;
+      if (validMoverRows(MOVERS_DEFS[state.tab].rows()).length < 5) { await loadMovers(); return; }
+      renderMovers();
+    }, 60000);
   }
 
   document.addEventListener('visibilitychange', () => {
@@ -3637,7 +3785,21 @@
         if (on) ensureSparks();                              // 新收藏的标的补一条走势线
         return;
       }
-      const card = e.target.closest('.qrow, .hero-cell, .wcard, .quote-card');
+      // Movers 三榜行：全市场行不在 universe 轮询全集里，按渲染时登记的载荷进详情
+      const mv = e.target.closest('[data-mv]');
+      if (mv) {
+        const p = state.moversRows.get(mv.getAttribute('data-mv'));
+        if (p && p.secid) {
+          openDetail({
+            symbol: 'EM:' + p.secid, name: p.name, code: p.code,
+            // 市场按 secid 反查（与热力图点击同一套口径），决定币种与成交额单位
+            market: marketFromSecid(p.secid) || 'cn',
+            secid: p.secid, tencent: tencentOfSecid(p.secid),
+          });
+        }
+        return;
+      }
+      const card = e.target.closest('.qrow, .hero-cell, .wcard, .quote-card, .tape-cell');
       if (card) {
         const t = targetFromSymbol(card.getAttribute('data-symbol'));
         if (t) openDetail(t);
@@ -4025,6 +4187,7 @@
       return loadMood();   // 市场宽度/情绪历史/加密宽度一并在后台算好
     }).catch(() => {});
     await fetchAllQuotes();
+    renderTape();
     renderHero();
     renderCardWall();
     // 「全部」是默认 tab，而 setTab 对"已在的 tab"会早退（首屏就是 all 时那个分支根本不跑），
