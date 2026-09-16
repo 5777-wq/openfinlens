@@ -1,0 +1,1040 @@
+{
+ "generatedAt": "2026-09-15T15:30:11.984Z",
+ "source": "Invesco 官网持仓接口（日更，免密钥）",
+ "confidence": "REPORTED",
+ "asOf": "2026-09-11",
+ "published": "2026-09-13",
+ "lagDays": 4,
+ "note": "规则化因子 ETF 的**每日全量持仓**（官方发布，非申赎推算）：动量 ETF 的持仓回答\"趋势资金集中在哪\"，低波 ETF 回答\"防御资金在哪\"，交集是同时被两类因子选中的股票。这是编制规则定期调整（动量/低波指数半年或季度调仓）后的被动持仓，**不是某位基金经理的主观判断**，也不代表机构观点。持仓基准日到官网发布日有一到两天延迟。已剔除官方 feed 里的现金/货币基金/指数期货等非股票行。全部为历史事实陈述，不构成任何建议。",
+ "funds": [
+  {
+   "key": "spmo",
+   "ticker": "SPMO",
+   "zh": "标普500动量",
+   "name": "Invesco S&P 500 Momentum ETF",
+   "indexName": "S&P 500 Momentum",
+   "cusip": "46138E339",
+   "effectiveDate": "2026-09-13",
+   "total": 103,
+   "equityCount": 99,
+   "shownCount": 40,
+   "shownPct": 87.95,
+   "holdings": [
+    {
+     "zh": "美光科技",
+     "ticker": "MU",
+     "sym": "usMU",
+     "cusip": "595112103",
+     "type": "COM",
+     "pct": 10.922066,
+     "valueUsd": 2475694584.22,
+     "units": 2538497
+    },
+    {
+     "zh": "英伟达",
+     "ticker": "NVDA",
+     "sym": "usNVDA",
+     "cusip": "67066G104",
+     "type": "COM",
+     "pct": 8.875559,
+     "valueUsd": 2009524477.24,
+     "units": 9205756
+    },
+    {
+     "zh": "博通",
+     "ticker": "AVGO",
+     "sym": "usAVGO",
+     "cusip": "11135F101",
+     "type": "COM",
+     "pct": 6.225072,
+     "valueUsd": 1411031228.16,
+     "units": 3897984
+    },
+    {
+     "zh": "强生",
+     "ticker": "JNJ",
+     "sym": "usJNJ",
+     "cusip": "478160104",
+     "type": "COM",
+     "pct": 4.601975,
+     "valueUsd": 1043125471.08,
+     "units": 3927726
+    },
+    {
+     "zh": "谷歌-A",
+     "ticker": "GOOGL",
+     "sym": "usGOOGL",
+     "cusip": "02079K305",
+     "type": "COM",
+     "pct": 4.34204,
+     "valueUsd": 983573695.5,
+     "units": 2905683
+    },
+    {
+     "zh": "超威半导体",
+     "ticker": "AMD",
+     "sym": "usAMD",
+     "cusip": "007903107",
+     "type": "COM",
+     "pct": 4.199378,
+     "valueUsd": 951869139.59,
+     "units": 1844243
+    },
+    {
+     "zh": "谷歌-C",
+     "ticker": "GOOG",
+     "sym": "usGOOG",
+     "cusip": "02079K107",
+     "type": "COM",
+     "pct": 3.448741,
+     "valueUsd": 781216087,
+     "units": 2328860
+    },
+    {
+     "zh": "泛林集团",
+     "ticker": "LRCX",
+     "sym": "usLRCX",
+     "cusip": "512807306",
+     "type": "COM",
+     "pct": 3.360924,
+     "valueUsd": 761817602.78,
+     "units": 2554549
+    },
+    {
+     "zh": "埃克森美孚",
+     "ticker": "XOM",
+     "sym": "usXOM",
+     "cusip": "30233Q108",
+     "type": "COM",
+     "pct": 3.219531,
+     "valueUsd": 729768063.42,
+     "units": 4396458
+    },
+    {
+     "zh": "英特尔",
+     "ticker": "INTC",
+     "sym": "usINTC",
+     "cusip": "458140100",
+     "type": "COM",
+     "pct": 2.687714,
+     "valueUsd": 609221566.8,
+     "units": 5918220
+    },
+    {
+     "zh": "卡特彼勒",
+     "ticker": "CAT",
+     "sym": "usCAT",
+     "cusip": "149123101",
+     "type": "COM",
+     "pct": 2.467767,
+     "valueUsd": 559366535.22,
+     "units": 683346
+    },
+    {
+     "zh": "闪迪",
+     "ticker": "SNDK",
+     "sym": "usSNDK",
+     "cusip": "80004C200",
+     "type": "COM",
+     "pct": 2.404897,
+     "valueUsd": 545115862.35,
+     "units": 333741
+    },
+    {
+     "zh": "思科",
+     "ticker": "CSCO",
+     "sym": "usCSCO",
+     "cusip": "17275R102",
+     "type": "COM",
+     "pct": 1.905963,
+     "valueUsd": 432022761.62,
+     "units": 3852874
+    },
+    {
+     "zh": "应用材料",
+     "ticker": "AMAT",
+     "sym": "usAMAT",
+     "cusip": "038222105",
+     "type": "COM",
+     "pct": 1.823974,
+     "valueUsd": 413438428.1,
+     "units": 905690
+    },
+    {
+     "zh": "希捷科技",
+     "ticker": "STX",
+     "sym": "usSTX",
+     "cusip": "G7997R103",
+     "type": "COM",
+     "pct": 1.801279,
+     "valueUsd": 408294209.4,
+     "units": 491820
+    },
+    {
+     "zh": "GE航天航空",
+     "ticker": "GE",
+     "sym": "usGE",
+     "cusip": "369604301",
+     "type": "COM",
+     "pct": 1.65713,
+     "valueUsd": 375620052.74,
+     "units": 1160539
+    },
+    {
+     "zh": "雷神技术",
+     "ticker": "RTX",
+     "sym": "usRTX",
+     "cusip": "75513E101",
+     "type": "COM",
+     "pct": 1.557404,
+     "valueUsd": 353015362.56,
+     "units": 1785792
+    },
+    {
+     "zh": "西部数据",
+     "ticker": "WDC",
+     "sym": "usWDC",
+     "cusip": "958102105",
+     "type": "COM",
+     "pct": 1.509072,
+     "valueUsd": 341946472.14,
+     "units": 764673
+    },
+    {
+     "zh": "Palantir",
+     "ticker": "PLTR",
+     "sym": "usPLTR",
+     "cusip": "69608A108",
+     "type": "COM",
+     "pct": 1.504771,
+     "valueUsd": 341084983.68,
+     "units": 2039616
+    },
+    {
+     "zh": "安费诺",
+     "ticker": "APH",
+     "sym": "usAPH",
+     "cusip": "032095101",
+     "type": "COM",
+     "pct": 1.486138,
+     "valueUsd": 336861509.68,
+     "units": 4014079
+    },
+    {
+     "zh": "高盛",
+     "ticker": "GS",
+     "sym": "usGS",
+     "cusip": "38141G104",
+     "type": "COM",
+     "pct": 1.458598,
+     "valueUsd": 329037079.44,
+     "units": 319708
+    },
+    {
+     "zh": "菲利普莫里斯",
+     "ticker": "PM",
+     "sym": "usPM",
+     "cusip": "718172109",
+     "type": "COM",
+     "pct": 1.413457,
+     "valueUsd": 320386985.52,
+     "units": 1676892
+    },
+    {
+     "zh": "可口可乐",
+     "ticker": "KO",
+     "sym": "usKO",
+     "cusip": "191216100",
+     "type": "COM",
+     "pct": 1.371518,
+     "valueUsd": 310880655.99,
+     "units": 3521131
+    },
+    {
+     "zh": "GE Vernova",
+     "ticker": "GEV",
+     "sym": "usGEV",
+     "cusip": "36828A101",
+     "type": "COM",
+     "pct": 1.334769,
+     "valueUsd": 302550927.12,
+     "units": 316056
+    },
+    {
+     "zh": "科磊",
+     "ticker": "KLAC",
+     "sym": "usKLAC",
+     "cusip": "482480100",
+     "type": "COM",
+     "pct": 1.324407,
+     "valueUsd": 300202183.84,
+     "units": 1661881
+    },
+    {
+     "zh": "纽曼矿业",
+     "ticker": "NEM",
+     "sym": "usNEM",
+     "cusip": "651639106",
+     "type": "COM",
+     "pct": 1.284822,
+     "valueUsd": 290640404.16,
+     "units": 2291936
+    },
+    {
+     "zh": "花旗集团",
+     "ticker": "C",
+     "sym": "usC",
+     "cusip": "172967424",
+     "type": "COM",
+     "pct": 1.087539,
+     "valueUsd": 246511558.48,
+     "units": 1775764
+    },
+    {
+     "zh": "摩根士丹利",
+     "ticker": "MS",
+     "sym": "usMS",
+     "cusip": "617446448",
+     "type": "COM",
+     "pct": 1.007622,
+     "valueUsd": 228396807.54,
+     "units": 1065383
+    },
+    {
+     "zh": "吉利德科学",
+     "ticker": "GILD",
+     "sym": "usGILD",
+     "cusip": "375558103",
+     "type": "COM",
+     "pct": 0.895576,
+     "valueUsd": 202999469.8,
+     "units": 1412465
+    },
+    {
+     "zh": "康宁",
+     "ticker": "GLW",
+     "sym": "usGLW",
+     "cusip": "219350105",
+     "type": "COM",
+     "pct": 0.886981,
+     "valueUsd": 200717504,
+     "units": 1206235
+    },
+    {
+     "zh": "Welltower Inc.",
+     "ticker": "WELL",
+     "sym": "usWELL",
+     "cusip": "95040Q104",
+     "type": "REIT",
+     "pct": 0.886095,
+     "valueUsd": 200850263.46,
+     "units": 852433
+    },
+    {
+     "zh": "亚德诺",
+     "ticker": "ADI",
+     "sym": "usADI",
+     "cusip": "032654105",
+     "type": "COM",
+     "pct": 0.759965,
+     "valueUsd": 171766881.72,
+     "units": 453474
+    },
+    {
+     "zh": "嘉信理财",
+     "ticker": "SCHW",
+     "sym": "usSCHW",
+     "cusip": "808513105",
+     "type": "COM",
+     "pct": 0.686044,
+     "valueUsd": 155504885.25,
+     "units": 1449929
+    },
+    {
+     "zh": "纽约梅隆银行",
+     "ticker": "BNY",
+     "sym": "usBNY",
+     "cusip": "064058100",
+     "type": "COM",
+     "pct": 0.593301,
+     "valueUsd": 134482896.18,
+     "units": 826773
+    },
+    {
+     "zh": "麦克森",
+     "ticker": "MCK",
+     "sym": "usMCK",
+     "cusip": "58155Q103",
+     "type": "COM",
+     "pct": 0.552396,
+     "valueUsd": 125080098.43,
+     "units": 141893
+    },
+    {
+     "zh": "洛克希德马丁",
+     "ticker": "LMT",
+     "sym": "usLMT",
+     "cusip": "539830109",
+     "type": "COM",
+     "pct": 0.499435,
+     "valueUsd": 112474399.92,
+     "units": 214568
+    },
+    {
+     "zh": "Howmet Aerospace Inc.",
+     "ticker": "HWM",
+     "sym": "usHWM",
+     "cusip": "443201108",
+     "type": "COM",
+     "pct": 0.495847,
+     "valueUsd": 112393176.56,
+     "units": 489496
+    },
+    {
+     "zh": "奥驰亚",
+     "ticker": "MO",
+     "sym": "usMO",
+     "cusip": "02209S103",
+     "type": "COM",
+     "pct": 0.476576,
+     "valueUsd": 108024956.34,
+     "units": 1566033
+    },
+    {
+     "zh": "通用动力",
+     "ticker": "GD",
+     "sym": "usGD",
+     "cusip": "369550108",
+     "type": "COM",
+     "pct": 0.472922,
+     "valueUsd": 107196724.1,
+     "units": 301199
+    },
+    {
+     "zh": "江森自控",
+     "ticker": "JCI",
+     "sym": "usJCI",
+     "cusip": "G51502105",
+     "type": "COM",
+     "pct": 0.460267,
+     "valueUsd": 104328379.29,
+     "units": 714529
+    }
+   ]
+  },
+  {
+   "key": "splv",
+   "ticker": "SPLV",
+   "zh": "标普500低波",
+   "name": "Invesco S&P 500 Low Volatility ETF",
+   "indexName": "S&P 500 Low Volatility",
+   "cusip": "46138E354",
+   "effectiveDate": "2026-09-13",
+   "total": 111,
+   "equityCount": 100,
+   "shownCount": 40,
+   "shownPct": 45.44,
+   "holdings": [
+    {
+     "zh": "伯克希尔B",
+     "ticker": "BRK/B",
+     "sym": "usBRK.B",
+     "cusip": "084670702",
+     "type": "COM",
+     "pct": 1.396092,
+     "valueUsd": 101935689.73,
+     "units": 199729
+    },
+    {
+     "zh": "Regency Centers Corporation",
+     "ticker": "REG",
+     "sym": "usREG",
+     "cusip": "758849103",
+     "type": "REIT",
+     "pct": 1.280921,
+     "valueUsd": 92589689.92,
+     "units": 1240816
+    },
+    {
+     "zh": "杜克能源",
+     "ticker": "DUK",
+     "sym": "usDUK",
+     "cusip": "26441C204",
+     "type": "COM",
+     "pct": 1.277914,
+     "valueUsd": 92557545.78,
+     "units": 775059
+    },
+    {
+     "zh": "Evergy, Inc.",
+     "ticker": "EVRG",
+     "sym": "usEVRG",
+     "cusip": "30034W106",
+     "type": "COM",
+     "pct": 1.27208,
+     "valueUsd": 92173792.48,
+     "units": 1129304
+    },
+    {
+     "zh": "第一能源",
+     "ticker": "FE",
+     "sym": "usFE",
+     "cusip": "337932107",
+     "type": "COM",
+     "pct": 1.271879,
+     "valueUsd": 92866286.59,
+     "units": 2013143
+    },
+    {
+     "zh": "威州能源",
+     "ticker": "WEC",
+     "sym": "usWEC",
+     "cusip": "92939U106",
+     "type": "COM",
+     "pct": 1.264679,
+     "valueUsd": 92340599.07,
+     "units": 876679
+    },
+    {
+     "zh": "ATMOS能源公司",
+     "ticker": "ATO",
+     "sym": "usATO",
+     "cusip": "049560105",
+     "type": "COM",
+     "pct": 1.23228,
+     "valueUsd": 89974969.69,
+     "units": 551351
+    },
+    {
+     "zh": "美国联合能源",
+     "ticker": "LNT",
+     "sym": "usLNT",
+     "cusip": "018802108",
+     "type": "COM",
+     "pct": 1.218565,
+     "valueUsd": 88973545.8,
+     "units": 1322830
+    },
+    {
+     "zh": "洛斯公司",
+     "ticker": "L",
+     "sym": "usL",
+     "cusip": "540424108",
+     "type": "COM",
+     "pct": 1.210205,
+     "valueUsd": 88363154.44,
+     "units": 812236
+    },
+    {
+     "zh": "中点能源",
+     "ticker": "CNP",
+     "sym": "usCNP",
+     "cusip": "15189T107",
+     "type": "COM",
+     "pct": 1.204198,
+     "valueUsd": 87924520.74,
+     "units": 2248134
+    },
+    {
+     "zh": "Realty Income Corporation",
+     "ticker": "O",
+     "sym": "usO",
+     "cusip": "756109104",
+     "type": "REIT",
+     "pct": 1.189524,
+     "valueUsd": 86475693.5,
+     "units": 1453373
+    },
+    {
+     "zh": "爱迪生联合电气",
+     "ticker": "ED",
+     "sym": "usED",
+     "cusip": "209115104",
+     "type": "COM",
+     "pct": 1.181333,
+     "valueUsd": 85629929.94,
+     "units": 804339
+    },
+    {
+     "zh": "西帕纳卡资本",
+     "ticker": "PNW",
+     "sym": "usPNW",
+     "cusip": "723484101",
+     "type": "COM",
+     "pct": 1.172143,
+     "valueUsd": 85584065.3,
+     "units": 890573
+    },
+    {
+     "zh": "阿曼瑞恩",
+     "ticker": "AEE",
+     "sym": "usAEE",
+     "cusip": "023608102",
+     "type": "COM",
+     "pct": 1.164393,
+     "valueUsd": 84431912,
+     "units": 804880
+    },
+    {
+     "zh": "FRT信托",
+     "ticker": "FRT",
+     "sym": "usFRT",
+     "cusip": "313745101",
+     "type": "REIT",
+     "pct": 1.161513,
+     "valueUsd": 84807889.32,
+     "units": 741587
+    },
+    {
+     "zh": "CMS能源",
+     "ticker": "CMS",
+     "sym": "usCMS",
+     "cusip": "125896100",
+     "type": "COM",
+     "pct": 1.160748,
+     "valueUsd": 84752029.5,
+     "units": 1262130
+    },
+    {
+     "zh": "美国家庭寿险",
+     "ticker": "AFL",
+     "sym": "usAFL",
+     "cusip": "001055102",
+     "type": "COM",
+     "pct": 1.15978,
+     "valueUsd": 84681344.88,
+     "units": 734571
+    },
+    {
+     "zh": "DTE能源",
+     "ticker": "DTE",
+     "sym": "usDTE",
+     "cusip": "233331107",
+     "type": "COM",
+     "pct": 1.155233,
+     "valueUsd": 84349384.7,
+     "units": 636215
+    },
+    {
+     "zh": "美国南方公司",
+     "ticker": "SO",
+     "sym": "usSO",
+     "cusip": "842587107",
+     "type": "COM",
+     "pct": 1.139482,
+     "valueUsd": 83199319.33,
+     "units": 954449
+    },
+    {
+     "zh": "共和废品处理",
+     "ticker": "RSG",
+     "sym": "usRSG",
+     "cusip": "760759100",
+     "type": "COM",
+     "pct": 1.137131,
+     "valueUsd": 83027671.44,
+     "units": 372756
+    },
+    {
+     "zh": "强生",
+     "ticker": "JNJ",
+     "sym": "usJNJ",
+     "cusip": "478160104",
+     "type": "COM",
+     "pct": 1.136114,
+     "valueUsd": 82953381.84,
+     "units": 312348
+    },
+    {
+     "zh": "宾州电力",
+     "ticker": "PPL",
+     "sym": "usPPL",
+     "cusip": "69351T106",
+     "type": "COM",
+     "pct": 1.134495,
+     "valueUsd": 82166232.48,
+     "units": 2410981
+    },
+    {
+     "zh": "可口可乐",
+     "ticker": "KO",
+     "sym": "usKO",
+     "cusip": "191216100",
+     "type": "COM",
+     "pct": 1.116781,
+     "valueUsd": 81541818.72,
+     "units": 923568
+    },
+    {
+     "zh": "印北瓦电",
+     "ticker": "NI",
+     "sym": "usNI",
+     "cusip": "65473P105",
+     "type": "COM",
+     "pct": 1.10886,
+     "valueUsd": 80963424.06,
+     "units": 1955166
+    },
+    {
+     "zh": "美国电力",
+     "ticker": "AEP",
+     "sym": "usAEP",
+     "cusip": "025537101",
+     "type": "COM",
+     "pct": 1.085371,
+     "valueUsd": 79248404.76,
+     "units": 642572
+    },
+    {
+     "zh": "Vici Properties Inc.",
+     "ticker": "VICI",
+     "sym": "usVICI",
+     "cusip": "925652109",
+     "type": "REIT",
+     "pct": 1.075364,
+     "valueUsd": 78517699.13,
+     "units": 3162211
+    },
+    {
+     "zh": "金科",
+     "ticker": "KIM",
+     "sym": "usKIM",
+     "cusip": "49446R109",
+     "type": "REIT",
+     "pct": 1.069923,
+     "valueUsd": 77215858.95,
+     "units": 3329705
+    },
+    {
+     "zh": "林德",
+     "ticker": "LIN",
+     "sym": "usLIN",
+     "cusip": "G54950103",
+     "type": "COM",
+     "pct": 1.068038,
+     "valueUsd": 77725401.08,
+     "units": 166714
+    },
+    {
+     "zh": "宝洁",
+     "ticker": "PG",
+     "sym": "usPG",
+     "cusip": "742718109",
+     "type": "COM",
+     "pct": 1.066267,
+     "valueUsd": 77853534.21,
+     "units": 535923
+    },
+    {
+     "zh": "美国哈特福德金融",
+     "ticker": "HIG",
+     "sym": "usHIG",
+     "cusip": "416515104",
+     "type": "COM",
+     "pct": 1.06525,
+     "valueUsd": 77452480,
+     "units": 568000
+    },
+    {
+     "zh": "安达保险",
+     "ticker": "CB",
+     "sym": "usCB",
+     "cusip": "H1467J104",
+     "type": "COM",
+     "pct": 1.056269,
+     "valueUsd": 76891666.5,
+     "units": 227322
+    },
+    {
+     "zh": "麦当劳",
+     "ticker": "MCD",
+     "sym": "usMCD",
+     "cusip": "580135101",
+     "type": "COM",
+     "pct": 1.048928,
+     "valueUsd": 76049914.56,
+     "units": 301152
+    },
+    {
+     "zh": "公务集团",
+     "ticker": "PEG",
+     "sym": "usPEG",
+     "cusip": "744573106",
+     "type": "COM",
+     "pct": 1.047457,
+     "valueUsd": 75796021.89,
+     "units": 1047051
+    },
+    {
+     "zh": "Vivmark Residential",
+     "ticker": "VMRK",
+     "sym": "usVMRK",
+     "cusip": "29476L107",
+     "type": "REIT",
+     "pct": 1.035814,
+     "valueUsd": 75630014.08,
+     "units": 1153952
+    },
+    {
+     "zh": "爱克斯龙电力",
+     "ticker": "EXC",
+     "sym": "usEXC",
+     "cusip": "30161N101",
+     "type": "COM",
+     "pct": 1.032345,
+     "valueUsd": 74670770.72,
+     "units": 1730092
+    },
+    {
+     "zh": "埃克西尔能源",
+     "ticker": "XEL",
+     "sym": "usXEL",
+     "cusip": "98389B100",
+     "type": "COM",
+     "pct": 1.024506,
+     "valueUsd": 74804343,
+     "units": 990786
+    },
+    {
+     "zh": "旅行者财产险集团",
+     "ticker": "TRV",
+     "sym": "usTRV",
+     "cusip": "89417E109",
+     "type": "COM",
+     "pct": 1.01379,
+     "valueUsd": 73782704.8,
+     "units": 196649
+    },
+    {
+     "zh": "桑普拉能源",
+     "ticker": "SRE",
+     "sym": "usSRE",
+     "cusip": "816851109",
+     "type": "COM",
+     "pct": 1.006464,
+     "valueUsd": 73486961.82,
+     "units": 881773
+    },
+    {
+     "zh": "Globe Life Inc.",
+     "ticker": "GL",
+     "sym": "usGL",
+     "cusip": "37959E102",
+     "type": "COM",
+     "pct": 1.000904,
+     "valueUsd": 73081031.5,
+     "units": 426950
+    },
+    {
+     "zh": "西蒙地产",
+     "ticker": "SPG",
+     "sym": "usSPG",
+     "cusip": "828806109",
+     "type": "REIT",
+     "pct": 0.994844,
+     "valueUsd": 71868497.27,
+     "units": 350869
+    }
+   ]
+  }
+ ],
+ "overlap": {
+  "keys": [
+   "spmo",
+   "splv"
+  ],
+  "labels": {
+   "spmo": "标普500动量",
+   "splv": "标普500低波"
+  },
+  "rows": [
+   {
+    "zh": "强生",
+    "ticker": "JNJ",
+    "sym": "usJNJ",
+    "cusip": "478160104",
+    "type": "COM",
+    "pcts": {
+     "spmo": 4.601975,
+     "splv": 1.136114
+    }
+   },
+   {
+    "zh": "可口可乐",
+    "ticker": "KO",
+    "sym": "usKO",
+    "cusip": "191216100",
+    "type": "COM",
+    "pcts": {
+     "spmo": 1.371518,
+     "splv": 1.116781
+    }
+   },
+   {
+    "zh": "Welltower Inc.",
+    "ticker": "WELL",
+    "sym": "usWELL",
+    "cusip": "95040Q104",
+    "type": "REIT",
+    "pcts": {
+     "spmo": 0.886095,
+     "splv": 0.94499
+    }
+   },
+   {
+    "zh": "纽约梅隆银行",
+    "ticker": "BNY",
+    "sym": "usBNY",
+    "cusip": "064058100",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.593301,
+     "splv": 0.964146
+    }
+   },
+   {
+    "zh": "威州能源",
+    "ticker": "WEC",
+    "sym": "usWEC",
+    "cusip": "92939U106",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.120736,
+     "splv": 1.264679
+    }
+   },
+   {
+    "zh": "美国电力",
+    "ticker": "AEP",
+    "sym": "usAEP",
+    "cusip": "025537101",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.292251,
+     "splv": 1.085371
+    }
+   },
+   {
+    "zh": "第一能源",
+    "ticker": "FE",
+    "sym": "usFE",
+    "cusip": "337932107",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.096922,
+     "splv": 1.271879
+    }
+   },
+   {
+    "zh": "Evergy, Inc.",
+    "ticker": "EVRG",
+    "sym": "usEVRG",
+    "cusip": "30034W106",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.087149,
+     "splv": 1.27208
+    }
+   },
+   {
+    "zh": "ATMOS能源公司",
+    "ticker": "ATO",
+    "sym": "usATO",
+    "cusip": "049560105",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.107059,
+     "splv": 1.23228
+    }
+   },
+   {
+    "zh": "芝加哥商品交易所",
+    "ticker": "CME",
+    "sym": "usCME",
+    "cusip": "12572Q105",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.417341,
+     "splv": 0.916305
+    }
+   },
+   {
+    "zh": "通用动力",
+    "ticker": "GD",
+    "sym": "usGD",
+    "cusip": "369550108",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.472922,
+     "splv": 0.851659
+    }
+   },
+   {
+    "zh": "中点能源",
+    "ticker": "CNP",
+    "sym": "usCNP",
+    "cusip": "15189T107",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.118661,
+     "splv": 1.204198
+    }
+   },
+   {
+    "zh": "洛斯公司",
+    "ticker": "L",
+    "sym": "usL",
+    "cusip": "540424108",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.075851,
+     "splv": 1.210205
+    }
+   },
+   {
+    "zh": "威廉姆斯",
+    "ticker": "WMB",
+    "sym": "usWMB",
+    "cusip": "969457100",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.322786,
+     "splv": 0.896805
+    }
+   },
+   {
+    "zh": "印北瓦电",
+    "ticker": "NI",
+    "sym": "usNI",
+    "cusip": "65473P105",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.076191,
+     "splv": 1.10886
+    }
+   },
+   {
+    "zh": "芬塔公司",
+    "ticker": "VTR",
+    "sym": "usVTR",
+    "cusip": "92276F100",
+    "type": "REIT",
+    "pcts": {
+     "spmo": 0.195975,
+     "splv": 0.979754
+    }
+   },
+   {
+    "zh": "安特吉",
+    "ticker": "ETR",
+    "sym": "usETR",
+    "cusip": "29364G103",
+    "type": "COM",
+    "pcts": {
+     "spmo": 0.175729,
+     "splv": 0.981166
+    }
+   }
+  ]
+ }
+}
