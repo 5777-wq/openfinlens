@@ -1024,3 +1024,98 @@ body.no-crypto .crypto-only { display: none !important; }
 .ce-link:hover { border-color: var(--accent-signature); }
 .rel-soft { opacity: 0.75; }
 
+
+/* ==================== 基金对比（多标的总收益对比） ====================
+   曲线颜色复用 --ma-0..5 调色板：那 6 个色已经过色距断言（ΔE ≥ 15 且不与涨跌色混淆），
+   对比图最多 8 条曲线，超过 6 条时循环取色——不再另造一套颜色字面量。 */
+.cmp-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.cmp-search { flex: 1; min-width: 220px; max-width: 420px; }
+.cmp-search .search-input { width: 100%; }
+.cmp-retry { margin-left: auto; }
+
+.cmp-presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.cmp-preset { padding: 4px 10px; border: 1px solid var(--border); border-radius: 3px;
+  background: none; color: var(--text-tertiary); font-size: 11px; cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+.cmp-preset:hover { color: var(--text); border-color: var(--border-hover); }
+
+.cmp-chips-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.cmp-chips-cap { font-size: 10px; letter-spacing: 0.14em; color: var(--text-tertiary); }
+.cmp-chips { display: flex; gap: 8px; flex-wrap: wrap; min-height: 30px; margin-bottom: 18px; }
+.cmp-chip { display: inline-flex; align-items: center; gap: 7px; padding: 5px 8px 5px 9px;
+  border: 1px solid var(--border); border-radius: 3px; background: var(--bg-card);
+  font-size: 12px; cursor: pointer; }
+.cmp-chip:hover { border-color: var(--border-hover); }
+.cmp-chip-code { font-size: 12px; font-weight: 600; }
+.cmp-chip-name { font-size: 11px; color: var(--text-tertiary); max-width: 130px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmp-chip-x { width: 16px; height: 16px; line-height: 1; border: none; background: none;
+  color: var(--text-faint); font-size: 14px; cursor: pointer; padding: 0; }
+.cmp-chip-x:hover { color: var(--up); }
+.cmp-dot { width: 7px; height: 7px; border-radius: 1px; flex: none; display: inline-block; }
+
+.cmp-toolbar { gap: 18px; }
+.cmp-field { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-tertiary); }
+.cmp-date { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 3px;
+  color: var(--text); font-family: var(--font-mono); font-size: 11px; padding: 4px 6px; }
+.cmp-date:focus { outline: none; border-color: rgba(var(--accent-rgb), 0.5); }
+.cmp-quick, .cmp-seg { display: inline-flex; align-items: center; gap: 12px; }
+
+.cmp-chart { padding: 10px; }
+.cmp-chart.off { display: none; }
+#cmpChart { width: 100%; height: 460px; }
+.cmp-legend { display: flex; gap: 18px; flex-wrap: wrap; align-items: center;
+  margin: 10px 0 40px; font-size: 11px; }
+.cmp-lg { display: inline-flex; align-items: baseline; gap: 7px; cursor: pointer; }
+.cmp-lg:hover b { color: var(--accent-signature); }
+.cmp-lg b { font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+.cmp-lg-val { font-size: 12px; }
+.cmp-lg-ret { font-size: 11px; }
+.cmp-lg-tag { font-size: 10px; color: var(--text-faint); }
+.cmp-lg-off { color: var(--text-tertiary); cursor: default; }
+
+.cmp-scroll { overflow-x: auto; }
+.cmp-row { display: grid; align-items: center; gap: 10px;
+  grid-template-columns: minmax(150px, 1.7fr) 118px 44px 78px 66px 72px 106px 50px 50px 82px 82px;
+  padding: 9px 0; border-bottom: 1px solid var(--border); }
+/* 固定 11 列的只有区间指标表（横向滚动兜底）；年度/相关性矩阵列数随标的数变化，
+   宽度由内联 grid-template-columns 决定，不能强塞一个 min-width */
+#cmpMetrics .cmp-row { min-width: 940px; }
+.cmp-row:not(.cmp-head):hover { background: var(--bg-hover); }
+.cmp-row:not(.cmp-head) { cursor: pointer; }
+.cmp-head { font-size: 10px; color: var(--text-faint); letter-spacing: 0.08em;
+  border-bottom-color: var(--border-hover); padding-bottom: 7px; }
+.cmp-head > span, .cmp-row > span { text-align: right; }
+.cmp-head > .cmp-c-name, .cmp-row > .cmp-c-name, .cmp-head > .cmp-c-year, .cmp-row > .cmp-c-year,
+.cmp-head > .cmp-c-y { text-align: left; }
+.cmp-c-name { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.cmp-c-name b { font-family: var(--font-mono); font-size: 12.5px; }
+.cmp-c-name em { font-style: normal; font-size: 11px; color: var(--text-tertiary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmp-c-name .cmp-flag { font-style: normal; font-size: 9.5px; padding: 1px 5px;
+  border: 1px solid var(--border-hover); border-radius: 2px; color: var(--warn); flex: none; }
+.cmp-row em { display: block; font-style: normal; font-size: 10px; color: var(--text-faint); }
+.cmp-dim { color: var(--text-tertiary); }
+.cmp-p { font-style: normal; color: var(--accent-signature); margin-left: 2px; }
+.cmp-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 10px; }
+.cmp-corr { display: block; text-align: center; font-family: var(--font-mono); font-size: 11.5px;
+  padding: 5px 0; border-radius: 3px; }
+.cmp-corr-diag { color: var(--text-faint); }
+.cmp-corr.cmp-dim { color: var(--text-faint); }
+
+.cmp-note { display: flex; flex-direction: column; gap: 6px; margin-top: 8px;
+  font-size: 11px; line-height: 1.7; color: var(--text-tertiary); }
+.cmp-note b { color: var(--text-secondary); font-weight: 600; }
+
+@media (max-width: 860px) {
+  #cmpChart { height: 320px; }
+  #cmpMetrics .cmp-row { min-width: 620px;
+    grid-template-columns: minmax(118px, 1.5fr) 78px 62px 64px 86px 68px 68px; }
+  /* 窄屏砍掉 区间(2)/年数(3)/卡玛(8)/夏普(9)：留下的 7 列与上面的模板一一对应。
+     必须限定在 #cmpMetrics 内——年度/相关性矩阵的列语义完全不同，按位置隐藏会砍错列 */
+  #cmpMetrics .cmp-row > span:nth-child(2), #cmpMetrics .cmp-row > span:nth-child(3),
+  #cmpMetrics .cmp-row > span:nth-child(8), #cmpMetrics .cmp-row > span:nth-child(9) { display: none; }
+  .cmp-chips .cmp-chip-name { display: none; }
+  /* 窄屏基金名会被压成一条看不清的碎字（118px 里还要塞"价格"角标）→ 整块隐藏，只留代码 */
+  .cmp-c-name em { display: none; }
+}

@@ -115,7 +115,11 @@
     'brkBox', 'brkVia', 'marketTitle', 'globalOverview', 'moodPanel',
     'aFundsPanel', 'usFundsPanel', 'hkFundsPanel', 'sbBox', 'sbVia',
     'cryptoMoodPanel', 'usMoodPanel', 'fundBox', 'fundVia', 'etfBox', 'etfVia',
-    'actorBack', 'actorName', 'actorType', 'actorMeta', 'actorStats', 'actorStatsSub', 'actorTimeline'];
+    'actorBack', 'actorName', 'actorType', 'actorMeta', 'actorStats', 'actorStatsSub', 'actorTimeline',
+    // 基金对比：视图模块自己持有这些节点的引用（app.js 只负责在 init 时把节点交出去）
+    'cmpBar', 'cmpInput', 'cmpResults', 'cmpAdd', 'cmpStatus', 'cmpRetry', 'cmpPresets',
+    'cmpChips', 'cmpChipsSub', 'cmpSub', 'cmpStart', 'cmpEnd', 'cmpQuick', 'cmpLog', 'cmpNormHint',
+    'cmpChartBox', 'cmpChart', 'cmpLegend', 'cmpMetrics', 'cmpMetricsSub', 'cmpYearly', 'cmpCorr', 'cmpNote'];
 
   const pctClass = (p) => (p === null || p === undefined || isNaN(p)) ? 'flat' : (p > 0 ? 'up' : p < 0 ? 'down' : 'flat');
   // 缓存 matchMedia 结果：渲染期每张卡片查 2 次，整墙渲染就是上百次 matchMedia 调用
@@ -2842,6 +2846,7 @@
   const VIEW_OF_TAB = {
     all: 'market', cn: 'market', hk: 'market', us: 'market', crypto: 'market', fxmacro: 'market',
     events: 'events', chain: 'chain', watch: 'watch',
+    compare: 'compare',   // 基金对比：独立视图（跨市场，不挂在任何单一市场 tab 下）
     mood: 'market',   // 旧 hash：情绪已并入 A股板块
     // 旧快捷方式/hash 兼容：新闻→事件页，喊单→事件页的公开言论，资金页→A股（席位/龙虎榜已归位到 A股）
     news: 'events', voices: 'events', funds: 'market',
@@ -2897,6 +2902,21 @@
     }
     const mTab = h.match(/#tab=([a-z]+)/);
     if (mTab && VIEW_OF_TAB[mTab[1]]) {
+      // 基金对比的深链带自己的参数（f/start/end/g/n/a/log）→ 交给视图自己解析后取数，
+      // 直接 setTab 会按"上次选择"渲染，用户点开分享链接看到的就不是那条曲线了
+      if (mTab[1] === 'compare') {
+        if (state.view !== 'compare') { if (state.view === 'actor') leaveActor(); leaveDetail(); }
+        el.tabs.querySelectorAll('.tab').forEach(b => {
+          const on = b.dataset.tab === 'compare';
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-selected', String(on));
+        });
+        state.tab = 'compare';
+        setView('compare');
+        window.CompareView.applyHash(h);
+        renderStatus();
+        return;
+      }
       if (state.view !== 'detail' && state.tab === mTab[1]) return;
       if (state.view === 'actor') leaveActor();
       leaveDetail();
@@ -2987,12 +3007,16 @@
     // hidden→visible 时之前所有 drawHeat 都被可见性守卫跳过了，回视图必须补一次，
     // 否则画布停留在旧尺寸/旧布局（黑屏或命中错位）
     if (heatWasHidden && !el.heatSection.hidden) drawHeat();
-    // hash 深链：除非本次切换本身由"后退/前进"触发（push=false），否则写入历史
-    if (!opts || opts.push !== false) navigate('#tab=' + tab);
+    // hash 深链：除非本次切换本身由"后退/前进"触发（push=false），否则写入历史。
+    // 基金对比把自己的选择（标的/区间/口径）写进 hash，复制地址就是把这个对比分享出去。
+    if (!opts || opts.push !== false) {
+      navigate(view === 'compare' && window.CompareView ? window.CompareView.hashFor() : '#tab=' + tab);
+    }
 
     if (view === 'market') renderCardWall(animate);
     if (view === 'watch') renderWatchlist();
     if (view === 'events') setEventsSub(state.eventsSub);
+    if (view === 'compare' && window.CompareView) window.CompareView.onEnter();
     if (tab === 'cn') {
       if (state.breadth) renderMood();
       loadMood();
@@ -3838,6 +3862,24 @@
     loadChainQuotes().then(renderChains);
     loadGlobe();
     if (CRYPTO_ON) loadHeatCrypto();
+
+    // 基金对比：把节点交给视图模块（它自己绑定控件、自己取数）。
+    // 不在这里预取：这页一次要拉 6 条十几年长历史，进页面才拉（onEnter 首次触发）。
+    if (window.CompareView) {
+      window.CompareView.mount({
+        wrap: el.cmpBar, input: el.cmpInput, results: el.cmpResults, add: el.cmpAdd,
+        status: el.cmpStatus, retry: el.cmpRetry, presets: el.cmpPresets,
+        chips: el.cmpChips, chipsSub: el.cmpChipsSub, sub: el.cmpSub,
+        start: el.cmpStart, end: el.cmpEnd, quick: el.cmpQuick,
+        log: el.cmpLog, normHint: el.cmpNormHint,
+        chartBox: el.cmpChartBox, chart: el.cmpChart, legend: el.cmpLegend,
+        metrics: el.cmpMetrics, metricsSub: el.cmpMetricsSub,
+        yearly: el.cmpYearly, corr: el.cmpCorr, note: el.cmpNote,
+      }, {
+        openDetail,
+        tencentOfSecid,
+      });
+    }
 
     // 全球事件 + 龙虎榜：开屏后后台预取（K 线事件标记要用，事件页/资金页进来秒显）
     loadEvents().catch(() => { /* 无数据时 UI 显示"采集任务未运行" */ });

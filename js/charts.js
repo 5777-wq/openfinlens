@@ -227,6 +227,96 @@ const Charts = (() => {
     };
   }
 
+  /* 基金对比：N 条归一化曲线共用一套 --ma-N 调色板（与 K线均线同一份令牌，
+     不另起一套颜色字面量），十字光标横向联动出各标的当日读数。 */
+  function createCompare(el, { onHover } = {}) {
+    const L = LWC();
+    if (!L) return null;
+    const chart = L.createChart(el, Object.assign(baseOptions(), {
+      height: el.clientHeight || 460,
+      /* 下边距 0.04 是量出来的：0.08 时 lightweight-charts 会在数据下方（下边距带内）
+         多画一个 0.00 刻度——归一曲线的 0 点毫无意义，容易被读成"从 0 开始"。
+         0.04 时 0 落在画布外（实测 y=400.4 > 400），曲线仍留 16px 余量不贴边。 */
+      rightPriceScale: { borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.10, bottom: 0.04 } },
+      // 对比图靠鼠标拖拽看细节，滚轮留给页面滚动更符合直觉
+      handleScroll: { mouseWheel: false, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
+      handleScale: { mouseWheel: false, pinch: true, axisPressedMouseMove: true, axisDoubleClickReset: true },
+    }));
+    let series = [];                 // [{ key, s }]
+    let hoverCb = onHover || null;
+    let lastTimes = [];
+
+    function palette() { return themeColors().lineColors; }
+
+    function ensure(n) {
+      const colors = palette();
+      while (series.length < n) {
+        const i = series.length;
+        series.push({
+          key: null,
+          s: addSeries(chart, 'Line', {
+            color: colors[i % colors.length], lineWidth: 2,
+            priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: true,
+          }),
+        });
+      }
+      return colors;
+    }
+
+    function setSeries(list) {
+      const colors = ensure(list.length);
+      lastTimes = [];
+      series.forEach((slot, i) => {
+        const item = list[i];
+        if (!item) { slot.key = null; slot.s.setData([]); return; }
+        slot.key = item.key;
+        slot.s.applyOptions({
+          color: colors[i % colors.length],
+          title: '',
+          lastValueVisible: list.length <= 8,
+        });
+        slot.s.setData(item.points.map(p => ({ time: p.time, value: p.value })));
+        if (item.points.length) lastTimes.push(item.points[item.points.length - 1].time);
+      });
+      chart.timeScale().fitContent();
+    }
+
+    function setLog(on) {
+      try {
+        const mode = on ? L.PriceScaleMode.Logarithmic : L.PriceScaleMode.Normal;
+        chart.priceScale('right').applyOptions({ mode });
+      } catch { /* 旧版本没有 PriceScaleMode：忽略即可，图的绝对值仍可读 */ }
+    }
+
+    const tKey = (t) => typeof t === 'string' ? t
+      : (t && typeof t === 'object' && t.year) ? t.year + '-' + String(t.month).padStart(2, '0') + '-' + String(t.day).padStart(2, '0')
+      : String(t);
+
+    if (typeof chart.subscribeCrosshairMove === 'function') {
+      chart.subscribeCrosshairMove((param) => {
+        if (!hoverCb) return;
+        const time = param && param.time !== undefined && param.time !== null ? tKey(param.time) : null;
+        const vals = {};
+        if (time) {
+          series.forEach(slot => {
+            if (!slot.key) return;
+            const d = param.seriesData && param.seriesData.get ? param.seriesData.get(slot.s) : null;
+            if (d && d.value !== undefined && d.value !== null) vals[slot.key] = d.value;
+          });
+        }
+        hoverCb(time, vals);
+      });
+    }
+
+    return {
+      chart, setSeries, setLog,
+      setHover(fn) { hoverCb = fn; },
+      applyTheme() { const c = palette(); series.forEach((slot, i) => slot.s.applyOptions({ color: c[i % c.length] })); },
+      fit() { chart.timeScale().fitContent(); },
+      remove() { try { chart.remove(); } catch { /* ignore */ } },
+    };
+  }
+
   // MA 均线序列（自算）；窗口内含 null/脏收盘价时该点断线（null 当 0 加会算出假均线）
   function calcMA(klines, n) {
     const out = [];
@@ -255,7 +345,7 @@ const Charts = (() => {
     return closes.map(() => null);
   }
 
-  return { createKline, createTrend, calcMA, emaSeries, themeColors };
+  return { createKline, createTrend, createCompare, calcMA, emaSeries, themeColors };
 })();
 
 window.Charts = Charts;
