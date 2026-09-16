@@ -487,7 +487,7 @@
       <div class="hero-value" data-price="${escapeHTML(sym)}">${fmt(q.price, digits)}</div>
       <div class="hero-chg ${cls}"><span data-hero-chg>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
       ${window.Spark ? window.Spark.sparkBoxHTML(sym) : ''}
-      <span data-hero-range>${window.Spark ? window.Spark.rangeBarHTML(pos) : ''}</span>
+      <span data-hero-range>${window.Spark ? window.Spark.rangeBarHTML(pos, { low: q.low, high: q.high, digits }) : ''}</span>
     </div>`;
   }
 
@@ -523,7 +523,7 @@
       }
       // 当日振幅条的指示点跟着现价走（否则它停在开盘那一刻的位置）
       const r = cell.querySelector('[data-hero-range]');
-      if (r && window.Spark) r.innerHTML = window.Spark.rangeBarHTML(window.Spark.rangePos(q.price, q.low, q.high));
+      if (r && window.Spark) r.innerHTML = window.Spark.rangeBarHTML(window.Spark.rangePos(q.price, q.low, q.high), { low: q.low, high: q.high, digits });
     });
   }
 
@@ -648,7 +648,7 @@
       <div class="hero-value">${fmt(q.price, digits)}</div>
       <div class="hero-chg ${cls}"><span>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
       ${window.Spark ? window.Spark.sparkBoxHTML(sym) : ''}
-      ${window.Spark ? window.Spark.rangeBarHTML(pos) : ''}
+      ${window.Spark ? window.Spark.rangeBarHTML(pos, { low: q.low, high: q.high, digits }) : ''}
     </div>`;
   }
 

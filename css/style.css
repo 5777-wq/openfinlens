@@ -1127,13 +1127,18 @@ body.no-crypto .crypto-only { display: none !important; }
 .hero-cell .spark, .wcard .spark { display: block; width: 100%; height: 34px; margin-top: 10px; }
 .wcard .spark { height: 30px; margin-top: 8px; }
 
-/* 当日振幅条：轨道 + 现价指示点（位置由 Spark.rangePos 算，夹紧在 0..1） */
-.rbar { position: relative; display: block; height: 3px; margin-top: 8px;
-  background: var(--border); border-radius: 2px; }
-.rbar > i { position: absolute; top: -2.5px; width: 8px; height: 8px; margin-left: -4px;
-  border-radius: 50%; background: var(--text-secondary); }
-.hero-cell .rbar > i, .wcard .rbar > i { background: var(--accent-signature); }
-
+/* 日内区间条：**左端=今日最低、右端=今日最高**，轨道上的点=现价位置。
+   第一版只有轨道 + 一个孤零零的点，界面没有任何说明，用户直接问"这个点是啥意思"
+   （2026-09-16）→ 两端补上数值、整条带 title 提示。位置由 Spark.rangePos 算（夹紧 0..1）。 */
+.rbar { display: flex; align-items: center; gap: 6px; margin-top: 8px; cursor: help; }
+.rbar .rb-lo, .rbar .rb-hi { font-size: 9.5px; color: var(--text-faint); font-style: normal;
+  white-space: nowrap; flex: none; }
+.rbar .rb-track { position: relative; flex: 1; height: 3px; background: var(--border); border-radius: 2px; }
+.rbar .rb-track > b { position: absolute; top: -2.5px; width: 8px; height: 8px; margin-left: -4px;
+  border-radius: 50%; background: var(--accent-signature); }
+@media (max-width: 860px) {
+  .rbar .rb-lo, .rbar .rb-hi { display: none; }   /* 窄屏只留轨道，数值靠 title 提示 */
+}
 /* 全球涨跌概览条：一眼看清"今天几个涨几个跌" */
 .globe-sum { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 11px;
   color: var(--text-tertiary); }

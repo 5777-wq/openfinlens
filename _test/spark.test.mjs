@@ -57,6 +57,23 @@ test('rangeBarHTML：位置只以 0.1% 精度进样式，越界输入不可能�
   assert.equal(S.rangeBarHTML('0"><script>'), '');
 });
 
+test('rangeBarHTML：两端标出当日最低/最高，并有 title 说清那个点是什么', () => {
+  // 第一版只有一个孤零零的圆点、界面无任何说明，用户直接问"这个点是啥意思"（2026-09-16）
+  const html = S.rangeBarHTML(0.62, { low: 12.34, high: 13.56, digits: 2 });
+  assert.match(html, /rb-lo num">12\.34</, '左端 = 今日最低');
+  assert.match(html, /rb-hi num">13\.56</, '右端 = 今日最高');
+  assert.match(html, /title="日内区间 12\.34 ~ 13\.56 · 现价位于 62\.0%"/, 'title 必须把区间和位置都说出来');
+  assert.match(html, /left:62\.0%/, '点仍然落在算出来的位置');
+});
+
+test('rangeBarHTML：没有高低价时只画位置点，不编造两端数值', () => {
+  const html = S.rangeBarHTML(0.4);
+  assert.ok(!/rb-lo|rb-hi/.test(html), '缺 low/high 就不该出现数字');
+  assert.match(html, /title="现价位于日内区间的 40\.0%"/);
+  const partial = S.rangeBarHTML(0.4, { low: 10, high: null });
+  assert.ok(!/rb-lo|rb-hi/.test(partial), '只有一个端点值也算缺，宁可不标');
+});
+
 /* ---------------- 迷你走势线的坐标 ---------------- */
 
 test('sparkPoints：首末点贴左右边，最高价在最上、最低价在最下', () => {

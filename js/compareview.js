@@ -18,9 +18,11 @@ window.CompareView = (() => {
   const DEF_START = '2010-01-01';
   const EARLIEST = '2006-01-01';      // 东财后复权实测最早只到 2006-10（5000 根日线）
 
-  /* 常用组合：全部逐个实测过能取到历史（_test/history.test.mjs 锁住） */
+  /* 常用组合：全部逐个实测过能取到历史（_test/history.test.mjs 锁住）。
+     第一项曾是「你举的例」——拿用户的话当按钮名很奇怪（用户 2026-09-16 直接吐槽），
+     改成按内容命名。 */
   const PRESETS = [
-    { label: '你举的例', codes: ['QQQ', 'DIA', 'SPY', 'SCHD', 'SPMO', 'SCHG'] },
+    { label: '宽基 + 红利', codes: ['QQQ', 'DIA', 'SPY', 'SCHD', 'SPMO', 'SCHG'] },
     { label: '美股宽基', codes: ['SPY', 'QQQ', 'DIA', 'IWM', 'VTI'] },
     { label: '红利 / 因子', codes: ['SCHD', 'SPMO', 'SCHG', 'SPLV', 'VYM'] },
     { label: 'A股宽基', codes: ['510300', '510500', '510050', '159915', '588000'] },

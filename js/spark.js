@@ -69,13 +69,24 @@ const Spark = (() => {
     return true;
   }
 
-  /* 当日振幅条：轨道 + 现价指示点。位置是算出来的百分比，**四舍五入到 0.1%**，
-     所以样式串里不可能混进调用方传来的其它字符（注入面为零）。
-     非数字（含 null/字符串）一律返回空串：`Math.min(1, 'x')` 是 NaN，会渲染出 left:NaN% 这种垃圾样式。 */
-  function rangeBarHTML(pos) {
+  /* 日内区间条：**左端=今日最低、右端=今日最高**，点上的是现价位置，两端标出数值。
+     第一版只画了轨道 + 一个圆点，界面上没有任何说明——用户直接问"这个点是啥意思"
+     （2026-09-16）。所以现在把两端数值和 title 都带上：图形自己说清自己，
+     而不是指望用户猜到。落点仍是算出来的百分比（0.1% 精度，注入面为零）。 */
+  function rangeBarHTML(pos, opts = {}) {
     if (!isNum(pos)) return '';
     const pct = (Math.max(0, Math.min(1, pos)) * 100).toFixed(1);
-    return `<span class="rbar" aria-hidden="true"><i style="left:${pct}%"></i></span>`;
+    const { low, high, digits = 2, label = '日内' } = opts;
+    const fmtV = (v) => (isNum(v) ? v.toFixed(digits) : '');
+    const hasEnds = isNum(low) && isNum(high);
+    const title = hasEnds
+      ? `${label}区间 ${fmtV(low)} ~ ${fmtV(high)} · 现价位于 ${pct}%`
+      : `现价位于${label}区间的 ${pct}%`;
+    const ends = hasEnds
+      ? `<i class="rb-lo num">${fmtV(low)}</i><i class="rb-hi num">${fmtV(high)}</i>`
+      : '';
+    return `<span class="rbar" title="${title}" aria-label="${title}">${ends}` +
+      `<span class="rb-track"><b style="left:${pct}%"></b></span></span>`;
   }
 
   /* 迷你走势图的容器（canvas 由调用方在插入 DOM 后 draw——canvas 必须先有尺寸才能画） */
