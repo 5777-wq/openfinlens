@@ -29,22 +29,26 @@ jobs:
       - name: Collect GDELT + Sina global events
         run: node _scripts/collect-events.mjs
 
-      - name: Refresh 13F holdings (multi-institution, every ~6h UTC 00/06/12/18)
+      - name: Refresh 13F / fund holdings / factor-ETF holdings (every ~6h UTC 00/06/12/18)
         run: |
           # GitHub 定时在高负载整点常延迟数分钟：精确匹配 M=="00" 曾会因延迟跨跳
           # 静默跳过整个 6h 档。改用 10 分钟窗口（0:00/6:00/12:00/18:00 后 10 分钟内
           # 必中某一跳）；脚本自身幂等（无变化不写文件），重复执行无害。
+          # ETF 持仓是日更数据，挂 6h 档而不是 */5：Invesco 接口对密集请求回 406（软限流）。
           H=$(date -u +%H); M=$(date -u +%M); MINS=$((10#$H * 60 + 10#$M))
           if [ $(( MINS % 360 )) -lt 10 ]; then
             node _scripts/collect-13f.mjs || echo "13f collect failed (keep old data)"
             node _scripts/collect-fundholds.mjs || echo "fundholds collect failed (keep old data)"
+            node _scripts/collect-etf.mjs || echo "etf collect failed (keep old data)"
           fi
 
       - name: Commit if changed
         run: |
           git config user.name "openfinlens-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/events/global-events.json data/actors/berkshire.json
+          # 整个 data/actors 目录都进 add：此前只 add 两个文件，13f.json/fundholds.json
+          # 采集成功却从不提交（上线数据全靠手动推的那一次），CI 侧更新会被静默丢掉
+          git add data/events/global-events.json data/actors
           if git diff --cached --quiet; then
             echo "no changes"
           else
