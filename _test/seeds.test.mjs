@@ -96,6 +96,51 @@ await test('fundholds.json：报告期/滞后合理，增仓为正、减仓为�
   assert.ok(desc(d.topTrim), '减仓榜应按 |变动金额| 降序');
 });
 
+await test('etf.json：因子 ETF 持仓——只含股票行、占净值降序、交集与基金清单互恰', async () => {
+  const f = path.join(ROOT, 'data/actors/etf.json');
+  if (!existsSync(f)) { console.log('   （种子尚未生成，跳过）'); return; }
+  const d = JSON.parse(readFileSync(f, 'utf8'));
+  assert.equal(typeof d.asOf, 'string', 'asOf（持仓基准日）');
+  assert.ok(Number.isFinite(d.lagDays) && d.lagDays >= 0 && d.lagDays <= 10,
+    `lagDays=${d.lagDays} 不合理（日更披露，超过 10 天说明产物过期）`);
+  assert.ok(Array.isArray(d.funds) && d.funds.length >= 2, '至少两只因子 ETF 才能算交集');
+  const keys = new Set();
+  for (const fd of d.funds) {
+    keys.add(fd.key);
+    assert.ok(fd.ticker && fd.cusip, `${fd.key} ticker/cusip`);
+    // 官方 feed 里的现金/货币基金/期货（AGPXX、USD、USDPDV、IFUT/SYN…）必须在采集层被滤掉
+    const JUNK = /^(AGPXX|USD|USDPDV|CURRCOL|UCURR)$/i;
+    assert.ok(fd.holdings.length > 0, `${fd.ticker} 持仓应非空`);
+    assert.ok(fd.holdings.length <= fd.equityCount, '展示行数不超过股票总数');
+    assert.ok(fd.shownPct > 0 && fd.shownPct <= 100, `${fd.ticker} Top 占净值 ${fd.shownPct}%`);
+    let sum = 0;
+    fd.holdings.forEach((h, i) => {
+      assert.ok(!JUNK.test(h.ticker), `${fd.ticker} 混入非股票行 ${h.ticker}`);
+      assert.ok(h.pct > 0, `${fd.ticker} ${h.ticker} 占净值应为正`);
+      assert.ok(h.sym && h.sym.startsWith('us'), `${h.ticker} sym 应是腾讯美股代码`);
+      if (i > 0) assert.ok(fd.holdings[i - 1].pct >= h.pct, `${fd.ticker} 应按占净值降序`);
+      sum += h.pct;
+    });
+    // shownPct 与逐行求和一致（±0.5% 容浮点）
+    assert.ok(Math.abs(sum - fd.shownPct) < 0.5, `${fd.ticker} shownPct=${fd.shownPct} 与逐行和 ${sum.toFixed(2)} 不符`);
+  }
+  // 交集：键与基金清单互恰，两两占净值都为正，且按合计降序
+  assert.ok(Array.isArray(d.overlap.rows), 'overlap.rows');
+  for (const k of d.overlap.keys) assert.ok(keys.has(k), `overlap 引用了未知基金 ${k}`);
+  let prev = Infinity;
+  for (const r of d.overlap.rows) {
+    const a = r.pcts[d.overlap.keys[0]], b = r.pcts[d.overlap.keys[1]];
+    assert.ok(a > 0 && b > 0, `${r.ticker} 交集行两侧占净值都应为正`);
+    const s = a + b;
+    assert.ok(prev >= s - 1e-9, '交集应按合计占净值降序');
+    prev = s;
+  }
+  // 中文名覆盖率（腾讯批量补名，偶尔失败可容忍，但大面积缺失说明补名链路断了）
+  const all = d.funds.flatMap(fd => fd.holdings).concat(d.overlap.rows);
+  const named = all.filter(h => h.zh && h.zh.length).length;
+  assert.ok(named >= all.length * 0.8, `中文名覆盖 ${named}/${all.length} 过低`);
+});
+
 setTimeout(() => {
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exitCode = fail ? 1 : 0;

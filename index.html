@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
 <!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
      对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
-<link rel="stylesheet" href="css/style.css?v=20260915t">
+<link rel="stylesheet" href="css/style.css?v=20260915u">
 </head>
 <body data-updown="red">
 
@@ -185,16 +185,39 @@
       </div>
     </div>
 
-    <!-- ===== 美股披露类：机构持仓 13F（原"聪明钱"tab，仅 美股 tab 显示）===== -->
+    <!-- ===== 美股披露类：机构 13F / 因子 ETF 持仓（原"聪明钱"tab，仅 美股 tab 显示）
+         两块数据性质不同（季度 SEC 披露 vs 日更官方持仓），竖排堆一屏会乱——分子页 ===== -->
     <div id="usFundsPanel" hidden>
-      <div class="section" data-fold>
-        <div class="section-head">
-          <h2 class="section-title">机构持仓 · 13F</h2>
-          <span class="sec-line"></span>
-          <span class="section-sub" id="brkVia">—</span>
+      <div class="heat-toolbar" id="usFundsBar" role="tablist" aria-label="美股披露数据切换">
+        <button class="pill active" data-fundssub="13f" role="tab" aria-selected="true">机构 13F</button>
+        <button class="pill" data-fundssub="etf" role="tab" aria-selected="false">因子 ETF 持仓</button>
+      </div>
+      <div data-fundspane="13f">
+        <div class="section" data-fold>
+          <div class="section-head">
+            <h2 class="section-title">机构持仓 · 13F</h2>
+            <span class="sec-line"></span>
+            <span class="section-sub" id="brkVia">—</span>
+          </div>
+          <div id="brkBox"><div class="sk sk-row"></div></div>
+          <p class="insight-disclaimer">多家机构的美国 SEC 13F-HR 季度披露（伯克希尔·哈撒韦 / 桥水 / ARK / Pershing Square，面板上用按钮切换）。<strong>报告期末到提交日实测滞后 34~45 天</strong>——标题里写的是真实滞后天数，它是几个季度前的持仓快照，不是当前仓位。标记为「看涨期权 / 看跌期权」的行是期权（<strong>股数是名义合约股数，不是持股</strong>），与正股分开统计。不含非美资产；「环比」是与上一期同 CUSIP 同类型的股数对比。全部为历史事实陈述，不构成任何建议。</p>
         </div>
-        <div id="brkBox"><div class="sk sk-row"></div></div>
-        <p class="insight-disclaimer">多家机构的美国 SEC 13F-HR 季度披露（伯克希尔·哈撒韦 / 桥水 / ARK / Pershing Square，面板上用按钮切换）。<strong>报告期末到提交日实测滞后 34~45 天</strong>——标题里写的是真实滞后天数，它是几个季度前的持仓快照，不是当前仓位。标记为「看涨期权 / 看跌期权」的行是期权（<strong>股数是名义合约股数，不是持股</strong>），与正股分开统计。不含非美资产；「环比」是与上一期同 CUSIP 同类型的股数对比。全部为历史事实陈述，不构成任何建议。</p>
+      </div>
+      <div data-fundspane="etf" hidden>
+        <div class="section" data-fold>
+          <div class="section-head">
+            <h2 class="section-title">因子 ETF 持仓</h2>
+            <span class="sec-line"></span>
+            <span class="section-sub" id="etfVia">—</span>
+          </div>
+          <div class="heat-toolbar" role="tablist" aria-label="因子 ETF 切换">
+            <button class="pill active" data-etfsub="spmo" role="tab" aria-selected="true">动量 SPMO</button>
+            <button class="pill" data-etfsub="splv" role="tab" aria-selected="false">低波 SPLV</button>
+            <button class="pill" data-etfsub="both" role="tab" aria-selected="false">双因子交集</button>
+          </div>
+          <div id="etfBox"><div class="sk sk-row"></div></div>
+          <p class="insight-disclaimer">规则化因子 ETF 的<strong>每日全量持仓</strong>（Invesco 官方发布）：动量 ETF 的持仓回答"趋势资金集中在哪"，低波 ETF 回答"防御资金在哪"，交集是<strong>同时被两类因子选中</strong>的股票。这是编制规则定期调仓（半年/季度）后的<strong>被动持仓</strong>，不是某位基金经理的主观判断。已剔除官方 feed 里的现金 / 货币基金 / 指数期货等非股票行；「占净值」合计不足 100% 是因为只列 Top 40（低波近乎等权，Top 40 只占约一半净值，这不是缺数据）。点击行进 K 线详情。历史事实陈述，不构成任何建议。</p>
+        </div>
       </div>
     </div>
 
@@ -423,41 +446,42 @@
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script src="js/utils.js?v=20260915t"></script>
-<script src="js/store.js?v=20260915t"></script>
-<script src="js/proxy.js?v=20260915t"></script>
-<script src="js/data/universe.js?v=20260915t"></script>
-<script src="js/data/industry-chains.js?v=20260915t"></script>
-<script src="js/data/explain.js?v=20260915t"></script>
-<script src="js/technical.js?v=20260915t"></script>
-<script src="js/flags.js?v=20260915t"></script>
-<script src="js/bus.js?v=20260915t"></script>
-<script src="js/events.js?v=20260915t"></script>
-<script src="js/actors.js?v=20260915t"></script>
-<script src="js/sources/tencent.js?v=20260915t"></script>
-<script src="js/sources/sina.js?v=20260915t"></script>
-<script src="js/sources/eastmoney.js?v=20260915t"></script>
-<script src="js/sources/okx.js?v=20260915t"></script>
-<script src="js/sources/binance.js?v=20260915t"></script>
-<script src="js/sources/fred.js?v=20260915t"></script>
-<script src="js/sources/news.js?v=20260915t"></script>
-<script src="js/sources/worldbank.js?v=20260915t"></script>
-<script src="js/sources/gdelt.js?v=20260915t"></script>
-<script src="js/sources/lhb.js?v=20260915t"></script>
-<script src="js/sources/southbound.js?v=20260915t"></script>
-<script src="js/sources/fundholds.js?v=20260915t"></script>
-<script src="js/sources/sec.js?v=20260915t"></script>
-<script src="js/breadth.js?v=20260915t"></script>
-<script src="js/sessions.js?v=20260915t"></script>
-<script src="js/treemap.js?v=20260915t"></script>
-<script src="js/charts.js?v=20260915t"></script>
-<script src="js/engine/types.js?v=20260915t"></script>
-<script src="js/engine/geo.js?v=20260915t"></script>
-<script src="js/engine/news-engine.js?v=20260915t"></script>
-<script src="js/engine/event-engine.js?v=20260915t"></script>
-<script src="js/engine/impact-engine.js?v=20260915t"></script>
-<script src="js/engine/llm-provider.js?v=20260915t"></script>
-<script src="js/worldmap.js?v=20260915t"></script>
-<script src="js/app.js?v=20260915t"></script>
+<script src="js/utils.js?v=20260915u"></script>
+<script src="js/store.js?v=20260915u"></script>
+<script src="js/proxy.js?v=20260915u"></script>
+<script src="js/data/universe.js?v=20260915u"></script>
+<script src="js/data/industry-chains.js?v=20260915u"></script>
+<script src="js/data/explain.js?v=20260915u"></script>
+<script src="js/technical.js?v=20260915u"></script>
+<script src="js/flags.js?v=20260915u"></script>
+<script src="js/bus.js?v=20260915u"></script>
+<script src="js/events.js?v=20260915u"></script>
+<script src="js/actors.js?v=20260915u"></script>
+<script src="js/sources/tencent.js?v=20260915u"></script>
+<script src="js/sources/sina.js?v=20260915u"></script>
+<script src="js/sources/eastmoney.js?v=20260915u"></script>
+<script src="js/sources/okx.js?v=20260915u"></script>
+<script src="js/sources/binance.js?v=20260915u"></script>
+<script src="js/sources/fred.js?v=20260915u"></script>
+<script src="js/sources/news.js?v=20260915u"></script>
+<script src="js/sources/worldbank.js?v=20260915u"></script>
+<script src="js/sources/gdelt.js?v=20260915u"></script>
+<script src="js/sources/lhb.js?v=20260915u"></script>
+<script src="js/sources/southbound.js?v=20260915u"></script>
+<script src="js/sources/fundholds.js?v=20260915u"></script>
+<script src="js/sources/etf.js?v=20260915u"></script>
+<script src="js/sources/sec.js?v=20260915u"></script>
+<script src="js/breadth.js?v=20260915u"></script>
+<script src="js/sessions.js?v=20260915u"></script>
+<script src="js/treemap.js?v=20260915u"></script>
+<script src="js/charts.js?v=20260915u"></script>
+<script src="js/engine/types.js?v=20260915u"></script>
+<script src="js/engine/geo.js?v=20260915u"></script>
+<script src="js/engine/news-engine.js?v=20260915u"></script>
+<script src="js/engine/event-engine.js?v=20260915u"></script>
+<script src="js/engine/impact-engine.js?v=20260915u"></script>
+<script src="js/engine/llm-provider.js?v=20260915u"></script>
+<script src="js/worldmap.js?v=20260915u"></script>
+<script src="js/app.js?v=20260915u"></script>
 </body>
 </html>
