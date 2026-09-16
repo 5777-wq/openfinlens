@@ -86,6 +86,8 @@
     southbound: null, southboundDate: null, southboundAt: 0,
     // A股 基金持仓变动（东财采集静态 JSON，季度）：fundDir = add | trim
     fundHolds: null, fundHoldsAt: 0, fundDir: 'add',
+    // 美股 因子 ETF 持仓（Invesco 采集静态 JSON，日更）：etfSub = spmo | splv | both
+    etf: null, etfAt: 0, etfSub: 'spmo',
     chartEventsOn: true,       // 详情页 K 线事件标记开关
     lastUpdate: null,
     timers: {},
@@ -112,7 +114,7 @@
     'seatDir', 'seatDirVia',
     'brkBox', 'brkVia', 'marketTitle', 'globalOverview', 'moodPanel',
     'aFundsPanel', 'usFundsPanel', 'hkFundsPanel', 'sbBox', 'sbVia',
-    'cryptoMoodPanel', 'usMoodPanel', 'fundBox', 'fundVia',
+    'cryptoMoodPanel', 'usMoodPanel', 'fundBox', 'fundVia', 'etfBox', 'etfVia',
     'actorBack', 'actorName', 'actorType', 'actorMeta', 'actorStats', 'actorStatsSub', 'actorTimeline'];
 
   const pctClass = (p) => (p === null || p === undefined || isNaN(p)) ? 'flat' : (p > 0 ? 'up' : p < 0 ? 'down' : 'flat');
@@ -2062,6 +2064,77 @@
     }).join('');
   }
 
+  /* ---- 美股 因子 ETF 持仓（Invesco 官方日更持仓，采集静态 JSON）----
+     动量 ETF 的持仓回答"趋势资金集中在哪"，低波 ETF 回答"防御资金在哪"，
+     交集是同时被两类因子选中的股票。这是编制规则调仓后的被动持仓，不是基金经理的主观判断。 */
+  async function loadEtf() {
+    try {
+      const d = await window.EtfSource.getEtfHoldings();
+      state.etf = d;
+      state.etfAt = Date.now();
+      Cache.set('etf', d);
+    } catch {
+      const c = Cache.raw('etf');
+      if (c && c.val) state.etf = c.val;
+    }
+    renderEtf();
+  }
+
+  function renderEtf() {
+    if (!el.etfBox) return;
+    const d = state.etf;
+    if (!d) {
+      el.etfBox.innerHTML = '<div class="empty">因子 ETF 持仓暂不可用，稍后自动重试</div>';
+      if (el.etfVia) el.etfVia.textContent = '';
+      return;
+    }
+    document.querySelectorAll('[data-etfsub]').forEach(b => {
+      const on = b.getAttribute('data-etfsub') === state.etfSub;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', String(on));
+    });
+    // 三个子视图共用一套 7 列网格（与基金持仓行同款）；三列数值的格式由调用方定死——
+    // 交集视图三列都是百分比，单基金视图是 占净值% / 市值 / 股数，不能在行内按列号猜格式
+    const rowHtml = (x, i, cells, tag) => {
+      const nm = x.zh || x.ticker;
+      return `<div class="srow" ${x.sym ? `data-etfsym="${escapeHTML(x.sym)}"` : ''} data-etfname="${escapeHTML(nm)}"
+          tabindex="0" role="button" aria-label="${escapeHTML(nm)} ${cells.join(' ')}">
+        <span class="sr-no num">${String(i + 1).padStart(2, '0')}</span>
+        <span class="sr-name" title="${escapeHTML(x.zh || x.ticker)}">${escapeHTML(nm)}<span class="lr-code num">${escapeHTML(x.ticker || '')}</span></span>
+        ${cells.map(c => `<span class="sr-net num">${c}</span>`).join('')}
+        <span class="sr-count">${tag || ''}</span>
+        <span class="sr-arrow">${x.sym ? '▸' : ''}</span>
+      </div>`;
+    };
+    const pctCell = (v) => (v === null || v === undefined || isNaN(v)) ? '--' : v.toFixed(2) + '%';
+    let head, rowsHtml, via;
+    if (state.etfSub === 'both') {
+      const ov = d.overlap || { keys: [], labels: {}, rows: [] };
+      const k = ov.keys || [];
+      head = `<div class="srow-head" aria-hidden="true">
+        <span>#</span><span>股票 / 代码</span><span>${escapeHTML((ov.labels || {})[k[0]] || '动量')}占净值</span><span>${escapeHTML((ov.labels || {})[k[1]] || '低波')}占净值</span><span>合计</span><span>类型</span><span></span>
+      </div>`;
+      rowsHtml = ov.rows.map((x, i) => rowHtml(x, i, [
+        pctCell(x.pcts[k[0]]), pctCell(x.pcts[k[1]]),
+        pctCell((x.pcts[k[0]] || 0) + (x.pcts[k[1]] || 0)),
+      ], x.type === 'REIT' ? 'REIT' : '')).join('');
+      via = d.asOf + ' 持仓基准 · 同时被动量与低波 ETF 持有 ' + ov.rows.length + ' 只 · 按两者占净值合计排序';
+    } else {
+      const f = d.funds.find(x => x.key === state.etfSub) || d.funds[0];
+      head = `<div class="srow-head" aria-hidden="true">
+        <span>#</span><span>股票 / 代码</span><span>占净值</span><span>持仓市值</span><span>持股数</span><span>类型</span><span></span>
+      </div>`;
+      rowsHtml = f.holdings.map((x, i) => rowHtml(x, i, [
+        pctCell(x.pct), fmtUsd(x.valueUsd), x.units === null || x.units === undefined ? '--' : fmtVol(x.units),
+      ], x.type === 'REIT' ? 'REIT' : '')).join('');
+      // Top 覆盖度必须显示：低波近乎等权，Top40 只占约一半净值，不写会误读成"前 40 = 主力"
+      via = d.asOf + ' 持仓基准 · 官网发布 ' + d.published + ' · ' + f.zh + '（' + f.ticker +
+        '）Top' + f.shownCount + ' 占净值 ' + f.shownPct.toFixed(1) + '%（共 ' + f.equityCount + ' 只股票）';
+    }
+    if (el.etfVia) el.etfVia.textContent = via + ' · 点击行进 K 线';
+    el.etfBox.innerHTML = head + rowsHtml;
+  }
+
   /* 披露面板的子页切换：按钮 data-fundssub="<key>" ↔ 内容 data-fundspane="<key>"。
      加基金持仓后 A股 面板有三块，竖排会让这一屏越滚越长（用户要求"别都堆在一起"）。 */
   function switchFundsSub(bar, key) {
@@ -2941,6 +3014,9 @@
       // 伯克希尔 13F（原"聪明钱"tab，归位到美股）：季度数据，入页时过期(>6h)才拉
       if (!state.brk || Date.now() - (state.brkAt || 0) > 6 * 3600000) loadBrk().then(renderStatus).catch(() => {});
       else renderBrk();
+      // 因子 ETF 持仓（Invesco 采集静态 JSON，日更）：入页时过期(>12h)才重拉
+      if (!state.etf || Date.now() - (state.etfAt || 0) > 12 * 3600000) loadEtf();
+      else renderEtf();
       // 美股宽度（原挂在 A股 页，现归位）
       ensureUSRows().then(renderMoodUS);
     }
@@ -3476,6 +3552,19 @@
       if (dirBtn) {
         state.fundDir = dirBtn.getAttribute('data-funddir') === 'trim' ? 'trim' : 'add';
         renderFundHolds();
+        return;
+      }
+      const etfBtn = e.target.closest('[data-etfsub]');
+      if (etfBtn) {
+        state.etfSub = etfBtn.getAttribute('data-etfsub') || 'spmo';
+        renderEtf();
+        return;
+      }
+      const etfRow = e.target.closest('[data-etfsym]');
+      if (etfRow) {
+        const sym = etfRow.getAttribute('data-etfsym');
+        openDetail({ symbol: sym, name: etfRow.getAttribute('data-etfname') || sym,
+          code: sym.slice(2), market: 'us', tencent: sym });
         return;
       }
       const fundRow = e.target.closest('[data-fundsym]');
