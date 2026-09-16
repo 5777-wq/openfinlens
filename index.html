@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
 <!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
      对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
-<link rel="stylesheet" href="css/style.css?v=20260915u">
+<link rel="stylesheet" href="css/style.css?v=20260916e">
 </head>
 <body data-updown="red">
 
@@ -33,6 +33,7 @@
     <button class="tab" data-tab="events" role="tab" aria-selected="false" aria-controls="view-events">事件</button>
     <button class="tab" data-tab="chain" role="tab" aria-selected="false" aria-controls="view-chain">产业链</button>
     <button class="tab" data-tab="watch" role="tab" aria-selected="false" aria-controls="view-watch">自选</button>
+    <button class="tab" data-tab="compare" role="tab" aria-selected="false" aria-controls="view-compare">基金对比</button>
   </nav>
   <div class="topbar-actions">
     <div class="search-wrap">
@@ -366,6 +367,103 @@
     <div id="watchWall"></div>
   </section>
 
+  <!-- ========== 基金对比（多标的总收益：归一曲线 + 区间指标 + 年度收益 + 相关性） ========== -->
+  <section class="view tab-panel" id="view-compare" role="tabpanel" tabindex="-1" aria-label="compare">
+    <div class="page-head">
+      <h1 class="page-title">基金对比</h1>
+      <p class="page-sub" id="cmpSub">归一化曲线 + 年化/回撤/年度收益/相关性（口径由实际数据源决定，见下方脚注）</p>
+    </div>
+
+    <div class="cmp-bar" id="cmpBar">
+      <div class="search-wrap cmp-search">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="cmpInput" class="search-input" type="search" autocomplete="off"
+               placeholder="输入代码或名称后回车（SPY / 510300 / 02800 / 贵州茅台）"
+               aria-label="添加对比标的" aria-controls="cmpResults" aria-autocomplete="list">
+        <div id="cmpResults" class="search-results" role="listbox"></div>
+      </div>
+      <button id="cmpAdd" class="icon-btn">添加</button>
+      <span class="tool-status" id="cmpStatus">—</span>
+      <button id="cmpRetry" class="pill cmp-retry" title="重新取数（数据源限流时用）">重新取数</button>
+    </div>
+
+    <div class="cmp-presets" id="cmpPresets" role="group" aria-label="常用组合"></div>
+    <div class="cmp-chips-head">
+      <span class="cmp-chips-cap">对比标的</span>
+      <span class="tool-status num" id="cmpChipsSub">0 / 8</span>
+    </div>
+    <div class="cmp-chips" id="cmpChips"></div>
+
+    <div class="heat-toolbar cmp-toolbar">
+      <span class="cmp-field"><label for="cmpStart">起</label><input type="date" id="cmpStart" class="cmp-date"></span>
+      <span class="cmp-field"><label for="cmpEnd">止</label><input type="date" id="cmpEnd" class="cmp-date"></span>
+      <span class="cmp-quick" id="cmpQuick" role="group" aria-label="快速区间">
+        <button class="pill" data-range="1">近 1 年</button>
+        <button class="pill" data-range="3">近 3 年</button>
+        <button class="pill" data-range="5">近 5 年</button>
+        <button class="pill" data-range="10">近 10 年</button>
+        <button class="pill" data-range="0">全部</button>
+      </span>
+    </div>
+
+    <div class="heat-toolbar cmp-toolbar">
+      <span class="cmp-seg" id="cmpGran" role="group" aria-label="粒度">
+        <button class="pill active" data-cmpgran="auto">自动</button>
+        <button class="pill" data-cmpgran="day">日线</button>
+        <button class="pill" data-cmpgran="week">周线</button>
+        <button class="pill" data-cmpgran="month">月线</button>
+      </span>
+      <span class="cmp-seg" id="cmpNorm" role="group" aria-label="归一方式">
+        <button class="pill active" data-cmpnorm="index">归一 100</button>
+        <button class="pill" data-cmpnorm="pct">累计收益 %</button>
+        <button class="pill" data-cmpnorm="mult">增长倍数</button>
+      </span>
+      <span class="cmp-seg" id="cmpAlign" role="group" aria-label="起点对齐">
+        <button class="pill active" data-cmpalign="own">各自起点</button>
+        <button class="pill" data-cmpalign="common">共同起点</button>
+      </span>
+      <button class="pill" id="cmpLog" aria-pressed="false">对数轴</button>
+      <span class="tool-status" id="cmpNormHint">起点 = 100</span>
+    </div>
+
+    <div class="chart-box cmp-chart" id="cmpChartBox">
+      <div id="cmpChart"></div>
+    </div>
+    <div class="cmp-legend" id="cmpLegend" role="group" aria-label="曲线读数"></div>
+
+    <div class="section" data-fold id="cmpMetricsSec">
+      <div class="section-head">
+        <span class="sec-no">01</span>
+        <h2 class="section-title">区间指标</h2>
+        <span class="sec-line"></span>
+        <span class="section-sub" id="cmpMetricsSub">—</span>
+      </div>
+      <div class="cmp-scroll"><div id="cmpMetrics"></div></div>
+    </div>
+
+    <div class="section" data-fold id="cmpYearSec">
+      <div class="section-head">
+        <span class="sec-no">02</span>
+        <h2 class="section-title">年度收益</h2>
+        <span class="sec-line"></span>
+        <span class="section-sub">按自然年 · 分红再投资近似</span>
+      </div>
+      <div class="cmp-scroll"><div id="cmpYearly"></div></div>
+    </div>
+
+    <div class="section" data-fold id="cmpCorrSec">
+      <div class="section-head">
+        <span class="sec-no">03</span>
+        <h2 class="section-title">相关性</h2>
+        <span class="sec-line"></span>
+        <span class="section-sub">公共交易日收益率 · 1 = 同涨同跌</span>
+      </div>
+      <div class="cmp-scroll"><div id="cmpCorr"></div></div>
+    </div>
+
+    <div class="cmp-note" id="cmpNote"></div>
+  </section>
+
   <!-- ========== 世界经济仪表盘（外汇宏观 tab 时显示） ========== -->
   <div class="macro-wrap" id="macroBox" hidden></div>
 
@@ -446,42 +544,45 @@
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script src="js/utils.js?v=20260915u"></script>
-<script src="js/store.js?v=20260915u"></script>
-<script src="js/proxy.js?v=20260915u"></script>
-<script src="js/data/universe.js?v=20260915u"></script>
-<script src="js/data/industry-chains.js?v=20260915u"></script>
-<script src="js/data/explain.js?v=20260915u"></script>
-<script src="js/technical.js?v=20260915u"></script>
-<script src="js/flags.js?v=20260915u"></script>
-<script src="js/bus.js?v=20260915u"></script>
-<script src="js/events.js?v=20260915u"></script>
-<script src="js/actors.js?v=20260915u"></script>
-<script src="js/sources/tencent.js?v=20260915u"></script>
-<script src="js/sources/sina.js?v=20260915u"></script>
-<script src="js/sources/eastmoney.js?v=20260915u"></script>
-<script src="js/sources/okx.js?v=20260915u"></script>
-<script src="js/sources/binance.js?v=20260915u"></script>
-<script src="js/sources/fred.js?v=20260915u"></script>
-<script src="js/sources/news.js?v=20260915u"></script>
-<script src="js/sources/worldbank.js?v=20260915u"></script>
-<script src="js/sources/gdelt.js?v=20260915u"></script>
-<script src="js/sources/lhb.js?v=20260915u"></script>
-<script src="js/sources/southbound.js?v=20260915u"></script>
-<script src="js/sources/fundholds.js?v=20260915u"></script>
-<script src="js/sources/etf.js?v=20260915u"></script>
-<script src="js/sources/sec.js?v=20260915u"></script>
-<script src="js/breadth.js?v=20260915u"></script>
-<script src="js/sessions.js?v=20260915u"></script>
-<script src="js/treemap.js?v=20260915u"></script>
-<script src="js/charts.js?v=20260915u"></script>
-<script src="js/engine/types.js?v=20260915u"></script>
-<script src="js/engine/geo.js?v=20260915u"></script>
-<script src="js/engine/news-engine.js?v=20260915u"></script>
-<script src="js/engine/event-engine.js?v=20260915u"></script>
-<script src="js/engine/impact-engine.js?v=20260915u"></script>
-<script src="js/engine/llm-provider.js?v=20260915u"></script>
-<script src="js/worldmap.js?v=20260915u"></script>
-<script src="js/app.js?v=20260915u"></script>
+<script src="js/utils.js?v=20260916e"></script>
+<script src="js/store.js?v=20260916e"></script>
+<script src="js/proxy.js?v=20260916e"></script>
+<script src="js/data/universe.js?v=20260916e"></script>
+<script src="js/data/industry-chains.js?v=20260916e"></script>
+<script src="js/data/explain.js?v=20260916e"></script>
+<script src="js/technical.js?v=20260916e"></script>
+<script src="js/flags.js?v=20260916e"></script>
+<script src="js/bus.js?v=20260916e"></script>
+<script src="js/events.js?v=20260916e"></script>
+<script src="js/actors.js?v=20260916e"></script>
+<script src="js/sources/tencent.js?v=20260916e"></script>
+<script src="js/sources/sina.js?v=20260916e"></script>
+<script src="js/sources/eastmoney.js?v=20260916e"></script>
+<script src="js/sources/okx.js?v=20260916e"></script>
+<script src="js/sources/binance.js?v=20260916e"></script>
+<script src="js/sources/fred.js?v=20260916e"></script>
+<script src="js/sources/news.js?v=20260916e"></script>
+<script src="js/sources/worldbank.js?v=20260916e"></script>
+<script src="js/sources/gdelt.js?v=20260916e"></script>
+<script src="js/sources/lhb.js?v=20260916e"></script>
+<script src="js/sources/southbound.js?v=20260916e"></script>
+<script src="js/sources/fundholds.js?v=20260916e"></script>
+<script src="js/sources/etf.js?v=20260916e"></script>
+<script src="js/sources/sec.js?v=20260916e"></script>
+<script src="js/sources/history.js?v=20260916e"></script>
+<script src="js/breadth.js?v=20260916e"></script>
+<script src="js/sessions.js?v=20260916e"></script>
+<script src="js/treemap.js?v=20260916e"></script>
+<script src="js/charts.js?v=20260916e"></script>
+<script src="js/engine/types.js?v=20260916e"></script>
+<script src="js/engine/geo.js?v=20260916e"></script>
+<script src="js/engine/news-engine.js?v=20260916e"></script>
+<script src="js/engine/event-engine.js?v=20260916e"></script>
+<script src="js/engine/impact-engine.js?v=20260916e"></script>
+<script src="js/engine/llm-provider.js?v=20260916e"></script>
+<script src="js/worldmap.js?v=20260916e"></script>
+<script src="js/compare.js?v=20260916e"></script>
+<script src="js/compareview.js?v=20260916e"></script>
+<script src="js/app.js?v=20260916e"></script>
 </body>
 </html>

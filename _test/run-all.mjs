@@ -14,6 +14,8 @@ const offlineOnly = process.argv.includes('--offline');
 const groups = [
   { file: 'tokens.test.mjs', net: false },  // 设计令牌一致性/均线色距/发布卫生（读真实源文件）
   { file: 'logic.test.mjs', net: false },
+  { file: 'compare.test.mjs', net: false },  // 基金对比纯计算：归一/年化/回撤/年度收益/相关性（手算核对）
+  { file: 'compareview.test.mjs', net: false }, // 基金对比视图层：深链解析/渲染/重试通道（DOM 打桩，无浏览器）
   { file: 'insight.test.mjs', net: false },
   { file: 'evolve.test.mjs', net: false },  // 市场时段/情绪历史/请求去重（纯函数）
   { file: 'technical.test.mjs', net: false }, // 技术面指标手算核对（纯函数）
@@ -27,6 +29,7 @@ const groups = [
   { file: 'degrade.test.mjs', net: true },
   { file: 'boards.test.mjs', net: true },   // 今日热门概念：榜单/成分股接口 + 链条匹配
   { file: 'live.test.mjs', net: true },
+  { file: 'history.test.mjs', net: true },  // 基金对比长历史源：5000 根深度/CORS/复权口径/预设代码
 ];
 
 let failed = 0;
