@@ -10,7 +10,7 @@
 ![no build](https://img.shields.io/badge/build-none-000?style=flat-square)
 ![no npm](https://img.shields.io/badge/dependencies-0-000?style=flat-square)
 ![no backend](https://img.shields.io/badge/backend-none-000?style=flat-square)
-![tests](https://img.shields.io/badge/tests-226_passing-2ebd85?style=flat-square)
+![tests](https://img.shields.io/badge/tests-239_passing-2ebd85?style=flat-square)
 ![no keys](https://img.shields.io/badge/API_keys-0-000?style=flat-square)
 
 </div>
@@ -42,7 +42,7 @@ python -m http.server 8765   # → http://127.0.0.1:8765
 | | 功能 | 说明 |
 |---|---|---|
 | 🖥️ | **行情总览** | 10 个板块：全部 / A股 / 港股 / 美股 / 加密 / 宏观 / 事件 / 产业链 / 自选 / 基金对比；「全部」只做总览（指数 + 热力图），各板块只看自己（10s 轮询，红涨绿跌可切换）。**宽屏 ≥1280px 自动两栏密排**，同屏做跨市场对比 |
-| 🎯 | **首屏归属操盘手** | hero 四个大数字优先显示**你的自选**，不足 4 格用主指数补齐（没有自选时就是上证/恒指/标普/BTC）——首屏先给自己的票 |
+| 🎯 | **首屏（全部 tab）** | 上面是**全球核心指数**（上证 / 纳斯达克 / 标普500 / 恒生，每格带 60 日迷你走势线 + 当日振幅条），中间一条**全球涨跌概览**（N 涨 / N 跌 + 等权平均），下面是**我的自选**卡片网格（同样带走势线与振幅条、等权平均涨跌、一键跳自选页）；再往下是全球指数、热力图。空自选时给引导文案，不整块消失 |
 | 🗺️ | **平面世界地图（事件页唯一地图视图）** | GDELT + 新浪7x24 事件按类别着色落点，Canvas 等距圆柱投影自绘（d3-geo + topojson 本地 vendor，禁运行时海外 CDN），拖拽平移 / 滚轮缩放 / 悬停提示 / 点击聚合簇展开清单。3D 地球版已于 2026-09 按用户决策移除（同屏信息量不如平面图） |
 | ⚡ | **Event-on-Chart** | 宏观/央行/贸易/冲突事件与龙虎榜按日期画上 K 线（圆点 marker），点击弹出事件卡——把事件和价格反应放在同一屏 |
 | 🧠 | **披露类资金（按市场归位）** | 原「聪明钱」独立 tab 已拆解到各市场：**席位动向 + 今日龙虎榜**在 A股 tab（席位可点进近 90 天档案）、**多机构 13F** 在美股 tab（伯克希尔/桥水/ARK/Pershing，可切换）、**南向资金持股**在港股 tab（日频）、**公开言论**在事件页。发言 ≠ 交易，口径严格分开 |
@@ -66,7 +66,7 @@ python -m http.server 8765   # → http://127.0.0.1:8765
 │     主源 ──失败──▶ 备源 ──失败──▶ localStorage 缓存（带时间戳）
 │                                    │
 ├── app.js    轮询调度（setTimeout 链）→ 增量 patch DOM，不整墙重建
-├── treemap/charts/technical/events/compare  纯函数计算层，全部可单测（19 组 226 条断言）
+├── treemap/charts/technical/events/compare/spark  纯函数计算层，全部可单测（20 组 239 条断言）
 ├── worldmap.js + bus.js  平面事件地图 ↔ K线 ↔ 资金，通过轻量事件总线联动
 ├── compareview.js + sources/history.js  基金对比（长历史取数 + 归一曲线 + 指标/年度/相关性）
 └── 永不白屏：任何一层挂掉都是"降级角标 + 旧数据/骨架"，绝无弹窗报错

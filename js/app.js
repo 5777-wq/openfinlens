@@ -97,6 +97,8 @@
   const $ = (id) => document.getElementById(id);
   const el = {};
   const DOM_IDS = ['tabs', 'cardWall', 'watchWall', 'marketSub', 'selftestOut', 'selftest',
+    // 首屏下方的「我的自选」块与全球涨跌概览条
+    'watchSection', 'watchGrid', 'watchSub', 'watchMore', 'globeSum',
     'heatCanvas', 'heatTip', 'heatWrap', 'heatSection', 'heatSub', 'heatSizeToggle', 'heatTopToggle',
     'heatReset', 'heatZoom', 'heatHint',
     'newsList', 'newsSub', 'chainList', 'chainSub',
@@ -444,16 +446,16 @@
     if (animate) clearStagger(el.cardWall);
   }
 
-  /* ---- hero：一屏唯一的大数字。**归属交给操盘手**：优先展示自选，不足 4 格时用市场主指数补齐。
-     改前是固定 4 个编辑口径挑的指数（上证/恒指/标普/BTC），操盘手自己的持仓与关注在上面没有位置；
-     而且上证/恒生同时出现在 hero、"全球指数"条和"01 全球指数"板块里，首屏同一数字重复三遍。
-     自选为空时行为与改前完全一致（四个主指数），所以老用户不会看到空 hero。
-     BTC 不给旗标：加密走自身 logo，再叠 coin 旗会出现两个 ₿（用户反馈）。 */
-  const HERO_FALLBACK = ['sh000001', 'hkHSI', 'usINX'].concat(CRYPTO_ON ? ['BTCUSDT'] : []);
+  /* ---- hero：一屏唯一的大数字 = **全球核心指数**（上证 / 纳斯达克 / 标普500 / 恒生）。
+     历史：2026-09-15 曾按"归属操盘手"把 hero 让给自选（用户反馈①第二小波）；
+     2026-09-16 用户改主意——"全球 tag 下应该先显示上证、纳斯达克等全球指数，在下面再显示我的自选，
+     怎么有自选就不显示全球指数了"。于是自选移到下面的独立板块（#watchSection），hero 固定为指数。
+     BTC 不进 hero：加密有自己的 tab，且合规开关关闭时首屏不该残留加密内容。 */
+  const HERO_KEYS = ['sh000001', 'usIXIC', 'usINX', 'hkHSI'];
   const HERO_SLOTS = 4;
-  const HERO_FLAG = { 'sh000001': 'cn', 'hkHSI': 'hk', 'usINX': 'us' };
+  const HERO_FLAG = { 'sh000001': 'cn', 'usIXIC': 'us', 'usINX': 'us', 'hkHSI': 'hk' };
   // 等待数据时也显示中文名：裸 symbol（SH000001）是数据源内部代号，不该抛给用户
-  const HERO_LABEL = { 'sh000001': '上证指数', 'hkHSI': '恒生指数', 'usINX': '标普500', 'BTCUSDT': '比特币' };
+  const HERO_LABEL = { 'sh000001': '上证指数', 'usIXIC': '纳斯达克', 'usINX': '标普500', 'hkHSI': '恒生指数', 'BTCUSDT': '比特币' };
 
   /* symbol/market → 旗标代码。Flags.flag 对未知代码返回空串，所以不必穷举市场。 */
   function heroFlagCode(sym, market) {
@@ -464,14 +466,29 @@
     return '';
   }
 
-  /* hero 的 4 个槽位：自选在前，缺口用主指数补齐（去重）。 */
   function heroKeys() {
-    const wl = (window.Store.watchlist.all() || []).map(w => w && w.symbol).filter(Boolean);
-    const out = [];
-    wl.concat(HERO_FALLBACK).forEach(sym => {
-      if (out.length < HERO_SLOTS && !out.includes(sym)) out.push(sym);
-    });
-    return out;
+    return HERO_KEYS.slice(0, HERO_SLOTS);
+  }
+
+  function heroCellHTML(sym) {
+    const q = findQuote(sym);
+    const flag = window.Flags ? window.Flags.flag(heroFlagCode(sym, q && q.market)) : '';
+    const label = (q && q.name) || HERO_LABEL[sym] || sym;
+    if (!q) {
+      return `<div class="hero-cell" data-symbol="${escapeHTML(sym)}"><div class="hero-label"><span>${flag}${escapeHTML(label)}</span></div>
+        <div class="hero-value">——</div><div class="hero-chg">等待数据</div></div>`;
+    }
+    const digits = U.priceDigits(q.price);
+    const cls = pctClass(q.changePct);
+    const code = sym.startsWith('EM:') ? '' : escapeHTML(q.code || sym);
+    const pos = window.Spark ? window.Spark.rangePos(q.price, q.low, q.high) : null;
+    return `<div class="hero-cell" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(q.name)} 详情">
+      <div class="hero-label"><span>${flag}${logoImg(q, 'hero-logo-img')}${escapeHTML(q.name)}</span><span>${code}</span></div>
+      <div class="hero-value" data-price="${escapeHTML(sym)}">${fmt(q.price, digits)}</div>
+      <div class="hero-chg ${cls}"><span data-hero-chg>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
+      ${window.Spark ? window.Spark.sparkBoxHTML(sym) : ''}
+      <span data-hero-range>${window.Spark ? window.Spark.rangeBarHTML(pos) : ''}</span>
+    </div>`;
   }
 
   function renderHero() {
@@ -480,26 +497,11 @@
     const keys = heroKeys();
     const cap = document.getElementById('heroCap');
     if (cap) {
-      // 首屏四格归属自选时说明一句，否则"我的 2 个标的 + 标普 + BTC"看起来像混排错误
-      const ownCount = keys.filter(k => !HERO_FALLBACK.slice(0, HERO_SLOTS).includes(k)).length;
-      cap.hidden = !ownCount;
-      cap.textContent = ownCount ? '你的自选 · 取前 ' + ownCount + ' 个，其余用主指数补齐' : '';
+      cap.hidden = false;
+      cap.textContent = '全球核心指数 · 点击进详情 · 曲线为近 60 个交易日';
     }
-    const cells = keys.map(sym => {
-      const q = findQuote(sym);
-      const flag = window.Flags ? window.Flags.flag(heroFlagCode(sym, q && q.market)) : '';
-      const label = (q && q.name) || HERO_LABEL[sym] || sym;
-      if (!q) return `<div class="hero-cell"><div class="hero-label"><span>${flag}${escapeHTML(label)}</span></div><div class="hero-value">——</div><div class="hero-chg">等待数据</div></div>`;
-      const digits = U.priceDigits(q.price);
-      const cls = pctClass(q.changePct);
-      const code = sym.startsWith('EM:') ? '' : escapeHTML(q.code || sym);
-      return `<div class="hero-cell" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(q.name)} 详情">
-        <div class="hero-label"><span>${flag}${logoImg(q, 'hero-logo-img')}${escapeHTML(q.name)}</span><span>${code}</span></div>
-        <div class="hero-value" data-price="${escapeHTML(sym)}">${fmt(q.price, digits)}</div>
-        <div class="hero-chg ${cls}"><span data-hero-chg>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
-      </div>`;
-    }).join('');
-    box.innerHTML = cells;
+    box.innerHTML = keys.map(heroCellHTML).join('');
+    hydrateSparks(box);
   }
 
   function patchHero() {
@@ -519,7 +521,167 @@
         if (c.textContent !== cTxt) c.textContent = cTxt;
         c.className = cls;
       }
+      // 当日振幅条的指示点跟着现价走（否则它停在开盘那一刻的位置）
+      const r = cell.querySelector('[data-hero-range]');
+      if (r && window.Spark) r.innerHTML = window.Spark.rangeBarHTML(window.Spark.rangePos(q.price, q.low, q.high));
     });
+  }
+
+  /* ==================== 我的自选（首屏下方独立板块） ====================
+     用户 2026-09-16："全球 tag 下应该先显示上证、纳斯达克等全球指数，在下面再显示我的自选"。
+     所以首屏 hero 归指数，自选在这里成块出现——卡片式（走势线 + 当日振幅条），
+     而不是只留一行小字。空自选时给引导，不整块消失（避免"这一块没了"的错觉）。
+
+     走势线要 60 根日线：A股/港股/美股走腾讯（一个 ~4KB 的小请求），加密走币安；
+     宏观/外汇（EM: 前缀）没有免费日线源 → 不画线（画不出来就不画，不占位不报错）。
+     结果进内存缓存 10 分钟，并发限 3（腾讯对突发请求会回 501 挑战页）。 */
+  const SPARK_TTL = 10 * 60 * 1000;
+  const SPARK_BARS = 60;
+
+  async function sparkCloses(sym, market) {
+    const key = 'spark:' + sym;
+    const hit = Cache.get(key, SPARK_TTL);
+    if (hit) return hit.val;
+    let closes = null;
+    try {
+      if (market === 'crypto') {
+        const rows = await window.BinanceSource.getKline(sym, '1d', SPARK_BARS);
+        closes = (rows || []).map(k => k && k.close);
+      } else if (!/^EM:/.test(sym)) {
+        const rows = await window.TencentSource.getKline(sym, 'day', SPARK_BARS);
+        closes = (rows || []).map(k => k && k.close);
+      }
+    } catch { closes = null; }
+    const ok = Array.isArray(closes) && closes.filter(v => typeof v === 'number' && isFinite(v)).length >= 2;
+    if (ok) { Cache.set(key, closes); return closes; }
+    return null;
+  }
+
+  async function loadSparks(items, max = 3) {
+    const todo = items.filter(it => it && it.sym && !Cache.get('spark:' + it.sym, SPARK_TTL));
+    let next = 0;
+    const worker = async () => {
+      while (next < todo.length) {
+        const it = todo[next++];
+        await sparkCloses(it.sym, it.market);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(max, todo.length) }, worker));
+  }
+
+  /* 把已经在缓存里的走势线画到容器内的 canvas 上（先插 DOM 再画：canvas 得有尺寸） */
+  function hydrateSparks(root) {
+    if (!root || !window.Spark) return;
+    const up = getComputedStyle(document.body).getPropertyValue('--up').trim() || '#ff5c5c';
+    const down = getComputedStyle(document.body).getPropertyValue('--down').trim() || '#2ebd85';
+    root.querySelectorAll('canvas[data-spark]').forEach(cv => {
+      const sym = cv.getAttribute('data-spark');
+      const hit = Cache.get('spark:' + sym, SPARK_TTL);
+      // 没有日线源（宏观/外汇）或数据不够：整块收起，不留一个 34px 的空白槽
+      if (!hit) { cv.hidden = true; return; }
+      const closes = hit.val;
+      const q = findQuote(sym);
+      const rising = (q && typeof q.changePct === 'number') ? q.changePct >= 0
+        : closes[closes.length - 1] >= closes[0];
+      const color = rising ? up : down;
+      const ok = window.Spark.draw(cv, closes, { color, fill: color + '18' });
+      cv.hidden = !ok;
+      if (ok) cv.removeAttribute('hidden');
+    });
+  }
+
+  function homeWatchItems() {
+    return window.Store.watchlist.all()
+      .filter(it => CRYPTO_ON || !/USDT$/i.test(it.symbol))
+      .map(it => {
+        let q = state.quotes.get(it.symbol) || state.watchQuotes.get(it.symbol) || state.chainQuotes.get(it.symbol);
+        if (!q) {
+          const c = Cache.raw('q:' + it.symbol);
+          if (c) q = Object.assign({}, c.val, { cachedAt: c.at });
+        }
+        return { item: it, q };
+      });
+  }
+
+  function renderHomeWatch() {
+    const box = el.watchGrid;
+    if (!box) return;
+    if (el.watchSection) el.watchSection.hidden = false;
+    const list = homeWatchItems();
+    const items = list.filter(x => x.q && x.q.price !== null);
+    const valid = items.filter(x => typeof x.q.changePct === 'number' && !isNaN(x.q.changePct));
+    if (el.watchSub) {
+      if (!list.length) el.watchSub.textContent = '还没有自选';
+      else if (!valid.length) el.watchSub.textContent = list.length + ' 只 · 等待行情';
+      else {
+        const avg = valid.reduce((s, x) => s + x.q.changePct, 0) / valid.length;
+        const up = valid.filter(x => x.q.changePct > 0).length;
+        const down = valid.filter(x => x.q.changePct < 0).length;
+        el.watchSub.innerHTML = `<span class="num ${pctClass(avg)}">${fmtPct(avg)}</span> 等权平均 · <span class="up num">${up}</span> 涨 / <span class="down num">${down}</span> 跌 · ${items.length}/${list.length} 只有行情`;
+      }
+    }
+    if (!list.length) {
+      box.innerHTML = '<div class="empty">在任意卡片右上角点 ★ 收藏，这里就会出现你的自选（带走势图）</div>';
+      return;
+    }
+    box.innerHTML = list.map(({ item, q }) => wcardHTML(item, q)).join('');
+    hydrateSparks(box);
+  }
+
+  function wcardHTML(item, q) {
+    const sym = item.symbol;
+    const name = (q && q.name) || item.name || sym;
+    const mkt = (q && q.market) || item.market || '';
+    const flag = window.Flags ? window.Flags.flag(heroFlagCode(sym, mkt)) : '';
+    const code = escapeHTML((q && q.code) || (sym.startsWith('EM:') ? sym.slice(3).split('.')[1] : sym.replace(/^(sh|sz|bj|hk|us)/i, '')));
+    if (!q || q.price === null) {
+      return `<div class="wcard" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(name)} 详情">
+        <div class="hero-label"><span>${flag}${escapeHTML(name)}</span><span>${code}</span></div>
+        <div class="hero-value">——</div><div class="hero-chg">等待数据</div>
+        ${window.Spark ? window.Spark.sparkBoxHTML(sym) : ''}</div>`;
+    }
+    const digits = U.priceDigits(q.price);
+    const cls = pctClass(q.changePct);
+    const pos = window.Spark ? window.Spark.rangePos(q.price, q.low, q.high) : null;
+    return `<div class="wcard" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(name)} 详情">
+      <div class="hero-label"><span>${flag}${escapeHTML(name)}</span><span>${code}</span></div>
+      <div class="hero-value">${fmt(q.price, digits)}</div>
+      <div class="hero-chg ${cls}"><span>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
+      ${window.Spark ? window.Spark.sparkBoxHTML(sym) : ''}
+      ${window.Spark ? window.Spark.rangeBarHTML(pos) : ''}
+    </div>`;
+  }
+
+  /* 拉一遍首屏 + 自选的走势线（进「全部」tab 时懒加载，失败静默） */
+  async function ensureSparks() {
+    const items = HERO_KEYS.map(sym => {
+      const q = findQuote(sym);
+      return { sym, market: (q && q.market) || (sym === 'BTCUSDT' ? 'crypto' : '') };
+    }).concat(homeWatchItems().map(x => ({ sym: x.item.symbol, market: (x.q && x.q.market) || x.item.market })));
+    if (!items.length) return;
+    await loadSparks(items).catch(() => { /* 画不出就不画 */ });
+    hydrateSparks(el.heroStrip);
+    hydrateSparks(el.watchGrid);
+    renderGlobeSum();
+  }
+
+  /* 全球指数涨跌概览：一条堆叠条 + 平均涨跌（零请求，用已加载的指数行情）。
+     首屏除了四张卡就是表格会显得干，这条给"今天全球几涨几跌"一个一眼可读的形状。 */
+  function renderGlobeSum() {
+    if (!el.globeSum) return;
+    const qs = heroKeys().map(findQuote).concat(state.globeQuotes ? [...state.globeQuotes.values()] : []);
+    const valid = qs.filter(q => q && typeof q.changePct === 'number' && !isNaN(q.changePct));
+    if (!valid.length) { el.globeSum.innerHTML = ''; return; }
+    const up = valid.filter(q => q.changePct > 0).length;
+    const flat = valid.filter(q => q.changePct === 0).length;
+    const down = valid.length - up - flat;
+    const avg = valid.reduce((s, q) => s + q.changePct, 0) / valid.length;
+    const pc = (n) => (n / valid.length * 100).toFixed(1);
+    el.globeSum.innerHTML = `<span class="gs-bar" role="img" aria-label="${up} 涨 / ${flat} 平 / ${down} 跌">
+        <i class="gs-up" style="width:${pc(up)}%"></i><i class="gs-flat" style="width:${pc(flat)}%"></i><i class="gs-down" style="width:${pc(down)}%"></i>
+      </span>
+      <span class="gs-avg num ${pctClass(avg)}">${fmtPct(avg)}</span>
+      <span class="gs-txt"><span class="up num">${up}</span> 涨 · <span class="down num">${down}</span> 跌 · 共 ${valid.length} 个全球指数</span>`;
   }
 
   // 入场动画结束后摘掉 stagger 类与 delay：
@@ -1521,6 +1683,7 @@
 
   function renderGlobe() {
     if (!el.globeBar || !state.globeQuotes) return;
+    renderGlobeSum();   // 概览条与指数卡共用同一批数据，一起刷新
     const cells = GLOBAL_IDX.map(x => {
       const q = state.globeQuotes.get(x.secid);
       if (!q) return '';
@@ -3004,6 +3167,13 @@
     if (el.macroBox) el.macroBox.hidden = tab !== 'fxmacro';
     if (tab === 'fxmacro') loadMacro();
     if (tab === 'all' && !state.globeQuotes) loadGlobe();
+    // 「全部」是唯一显示首屏指数 + 我的自选的板块：进页即渲染，并懒加载走势线（失败静默）
+    if (tab === 'all') {
+      renderHero();
+      renderHomeWatch();
+      renderGlobeSum();
+      ensureSparks();
+    }
     // hidden→visible 时之前所有 drawHeat 都被可见性守卫跳过了，回视图必须补一次，
     // 否则画布停留在旧尺寸/旧布局（黑屏或命中错位）
     if (heatWasHidden && !el.heatSection.hidden) drawHeat();
@@ -3444,6 +3614,9 @@
       if (b) setTab(b.dataset.tab);
     });
 
+    // 首屏「我的自选」块右上角的「全部自选 →」：去自选页（排序/管理都在那儿）
+    if (el.watchMore) el.watchMore.addEventListener('click', () => setTab('watch'));
+
     // 卡片：点击进详情 / 星标收藏（事件委托，覆盖卡片墙+自选+产业链）
     document.addEventListener('click', (e) => {
       const star = e.target.closest('[data-star]');
@@ -3459,11 +3632,12 @@
         if (on) fetchWatchQuotes().then(() => { if (state.view === 'watch') patchCards(el.watchWall); });
         if (state.view === 'watch') renderWatchlist(true);   // 收/取星不重播入场动画
         if (state.detail && state.detail.symbol === sym) updateStar();
-        // hero 以自选为归属：收藏状态一变，首屏四格就必须跟着重排（否则新星标要等下次刷新才出现）
-        renderHero();
+        // 首屏指数固定，但下面的「我的自选」块要跟着收藏状态变
+        renderHomeWatch();
+        if (on) ensureSparks();                              // 新收藏的标的补一条走势线
         return;
       }
-      const card = e.target.closest('.qrow, .hero-cell, .quote-card');
+      const card = e.target.closest('.qrow, .hero-cell, .wcard, .quote-card');
       if (card) {
         const t = targetFromSymbol(card.getAttribute('data-symbol'));
         if (t) openDetail(t);
@@ -3694,7 +3868,7 @@
       const on = window.Store.watchlist.toggle({ symbol: t.symbol, name: t.name, market: t.market });
       updateStar();
       if (on) fetchWatchQuotes();
-      renderHero();   // 首屏四格以自选为归属，收/取星后立刻重排
+      renderHomeWatch();   // 首屏指数固定，「我的自选」块跟着收藏状态变（详情页加星也要同步）
     });
     // 均线菜单：打开时按真实配置回显勾选与周期数值（否则菜单全空、用户以为"都关了"图上还有线）
     el.maToggle.addEventListener('click', () => {
@@ -3853,6 +4027,13 @@
     await fetchAllQuotes();
     renderHero();
     renderCardWall();
+    // 「全部」是默认 tab，而 setTab 对"已在的 tab"会早退（首屏就是 all 时那个分支根本不跑），
+    // 所以首屏专属的两块（我的自选 / 全球涨跌概览）与走势线必须在 init 里自己来一遍
+    if (state.tab === 'all') {
+      renderHomeWatch();
+      renderGlobeSum();
+      ensureSparks();
+    }
     renderStatus();
     drawHeat();
     void heatBg;

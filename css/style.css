@@ -1119,3 +1119,50 @@ body.no-crypto .crypto-only { display: none !important; }
   /* 窄屏基金名会被压成一条看不清的碎字（118px 里还要塞"价格"角标）→ 整块隐藏，只留代码 */
   .cmp-c-name em { display: none; }
 }
+
+/* ==================== 首屏：全球指数 + 我的自选（2026-09-16 用户反馈"先指数、再自选"） ====================
+   hero 四格固定为全球核心指数；自选移到下方 .wgrid 卡片网格，带迷你走势线与当日振幅条。
+   hero 里也加了同样两样东西——首屏除了四张大数字就没有形状，用户反馈"页面太单调"。 */
+.hero-cell { position: relative; }
+.hero-cell .spark, .wcard .spark { display: block; width: 100%; height: 34px; margin-top: 10px; }
+.wcard .spark { height: 30px; margin-top: 8px; }
+
+/* 当日振幅条：轨道 + 现价指示点（位置由 Spark.rangePos 算，夹紧在 0..1） */
+.rbar { position: relative; display: block; height: 3px; margin-top: 8px;
+  background: var(--border); border-radius: 2px; }
+.rbar > i { position: absolute; top: -2.5px; width: 8px; height: 8px; margin-left: -4px;
+  border-radius: 50%; background: var(--text-secondary); }
+.hero-cell .rbar > i, .wcard .rbar > i { background: var(--accent-signature); }
+
+/* 全球涨跌概览条：一眼看清"今天几个涨几个跌" */
+.globe-sum { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 11px;
+  color: var(--text-tertiary); }
+.globe-sum .gs-bar { display: flex; flex: 0 0 180px; height: 6px; border-radius: 3px;
+  overflow: hidden; background: var(--border); }
+.globe-sum .gs-bar > i { display: block; height: 100%; }
+.globe-sum .gs-up { background: var(--up); }
+.globe-sum .gs-down { background: var(--down); }
+.globe-sum .gs-flat { background: var(--text-faint); }
+.globe-sum .gs-avg { font-size: 12px; font-weight: 600; }
+.globe-sum .gs-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 我的自选：卡片网格（窄屏 2 列 → 宽屏 4 列，与 hero 同构） */
+.wgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+  background: var(--border); border: 1px solid var(--border); margin-top: 14px; }
+.wcard { position: relative; padding: 16px 16px 14px; background: var(--bg-card); cursor: pointer;
+  min-width: 0; transition: background var(--dur-fast) var(--ease-out); }
+.wcard:hover { background: var(--bg-hover); }
+.wcard .hero-label { font-size: 11px; color: var(--text-tertiary); display: flex;
+  align-items: baseline; justify-content: space-between; gap: 8px; }
+.wcard .hero-label span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wcard .hero-value { font-size: 22px; }
+.wcard .hero-chg { font-size: 12px; }
+.wgrid .empty { grid-column: 1 / -1; padding: 28px 20px; text-align: center; background: var(--bg-card); }
+
+@media (max-width: 860px) {
+  .globe-sum .gs-bar { flex-basis: 110px; }
+  .wgrid { grid-template-columns: repeat(2, 1fr); }
+  .wcard { padding: 12px 12px 10px; }
+  .wcard .hero-value { font-size: 18px; }
+  .hero-cell .spark, .wcard .spark { height: 26px; }
+}

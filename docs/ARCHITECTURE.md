@@ -27,6 +27,7 @@ js/
   worldmap.js globe.js     2D/3D 地图 —— 已有（canvas 自绘 + globe.gl）
   compare.js               基金对比纯计算（归一/对齐/CAGR/波动/最大回撤/年度收益/相关性）—— 无 DOM 无网络
   compareview.js           基金对比视图（输入与控件 + 图表读数 + 三张矩阵/指标表）—— 依赖注入，自己绑事件
+  spark.js                 首屏图形层（迷你走势线坐标 / 当日振幅条位置）—— 纯函数 + canvas 描线，可单测
   sources/*.js             数据源 adapter（一源一文件，网络调用唯一合法位置）—— 已有；history.js 为长历史（后复权，含分红）
   engine/                  ★ 新增：语义引擎层（纯函数，无 DOM，node 可测）
     types.js               JSDoc 类型契约 + 类别/状态常量（单一事实源）
