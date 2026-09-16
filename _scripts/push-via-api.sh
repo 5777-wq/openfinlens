@@ -67,4 +67,32 @@ if [ ! -s .tmp-changes.txt ]; then
   exit 0
 fi
 
-node _scripts/push-via-api.mjs "$REMOTE" "$BASE_TREE" .tmp-changes.txt
+if node _scripts/push-via-api.mjs "$REMOTE" "$BASE_TREE" .tmp-changes.txt; then
+  exit 0
+fi
+
+# —— 逐文件兜底 ——
+# 已知偶发：多文件 tree 一次创建会 422 GitRPC::BadObjectState（历史三次复现；单文件
+# 推送全部成功，是文件组合触发的服务端问题，且原样重试永远复现）。
+# 对策：拆成每文件一个远端提交，逐个推进 remoteHead/baseTree。代价是 API 提交的
+# message 只能统一取本地 HEAD 的（API 提交 sha 本就与本地不同，网络恢复后
+# pull --rebase 对齐一次即可）。中途失败就停：已推的文件下次靠内容去重跳过，
+# 重跑本脚本自动续推剩余部分。
+echo "多文件树被 422 拒绝，拆成逐文件推送…"
+n=0
+total=$(grep -c . .tmp-changes.txt)
+while IFS=$'\t' read -r st p; do
+  [ -z "$st" ] && continue
+  REMOTE=$(gh api "repos/$REPO/git/ref/heads/main" --jq .object.sha)
+  BASE_TREE=$(gh api "repos/$REPO/git/commits/$REMOTE" --jq .tree.sha)
+  printf '%s\t%s\n' "$st" "$p" > .tmp-changes-one.txt
+  if node _scripts/push-via-api.mjs "$REMOTE" "$BASE_TREE" .tmp-changes-one.txt; then
+    n=$((n + 1)); echo "  [$n/$total] $st $p ✓"
+  else
+    echo "✗ $p 仍被拒——停止；剩余清单保留在 .tmp-changes.txt，重跑本脚本自动续推" >&2
+    exit 1
+  fi
+  sleep 1
+done < .tmp-changes.txt
+rm -f .tmp-changes-one.txt
+echo "逐文件兜底完成：$n/$total"
