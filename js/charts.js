@@ -145,6 +145,18 @@ const Charts = (() => {
       return F ? F(v) : String(v);
     };
 
+    // 日K 的 time 是 "2026-09-16" 字符串，分钟K是伪 UTC 秒级时间戳——分别排版
+    const fmtLegendTime = (t) => {
+      if (typeof t !== 'number') return tKey(t);
+      const d = new Date(t * 1000);
+      const two = (n) => String(n).padStart(2, '0');
+      const hm = two(d.getUTCHours()) + ':' + two(d.getUTCMinutes());
+      const now = new Date();
+      return d.getUTCFullYear() === now.getUTCFullYear()
+        ? (d.getUTCMonth() + 1) + '月' + d.getUTCDate() + '日 ' + hm
+        : d.getUTCFullYear() + '/' + (d.getUTCMonth() + 1) + '/' + d.getUTCDate() + ' ' + hm;
+    };
+
     function legendHTML(idx) {
       const k = lastKlines[idx];
       if (!k) return '';
@@ -158,7 +170,7 @@ const Charts = (() => {
         if (!pt || pt.value === null || pt.value === undefined || !Number.isFinite(pt.value)) return '';
         return `<span style="color:${LINE_COLORS[i]}">${l.type.toUpperCase()}${l.n} ${pt.value}</span>`;
       }).join('');
-      return `<span class="kl-time">${tKey(k.time)}</span>` +
+      return `<span class="kl-time">${fmtLegendTime(k.time)}</span>` +
         `<span>开 <b style="color:${col}">${k.open}</b></span>` +
         `<span>高 <b style="color:${col}">${k.high}</b></span>` +
         `<span>低 <b style="color:${col}">${k.low}</b></span>` +

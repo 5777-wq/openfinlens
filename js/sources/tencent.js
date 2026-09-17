@@ -155,10 +155,15 @@ const TencentSource = (() => {
     if (!/^[a-z]{2}[0-9a-z.]{1,12}$/i.test(sym)) return [];
     if (!/^m(5|15|30|60)$/.test(period)) return [];
     try {
-      const u = new URL('https://web.ifzq.gtimg.cn/appstock/app/kline/mkline');
+      // 用裸域而不是 web. 子域（2026-09-17 实测）：web 子域会 30x 到 web3.ifzq.gtimg.cn，
+      // 后者在本机 DNS 解析失败 → "Failed to fetch"；裸域同后端且 CORS Access-Control-Allow-Origin: *，
+      // 浏览器直连 320 根验证通过。同文件其余端点保持 web 子域不动（历史生产验证过）。
+      const u = new URL('https://ifzq.gtimg.cn/appstock/app/kline/mkline');
       u.searchParams.set('param', [sym, period, '', limit].join(','));
       const j = await request(u.href);
-      const node = j && j.data && (j.data[sym] || j.data[sym.split('.')[0]]);
+      // 实测（2026-09-17）：mkline 响应的节点键带周期后缀（data["sh600519.m5"]），
+      // 与 fqkline 的 data["sh600519"] 不同——两个键都试，防御上游改格式
+      const node = j && j.data && (j.data[sym + '.' + period] || j.data[sym]);
       if (!node) return [];
       const rows = node[period] || [];
       return rows.map(r => {
