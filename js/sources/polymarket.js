@@ -27,8 +27,9 @@ const PmSource = (() => {
     const generatedAt = data && data.generatedAt ? window.Events.toMs(data.generatedAt) : null;
     // sanitize 是前后端共用的同一份清洗定义（js/polymarket.js），坏行在此统一剔除
     const markets = data ? window.Polymarket.sanitize(data.markets) : [];
-    if (via) window.SourceState.ok('polymarket', via);
-    else window.SourceState.fail('polymarket', '无数据（采集任务未运行或不可达）');
+    // 数据源状态 key 用中性的 forecast：页脚数据源面板不出现来源品牌（合规口径）
+    if (via) window.SourceState.ok('forecast', via);
+    else window.SourceState.fail('forecast', '无数据（采集任务未运行或不可达）');
     return {
       markets,
       via,                       // 'live' | 'cache' | null
