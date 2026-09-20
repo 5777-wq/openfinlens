@@ -9,19 +9,19 @@
    - 概率是市场定价的隐含值，不是本站预测；展示层必须带"仅供参考"口径标注。
 
    行结构（采集产物 / 前端共用）：
-   { id, question, category, probability(0~1), change24h(百分点), volume24hr,
-     liquidity, endDate(ms|null), updatedAt(ms|null) } */
+   { id, question, questionZh(采集端翻译，可 null), category, probability(0~1),
+     change24h(百分点), volume24hr, liquidity, endDate(ms|null), updatedAt(ms|null) } */
 
 const Polymarket = (() => {
 
   /* 类别 → 展示元数据（配色沿用终端盘：央行蓝/宏观金/贸易橙/地缘灰/选举紫/能源棕） */
   const CAT_META = {
-    central_bank: { label: '央行',   color: '#5b8def' },
-    macro:        { label: '宏观',   color: '#e0a83c' },
-    trade:        { label: '贸易',   color: '#D97757' },
-    geopolitics:  { label: '地缘',   color: '#8a93a6' },
-    election:     { label: '选举',   color: '#b06ad4' },
-    energy:       { label: '能源',   color: '#c97b4a' },
+    central_bank: { label: '央行',   en: 'Central Banks', color: '#5b8def' },
+    macro:        { label: '宏观',   en: 'Macro',         color: '#e0a83c' },
+    trade:        { label: '贸易',   en: 'Trade',         color: '#D97757' },
+    geopolitics:  { label: '地缘',   en: 'Geopolitics',   color: '#8a93a6' },
+    election:     { label: '选举',   en: 'Elections',     color: '#b06ad4' },
+    energy:       { label: '能源',   en: 'Energy',        color: '#c97b4a' },
   };
 
   /* 类别白名单：先后即优先级（美联储的问题常同时挂 Politics 标签，必须先判央行）。
@@ -170,6 +170,10 @@ const Polymarket = (() => {
       out.push({
         id: typeof r.id === 'string' && r.id ? r.id : 'pm:' + dedupeKey(r.question),
         question: r.question.trim(),
+        // 中文标题：采集端翻译（collect-polymarket.mjs），翻译失败的行这里是 null，
+        // 前端按 questionZh || question 展示——宁缺毋假，绝不拿机翻失败兜底成乱码
+        questionZh: (typeof r.questionZh === 'string' && r.questionZh.trim() &&
+          r.questionZh.trim() !== r.question.trim()) ? r.questionZh.trim() : null,
         category: cat,
         probability: round(p, 3),
         change24h: r.change24h === null || r.change24h === undefined ? null : num(r.change24h),

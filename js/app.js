@@ -69,8 +69,8 @@
     events: null, eventsVia: null, eventsGenAt: null, eventsStale: true, eventsLoadedAt: 0,
     eventsSub: Store.get('evMode', 'map'),     // 事件页子视图：map（平面地图）| news（实时快讯）| pm（市场预测）；存量 'globe' 由 setEventsSub 归一
     eventsType: 'all',         // 事件类型过滤（all / macro / central_bank / …）
-    // 市场预测（Polymarket 隐含概率，只读展示）
-    pmMarkets: [], pmCat: 'all', pmVia: null, pmGenAt: null, pmStale: true, pmLoadedAt: 0,
+    // 市场预测（Polymarket 隐含概率，只读展示）；pmExpand 记录各分类是否展开全部
+    pmMarkets: [], pmExpand: {}, pmVia: null, pmGenAt: null, pmStale: true, pmLoadedAt: 0,
     eventsSource: '',          // 数据源名（状态行合成用）
     mapStatusPts: null,        // 平面地图点数状态（onStatus 回调），与数据源状态行合并显示
     selEvent: null,            // 当前选中的全球事件
@@ -118,7 +118,7 @@
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
     'eventsSub', 'globeStatus', 'mapLegend',
     'evGlobePane', 'evNewsPane', 'evPmPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
-    'pmSub', 'pmCatBar', 'pmList',
+    'pmSub', 'pmList',
     'mapLayers', 'countryDetail',
     'lhbBox', 'lhbVia', 'evtToggle', 'chartEventCard',
     'seatDir', 'seatDirVia',
@@ -1970,34 +1970,12 @@
     state.pmGenAt = res.generatedAt;
     state.pmStale = res.stale;
     state.pmLoadedAt = Date.now();
-    renderPmCatBar();
     renderPmList();
-  }
-
-  function pmFiltered() {
-    if (state.pmCat === 'all') return state.pmMarkets || [];
-    return (state.pmMarkets || []).filter(m => m.category === state.pmCat);
-  }
-
-  function renderPmCatBar() {
-    if (!el.pmCatBar) return;
-    const list = state.pmMarkets || [];
-    if (!list.length) { el.pmCatBar.innerHTML = ''; return; }
-    const counts = {};
-    list.forEach(m => { counts[m.category] = (counts[m.category] || 0) + 1; });
-    const cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
-    const META = window.Polymarket.CAT_META;
-    el.pmCatBar.innerHTML = ['all'].concat(cats).map(c => {
-      const meta = META[c];
-      const dot = meta ? `<i class="ev-dot" style="background:${meta.color}"></i>` : '';
-      const label = c === 'all' ? '全部类别' : (meta ? meta.label : c);
-      return `<button class="pill${state.pmCat === c ? ' active' : ''}" data-pmcat="${c}">${dot}${label}<b class="num">${c === 'all' ? list.length : counts[c]}</b></button>`;
-    }).join('');
   }
 
   function renderPmList() {
     if (!el.pmList) return;
-    const list = pmFiltered();
+    const list = state.pmMarkets || [];
     if (el.pmSub) {
       if (!state.pmVia) {
         el.pmSub.textContent = '数据更新中，请稍候 · 概率仅为市场隐含参考';
@@ -2013,27 +1991,51 @@
         : '<div class="empty">采集任务未运行或不可达 · 稍后自动恢复，绝不造假数据</div>';
       return;
     }
+
     const META = window.Polymarket.CAT_META;
-    el.pmList.innerHTML = list.map(m => {
-      const meta = META[m.category] || {};
-      const p = Math.round(m.probability * 100);
-      const chg = (m.change24h === null || m.change24h === undefined || isNaN(m.change24h)) ? null : m.change24h;
-      const chgTxt = chg === null ? '' :
-        `<span class="pm-chg ${chg > 0 ? 'up' : chg < 0 ? 'down' : 'flat'} num">${chg > 0 ? '+' : ''}${chg.toFixed(1)}pp</span>`;
-      const end = m.endDate ? ' · 截止 ' + new Date(m.endDate).toISOString().slice(0, 10) : '';
-      const vol = m.volume24hr ? ' · 24h ' + fmtUsd(m.volume24hr) : '';
-      return `<div class="pm-row" style="--cat-c:${meta.color || 'var(--border-hover)'}">
-        <div class="pm-main">
-          <div class="pm-q">${escapeHTML(m.question)}</div>
-          <div class="pm-meta"><span class="pm-cat" style="color:${meta.color || 'inherit'}">${meta.label || ''}</span>${end}${vol}</div>
+    const FOLD_N = 6;   // 每类默认只露 6 条，其余折叠——长列表一眼望不到头最容易看疲劳
+    const qText = m => escapeHTML(m.questionZh || m.question);
+    const pctOf = m => Math.max(1, Math.min(100, Math.round(m.probability * 100)));
+    const chgTxt = m => {
+      const c = m.change24h;
+      if (c === null || c === undefined || isNaN(c) || c === 0) return '';
+      return `<span class="pm-chg num ${c > 0 ? 'up' : 'down'}" title="24 小时概率变化（百分点）">${c > 0 ? '▲' : '▼'} ${Math.abs(c).toFixed(1)}</span>`;
+    };
+    const tile = (m, meta) => `<div class="pm-tile" style="--cat-c:${meta.color || 'var(--border-hover)'}">
+        <div class="pm-tile-q" title="${escapeHTML(m.question)}">${qText(m)}</div>
+        <div class="pm-tile-row">
+          <div class="pm-bar"><i style="width:${pctOf(m)}%"></i></div>
+          <span class="pm-pct num">${pctOf(m)}%</span>
+          ${chgTxt(m)}
         </div>
-        <div class="pm-side">
-          <div class="pm-bar"><i style="width:${Math.max(1, Math.min(100, p))}%"></i></div>
-          <span class="pm-pct num">${p}%</span>
-          ${chgTxt}
+        <div class="pm-meta">${m.endDate ? '截止 ' + new Date(m.endDate).toISOString().slice(0, 10) : '无截止'}${m.volume24hr ? ' · 24h ' + fmtUsd(m.volume24hr) : ''}</div>
+      </div>`;
+
+    // 按分类分区；区序按"该类最热一条的 24h 成交"降序——最热的话题排最前
+    const cats = {};
+    list.forEach(m => { (cats[m.category] = cats[m.category] || []).push(m); });
+    const order = Object.keys(cats)
+      .sort((a, b) => Math.max(...cats[b].map(x => x.volume24hr || 0)) - Math.max(...cats[a].map(x => x.volume24hr || 0)));
+    const sections = order.map(cat => {
+      const meta = META[cat] || {};
+      const items = cats[cat];
+      const expanded = !!state.pmExpand[cat];
+      const shown = expanded ? items : items.slice(0, FOLD_N);
+      const fold = items.length > FOLD_N
+        ? `<button class="pill pm-fold" data-pmexpand="${cat}">${expanded ? '收起' : '展开其余 ' + (items.length - FOLD_N) + ' 条'}</button>`
+        : '';
+      return `<div class="pm-sec">
+        <div class="pm-sec-head" style="--cat-c:${meta.color || 'var(--border-hover)'}">
+          <i class="ev-dot" style="background:${meta.color || 'inherit'}"></i>
+          <span class="pm-sec-t">${meta.label || cat}</span>
+          <span class="pm-sec-en">${meta.en || ''}</span>
+          <b class="num pm-sec-n">${items.length}</b>
         </div>
+        <div class="pm-grid">${shown.map(m => tile(m, meta)).join('')}</div>
+        ${fold}
       </div>`;
     }).join('');
+    el.pmList.innerHTML = sections;
   }
 
   function renderEventDetail(ev) {
@@ -2271,7 +2273,6 @@
       if (!state.pmLoadedAt || Date.now() - state.pmLoadedAt > 300000) {
         loadPmMarkets().catch(() => { /* 降级角标已表达 */ });
       } else {
-        renderPmCatBar();
         renderPmList();
       }
       return;
@@ -3979,8 +3980,13 @@
       // ---- 事件页：子面板切换 / 类型过滤 / 事件行 / 关联资产 / 聚合清单 / 详情卡 ----
       const evsub = e.target.closest('[data-evsub]');
       if (evsub) { setEventsSub(evsub.dataset.evsub); return; }
-      const pmcat = e.target.closest('[data-pmcat]');
-      if (pmcat) { state.pmCat = pmcat.dataset.pmcat; renderPmCatBar(); renderPmList(); return; }
+      const pmexpand = e.target.closest('[data-pmexpand]');
+      if (pmexpand) {
+        const cat = pmexpand.dataset.pmexpand;
+        state.pmExpand[cat] = !state.pmExpand[cat];   // 展开/收起切换（会话内记忆，不落盘）
+        renderPmList();
+        return;
+      }
       const maplayer = e.target.closest('[data-maplayer]');
       if (maplayer && window.WorldMapView) {
         const id = maplayer.dataset.maplayer;

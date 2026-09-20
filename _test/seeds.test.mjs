@@ -159,6 +159,11 @@ await test('polymarket.json：只含概率行、概率合法、绝无 slug/URL�
     assert.ok(m.probability >= 0 && m.probability <= 1, `概率越界 ${m.probability}`);
     assert.ok(['central_bank', 'macro', 'trade', 'geopolitics', 'election', 'energy'].includes(m.category),
       `类别越界 ${m.category}`);
+    // 中文标题：要么没有（翻译失败保留英文），要么是与原文不同的非空字符串
+    if (m.questionZh !== null && m.questionZh !== undefined) {
+      assert.ok(typeof m.questionZh === 'string' && m.questionZh.length > 1 && m.questionZh !== m.question,
+        `questionZh 非法: ${m.questionZh}`);
+    }
     // 合规铁律：行里不允许出现 slug / 链接 / 交易平台入口（前端想外链都没有字段）
     assert.ok(!/slug|href|https?:/i.test(JSON.stringify(m)), '行里出现 slug/链接字段');
   }

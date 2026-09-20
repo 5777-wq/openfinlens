@@ -950,32 +950,38 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
 .ce-line { margin-top: 6px; font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
 .ce-line a { color: var(--accent-signature); text-decoration: none; }
 
-/* ==================== 市场预测（Polymarket 概率条，只读展示） ==================== */
-.pm-list { border-top: 1px solid var(--border); }
-.pm-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 230px);
-  gap: 12px; align-items: center; padding: 11px 4px 11px 10px;
-  border-bottom: 1px solid var(--border); border-left: 2px solid var(--cat-c, transparent); }
-.pm-row:hover { background: var(--bg-hover); }
-.pm-q { font-size: 12.5px; line-height: 1.5; color: var(--text);
+/* ==================== 市场预测（Polymarket 概率卡片，只读展示） ==================== */
+.pm-list { border-top: 1px solid var(--border); padding-top: 12px; }
+.pm-sec { margin-bottom: 20px; }
+.pm-sec-head { display: flex; align-items: baseline; gap: 8px; padding: 7px 12px;
+  border-left: 2px solid var(--cat-c, var(--border-hover)); background: var(--bg-elevated);
+  border-radius: 0 4px 4px 0; margin-bottom: 10px; }
+.pm-sec-t { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; color: var(--text); }
+.pm-sec-en { font-size: 10px; color: var(--text-faint); font-family: var(--font-mono);
+  letter-spacing: 0.12em; text-transform: uppercase; }
+.pm-sec-n { margin-left: auto; font-size: 11px; color: var(--text-tertiary); }
+.pm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
+.pm-tile { border: 1px solid var(--border); border-left: 2px solid var(--cat-c, var(--border-hover));
+  border-radius: 4px; background: var(--bg-card); padding: 10px 12px 9px; }
+.pm-tile:hover { border-color: var(--border-hover); }
+.pm-tile-q { font-size: 12px; line-height: 1.55; color: var(--text); min-height: 37px;
   overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.pm-meta { margin-top: 3px; font-size: 10px; color: var(--text-faint); }
-.pm-cat { letter-spacing: 0.08em; font-weight: 600; }
-.pm-side { display: flex; align-items: center; gap: 10px; }
-.pm-bar { flex: 1; height: 8px; border-radius: 4px; background: var(--bg-elevated);
+.pm-tile-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.pm-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--bg-elevated);
   overflow: hidden; border: 1px solid var(--border); }
-.pm-bar i { display: block; height: 100%; background: var(--accent-signature); border-radius: 4px; }
-.pm-pct { font-size: 14px; font-weight: 700; font-family: var(--font-mono);
+.pm-bar i { display: block; height: 100%; background: var(--accent-signature); border-radius: 3px; }
+.pm-pct { font-size: 15px; font-weight: 700; font-family: var(--font-mono);
   font-variant-numeric: tabular-nums; min-width: 42px; text-align: right; }
-.pm-chg { font-size: 10px; min-width: 52px; text-align: right;
+.pm-chg { font-size: 10px; min-width: 46px; text-align: right;
   font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .pm-chg.up { color: var(--up); }
 .pm-chg.down { color: var(--down); }
-.pm-chg.flat { color: var(--text-tertiary); }
+.pm-tile .pm-meta { margin-top: 7px; font-size: 10px; color: var(--text-faint); }
+.pm-fold { margin-top: 10px; }
 .pm-note { margin-top: 12px; font-size: 10px; color: var(--text-faint); line-height: 1.8; }
 @media (max-width: 720px) {
-  .pm-row { grid-template-columns: 1fr; gap: 8px; }
+  .pm-grid { grid-template-columns: 1fr; }
 }
-
 @media (prefers-reduced-motion: reduce) {
   .globe-stage > .geo-content { animation: none; }
 }
