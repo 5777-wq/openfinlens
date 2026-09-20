@@ -37,7 +37,7 @@ const Polymarket = (() => {
 
   /* 黑名单一票否决：文体/娱乐/名人/crypto 价格/社媒杂谈。白名单已拦掉大头，
      这里拦"挂了 Politics 之类宽标签的杂题"（如"Trump 本周会不会发帖"）。 */
-  const BLACKLIST_RE = /\b(nfl|nba|mlb|nhl|ufc|wwe|fifa|uefa|premier league|la liga|serie a|bundesliga|mls|cricket|formula 1|grand prix|nascar|olympics?|wimbledon|us open|french open|australian open|super bowl|world cup|champions league|europa league|fa cup|copa america|grand slam|boxing|oscar|academy award|grammy|emmy|golden globe|eurovision|album|box office|met gala|celebrit|kardashian|taylor swift|nobel prize|bitcoin|btc|ethereum|eth price|solana|xrp|dogecoin|memecoin|stablecoin|crypto|tweet|truth social|post on|posting on|posts? a (photo|video|statement)|time person of the year|pope|papa|rumor|dating|divorce|netflix show|stranger things|squid game|minecraft|grand theft auto|gta 6)\b/i;
+  const BLACKLIST_RE = /\b(nfl|nba|mlb|nhl|ufc|wwe|fifa|uefa|premier league|la liga|serie a|bundesliga|mls|cricket|formula 1|grand prix|nascar|olympics?|wimbledon|us open|french open|australian open|super bowl|world cup|champions league|europa league|fa cup|copa america|grand slam|boxing|oscar|academy award|grammy|emmy|golden globe|eurovision|album|box office|met gala|celebrit|kardashian|taylor swift|nobel prize|bitcoin|btc|ethereum|eth price|solana|xrp|dogecoin|memecoin|stablecoin|crypto|tweets?|truth social|post on|posting on|posts? a (photo|video|statement)|time person of the year|pope|papa|rumor|dating|divorce|netflix show|stranger things|squid game|minecraft|grand theft auto|gta 6)\b/i;
 
   /* 量级门槛：任一达标即视为"有人在认真交易这个问题"（防杂题污染榜单） */
   const MIN_VOLUME_24H = 3000;   // 24h 成交 $3k

@@ -977,7 +977,9 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
 .pm-chg.up { color: var(--up); }
 .pm-chg.down { color: var(--down); }
 .pm-tile .pm-meta { margin-top: 7px; font-size: 10px; color: var(--text-faint); }
-.pm-fold { margin-top: 10px; }
+.pm-fold { margin-top: 10px; padding: 5px 14px; font-size: 11px; color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: 3px; background: var(--bg-card); cursor: pointer; }
+.pm-fold:hover { border-color: var(--accent-signature); color: var(--accent-signature); }
 .pm-note { margin-top: 12px; font-size: 10px; color: var(--text-faint); line-height: 1.8; }
 @media (max-width: 720px) {
   .pm-grid { grid-template-columns: 1fr; }
