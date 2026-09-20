@@ -324,6 +324,7 @@
     <div class="heat-toolbar">
       <button class="pill active" data-evsub="map">平面地图</button>
       <button class="pill" data-evsub="news">实时快讯</button>
+      <button class="pill" data-evsub="pm">市场预测</button>
       <span class="tool-status num" id="globeStatus">等待采集数据…</span>
     </div>
     <div id="evGlobePane">
@@ -359,6 +360,16 @@
         <p class="page-sub" id="voicesSub">马斯克 · 特朗普 · 黄仁勋 · 奥尔特曼 等的公开发言动向</p>
         <div class="news-list" id="voicesList"></div>
       </div>
+    </div>
+    <!-- 市场预测（Polymarket 隐含概率，只读展示）：合规口径——仅显示"事件发生概率"，
+         行数据不含任何链接，UI 不提供、不引导交易；类别只保留可能影响市场的
+         央行/宏观/贸易/地缘/选举/能源（过滤在 js/polymarket.js，采集与展示同一份定义） -->
+    <div id="evPmPane" hidden>
+      <p class="page-sub" id="pmSub">—</p>
+      <div class="heat-toolbar" id="pmCatBar"></div>
+      <div class="news-list pm-list" id="pmList"></div>
+      <p class="pm-note">概率为 Polymarket 公开市场当前定价隐含的"事件发生可能性"（Yes 价格），
+        仅作信息参考，不构成预测或投资建议；本站不提供、不引导任何交易，亦不含任何外部链接。</p>
     </div>
   </section>
 
@@ -618,6 +629,7 @@
 <script src="js/flags.js?v=20260917b"></script>
 <script src="js/bus.js?v=20260917b"></script>
 <script src="js/events.js?v=20260917b"></script>
+<script src="js/polymarket.js?v=20260917b"></script>
 <script src="js/actors.js?v=20260917b"></script>
 <script src="js/sources/tencent.js?v=20260917b"></script>
 <script src="js/sources/sina.js?v=20260917b"></script>
@@ -628,6 +640,7 @@
 <script src="js/sources/news.js?v=20260917b"></script>
 <script src="js/sources/worldbank.js?v=20260917b"></script>
 <script src="js/sources/gdelt.js?v=20260917b"></script>
+<script src="js/sources/polymarket.js?v=20260917b"></script>
 <script src="js/sources/lhb.js?v=20260917b"></script>
 <script src="js/sources/southbound.js?v=20260917b"></script>
 <script src="js/sources/fundholds.js?v=20260917b"></script>

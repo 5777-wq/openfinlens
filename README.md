@@ -72,9 +72,11 @@ python -m http.server 8765   # → http://127.0.0.1:8765
 └── 永不白屏：任何一层挂掉都是"降级角标 + 旧数据/骨架"，绝无弹窗报错
 ```
 
-海外源（GDELT / SEC EDGAR）**不在浏览器里请求**：`.github/workflows/collect.yml` 每 5 分钟抓取、清洗、
+海外源（GDELT / SEC EDGAR / Polymarket）**不在浏览器里请求**：`.github/workflows/collect.yml` 每 5 分钟抓取、清洗、
 去重、地理定位后提交一份静态 JSON，浏览器只读自己的数据——核心功能不要求用户能直连海外接口。
 国内的新浪 7x24 快讯作为全球事件的第二来源（GDELT 不可达时的兜底），同样只走采集层。
+Polymarket 概率每 30 分钟采集一次，**合规口径：只提取"事件发生概率"这一个数字，产物不含任何
+平台链接与交易入口**，类别白名单只保留可能影响市场的央行/宏观/贸易/地缘/选举/能源。
 **注意**：GitHub 对免费仓库的 schedule 高负载时延迟严重（实测 `*/5` 被拖成 4~6 小时一次），
 要保证事件新鲜度请把采集搬到自己的服务器：见 [docs/SERVER-COLLECT.md](docs/SERVER-COLLECT.md)
 （cron 每 2 分钟，端到端 2~5 分钟；GDELT 不可达时自动降级为新浪源）。
@@ -101,6 +103,7 @@ DOM updates are incremental patches, and nothing ever throws a blank screen at y
 | A股龙虎榜 / 席位 | 东财 datacenter-web（净买额榜 + 席位明细，CORS 直连） | — | 空态 + 重试 |
 | 港股南向持股 | 东财 datacenter-web `RPT_MUTUAL_STOCK_HOLDRANKS`（日频 660 只，CORS 直连） | — | 内存缓存 |
 | 全球事件 | **GDELT + 新浪7x24 → Actions 每 5 分钟采集** → 静态 JSON | localStorage 缓存 | 诚实空态 |
+| 市场预测（事件概率） | **Polymarket Gamma API → Actions 每 30 分钟采集** → 静态 JSON（**只读展示市场隐含概率**，无链接无交易功能，类别白名单过滤） | 缓存 | 诚实空态 |
 | 机构持仓 13F | **SEC EDGAR → Actions 每 6 小时采集** → 静态 JSON（**多机构**：伯克希尔/桥水/ARK/Pershing；季度披露，滞后 34~45 天） | 缓存 | 诚实空态 |
 | 新闻 | 新浪 roll（JSONP） | 东财 `np-listapi` | 缓存 60s |
 | 宏观年度指标 | 世界银行 `api.worldbank.org` | — | 缓存 24h |
