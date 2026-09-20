@@ -15,7 +15,9 @@
 #      */2 * * * * /path/to/openfinlens/_scripts/server-collect.sh >> $HOME/openfinlens-collect.log 2>&1
 #
 # 说明：
-# - GDELT 国内服务器大概率连不通：collect-events.mjs 会自动降级为只用新浪财经7x24，
+# - Polymarket 概率每 30 分钟窗口采一轮（gamma-api 国内大概率连不通：失败自动跳过，
+   Actions 侧每 30 分钟兜底采集，两边幂等不撞车）。
+ - GDELT 国内服务器大概率连不通：collect-events.mjs 会自动降级为只用新浪财经7x24，
 #   数据源标签随之变化，属预期；需要 GDELT 时给 cron 环境配 HTTPS_PROXY 即可（脚本继承）。
 # - GitHub Actions 的 collect.yml 保留作备份（它跑得再慢也无害：无变化不提交；两边都用
 #   pull --rebase + 重试推送，撞车概率极低，撞上也只影响一轮）。
@@ -43,8 +45,15 @@ if ! node _scripts/collect-events.mjs; then
   exit 1
 fi
 
+# 2.5 Polymarket 事件概率：30 分钟一轮（窗口判断与 collect.yml 相同；cron */2 在窗口内
+#     会重复触发，脚本幂等——内容无变化不写盘）。国内服务器连不通时失败跳过，不阻塞主流程。
+H=$(date -u +%H); M=$(date -u +%M); MINS=$((10#$H * 60 + 10#$M))
+if [ $(( MINS % 30 )) -lt 10 ]; then
+  node _scripts/collect-polymarket.mjs || echo "$(date -u +%FT%TZ) polymarket 采集失败（保留旧数据，Actions 兜底）"
+fi
+
 # 3. 有变化才提交推送；推送重试 5 次（每次 rebase 对齐远端可能的 Actions 提交）
-git add data/events/global-events.json
+git add data/events/global-events.json data/events/polymarket.json
 if git diff --cached --quiet; then
   echo "$(date -u +%FT%TZ) no changes"
   exit 0
