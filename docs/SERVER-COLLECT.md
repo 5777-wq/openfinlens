@@ -13,6 +13,9 @@
 - 一个有本仓库写权限的 GitHub PAT（Settings → Developer settings → Tokens，勾 `repo`）
 - 网络：新浪财经 7x24 必须可达（这是主源之一）；GDELT 国内服务器大概率不可达——
   脚本会自动降级为只用新浪（页面数据源标签随之变为"新浪财经7x24"，属预期）。
+- Polymarket 概率（2026-09-20 起）：每 30 分钟窗口采一轮（gamma-api.polymarket.com
+  国内大概率不可达——失败自动跳过，Actions 侧兜底采集；海外服务器则完全可用，
+  含标题中文翻译）。注意：`.sh` 与 `.mjs` 采集脚本必须保持 LF 行尾（服务器上执行）。
 
 ## 部署步骤
 
