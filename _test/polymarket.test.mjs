@@ -130,7 +130,7 @@ await test('normalize：去重、cap 截断、closed/archived 事件剔除', () 
 
 await test('合规回归：产物行只有白名单字段，绝无 slug/URL/交易入口', () => {
   const rows = PM.normalize(events);
-  const ALLOW = new Set(['id', 'question', 'category', 'probability', 'change24h', 'volume24hr', 'liquidity', 'endDate', 'updatedAt']);
+  const ALLOW = new Set(['id', 'question', 'questionZh', 'category', 'probability', 'change24h', 'volume24hr', 'liquidity', 'endDate', 'updatedAt']);
   rows.forEach(r => {
     Object.keys(r).forEach(k => assert.ok(ALLOW.has(k), `行出现越界字段 ${k}`));
     assert.ok(!/slughref|https?:/i.test(JSON.stringify(r)), '行里不允许出现链接');
@@ -139,18 +139,20 @@ await test('合规回归：产物行只有白名单字段，绝无 slug/URL/交�
 
 await test('sanitize：坏行剔除（无问题/概率越界/类别非法）、排序、cap', () => {
   const raw = [
-    { id: 'a', question: 'Q1', category: 'macro', probability: 0.5, volume24hr: 100 },
+    { id: 'a', question: 'Q1', questionZh: '问题一', category: 'macro', probability: 0.5, volume24hr: 100 },
     { id: 'b', question: '   ', category: 'macro', probability: 0.5 },          // 空问题 → 剔
     { id: 'c', question: 'Q3', category: 'macro', probability: 1.5 },           // 概率越界 → 剔
     { id: 'd', question: 'Q4', category: 'sports', probability: 0.3 },          // 类别非法 → 剔
     { question: 'Q5', category: 'trade', probability: '0.22', volume24hr: '900' },
-    { id: 'f', question: 'Q6', category: 'energy', probability: 0.1, volume24hr: 9999 },
+    { id: 'f', question: 'Q6', questionZh: 'Q6', category: 'energy', probability: 0.1, volume24hr: 9999 },
   ];
-  const rows = PM.sanitize(raw, 2);
+  const rows = PM.sanitize(raw, 4);
   // 按 24h 热度取前 2：f(9999) > 无 id 的 Q5 行(900，问题键兜底 id) > a(100)
-  assert.equal(rows.length, 2);
+  assert.equal(rows.length, 3);
   assert.equal(rows[0].id, 'f');
+  assert.equal(rows[0].questionZh, null);        // 中文与原文相同 → 不算翻译，置 null
   assert.equal(rows[1].id, 'pm:q5');
+  assert.equal(rows[2].questionZh, '问题一');     // 有效中文标题透传
   assert.equal(rows[1].probability, 0.22);       // 字符串数值也接受
   assert.equal(PM.sanitize(null).length, 0);
   assert.equal(PM.sanitize('junk').length, 0);

@@ -27,13 +27,38 @@ const PM = require('../js/polymarket.js');
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'data', 'events', 'polymarket.json');
 const API = 'https://gamma-api.polymarket.com/events';
+const TR_API = 'https://translate.googleapis.com/translate_a/single';
 const PAGES = 3;            // 每页 100、按 24h 成交降序：拿头部 300 个活跃市场足够
 const LIMIT = 100;
 const TIMEOUT_MS = 25000;
 const RETRIES = 2;
 const MAX_BYTES = 1024 * 1024;
+const TR_BUDGET_MS = 100000;  // 翻译总预算：超时即停，剩余行保留英文（列表页 2026-09-20 用户反馈：全英文看不懂）
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+/* 中文标题：免费翻译端点逐条翻译（≤60 行、30 分钟一轮，单请求单句，对上游礼貌）。
+   单条失败 / 超预算 → 保留英文原题（questionZh 不写），前端按 questionZh || question
+   展示——宁缺毋假，绝不把半成品机翻当兜底。 */
+async function addZh(markets) {
+  const t0 = Date.now();
+  let ok = 0;
+  for (const m of markets) {
+    if (/[\u4e00-\u9fa5]/.test(m.question)) continue;   // 本来就是中文，跳过
+    if (Date.now() - t0 > TR_BUDGET_MS) {
+      console.error(`  翻译预算 ${TR_BUDGET_MS / 1000}s 用尽，剩余 ${markets.length - ok} 行保留英文`);
+      break;
+    }
+    try {
+      const url = `${TR_API}?client=gtx&sl=en&tl=zh-CN&dt=t&q=${encodeURIComponent(m.question)}`;
+      const j = await fetchJSON(url);
+      const zh = (Array.isArray(j) && Array.isArray(j[0]) ? j[0].map(s => (s && s[0]) || '').join('') : '').trim();
+      if (zh && zh !== m.question) { m.questionZh = zh; ok++; }
+    } catch { /* 单条失败不致命 */ }
+    await sleep(150);
+  }
+  console.log(`  中文标题：${ok}/${markets.length} 条翻译成功`);
+}
 
 async function fetchJSON(url) {
   for (let attempt = 0; attempt <= RETRIES; attempt++) {
@@ -91,6 +116,8 @@ async function main() {
     console.error('过滤后为 0 行：接口结构可能变化，拒绝写空文件');
     process.exit(1);
   }
+
+  await addZh(markets);
   const byCat = {};
   markets.forEach(m => { byCat[m.category] = (byCat[m.category] || 0) + 1; });
   console.log('  分类分布：' + Object.entries(byCat).map(([k, v]) => `${k}=${v}`).join(' '));
