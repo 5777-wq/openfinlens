@@ -122,6 +122,13 @@ const Polymarket = (() => {
     } else {
       picks = binary.slice().sort((a, b) => b.p - a.p).slice(0, 2).map(b => {
         const item = String(b.m.groupItemTitle || '').trim();
+        // Polymarket 模板题把关键信息藏在省略号里（"ceasefire continues through...?" +
+        // 档名"September 20"）——把档名填回省略号处合成完整问句，比"标题 · 档名"可读得多
+        if (item && /\.\.\.|…/.test(title)) {
+          const q = title.replace(/\s*(?:\.\.\.|…)\s*/, ' ' + item + ' ')
+            .replace(/\s+([?？])/g, '$1').replace(/\s{2,}/g, ' ').trim();
+          return { q, p: b.p, m: b.m };
+        }
         return { q: item ? title + ' · ' + item : title, p: b.p, m: b.m };
       });
     }
