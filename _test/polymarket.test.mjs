@@ -128,6 +128,14 @@ await test('rowsForEvent：模板题省略号填档名合成完整问句（不�
   // 无省略号的模板题仍走"标题 · 档名"
   const fed = PM.rowsForEvent(fedEvent);
   assert.equal(fed[0].question, 'Fed Decision in September? · No change');
+  // 单市场题原文自带省略号且无档名可填 → 关键信息缺失，整行不收录
+  const lone = PM.rowsForEvent({
+    id: '700200', title: 'Israel closes its airspace by...?', active: true, closed: false,
+    volume: '300000', volume24hr: '20000',
+    markets: [{ id: '70004', outcomes: '["Yes", "No"]', outcomePrices: '["0.1", "0.9"]', closed: false }],
+    tags: [{ id: '2', label: 'Israel', slug: 'israel' }],
+  });
+  assert.equal(lone.length, 0);
 });
 
 await test('rowsForEvent：单市场事件一行、黑名单/量级/非二元/已关闭全拦下', () => {
@@ -166,6 +174,7 @@ await test('sanitize：坏行剔除（无问题/概率越界/类别非法）、�
     { id: 'c', question: 'Q3', category: 'macro', probability: 1.5 },           // 概率越界 → 剔
     { id: 'd', question: 'Q4', category: 'sports', probability: 0.3 },          // 类别非法 → 剔
     { question: 'Q5', category: 'trade', probability: '0.22', volume24hr: '900' },
+    { id: 'e', question: '以...?', questionZh: '以……？', category: 'macro', probability: 0.4, volume24hr: 500 }, // 省略号 → 剔
     { id: 'f', question: 'Q6', questionZh: 'Q6', category: 'energy', probability: 0.1, volume24hr: 9999 },
   ];
   const rows = PM.sanitize(raw, 4);

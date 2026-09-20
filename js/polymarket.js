@@ -135,7 +135,11 @@ const Polymarket = (() => {
 
     const end = toMs(ev.endDate);
     const updated = toMs(ev.updatedAt);
-    return picks.map(({ q, p, m }) => ({
+    // 合并/成句后问句里仍残留省略号 = 关键信息（日期/数值）连原文都没给出，无法看清，
+    // 按"宁缺毋假"直接不收录（如单市场题 "Israel closes its airspace by...?"）
+    return picks
+      .filter(({ q }) => !/\.\.\.|…/.test(q))
+      .map(({ q, p, m }) => ({
       id: 'pm:' + (typeof m.id === 'string' || typeof m.id === 'number' ? m.id : dedupeKey(q)),
       question: q,
       category: cat,
@@ -170,6 +174,8 @@ const Polymarket = (() => {
     const out = [];
     (Array.isArray(rawRows) ? rawRows : []).forEach(r => {
       if (!r || typeof r.question !== 'string' || !r.question.trim()) return;
+      // 问句（中英任一）含省略号 = 关键信息缺失，读不懂，直接不收录
+      if (/\.\.\.|…/.test(r.question) || (typeof r.questionZh === 'string' && /\.\.\.|…/.test(r.questionZh))) return;
       const p = num(r.probability);
       if (p === null || p < 0 || p > 1) return;
       const cat = CAT_META[r.category] ? r.category : null;
