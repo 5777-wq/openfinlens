@@ -1,6 +1,8 @@
 # 全球事件采集任务：GDELT + 新浪7x24 → data/events/global-events.json（5 分钟/轮，GDELT 本体 15 分钟级）
 # 伯克希尔 13F：SEC EDGAR → data/actors/berkshire.json（季度数据，每 6 小时对时一次）
-# 海外源只在 Actions 侧访问；浏览器永远不直连 GDELT/SEC（见 js/sources/gdelt.js 与 js/sources/sec.js）。
+# Polymarket 概率：Gamma API 公开只读 → data/events/polymarket.json（30 分钟/轮，只展示事件概率）
+# 海外源只在 Actions 侧访问；浏览器永远不直连 GDELT/SEC/Polymarket
+# （见 js/sources/gdelt.js、js/sources/sec.js、js/sources/polymarket.js）。
 # 数据无变化时不产生提交；push 冲突时 rebase 重试（用户可能同时手推代码）。
 name: collect
 
@@ -42,17 +44,26 @@ jobs:
             node _scripts/collect-etf.mjs || echo "etf collect failed (keep old data)"
           fi
 
+      - name: Collect Polymarket event probabilities (every ~30min)
+        run: |
+          # 与 6h 档同一套 10 分钟窗口写法（Actions 定时在高负载整点常延迟数分钟）
+          # 概率变化不快，30 分钟/轮足够；失败不致命（|| echo），不影响主事件流提交
+          H=$(date -u +%H); M=$(date -u +%M); MINS=$((10#$H * 60 + 10#$M))
+          if [ $(( MINS % 30 )) -lt 10 ]; then
+            node _scripts/collect-polymarket.mjs || echo "polymarket collect failed (keep old data)"
+          fi
+
       - name: Commit if changed
         run: |
           git config user.name "openfinlens-bot"
           git config user.email "actions@users.noreply.github.com"
           # 整个 data/actors 目录都进 add：此前只 add 两个文件，13f.json/fundholds.json
           # 采集成功却从不提交（上线数据全靠手动推的那一次），CI 侧更新会被静默丢掉
-          git add data/events/global-events.json data/actors
+          git add data/events/global-events.json data/events/polymarket.json data/actors
           if git diff --cached --quiet; then
             echo "no changes"
           else
-            git commit -m "data: refresh global events + berkshire 13f [skip ci]"
+            git commit -m "data: refresh global events + berkshire 13f + polymarket [skip ci]"
             # 三连败必须红：本 workflow 是项目唯一的"后端"，commit 只在 runner 上，
             # 推不上去=数据静默断更（旧写法循环最后是 sleep 5，步骤恒绿）
             ok=0

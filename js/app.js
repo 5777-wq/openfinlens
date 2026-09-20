@@ -67,8 +67,10 @@
     boardOpenBk: null, boardStocks: [], boardGen: 0,
     voices: null, voicesAt: 0, voicesGen: 0, globeQuotes: null,
     events: null, eventsVia: null, eventsGenAt: null, eventsStale: true, eventsLoadedAt: 0,
-    eventsSub: Store.get('evMode', 'map'),     // 事件页子视图：map（平面地图）| news（实时快讯）；存量 'globe' 由 setEventsSub 归一
+    eventsSub: Store.get('evMode', 'map'),     // 事件页子视图：map（平面地图）| news（实时快讯）| pm（市场预测）；存量 'globe' 由 setEventsSub 归一
     eventsType: 'all',         // 事件类型过滤（all / macro / central_bank / …）
+    // 市场预测（Polymarket 隐含概率，只读展示）
+    pmMarkets: [], pmCat: 'all', pmVia: null, pmGenAt: null, pmStale: true, pmLoadedAt: 0,
     eventsSource: '',          // 数据源名（状态行合成用）
     mapStatusPts: null,        // 平面地图点数状态（onStatus 回调），与数据源状态行合并显示
     selEvent: null,            // 当前选中的全球事件
@@ -115,7 +117,8 @@
     'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle', 'intradaySeg',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
     'eventsSub', 'globeStatus', 'mapLegend',
-    'evGlobePane', 'evNewsPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
+    'evGlobePane', 'evNewsPane', 'evPmPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
+    'pmSub', 'pmCatBar', 'pmList',
     'mapLayers', 'countryDetail',
     'lhbBox', 'lhbVia', 'evtToggle', 'chartEventCard',
     'seatDir', 'seatDirVia',
@@ -1955,6 +1958,84 @@
     }).join('') + (list.length > 80 ? `<div class="empty">共 ${list.length} 条 · 仅显示最近 80 条</div>` : '');
   }
 
+  /* ==================== 市场预测（Polymarket 隐含概率，只读展示） ====================
+     采集在 Actions（30 分钟/轮）产出静态 JSON，浏览器只读自己的文件（同 gdelt.js 架构）。
+     合规口径：只展示"事件发生概率"；行数据无链接字段，UI 不外链、不引导交易；
+     概率是市场定价隐含值，副标题与页脚都注明"仅供参考，不构成预测或投资建议"。 */
+
+  async function loadPmMarkets() {
+    const res = await window.PmSource.getMarkets();
+    state.pmMarkets = res.markets;
+    state.pmVia = res.via;
+    state.pmGenAt = res.generatedAt;
+    state.pmStale = res.stale;
+    state.pmLoadedAt = Date.now();
+    renderPmCatBar();
+    renderPmList();
+  }
+
+  function pmFiltered() {
+    if (state.pmCat === 'all') return state.pmMarkets || [];
+    return (state.pmMarkets || []).filter(m => m.category === state.pmCat);
+  }
+
+  function renderPmCatBar() {
+    if (!el.pmCatBar) return;
+    const list = state.pmMarkets || [];
+    if (!list.length) { el.pmCatBar.innerHTML = ''; return; }
+    const counts = {};
+    list.forEach(m => { counts[m.category] = (counts[m.category] || 0) + 1; });
+    const cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    const META = window.Polymarket.CAT_META;
+    el.pmCatBar.innerHTML = ['all'].concat(cats).map(c => {
+      const meta = META[c];
+      const dot = meta ? `<i class="ev-dot" style="background:${meta.color}"></i>` : '';
+      const label = c === 'all' ? '全部类别' : (meta ? meta.label : c);
+      return `<button class="pill${state.pmCat === c ? ' active' : ''}" data-pmcat="${c}">${dot}${label}<b class="num">${c === 'all' ? list.length : counts[c]}</b></button>`;
+    }).join('');
+  }
+
+  function renderPmList() {
+    if (!el.pmList) return;
+    const list = pmFiltered();
+    if (el.pmSub) {
+      if (!state.pmVia) {
+        el.pmSub.textContent = '数据更新中，请稍候 · 概率仅为市场隐含参考';
+      } else {
+        const viaTxt = state.pmVia === 'cache' ? '缓存' : '实时';
+        const ageTxt = state.pmGenAt ? ' · 数据 ' + fmtAgo(state.pmGenAt) : '';
+        el.pmSub.textContent = `市场隐含概率（${viaTxt}${ageTxt}）· 仅供参考，不构成预测或投资建议`;
+      }
+    }
+    if (!list.length) {
+      el.pmList.innerHTML = state.pmVia
+        ? '<div class="empty">暂无符合口径的预测市场数据（只保留可能影响市场的类别）</div>'
+        : '<div class="empty">采集任务未运行或不可达 · 稍后自动恢复，绝不造假数据</div>';
+      return;
+    }
+    const META = window.Polymarket.CAT_META;
+    el.pmList.innerHTML = list.map(m => {
+      const meta = META[m.category] || {};
+      const p = Math.round(m.probability * 100);
+      const chg = (m.change24h === null || m.change24h === undefined || isNaN(m.change24h)) ? null : m.change24h;
+      const chgTxt = chg === null ? '' :
+        `<span class="pm-chg ${chg > 0 ? 'up' : chg < 0 ? 'down' : 'flat'} num">${chg > 0 ? '+' : ''}${chg.toFixed(1)}pp</span>`;
+      const end = m.endDate ? ' · 截止 ' + new Date(m.endDate).toISOString().slice(0, 10) : '';
+      const vol = m.volume24hr ? ' · 24h ' + fmtUsd(m.volume24hr) : '';
+      return `<div class="pm-row" style="--cat-c:${meta.color || 'var(--border-hover)'}">
+        <div class="pm-main">
+          <div class="pm-q">${escapeHTML(m.question)}</div>
+          <div class="pm-meta"><span class="pm-cat" style="color:${meta.color || 'inherit'}">${meta.label || ''}</span>${end}${vol}</div>
+        </div>
+        <div class="pm-side">
+          <div class="pm-bar"><i style="width:${Math.max(1, Math.min(100, p))}%"></i></div>
+          <span class="pm-pct num">${p}%</span>
+          ${chgTxt}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
   function renderEventDetail(ev) {
     if (!el.eventDetail) return;
     if (!ev) { el.eventDetail.hidden = true; el.eventDetail.innerHTML = ''; return; }
@@ -2176,14 +2257,25 @@
 
   function setEventsSub(sub) {
     // 'globe' 存量值归一为 'map'：3D 地球已按用户决策移除，平面地图是唯一地理视图
-    if (sub !== 'news' && sub !== 'map') sub = 'map';
+    if (sub !== 'news' && sub !== 'map' && sub !== 'pm') sub = 'map';
     state.eventsSub = sub;
-    Store.set('evMode', sub);                 // 记住上次用的视图（平面 / 快讯）
+    Store.set('evMode', sub);                 // 记住上次用的视图（平面 / 快讯 / 市场预测）
     document.querySelectorAll('[data-evsub]').forEach(b =>
       b.classList.toggle('active', b.dataset.evsub === state.eventsSub));
-    const newsMode = sub === 'news';
-    if (el.evGlobePane) el.evGlobePane.hidden = newsMode;   // 面板宿主（现仅平面地图）
+    const newsMode = sub === 'news', pmMode = sub === 'pm';
+    if (el.evGlobePane) el.evGlobePane.hidden = newsMode || pmMode;   // 面板宿主（现仅平面地图）
     if (el.evNewsPane) el.evNewsPane.hidden = !newsMode;
+    if (el.evPmPane) el.evPmPane.hidden = !pmMode;
+    if (pmMode) {
+      // 只读概率榜单：进面板刷新一次（5 分钟窗口），其余沿用已有渲染
+      if (!state.pmLoadedAt || Date.now() - state.pmLoadedAt > 300000) {
+        loadPmMarkets().catch(() => { /* 降级角标已表达 */ });
+      } else {
+        renderPmCatBar();
+        renderPmList();
+      }
+      return;
+    }
     if (!newsMode) {
       ensureWorldMap();
       refreshEventsData();
@@ -3887,6 +3979,8 @@
       // ---- 事件页：子面板切换 / 类型过滤 / 事件行 / 关联资产 / 聚合清单 / 详情卡 ----
       const evsub = e.target.closest('[data-evsub]');
       if (evsub) { setEventsSub(evsub.dataset.evsub); return; }
+      const pmcat = e.target.closest('[data-pmcat]');
+      if (pmcat) { state.pmCat = pmcat.dataset.pmcat; renderPmCatBar(); renderPmList(); return; }
       const maplayer = e.target.closest('[data-maplayer]');
       if (maplayer && window.WorldMapView) {
         const id = maplayer.dataset.maplayer;

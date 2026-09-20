@@ -141,6 +141,29 @@ await test('etf.json：因子 ETF 持仓——只含股票行、占净值降序�
   assert.ok(named >= all.length * 0.8, `中文名覆盖 ${named}/${all.length} 过低`);
 });
 
+await test('polymarket.json：只含概率行、概率合法、绝无 slug/URL（合规回归）', async () => {
+  const f = path.join(ROOT, 'data/events/polymarket.json');
+  if (!existsSync(f)) { console.log('   （种子尚未生成，跳过）'); return; }
+  const d = JSON.parse(readFileSync(f, 'utf8'));
+  assert.equal(Array.isArray(d.markets), true);
+  if (!d.markets.length) {
+    // 占位文件（采集还没跑过）必须没有 generatedAt，前端据此走"诚实空态"而非假数据
+    assert.equal(d.generatedAt, null, '空产物不得伪造 generatedAt');
+    return;
+  }
+  assert.equal(typeof d.generatedAt, 'string');
+  assert.ok(d.count === d.markets.length, 'count 字段与实际条数一致');
+  assert.ok(d.markets.length <= 60, '不超过 CAP');
+  for (const m of d.markets) {
+    assert.ok(typeof m.question === 'string' && m.question.length > 4);
+    assert.ok(m.probability >= 0 && m.probability <= 1, `概率越界 ${m.probability}`);
+    assert.ok(['central_bank', 'macro', 'trade', 'geopolitics', 'election', 'energy'].includes(m.category),
+      `类别越界 ${m.category}`);
+    // 合规铁律：行里不允许出现 slug / 链接 / 交易平台入口（前端想外链都没有字段）
+    assert.ok(!/slug|href|https?:/i.test(JSON.stringify(m)), '行里出现 slug/链接字段');
+  }
+});
+
 setTimeout(() => {
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exitCode = fail ? 1 : 0;
