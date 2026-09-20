@@ -1337,3 +1337,80 @@ body.no-crypto .crypto-only { display: none !important; }
   transition: opacity 0.24s var(--ease-out), transform 0.24s var(--ease-out), visibility 0.24s;
 }
 .ofl-toast.on { opacity: 1; transform: translateY(0); visibility: visible; }
+
+/* ==================== 界面皮肤（html[data-theme]）+ 环境光 + 动效（2026-09-20） ====================
+   保留终端排版与 hairline 语言，只整组换变量不动结构。--glow-1/2 是环境光 rgb 三元组
+   （同 --up-rgb 契约）；--chart-* 给 lightweight-charts（canvas 不吃 CSS 变量，
+   charts.js 在创建/retheme 时现读）。默认终端黑 = :root，无需覆盖块。 */
+
+:root { --chart-text: #86868b; --chart-grid: rgba(255,255,255,0.04); --chart-border: rgba(255,255,255,0.08);
+  --glow-1: 232,163,61; --glow-2: 91,141,239; }
+
+/* 环境光：极淡双色辉光铺在底色上（缓慢漂移，减动效用户看到的是静态光晕） */
+body::before { content: ''; position: fixed; inset: -18%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(42% 36% at 22% 0%, rgba(var(--glow-1), 0.075), transparent 70%),
+    radial-gradient(36% 30% at 86% 10%, rgba(var(--glow-2), 0.055), transparent 70%); }
+
+/* —— 极光：深蓝黑底 + 靛蓝紫强调（阶跃/Kimi 气质） —— */
+html[data-theme="aurora"] {
+  --bg: #0b0d15; --bg-elevated: #141827; --bg-card: #10131f; --bg-hover: #161b2c;
+  --text: #eef0f8; --text-secondary: #9aa2b8; --text-tertiary: #7e86a0; --text-faint: #5a6178;
+  --border: rgba(140,160,255,0.10); --border-hover: rgba(140,160,255,0.22);
+  --accent-signature: #7c8cff; --accent-rgb: 124,140,255;
+  --chart-text: #8b93ad; --chart-grid: rgba(140,160,255,0.05); --chart-border: rgba(140,160,255,0.12);
+  --glow-1: 124,140,255; --glow-2: 56,214,255;
+}
+
+/* —— 纯黑：OLED 极致对比，强调色与终端黑一致 —— */
+html[data-theme="oled"] {
+  --bg: #000000; --bg-elevated: #0c0c0e; --bg-card: #050506; --bg-hover: #121214;
+  --border: rgba(255,255,255,0.06); --border-hover: rgba(255,255,255,0.14);
+}
+
+/* —— 纸白：暖纸灰底 + 深琥珀强调，浅色下的终端感 —— */
+html[data-theme="paper"] {
+  --bg: #f5f4ef; --bg-elevated: #edebe4; --bg-card: #fbfaf6; --bg-hover: #e9e7df;
+  --text: #1b1b1a; --text-secondary: #56565c; --text-tertiary: #6c6c73; --text-faint: #9c9ca2;
+  --border: rgba(25,25,20,0.11); --border-hover: rgba(25,25,20,0.24);
+  --accent-signature: #b8791f; --accent-rgb: 184,121,31;
+  --chart-text: #6f6f76; --chart-grid: rgba(25,25,20,0.06); --chart-border: rgba(25,25,20,0.14);
+  --glow-1: 184,121,31; --glow-2: 91,141,239;
+  scrollbar-color: rgba(0,0,0,0.18) transparent;
+}
+html[data-theme="paper"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border: 3px solid transparent; background-clip: padding-box; }
+html[data-theme="paper"] .sk { background: rgba(25,25,20,0.055); }
+
+/* —— 动效：全部包在 no-preference 里，减动效用户零打扰 —— */
+@media (prefers-reduced-motion: no-preference) {
+  /* 换肤平滑过渡：切换瞬间短暂给全元素挂颜色过渡，450ms 后由 JS 摘掉 */
+  html.theming body, html.theming body * {
+    transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .35s ease !important; }
+
+  /* 滚动显现：.rv 由 initReveal 标记，进入视口加 .rv-in（一次即止） */
+  .rv { opacity: 0; transform: translateY(14px);
+    transition: opacity .55s var(--ease-out), transform .55s var(--ease-out); }
+  .rv.rv-in { opacity: 1; transform: none; }
+
+  /* 市场预测卡片：入场 stagger + 概率条从 0 充满 + 悬停轻浮起 */
+  .pm-grid > .pm-tile { animation: tileIn .4s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 55ms);
+    transition: transform .2s var(--ease-out), border-color .2s var(--ease-out), box-shadow .2s var(--ease-out); }
+  .pm-grid > .pm-tile:nth-child(2) { --i: 1; }
+  .pm-grid > .pm-tile:nth-child(3) { --i: 2; }
+  .pm-grid > .pm-tile:nth-child(4) { --i: 3; }
+  .pm-grid > .pm-tile:nth-child(5) { --i: 4; }
+  .pm-grid > .pm-tile:nth-child(6) { --i: 5; }
+  .pm-tile:hover { transform: translateY(-2px); border-color: var(--border-hover);
+    box-shadow: 0 10px 26px rgba(0,0,0,0.35); }
+  .pm-bar > i { transform-origin: left center; animation: pmBarIn .6s var(--ease-out) .15s both;
+    box-shadow: 0 0 10px rgba(var(--glow-1), 0.25); }
+
+  /* 快讯/事件行整批轻淡入：60s 轮询重渲染时的"刷新感"，不抢注意力 */
+  .news-item { animation: rowIn .25s var(--ease-out) both; }
+
+  html { scroll-behavior: smooth; }
+}
+@keyframes tileIn { from { opacity: 0; transform: translateY(10px); } }
+@keyframes pmBarIn { from { transform: scaleX(0); } }
+@keyframes rowIn { from { opacity: 0; } }
+#segTheme button { white-space: nowrap; padding-inline: 11px; }

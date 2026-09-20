@@ -28,7 +28,7 @@ const Store = {
   settings: {
     get() {
       return Object.assign(
-        { updown: 'red', refresh: 10, showDegraded: true },
+        { updown: 'red', refresh: 10, showDegraded: true, theme: 'dark' },
         Store.get('settings', {})
       );
     },
