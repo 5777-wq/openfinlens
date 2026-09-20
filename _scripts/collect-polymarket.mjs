@@ -27,7 +27,8 @@ const PM = require('../js/polymarket.js');
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'data', 'events', 'polymarket.json');
 const API = 'https://gamma-api.polymarket.com/events';
-const TR_API = 'https://translate.googleapis.com/translate_a/single';
+const TR_MEMORY = 'https://api.mymemory.translated.net/get';   // 主通道：对数据中心 IP 友好（Actions 实测 gtx 直接 429）
+const TR_GTX = 'https://translate.googleapis.com/translate_a/single';  // 备用：用户自建服务器（非数据中心段）上可用
 const PAGES = 3;            // 每页 100、按 24h 成交降序：拿头部 300 个活跃市场足够
 const LIMIT = 100;
 const TIMEOUT_MS = 25000;
@@ -37,25 +38,37 @@ const TR_BUDGET_MS = 100000;  // 翻译总预算：超时即停，剩余行保�
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-/* 中文标题：免费翻译端点逐条翻译（≤60 行、30 分钟一轮，单请求单句，对上游礼貌）。
-   单条失败 / 超预算 → 保留英文原题（questionZh 不写），前端按 questionZh || question
+/* 中文标题：MyMemory 主通道 + gtx 备用，逐条翻译（≤60 行、30 分钟一轮，对上游礼貌）。
+   两通道都失败 / 超预算 → 保留英文原题（questionZh 不写），前端按 questionZh || question
    展示——宁缺毋假，绝不把半成品机翻当兜底。 */
+async function trMyMemory(text) {
+  const j = await fetchJSON(`${TR_MEMORY}?q=${encodeURIComponent(text)}&langpair=en|zh-CN`);
+  const t = j && j.responseData && j.responseData.translatedText;
+  if (!t || /MYMEMORY WARNING|INVALID|QUERY LENGTH/i.test(t)) throw new Error('mymemory: bad response');
+  return t;
+}
+async function trGtx(text) {
+  const j = await fetchJSON(`${TR_GTX}?client=gtx&sl=en&tl=zh-CN&dt=t&q=${encodeURIComponent(text)}`);
+  const zh = (Array.isArray(j) && Array.isArray(j[0]) ? j[0].map(s => (s && s[0]) || '').join('') : '').trim();
+  if (!zh) throw new Error('gtx: empty');
+  return zh;
+}
 async function addZh(markets) {
   const t0 = Date.now();
   let ok = 0;
   for (const m of markets) {
     if (/[\u4e00-\u9fa5]/.test(m.question)) continue;   // 本来就是中文，跳过
     if (Date.now() - t0 > TR_BUDGET_MS) {
-      console.error(`  翻译预算 ${TR_BUDGET_MS / 1000}s 用尽，剩余 ${markets.length - ok} 行保留英文`);
+      console.error(`  翻译预算 ${TR_BUDGET_MS / 1000}s 用尽，剩余行保留英文`);
       break;
     }
     try {
-      const url = `${TR_API}?client=gtx&sl=en&tl=zh-CN&dt=t&q=${encodeURIComponent(m.question)}`;
-      const j = await fetchJSON(url);
-      const zh = (Array.isArray(j) && Array.isArray(j[0]) ? j[0].map(s => (s && s[0]) || '').join('') : '').trim();
-      if (zh && zh !== m.question) { m.questionZh = zh; ok++; }
-    } catch { /* 单条失败不致命 */ }
-    await sleep(150);
+      let zh;
+      try { zh = await trMyMemory(m.question); }
+      catch { zh = await trGtx(m.question); }
+      if (zh && zh !== m.question) { m.questionZh = zh.trim(); ok++; }
+    } catch { /* 双通道都失败，保留英文 */ }
+    await sleep(120);
   }
   console.log(`  中文标题：${ok}/${markets.length} 条翻译成功`);
 }
