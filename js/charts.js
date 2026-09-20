@@ -6,20 +6,27 @@ const Charts = (() => {
   const LWC = () => window.LightweightCharts;
 
   function baseOptions() {
-    // 图表底色跟主题卡片色一致（#0a0a0a 嵌在 #111 卡片里像凹了一块）
-    const bg = (getComputedStyle(document.body).getPropertyValue('--bg-card') || '').trim() || '#111111';
+    // 图表底色跟主题卡片色一致（#0a0a0a 嵌在 #111 卡片里像凹了一块）。
+    // 文字/网格线同样走主题变量（--chart-*），换肤后 retheme() 增量重读即可
+    const s = getComputedStyle(document.body);
+    const varOf = (name, fb) => (s.getPropertyValue(name) || '').trim() || fb;
     return {
-      layout: { background: { type: 'solid', color: bg }, textColor: '#86868b' },
+      layout: { background: { type: 'solid', color: varOf('--bg-card', '#111111') }, textColor: varOf('--chart-text', '#86868b') },
       grid: {
-        vertLines: { color: 'rgba(255,255,255,0.04)' },
-        horzLines: { color: 'rgba(255,255,255,0.04)' },
+        vertLines: { color: varOf('--chart-grid', 'rgba(255,255,255,0.04)') },
+        horzLines: { color: varOf('--chart-grid', 'rgba(255,255,255,0.04)') },
       },
-      rightPriceScale: { borderColor: 'rgba(255,255,255,0.08)' },
-      timeScale: { borderColor: 'rgba(255,255,255,0.08)', timeVisible: true, secondsVisible: false },
+      rightPriceScale: { borderColor: varOf('--chart-border', 'rgba(255,255,255,0.08)') },
+      timeScale: { borderColor: varOf('--chart-border', 'rgba(255,255,255,0.08)'), timeVisible: true, secondsVisible: false },
       crosshair: { mode: 0 },
       autoSize: true,
       localization: { locale: 'zh-CN' },
     };
+  }
+
+  // 换肤后对已存在的图表增量重读主题变量（canvas 不吃 CSS 变量，必须 applyOptions）
+  function retheme(chart) {
+    if (chart && typeof chart.applyOptions === 'function') chart.applyOptions(baseOptions());
   }
 
   // v5 / v4 兼容的 series 添加
@@ -450,7 +457,7 @@ const Charts = (() => {
     return closes.map(() => null);
   }
 
-  return { createKline, createTrend, createCompare, calcMA, emaSeries, themeColors };
+  return { createKline, createTrend, createCompare, calcMA, emaSeries, themeColors, retheme };
 })();
 
 window.Charts = Charts;

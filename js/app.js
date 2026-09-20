@@ -112,7 +112,7 @@
     'boardStrip', 'boardVia', 'boardDrawer',
     'moodSub', 'moodScore', 'moodBand', 'moodFill', 'breadthGrid', 'distWrap', 'distSub', 'moodSpark', 'heroStrip', 'moodCrypto', 'moodUS',
     'searchInput', 'searchResults', 'settingsBtn', 'settingsModal', 'settingsClose',
-    'segUpdown', 'segRefresh', 'swDegraded', 'sourceStatus', 'updatedLine',
+    'segUpdown', 'segRefresh', 'segTheme', 'swDegraded', 'sourceStatus', 'updatedLine',
     'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats',
     'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle', 'intradaySeg',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
@@ -3573,6 +3573,45 @@
     el.segRefresh.querySelectorAll('button').forEach(b => b.classList.toggle('active', +b.dataset.refresh === s.refresh));
     el.swDegraded.classList.toggle('on', !!s.showDegraded);
     el.swDegraded.setAttribute('aria-checked', String(!!s.showDegraded));
+    applyTheme(s.theme);
+  }
+
+  /* ==================== 界面皮肤（data-theme 变量组，保留终端排版换气质） ==================== */
+
+  const THEMES = ['dark', 'aurora', 'oled', 'paper'];
+  let themeTimer = 0;
+
+  function applyTheme(t) {
+    if (!THEMES.includes(t)) t = 'dark';
+    if (el.segTheme) el.segTheme.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+    const root = document.documentElement;
+    if (root.dataset.theme === t) return;
+    // 苹果式无级换肤：切换瞬间给全元素短暂挂颜色过渡类，450ms 后摘掉
+    if (!reduceMotion()) {
+      root.classList.add('theming');
+      clearTimeout(themeTimer);
+      themeTimer = setTimeout(() => root.classList.remove('theming'), 450);
+    }
+    root.dataset.theme = t;
+    // lightweight-charts 不吃 CSS 变量：已打开的图表增量重读主题色
+    if (state.chart) window.Charts.retheme(state.chart);
+  }
+
+  /* 滚动显现（阶跃/Kimi/Apple 官网式）：区块进入视口才淡入上浮，hidden 面板在
+     切进去的那一刻才触发，IntersectionObserver 天然按需。减动效用户直接全量可见。 */
+  function initReveal() {
+    if (reduceMotion() || !('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        en.target.classList.add('rv-in');
+        io.unobserve(en.target);
+      });
+    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.04 });
+    document.querySelectorAll('.section, .pm-sec').forEach(node => {
+      node.classList.add('rv');
+      io.observe(node);
+    });
   }
 
   function onUpdownChanged() {
@@ -4270,6 +4309,12 @@
       scheduleMood();   // 情绪页刷新间隔同步生效，否则要重开页面才变
       renderStatus();
     });
+    el.segTheme.addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      window.Store.settings.set({ theme: b.dataset.theme });
+      applySettings();
+    });
     el.swDegraded.addEventListener('click', () => {
       const cur = window.Store.settings.get().showDegraded;
       window.Store.settings.set({ showDegraded: !cur });
@@ -4296,6 +4341,7 @@
     DOM_IDS.forEach(id => { el[id] = $(id); });
     bindHashNav();
     applySettings();
+    initReveal();
     bindEvents();
     renderStatus();
     // 触屏/无悬停设备上"滚轮/右键"全是错词，且复位入口要默认可见
