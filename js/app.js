@@ -2008,7 +2008,7 @@
           <span class="pm-pct num">${pctOf(m)}%</span>
           ${chgTxt(m)}
         </div>
-        <div class="pm-meta">${m.endDate ? '截止 ' + new Date(m.endDate).toISOString().slice(0, 10) : '无截止'}${m.volume24hr ? ' · 24h ' + fmtUsd(m.volume24hr) : ''}</div>
+        <div class="pm-meta">${m.endDate ? '截止 ' + new Date(m.endDate).toISOString().slice(0, 10) : '长期有效'}</div>
       </div>`;
 
     // 按分类分区；区序按"该类最热一条的 24h 成交"降序——最热的话题排最前

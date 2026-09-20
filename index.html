@@ -361,14 +361,15 @@
         <div class="news-list" id="voicesList"></div>
       </div>
     </div>
-    <!-- 市场预测（Polymarket 隐含概率，只读展示）：合规口径——仅显示"事件发生概率"，
+    <!-- 市场预测（公开预测市场隐含概率，只读展示）：合规口径——仅显示"事件发生概率"，
          行数据不含任何链接，UI 不提供、不引导交易；类别只保留可能影响市场的
-         央行/宏观/贸易/地缘/选举/能源（过滤在 js/polymarket.js，采集与展示同一份定义） -->
+         央行/宏观/贸易/地缘/选举/能源（过滤在 js/polymarket.js，采集与展示同一份定义）；
+         页面文案不出现数据源品牌（来源记录在数据文件与代码注释里） -->
     <div id="evPmPane" hidden>
       <p class="page-sub" id="pmSub">—</p>
       <div class="news-list pm-list" id="pmList"></div>
-      <p class="pm-note">概率为 Polymarket 公开市场当前定价隐含的"事件发生可能性"（Yes 价格），
-        仅作信息参考，不构成预测或投资建议；本站不提供、不引导任何交易，亦不含任何外部链接。</p>
+      <p class="pm-note">概率为公开预测市场当前定价隐含的"事件发生可能性"，仅作信息参考，不构成预测或投资建议；
+        本站不提供、不引导任何交易，亦不含任何外部链接。</p>
     </div>
   </section>
 
