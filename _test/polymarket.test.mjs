@@ -108,6 +108,28 @@ await test('rowsForEvent：多结果事件只取概率前两档，问题 = 标�
   assert.equal(rows[0].endDate, Date.parse('2026-09-17T18:00:00Z'));
 });
 
+await test('rowsForEvent：模板题省略号填档名合成完整问句（不再出现"..."）', () => {
+  const ev = {
+    id: '700100', title: 'US-Iran ceasefire continues through...?', active: true, closed: false,
+    volume: '500000', volume24hr: '50000',
+    markets: [
+      { id: '70001', groupItemTitle: 'September 20', outcomes: '["Yes", "No"]', outcomePrices: '["0.97", "0.03"]', closed: false },
+      { id: '70002', groupItemTitle: 'September 25', outcomes: '["Yes", "No"]', outcomePrices: '["0.83", "0.17"]', closed: false },
+      { id: '70003', groupItemTitle: 'October 31', outcomes: '["Yes", "No"]', outcomePrices: '["0.61", "0.39"]', closed: false },
+    ],
+    tags: [{ id: '1', label: 'Geopolitics', slug: 'geopolitics' }],
+  };
+  const rows = PM.rowsForEvent(ev);
+  assert.equal(rows.length, 2);
+  // "…continues through...?" + "September 20" → "continues through September 20?"（前两档按概率取）
+  assert.equal(rows[0].question, 'US-Iran ceasefire continues through September 20?');
+  assert.equal(rows[1].question, 'US-Iran ceasefire continues through September 25?');
+  assert.ok(!rows.some(r => /\.\.\.|…/.test(r.question)), '问句里不允许残留省略号');
+  // 无省略号的模板题仍走"标题 · 档名"
+  const fed = PM.rowsForEvent(fedEvent);
+  assert.equal(fed[0].question, 'Fed Decision in September? · No change');
+});
+
 await test('rowsForEvent：单市场事件一行、黑名单/量级/非二元/已关闭全拦下', () => {
   const rows = PM.normalize(events, 20);
   // 保留：Fed×2（548088）→ 乌克兰停火（85000）→ 众议院（42000）

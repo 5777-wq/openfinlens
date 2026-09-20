@@ -965,7 +965,7 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
   border-radius: 4px; background: var(--bg-card); padding: 10px 12px 9px; }
 .pm-tile:hover { border-color: var(--border-hover); }
 .pm-tile-q { font-size: 12px; line-height: 1.55; color: var(--text); min-height: 37px;
-  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .pm-tile-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .pm-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--bg-elevated);
   overflow: hidden; border: 1px solid var(--border); }
