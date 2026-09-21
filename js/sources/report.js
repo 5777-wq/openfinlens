@@ -15,12 +15,20 @@ const ReportSource = (() => {
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
   }
 
+  // publishDate 是北京时间字符串：new Date() 会按浏览器本地时区解析，非 UTC+8 用户
+  // 整批时间戳偏移 6~13 小时、与快讯混排错位（news.js beijingToMs 同款教训）。按固定 +8 解析。
+  function beijingToMs(s) {
+    const m = /(\d{4})-(\d{1,2})-(\d{1,2})[T ](\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(String(s == null ? '' : s));
+    if (!m) return NaN;
+    return Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)) - 8 * 3600000;
+  }
+
   function toItem(x) {
     return {
       id: x.infoCode || (x.stockCode + x.publishDate + x.orgSName),
       title: String(x.title || '').trim(),
       org: x.orgSName || x.orgName || '',
-      date: x.publishDate ? new Date(String(x.publishDate).slice(0, 19).replace(/-/g, '/')).getTime() : null,
+      date: x.publishDate ? beijingToMs(x.publishDate) : null,
       rating: x.emRatingName || x.sRatingName || '',
       stockName: x.stockName || '',
       stockCode: x.stockCode || '',

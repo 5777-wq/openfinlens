@@ -67,12 +67,15 @@ const SouthboundSource = (() => {
     return out;
   }
 
-  /* 最新已披露交易日：当日尚未发布时逐日回退（最多 8 天，够跨周末+假期） */
+  /* 最新已披露交易日：当日尚未发布时逐日回退（最多 8 天，够跨周末+假期）。
+     单日失败只跳过、继续往前找（与 lhb.js 同款容错）：否则当日一次超时就会放弃
+     全部更早的披露日，刷新页面后（内存缓存已清）南向面板直接空掉。 */
   async function latest(days = 8) {
     const base = Date.now();
     for (let i = 0; i <= days; i++) {
       const date = dayStr(base - i * 86400000);
-      const rows = await fetchDay(date);
+      let rows = [];
+      try { rows = await fetchDay(date); } catch { /* 当日失败继续往前找 */ }
       if (rows.length) return { date, rows };
     }
     return { date: null, rows: [] };

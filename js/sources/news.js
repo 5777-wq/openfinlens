@@ -131,10 +131,15 @@ const NewsSource = (() => {
   // 板块分类：返回 {id, hit}；命中多板块时取关键词最长者（更具体）
   function classify(item) {
     const text = (item.title + ' ' + (item.summary || '')).toUpperCase();
+    // ≤4 位纯英文词按整词匹配：裸 includes 会让 'AI' 命中 TAIWAN/THAILAND/SAID
+    //（'TAIWAN'.includes('AI') 为真），成批新闻被错挂 AI 板块
+    const words = new Set(text.split(/[^A-Z0-9]+/).filter(Boolean));
     let best = null;
     Object.keys(CHAIN_KW).forEach(id => {
       CHAIN_KW[id].forEach(kw => {
-        if (text.includes(kw.toUpperCase()) && (!best || kw.length > best.hit.length)) best = { id, hit: kw };
+        const K = kw.toUpperCase();
+        const hit = /^[A-Z0-9]{1,4}$/.test(K) ? words.has(K) : text.includes(K);
+        if (hit && (!best || kw.length > best.hit.length)) best = { id, hit: kw };
       });
     });
     return best ? best.id : null;

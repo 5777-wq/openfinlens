@@ -54,14 +54,26 @@ const BinanceSource = (() => {
   async function getQuotes(symbols) {
     const list = (symbols && symbols.length) ? symbols : window.CRYPTO_UNIVERSE || [];
     if (!list.length) return [];
+    const syms = list.map(s => s.toUpperCase().replace('-', ''));
     try {
-      const syms = list.map(s => s.toUpperCase().replace('-', ''));
       const out = [];
       // 分批，单批 <= 60，避免 URL 过长与大响应被截断
       for (let i = 0; i < syms.length; i += 60) {
         const part = syms.slice(i, i + 60);
         const q = encodeURIComponent(JSON.stringify(part));
-        const j = await hostGet('/api/v3/ticker/24hr?symbols=' + q);
+        let j;
+        try {
+          j = await hostGet('/api/v3/ticker/24hr?symbols=' + q);
+        } catch (e) {
+          // symbols 里混进一个失效/退市代码，币安对整批回 400(-1121 Invalid symbol)。
+          // 仅 HTTP 4xx 时拆成单只请求，只丢坏的那只——别让整批报价陪葬、每个周期
+          // 都被打去 OKX 备源；网络级故障不拆单，原样上抛走降级。
+          if (!/HTTP 4/.test(String((e && e.message) || ''))) throw e;
+          const parts = await Promise.all(part.map(s =>
+            hostGet('/api/v3/ticker/24hr?symbol=' + s).catch(() => null)
+          ));
+          j = parts.filter(Boolean);
+        }
         if (Array.isArray(j)) out.push(...j.map(toQuote).filter(Boolean));
       }
       if (out.length) window.SourceState.ok('binance');

@@ -163,10 +163,12 @@ const Treemap = (() => {
       relayout();
     }
 
+    let dropped = 0;   // 排布时被 <0.5px 剩余矩形丢弃的尾部标的数（UI 据此提示"另有 N 只"）
     function relayout() {
       const rect = canvas.getBoundingClientRect();
       if (rect.width < 2 || rect.height < 2) return;   // 不可见时保留旧布局
       layout = squarify(data, 0, 0, rect.width, rect.height);
+      dropped = data.length - layout.length;
       draw();
     }
 
@@ -387,6 +389,12 @@ const Treemap = (() => {
       panStart = { x, y };
       dragged = false;
       canvas.style.cursor = 'grabbing';
+      // 指针捕获：把后续 mousemove/mouseup 钉在 canvas 上。裸 window 监听时，拖出浏览器
+      // 窗口外松开 mouseup 会丢——pan 永不清空，热力图跟着无按键的鼠标平移、且 dragged
+      // 卡 true 把点击全吞掉。捕获后窗口外的 mouseup 也会派发到 canvas（再冒泡到 window）。
+      if (canvas.setPointerCapture && e.pointerId !== undefined) {
+        try { canvas.setPointerCapture(e.pointerId); } catch { /* 鼠标已抬起的边缘态，忽略 */ }
+      }
     });
     window.addEventListener('mousemove', (e) => {
       if (!pan) return;
@@ -483,6 +491,7 @@ const Treemap = (() => {
       get isDragged() { return dragged; },
       cellAt(i) { return layout[i]; },
       get count() { return layout.length; },
+      get droppedCount() { return dropped; },   // 剩余矩形 <0.5px 被丢的尾部标的数
     };
   }
 
