@@ -1366,6 +1366,7 @@ html[data-theme="aurora"] {
 html[data-theme="oled"] {
   --bg: #000000; --bg-elevated: #0c0c0e; --bg-card: #050506; --bg-hover: #121214;
   --border: rgba(255,255,255,0.06); --border-hover: rgba(255,255,255,0.14);
+  --accent-signature: #38d9f0; --accent-rgb: 56,217,240;
 }
 
 /* —— 纸白：暖纸灰底 + 深琥珀强调，浅色下的终端感 —— */
@@ -1373,9 +1374,9 @@ html[data-theme="paper"] {
   --bg: #f5f4ef; --bg-elevated: #edebe4; --bg-card: #fbfaf6; --bg-hover: #e9e7df;
   --text: #1b1b1a; --text-secondary: #56565c; --text-tertiary: #6c6c73; --text-faint: #9c9ca2;
   --border: rgba(25,25,20,0.11); --border-hover: rgba(25,25,20,0.24);
-  --accent-signature: #b8791f; --accent-rgb: 184,121,31;
+  --accent-signature: #1f3a5f; --accent-rgb: 31,58,95;
   --chart-text: #6f6f76; --chart-grid: rgba(25,25,20,0.06); --chart-border: rgba(25,25,20,0.14);
-  --glow-1: 184,121,31; --glow-2: 91,141,239;
+  --glow-1: 31,58,95; --glow-2: 91,141,239;
   scrollbar-color: rgba(0,0,0,0.18) transparent;
 }
 html[data-theme="paper"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border: 3px solid transparent; background-clip: padding-box; }
@@ -1414,3 +1415,98 @@ html[data-theme="paper"] .sk { background: rgba(25,25,20,0.055); }
 @keyframes pmBarIn { from { transform: scaleX(0); } }
 @keyframes rowIn { from { opacity: 0; } }
 #segTheme button { white-space: nowrap; padding-inline: 11px; }
+
+/* ==================== 皮肤 · 设计语言层（二轮：从"换色"升级为"换风格"） ====================
+   四套皮肤各自是完整的设计语言：
+   · 终端黑（默认）= hairline 密排、6/3px 圆角、琥珀强调（原版不动）
+   · 极光 = 玻璃拟态：半透明面板 + backdrop blur + 14px 大圆角 + 渐变标题 + 辉光
+   · 纯黑 = 硬核终端：全站 mono、方角、扫描线纹理、双线重分隔、磷光青
+   · 纸白 = 纸上编辑部：衬线标题、报头双线、方角无影、墨蓝强调
+   全部走"后置同/高特异性覆盖"，不改动上方任何既有规则。 */
+
+/* ---------- 极光 · 玻璃拟态 ---------- */
+html[data-theme="aurora"] .topbar,
+html[data-theme="aurora"] .tape {
+  background: rgba(13,16,28,0.62);
+  backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border-bottom-color: rgba(140,160,255,0.14); }
+html[data-theme="aurora"] .section {
+  background: rgba(18,22,38,0.5);
+  border: 1px solid rgba(140,160,255,0.13);
+  border-radius: 14px;
+  padding: 18px 20px 10px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 16px 44px rgba(0,0,0,0.38); }
+html[data-theme="aurora"] .sec-line { background: linear-gradient(90deg, rgba(140,160,255,0.45), transparent 85%); }
+html[data-theme="aurora"] .section-title { color: #c9d2ff; }
+html[data-theme="aurora"] h1.page-title {
+  background: linear-gradient(92deg, #eef0f8 30%, #7c8cff 72%, #38d6ff);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+html[data-theme="aurora"] .pm-tile, html[data-theme="aurora"] .event-detail {
+  background: rgba(18,22,38,0.55); border-radius: 12px;
+  border: 1px solid rgba(140,160,255,0.14); }
+html[data-theme="aurora"] .pm-tile:hover { box-shadow: 0 12px 34px rgba(90,110,255,0.25); }
+html[data-theme="aurora"] .modal { border-radius: 14px; background: rgba(16,19,33,0.88);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+html[data-theme="aurora"] .seg { border-radius: 9px; }
+html[data-theme="aurora"] .seg button { border-radius: 6px; }
+html[data-theme="aurora"] .modal-close { border-radius: 8px; }
+html[data-theme="aurora"] .news-item, html[data-theme="aurora"] .qrow { border-bottom-color: rgba(140,160,255,0.09); }
+
+/* ---------- 纯黑 · 硬核终端 ---------- */
+html[data-theme="oled"] body { font-family: var(--font-mono); }
+html[data-theme="oled"] body::after {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px); }
+html[data-theme="oled"] .section { border-top: 3px double var(--border-hover); padding-top: 16px; }
+html[data-theme="oled"] .section-title { letter-spacing: 0.26em; }
+html[data-theme="oled"] .modal, html[data-theme="oled"] .seg, html[data-theme="oled"] .pm-tile,
+html[data-theme="oled"] .modal-close, html[data-theme="oled"] .switch,
+html[data-theme="oled"] .event-detail, html[data-theme="oled"] .switch::after { border-radius: 0; }
+html[data-theme="oled"] .pm-tile { border-left: 1px solid var(--border); }
+html[data-theme="oled"] .pm-tile:hover { border-color: var(--accent-signature); box-shadow: none; }
+html[data-theme="oled"] .pill::after { height: 2px; }
+html[data-theme="oled"] .pm-bar > i { box-shadow: none; }
+
+/* ---------- 纸白 · 纸上编辑部 ---------- */
+html[data-theme="paper"] h1.page-title, html[data-theme="paper"] .section-title,
+html[data-theme="paper"] .modal h2, html[data-theme="paper"] .pm-tile-q {
+  font-family: Georgia, "Times New Roman", "Songti SC", "STZhongsong", SimSun, serif; }
+html[data-theme="paper"] h1.page-title { font-weight: 700; letter-spacing: 0; }
+html[data-theme="paper"] .section-title { text-transform: none; letter-spacing: 0.05em;
+  font-size: 14px; font-weight: 700; color: var(--text); }
+html[data-theme="paper"] .section { border-top: 3px double rgba(25,25,20,0.35); padding-top: 16px; }
+html[data-theme="paper"] .sec-line { background: rgba(25,25,20,0.5); }
+html[data-theme="paper"] .pm-tile, html[data-theme="paper"] .modal { border-radius: 0; box-shadow: none; }
+html[data-theme="paper"] .pm-tile { border: 1px solid rgba(25,25,20,0.16); border-left-width: 3px; }
+html[data-theme="paper"] .pm-tile:hover { box-shadow: 0 8px 20px rgba(25,25,20,0.12); }
+html[data-theme="paper"] .seg, html[data-theme="paper"] .modal-close { border-radius: 0; }
+html[data-theme="paper"] .seg button.active { background: rgba(25,25,20,0.08); }
+
+/* ==================== 皮肤 · 设计语言层 · 二轮修正（pm-sec 覆盖 + 布局差异） ==================== */
+
+/* 极光：整个分类区块成为玻璃面板，头部融入面板 */
+html[data-theme="aurora"] .pm-sec {
+  background: rgba(18,22,38,0.5);
+  border: 1px solid rgba(140,160,255,0.13);
+  border-radius: 16px;
+  padding: 16px 18px 12px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 16px 44px rgba(0,0,0,0.38); }
+html[data-theme="aurora"] .pm-sec-head { background: transparent; border-left: none;
+  border-bottom: 1px solid rgba(140,160,255,0.14); border-radius: 0; padding: 0 2px 10px; }
+html[data-theme="aurora"] .pm-tile { background: rgba(24,29,48,0.55); }
+
+/* 硬核终端：单列密排行式布局（不是卡片墙），整块灰底行 + 方角 */
+html[data-theme="oled"] .pm-sec { border-top: 3px double var(--border-hover); padding-top: 14px; }
+html[data-theme="oled"] .pm-grid { grid-template-columns: 1fr; gap: 0; }
+html[data-theme="oled"] .pm-tile { border: none; border-bottom: 1px solid var(--border);
+  border-radius: 0; background: transparent; padding: 10px 6px; }
+html[data-theme="oled"] .pm-tile:hover { background: var(--bg-hover); box-shadow: none;
+  transform: none; border-color: var(--border); }
+html[data-theme="oled"] .pm-sec-head { border-left: none; background: transparent; padding-left: 6px; }
+html[data-theme="oled"] .pm-fold { border-radius: 0; }
+
+/* 纸上编辑部：分类区块同报头双线，行内分隔用细黑线 */
+html[data-theme="paper"] .pm-sec { border-top: 3px double rgba(25,25,20,0.35); padding-top: 14px; }
+html[data-theme="paper"] .pm-sec-head { border-left: none; background: transparent; padding-left: 2px; }
