@@ -47,6 +47,21 @@ const baseTreeNow = headSha === remoteHead
   ? baseTree
   : api('/repos/' + REPO + '/git/commits/' + headSha).tree.sha;
 
+/* 仓库 core.autocrlf=true：index 是 LF 的文件在 Windows 工作区被 checkout 成 CRLF，
+   直接按工作区原始字节上传会把 CRLF 固化进远端 blob；等网络恢复正常 git push 时
+   git 又按 clean filter 规范化回 LF——每走一次 API 通道就制造一轮整文件行尾翻转的
+   伪 diff。上传前按 index 里该文件的行尾风格对齐（未跟踪的新文件按 autocrlf=true
+   的入库规范视为 LF；index 本身 CRLF/mixed 的文件保持原样，不越权翻行尾）。 */
+function bytesForUpload(p) {
+  const raw = readFileSync(p);
+  let info = '';
+  try { info = execSync(`git ls-files --eol -- "${p}"`, { encoding: 'utf8' }); } catch { /* ignore */ }
+  const m = /i\/(\S+)/.exec(info || '');
+  if (m && m[1] !== 'lf') return raw;
+  if (!raw.includes(0x0d)) return raw;
+  return Buffer.from(raw.toString('latin1').replace(/\r\n/g, '\n'), 'latin1');
+}
+
 const tree = [];
 for (const line of lines) {
   const tab = line.indexOf('\t');
@@ -59,7 +74,7 @@ for (const line of lines) {
     process.exit(1);
   }
   const blob = api('/repos/' + REPO + '/git/blobs', 'POST',
-    { content: readFileSync(p).toString('base64'), encoding: 'base64' });
+    { content: bytesForUpload(p).toString('base64'), encoding: 'base64' });
   tree.push({ path: p, mode: '100644', type: 'blob', sha: blob.sha });
   console.log('  blob', status, p, blob.sha.slice(0, 8));
 }

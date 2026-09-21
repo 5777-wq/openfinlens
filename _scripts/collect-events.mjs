@@ -59,8 +59,9 @@ const PLACES = [
   [/turkey|ankara|istanbul/i, '土耳其', 39.93, 32.86],
   [/india|delhi|mumbai|reserve bank of india/i, '印度', 28.61, 77.21],
   [/japan|tokyo|bank of japan|boj/i, '日本', 35.68, 139.69],
-  [/south korea|seoul|korea/i, '韩国', 37.57, 126.98],
+  // 朝鲜必须在韩国之前：/korea/ 是 north korea 的子串，放后面会把朝鲜新闻全判到首尔坐标
   [/north korea|pyongyang/i, '朝鲜', 39.02, 125.75],
+  [/south korea|seoul|korea/i, '韩国', 37.57, 126.98],
   [/australia|canberra|reserve bank of australia/i, '澳大利亚', -35.28, 149.13],
   [/singapore/i, '新加坡', 1.35, 103.82],
   [/indonesia|jakarta/i, '印度尼西亚', -6.21, 106.85],
@@ -190,6 +191,8 @@ async function fetchSina(pages = 2) {
     const qs = new URLSearchParams({ page: String(p), page_size: '100', zhibo_id: '152' });
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), 12000);
+    // 单页失败收在页内：第 2 页超时不能把第 1 页已拿到的条目一起带走
+    //（新浪 7x24 的存在意义就是 GDELT 不可达时的兜底，正抖动时最容易只挂一页）
     try {
       const res = await fetch(SINA_API + '?' + qs.toString(), { signal: ctl.signal, headers: { 'User-Agent': 'openfinlens-collector/1.0' } });
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -211,6 +214,8 @@ async function fetchSina(pages = 2) {
           place: place || null,
         });
       });
+    } catch (e) {
+      console.error(`  新浪7x24 第 ${p} 页失败: ` + e.message);
     } finally {
       clearTimeout(timer);
     }
