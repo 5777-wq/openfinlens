@@ -34,10 +34,12 @@ const Events = (() => {
     { re: /\b(crude|wti|brent|oil\s*price)\b/i, sym: 'EM:102.CL00Y' },
     { re: /\b(10\s*-?\s*year|treasury\s*yield|us10y)\b/i, sym: 'EM:171.US10Y' },
   ];
-  // 国家级关联（仅三个有对应指数的市场；标题明确提到国家才挂，不做推断）
+  // 国家级关联（仅三个有对应指数的市场；标题明确提到国家才挂，不做推断）。
+  // US 缩写走大小写敏感校验（与 geo.js 同款教训）：/i 的 \bus\b 会命中小写代词
+  // us（"give us a warning"）；带点缩写 u.s. 无歧义，留在 /i 部分。
   const COUNTRY_ALIASES = [
     { re: /\b(china|chinese|beijing|prc)\b/i, sym: 'sh000001' },
-    { re: /\b(u\.?s\.?|united states|america|washington)\b/i, sym: 'usINX' },
+    { re: /\b(u\.s|united states|america|washington)\b/i, cs: /\bUS\b|\bUSA\b/, sym: 'usINX' },
     { re: /\b(hong kong)\b/i, sym: 'hkHSI' },
   ];
 
@@ -46,7 +48,7 @@ const Events = (() => {
     if (!s) return [];
     const out = new Set();
     SYMBOL_ALIASES.forEach(a => { if (a.re.test(s)) out.add(a.sym); });
-    COUNTRY_ALIASES.forEach(a => { if (a.re.test(s)) out.add(a.sym); });
+    COUNTRY_ALIASES.forEach(a => { if (a.cs ? (a.cs.test(s) || a.re.test(s)) : a.re.test(s)) out.add(a.sym); });
     return Array.from(out);
   }
 
@@ -54,10 +56,16 @@ const Events = (() => {
     return Array.isArray(list) ? list.filter(x => typeof x === 'string') : [];
   }
 
-  /* 标题去重键：小写 + 去符号 + 前 8 词（不同媒体对同一事件的标题高度相似） */
+  /* 标题去重键：小写 + 去符号 + 前 10 词 + 全部数字。
+     前 8 词曾把"词尾不同"的两条新闻并成一条（"…despite OPEC cuts" vs
+     "…despite OPEC output boost" 第 9-10 词才分岔）；数字后缀兜住更长的标题——
+     加息 25 还是 50、伤亡 10 还是 100，数字不同就不是同一件事。 */
   function dedupeKey(title) {
-    return String(title || '').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, ' ')
-      .trim().split(/\s+/).slice(0, 8).join(' ');
+    const norm = String(title || '').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, ' ').trim();
+    if (!norm) return '';
+    const words = norm.split(/\s+/);
+    const nums = [...new Set(words.filter(w => /^\d+$/.test(w)))].sort().join(',');
+    return words.slice(0, 10).join(' ') + '|' + nums;
   }
 
   /* ISO / 'YYYYMMDDTHHMMSSZ' → ms；解析失败返回 null（绝不返回 NaN） */

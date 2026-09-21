@@ -167,6 +167,19 @@ await test('合规回归：产物行只有白名单字段，绝无 slug/URL/交�
   });
 });
 
+await test('黑名单：US Open 专名大小写敏感，"the US open + 动词"不误杀（20260921）', () => {
+  const mk = (id, title) => ({
+    id, title, active: true, closed: false,
+    volume: '900000', volume24hr: '85000', liquidity: '50000',
+    markets: [{ id: 'm' + id, outcomes: '["Yes", "No"]', outcomePrices: '["0.3", "0.7"]', closed: false }],
+    tags: [{ id: '9', label: 'Geopolitics', slug: 'geopolitics' }],
+  });
+  // 体育赛事专名（两词都大写）仍拦
+  assert.equal(PM.rowsForEvent(mk('700001', 'Will Alcaraz win the US Open this year?')).length, 0);
+  // 小写动词 open 的地缘问句不得被 "us open" 误杀
+  assert.equal(PM.rowsForEvent(mk('700002', 'Will the US open a dialogue with Iran this year?')).length, 1);
+});
+
 await test('sanitize：坏行剔除（无问题/概率越界/类别非法）、排序、cap', () => {
   const raw = [
     { id: 'a', question: 'Q1', questionZh: '问题一', category: 'macro', probability: 0.5, volume24hr: 100 },

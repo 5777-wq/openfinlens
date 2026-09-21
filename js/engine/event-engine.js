@@ -31,12 +31,20 @@ const EventEngine = (() => {
     });
 
     /* 2. 桶内合并：
-       - 地理桶：同格同类 + 时间窗内 → 直接合并（WM DomainAdapter 的 geographic 模式：
-         空间+时间已足够强；标题措辞差异大是常态，不该阻断合并）
+       - 地理桶：同格同类 + 时间窗内 → 合并，但同语言对要求标题相似度 ≥ GEO_TITLE_MIN
+         （WM DomainAdapter 的 geographic 模式：空间+时间为主，措辞差异大不阻断；
+         下限只拦"词面零交集"的同语言两件事——空袭和换俘同格同类同窗时曾被揉成一团。
+         跨语言对（日经中文稿+路透英文稿报同一央行决议）词面必然零交集，不下限，
+         保持空间+时间合并语义。实测同事件中文 0.13/英文 0.33，异事件 ≤0.08）
        - global 桶：无地理约束，必须标题相似度达标（否则全世界快讯会糊成一团） */
     const parent = items.map((_, i) => i);
     const find = (x) => { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
     const union = (a, b) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb); };
+    const scriptOf = (t) => {
+      const s = String(t || '');
+      const cjk = (s.match(/[\u4e00-\u9fff]/g) || []).length;
+      return cjk * 2 >= s.replace(/\s+/g, '').length ? 'cjk' : 'latin';
+    };
 
     for (const [key, members] of buckets) {
       for (let i = 0; i < members.length; i++) {
@@ -46,7 +54,9 @@ const EventEngine = (() => {
           if (key.startsWith('global|')) {
             if (NewsEngine.titleSimilarity(a.title, b.title) >= opt.TITLE_JACCARD) union(members[i], members[j]);
           } else {
-            union(members[i], members[j]);
+            const sameLang = scriptOf(a.title) === scriptOf(b.title);
+            const sim = sameLang ? NewsEngine.titleSimilarity(a.title, b.title) : 1;
+            if (sim >= opt.GEO_TITLE_MIN) union(members[i], members[j]);
           }
         }
       }
