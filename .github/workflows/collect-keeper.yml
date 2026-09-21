@@ -1,0 +1,29 @@
+# collect-keeper —— 对抗 GitHub schedule 高负载拖延的"踢一脚"触发器（2026-09-21）
+# 背景：免费仓库的 schedule 由共享池排队，collect.yml 名义 */5 实测被拖成 2~5 小时一跑，
+#       全球事件随之"停更"（服务器采集通道中断时无兜底）。dispatch 触发的运行是即时
+#       排队执行的，基本不吃拖延——所以让这个轻量 workflow 每 10 分钟用 API 拉起一次
+#       collect.yml，collect 原有的 */5 schedule 保留作 keeper 断链时的兜底。
+# 成本：无需 checkout，单次几秒；公共仓库 Actions 免费。collect 自带 concurrency 防重叠，
+#       采集脚本幂等（无变化不提交），高频 kick 无副作用。
+name: collect-keeper
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+concurrency:
+  group: collect-keeper
+  cancel-in-progress: true
+
+jobs:
+  kick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch collect
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run collect.yml --repo "${GITHUB_REPOSITORY}"
