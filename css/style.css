@@ -104,7 +104,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   position: fixed; top: 0; left: 0; right: 0; height: var(--topbar-h);
   display: flex; align-items: center; gap: 28px;
   padding: 0 28px;
-  background: rgba(10,10,11,0.88);
+  background: var(--topbar-bg);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
   z-index: 100;
@@ -1220,7 +1220,7 @@ body.no-crypto .crypto-only { display: none !important; }
   position: fixed; top: var(--topbar-h); left: 0; right: 0; height: var(--tape-h);
   display: flex; align-items: stretch;
   overflow-x: auto; scrollbar-width: none;
-  background: rgba(10,10,11,0.82);
+  background: var(--tape-bg);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
   z-index: 90;
@@ -1344,7 +1344,8 @@ body.no-crypto .crypto-only { display: none !important; }
    charts.js 在创建/retheme 时现读）。默认终端黑 = :root，无需覆盖块。 */
 
 :root { --chart-text: #86868b; --chart-grid: rgba(255,255,255,0.04); --chart-border: rgba(255,255,255,0.08);
-  --glow-1: 232,163,61; --glow-2: 91,141,239; }
+  --glow-1: 232,163,61; --glow-2: 91,141,239;
+  --topbar-bg: rgba(10,10,11,0.88); --tape-bg: rgba(10,10,11,0.82); }
 
 /* 环境光：极淡双色辉光铺在底色上（缓慢漂移，减动效用户看到的是静态光晕） */
 body::before { content: ''; position: fixed; inset: -18%; z-index: -1; pointer-events: none;
@@ -1360,6 +1361,7 @@ html[data-theme="aurora"] {
   --accent-signature: #7c8cff; --accent-rgb: 124,140,255;
   --chart-text: #8b93ad; --chart-grid: rgba(140,160,255,0.05); --chart-border: rgba(140,160,255,0.12);
   --glow-1: 124,140,255; --glow-2: 56,214,255;
+  --topbar-bg: rgba(13,16,28,0.62); --tape-bg: rgba(13,16,28,0.62);
 }
 
 /* —— 纯黑：OLED 极致对比，强调色与终端黑一致 —— */
@@ -1367,6 +1369,7 @@ html[data-theme="oled"] {
   --bg: #000000; --bg-elevated: #0c0c0e; --bg-card: #050506; --bg-hover: #121214;
   --border: rgba(255,255,255,0.06); --border-hover: rgba(255,255,255,0.14);
   --accent-signature: #38d9f0; --accent-rgb: 56,217,240;
+  --topbar-bg: rgba(0,0,0,0.86); --tape-bg: rgba(0,0,0,0.80);
 }
 
 /* —— 纸白：暖纸灰底 + 深琥珀强调，浅色下的终端感 —— */
@@ -1377,6 +1380,7 @@ html[data-theme="paper"] {
   --accent-signature: #1f3a5f; --accent-rgb: 31,58,95;
   --chart-text: #6f6f76; --chart-grid: rgba(25,25,20,0.06); --chart-border: rgba(25,25,20,0.14);
   --glow-1: 31,58,95; --glow-2: 91,141,239;
+  --topbar-bg: rgba(245,244,239,0.86); --tape-bg: rgba(245,244,239,0.80);
   scrollbar-color: rgba(0,0,0,0.18) transparent;
 }
 html[data-theme="paper"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border: 3px solid transparent; background-clip: padding-box; }
@@ -1427,7 +1431,6 @@ html[data-theme="paper"] .sk { background: rgba(25,25,20,0.055); }
 /* ---------- 极光 · 玻璃拟态 ---------- */
 html[data-theme="aurora"] .topbar,
 html[data-theme="aurora"] .tape {
-  background: rgba(13,16,28,0.62);
   backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2);
   border-bottom-color: rgba(140,160,255,0.14); }
 html[data-theme="aurora"] .section {
