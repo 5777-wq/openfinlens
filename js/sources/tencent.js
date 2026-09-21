@@ -54,7 +54,9 @@ const TencentSource = (() => {
       const f = m[2].split('~');
       if (f.length < 33 || !f[3]) return;
       const price = num(f[3]);
-      if (price === null) return;
+      // 0 价是上游故障行（死代码/异常快照）：放行会以 -100% 进 UI，还会被 Cache
+      // 持久化、之后 fillFromCache 用它兜底，故障行长期存活。sina.js 同款守卫。
+      if (price === null || price === 0) return;
       const prevClose = num(f[4]);
       let changePct = num(f[32]);
       let change = num(f[31]);

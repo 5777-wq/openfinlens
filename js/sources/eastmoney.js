@@ -125,7 +125,15 @@ const EastmoneySource = (() => {
           seen.add(x.code);
           return true;
         });
-      if (list.length) window.SourceState.ok('em-clist');
+      if (list.length) {
+        // total 字段缺失/为 0 时只抓到首页 100 行样本：宽度与热力图建立在残缺样本上，
+        // 必须打 fail 让角标说话——照常 ok 会让降级完全隐形
+        if (!num(data.total) && data.diff.length >= 100) {
+          window.SourceState.fail('em-clist', 'total 缺失，仅首页样本');
+        } else {
+          window.SourceState.ok('em-clist');
+        }
+      }
       else window.SourceState.fail('em-clist', 'parsed empty');
       return list;
     } catch (e) {

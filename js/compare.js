@@ -82,7 +82,9 @@ const CompareMath = (() => {
     const days = daysBetween(first.time, last.time);
     const years = days === null ? null : days / YEAR_DAYS;
     const total = (last.close / first.close - 1) * 100;
-    const cagr = (years && years > 0.02) ? (Math.pow(last.close / first.close, 1 / years) - 1) * 100 : null;
+    // 短区间年化是天文数字（两周涨 10% → 年化 +570%）：守卫按下方注释口径取 1 个月（1/12 年），
+    // 不满 1 个月 CAGR/卡玛一律留空，不给"漂亮的大数"
+    const cagr = (years && years > 1 / 12) ? (Math.pow(last.close / first.close, 1 / years) - 1) * 100 : null;
     const rets = returns(bars);
     const sd = stdev(rets);
     const vol = sd === null ? null : sd * Math.sqrt(periodsPerYear) * 100;

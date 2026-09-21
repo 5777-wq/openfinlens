@@ -34,7 +34,8 @@
     heatVia: { cn: null, hk: null, us: null, crypto: null },
     heatCachedAt: { cn: null, hk: null, us: null, crypto: null },
     heat: null,
-    heatFetchedAt: 0,         // 全市场最近一次成功抓取时间（情绪页保活判断用）
+    heatFetchedAt: 0,         // A股全市场最近一次成功抓取时间（情绪页保活判断用，只由 loadHeatCN 写）
+    heatCryptoFetchedAt: 0,   // 加密全市场最近一次成功抓取时间（与 A股分开记，别让加密刷新顶掉 A股保活判断）
     news: [],
     newsMkt: 'all',
     newsCat: 'all',            // 新闻产业链板块过滤（链 id / macro / all）
@@ -96,6 +97,7 @@
     moversRows: new Map(),
     lastUpdate: null,
     timers: {},
+    scheduleGen: {},          // 每条轮询链的代号：schedule 重入后旧链醒来自动停转（防双链并行轮询）
     stopped: false,
   };
 
@@ -944,7 +946,13 @@
     return Math.abs(row.changePct || 0) + 0.1;   // 保底面积，避免 0 面积块
   }
 
-  async function loadHeatCN() {
+  let heatCNPending = null;   // 在飞去重：schedule('heat') 与 scheduleMood 都会触发，56 页全市场抓取不该并发双跑
+  function loadHeatCN() {
+    if (heatCNPending) return heatCNPending;
+    heatCNPending = doLoadHeatCN().finally(() => { heatCNPending = null; });
+    return heatCNPending;
+  }
+  async function doLoadHeatCN() {
     let rows = await window.EastmoneySource.getFullMarket();
     let via = 'primary';
     if (!rows.length) {
@@ -984,7 +992,7 @@
       Cache.set('heat:crypto', mapped);
       state.heatItems.crypto = mapped;
       state.heatVia.crypto = via;
-      state.heatFetchedAt = Date.now();
+      state.heatCryptoFetchedAt = Date.now();   // 不能写 heatFetchedAt：那是 A股情绪保活的 freshness，串味会跳过 A股重拉
     } else {
       const c = Cache.raw('heat:crypto');
       if (c) { state.heatItems.crypto = c.val; state.heatVia.crypto = 'cache'; state.heatCachedAt.crypto = c.at; }
@@ -1063,7 +1071,9 @@
       ? (state.heatTopMode === 'top' ? ' · 市值 Top 500（宽度统计仍用全量）' : ' · 全市场')
       : (state.heatMode === 'hk' || state.heatMode === 'us')
         ? ' · 市值 Top 500（全市场共 ' + n + ' 只）' : '';
-    el.heatSub.textContent = `${n} 个标的 · 面积=${state.heatMode === 'crypto' && state.heatSize === 'cap' ? '24h成交额' : state.heatSize === 'cap' ? '市值' : '涨跌幅'}${rangeTxt} · ${viaTxt}`;
+    el.heatSub.textContent = `${n} 个标的 · 面积=${state.heatMode === 'crypto' && state.heatSize === 'cap' ? '24h成交额' : state.heatSize === 'cap' ? '市值' : '涨跌幅'}${rangeTxt} · ${viaTxt}` +
+      // 剩余矩形 <0.5px 时 squarify 会丢弃排序尾部的标的：静默丢数据不行，至少说一声
+      (state.heat && state.heat.droppedCount ? `（另有 ${state.heat.droppedCount} 只低于显示阈值）` : '');
     // 空态：全源失败时给明确文案，而不是黑画布 + "0 个标的 · 等待数据"
     let empty = document.getElementById('heatEmpty');
     if (!n) {
@@ -3337,7 +3347,9 @@
         renderStatus();
         return;
       }
-      if (state.view !== 'detail' && state.tab === mTab[1]) return;
+      // actor 视图不能进这个短路：openActor 不改 state.tab，从档案后退到 #tab=xx 时
+      // tab 未变但 view 还是 actor，必须落下去执行 leaveActor + setTab，否则后退失效
+      if (state.view !== 'detail' && state.view !== 'actor' && state.tab === mTab[1]) return;
       if (state.view === 'actor') leaveActor();
       leaveDetail();
       setTab(mTab[1], { push: false });
@@ -3524,7 +3536,7 @@
 
   async function runSearch(kw) {
     if (state.tab === 'events' && state.eventsSub === 'news') { state.searchKw = kw; renderNews(); return; }
-    if (!kw) { hideSearch(); return; }
+    if (!kw) { ++state.searchGen; hideSearch(); return; }   // 作废在途请求：否则清空输入后旧结果会把下拉弹回来
     // 竞态守卫：快速连续输入时，慢的旧响应不得覆盖新关键词的结果（与 chartGen 同理）
     const gen = ++state.searchGen;
     const list = await window.EastmoneySource.search(kw);
@@ -3645,12 +3657,17 @@
 
   function schedule(name, fn, ms) {
     clearTimeout(state.timers[name]);
+    // 链代号：请求在途时改刷新间隔会再次 schedule()，此时 clearTimeout 清的是已触发的旧定时器
+    // （no-op）——旧链 await 醒来后若无条件写回定时器，就会覆盖新链 id、叠出第二条永久轮询链。
+    const gen = (state.scheduleGen[name] = (state.scheduleGen[name] || 0) + 1);
     const tick = async () => {
+      if (gen !== state.scheduleGen[name]) return;   // 本链已被新链取代：就此停转
       if (document.hidden) {                 // 隐藏时暂停：延后重试，不抓取
         state.timers[name] = setTimeout(tick, 1000);
         return;
       }
       try { await fn(); } catch (e) { /* 永不抛到页面 */ }
+      if (gen !== state.scheduleGen[name]) return;   // await 期间被重挂：不复活旧链
       state.timers[name] = setTimeout(tick, typeof ms === 'function' ? ms() : ms);
     };
     state.timers[name] = setTimeout(tick, typeof ms === 'function' ? ms() : ms);
@@ -3662,7 +3679,7 @@
     schedule('mood', async () => {
       if (state.tab !== 'cn') return;
       // 情绪小节并入 A股板块后，保活条件跟着 tab 走；数据超过 30s 就重拉，
-      // 否则情绪指数/宽度指标会一直冻结在进入该页时的数值
+      // 否则情绪指数/宽度指标会一直冻结在进入该页时的数值（heatFetchedAt 只由 loadHeatCN 写）
       if (Date.now() - (state.heatFetchedAt || 0) > 30000) await loadHeatCN();
       await loadMood();
     }, refreshMs);
@@ -3711,7 +3728,8 @@
     }, 60000);
     // 公开言论 60s（现住事件页的快讯子页）；全球指数条 60s（仅市场视图）
     schedule('voices', async () => {
-      if (state.view !== 'events') return;
+      // 只有快讯子面板展示 voices：停在地图/预测子页时别再每 60s 白拉一遍新闻池
+      if (state.view !== 'events' || state.eventsSub !== 'news') return;
       await loadVoices();
     }, 60000);
     // 全球事件 JSON：采集任务 5 分钟一轮，页面停留时 60s 拉一次（用户要求的分钟级新鲜度）
@@ -3810,7 +3828,10 @@
       return `${visibleQuoteCount()} 个标的 · 龙虎榜 ${(state.lhb && state.lhb.rows.length) || 0} 只上榜 · 席位 ${(state.actors || []).length} 个 · ${fetchTxt}`;
     }
     if (tab === 'us') {
-      const brkN = state.brk && state.brk.holdings ? state.brk.holdings.length : 0;
+      // SecSource 返回 { institutions: [...] }，持仓在每个机构的 holdings 字段上
+      const brkN = state.brk && Array.isArray(state.brk.institutions)
+        ? state.brk.institutions.reduce((n, inst) => n + ((inst.holdings && inst.holdings.length) || 0), 0)
+        : 0;
       return `${visibleQuoteCount()} 个标的${brkN ? ' · 13F ' + brkN + ' 项持仓' : ''} · ${fetchTxt}`;
     }
     if (tab === 'hk') {
@@ -3952,6 +3973,7 @@
       if (mv) {
         const p = state.moversRows.get(mv.getAttribute('data-mv'));
         if (p && p.secid) {
+          hideSearch();   // 点行进详情时搜索下拉还开着的话一并关掉（本分支 return 得早，到不了末尾的兜底）
           openDetail({
             symbol: 'EM:' + p.secid, name: p.name, code: p.code,
             // 市场按 secid 反查（与热力图点击同一套口径），决定币种与成交额单位
@@ -3963,6 +3985,7 @@
       }
       const card = e.target.closest('.qrow, .hero-cell, .wcard, .quote-card, .tape-cell');
       if (card) {
+        hideSearch();     // 同上：提前 return 的分支要自己关下拉
         const t = targetFromSymbol(card.getAttribute('data-symbol'));
         if (t) openDetail(t);
         return;

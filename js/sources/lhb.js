@@ -54,7 +54,10 @@ const LhbSource = (() => {
     }).filter(r => r.netAmt !== null);
   }
 
-  /* 取"最近一个有数据的披露日"。节假日/清仓日返回空表就往前找（最多 6 天）。 */
+  /* 取"最近一个有数据的披露日"。节假日/清仓日返回空表就往前找（最多 6 天）。
+     降级链兑现：成功时落 Cache（localStorage 持久化，前缀见 utils.Cache._persist），
+     全部失败时回缓存兜底——东财 datacenter 有 IP 级封禁前科，一次失败不该把
+     几分钟前刚渲染好的榜单清成空表、刷新页面后也不该无兜底。 */
   async function getLhb() {
     const tried = new Set();
     for (let i = 0; i < 6; i++) {
@@ -65,35 +68,48 @@ const LhbSource = (() => {
       try { rows = await fetchDate(date); } catch { /* 当日失败继续往前找 */ }
       if (rows.length) {
         window.SourceState.ok('lhb');
+        window.U.Cache.set('lhb', { rows, tradeDate: date });
         return { rows, tradeDate: date, via: 'em', at: Date.now() };
       }
+    }
+    const cached = window.U.Cache.raw('lhb');
+    if (cached && cached.val && cached.val.rows && cached.val.rows.length) {
+      return { rows: cached.val.rows, tradeDate: cached.val.tradeDate, via: 'cache', at: cached.at };
     }
     window.SourceState.fail('lhb', '东财龙虎榜不可达');
     return { rows: [], tradeDate: null, via: null, at: Date.now() };
   }
 
-  /* 当日全部席位明细（买+卖两页）。实测单日约 330 行/侧，pageSize 500 一页拿完。
+  /* 当日全部席位明细（买+卖两页）。单页上限 500（southbound.js 同款）：常态 ~330 行/侧
+     一页拿完，极端披露日超 500 行时满页就翻下一页（5 页封顶防异常死循环）。
      返回 { tradeDate, buyRows, sellRows }，喂给 Actors.buildSeatActors 出席位目录。 */
   async function getDayDetails(date) {
-    const base = (reportName, sortCol) => {
-      const qs = new URLSearchParams({
-        reportName, columns: 'ALL',
-        filter: `(TRADE_DATE='${date}')`,
-        pageNumber: '1', pageSize: '500',
-        sortTypes: '-1', sortColumns: sortCol,
-        source: 'WEB', client: 'WEB',
-      });
-      return window.U.request(API + '?' + qs.toString(), { timeout: 12000 });
+    const fetchAll = async (reportName, sortCol) => {
+      const onePage = async (page) => {
+        const qs = new URLSearchParams({
+          reportName, columns: 'ALL',
+          filter: `(TRADE_DATE='${date}')`,
+          pageNumber: String(page), pageSize: '500',
+          sortTypes: '-1', sortColumns: sortCol,
+          source: 'WEB', client: 'WEB',
+        });
+        const j = await window.U.request(API + '?' + qs.toString(), { timeout: 12000 });
+        return (j && j.result && j.result.data) || [];
+      };
+      let page = 1, out = [];
+      for (;;) {
+        const rows = await onePage(page);
+        out = out.concat(rows);
+        if (rows.length < 500 || page >= 5) break;
+        page++;
+      }
+      return out;
     };
-    const [buy, sell] = await Promise.all([
-      base('RPT_BILLBOARD_DAILYDETAILSBUY', 'BUY'),
-      base('RPT_BILLBOARD_DAILYDETAILSSELL', 'SELL'),
+    const [buyRows, sellRows] = await Promise.all([
+      fetchAll('RPT_BILLBOARD_DAILYDETAILSBUY', 'BUY'),
+      fetchAll('RPT_BILLBOARD_DAILYDETAILSSELL', 'SELL'),
     ]);
-    return {
-      tradeDate: date,
-      buyRows: (buy && buy.result && buy.result.data) || [],
-      sellRows: (sell && sell.result && sell.result.data) || [],
-    };
+    return { tradeDate: date, buyRows, sellRows };
   }
 
   /* 单席位历史活动（跨日）：90 天窗口按日期倒序。win.history.test 已实测可用。

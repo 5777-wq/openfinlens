@@ -7,16 +7,19 @@ function fetchJSONP(url, cbParam = 'cb', timeout = 8000) {
     const name = 'gfdcb' + Math.random().toString(36).slice(2, 10);
     const s = document.createElement('script');
     let done = false;
-    const cleanup = () => {
+    const cleanup = (keepNoop) => {
       done = true;
-      delete window[name];
+      // 超时路径不能把回调真删掉：已发出的 <script> 稍后才到达时，会调用已删除的全局名
+      // 抛未捕获 ReferenceError——留个空函数吸收迟到响应。成功/出错路径脚本已落幕，正常删。
+      if (keepNoop) window[name] = () => {};
+      else delete window[name];
       s.remove();
     };
     const timer = setTimeout(() => {
-      if (!done) { cleanup(); reject(new Error('jsonp timeout')); }
+      if (!done) { cleanup(true); reject(new Error('jsonp timeout')); }
     }, timeout);
-    window[name] = (data) => { clearTimeout(timer); cleanup(); resolve(data); };
-    s.onerror = () => { clearTimeout(timer); cleanup(); reject(new Error('jsonp error')); };
+    window[name] = (data) => { clearTimeout(timer); cleanup(false); resolve(data); };
+    s.onerror = () => { clearTimeout(timer); cleanup(false); reject(new Error('jsonp error')); };
     s.src = url + (url.includes('?') ? '&' : '?') + cbParam + '=' + name;
     document.head.appendChild(s);
   });
@@ -114,8 +117,9 @@ function toChartTime(epochSec) {
 const Cache = {
   _m: new Map(),
   // heat:us（美股全市场 ≈1.38 万行）持久化会同步字符串化 ~1.5MB 卡主线程、
-  // 逼近 localStorage 5MB 配额（超了以后每次写入都静默失败），只留内存缓存
-  _persist: ['q:', 'heat:cn', 'heat:crypto', 'news', 'report:'],
+  // 逼近 localStorage 5MB 配额（超了以后每次写入都静默失败），只留内存缓存；
+  // heat:hk（~2900 行）与 lhb（日频 ~80 行）量级安全，照常持久化兜底
+  _persist: ['q:', 'heat:cn', 'heat:crypto', 'heat:hk', 'lhb', 'news', 'report:'],
   _canPersist(key) { return this._persist.some(p => key.startsWith(p)); },
   set(key, val) {
     const e = { val, at: Date.now() };

@@ -154,7 +154,9 @@ const AlertCenter = (() => {
     if (!t || !els.modal) return;
     if (els.target) els.target.textContent = (t.name || t.code || t.symbol) + '（' + (t.code || '') + '）';
     const q = deps.findQuote ? deps.findQuote(t.symbol) : null;
-    const cur = q && q.price !== null ? q.price : null;
+    // undefined 也要挡：行情对象存在但没带 price 字段时，String(undefined) 会把字面
+    // "undefined" 填进输入框（check() 里有同款防护，这里补齐）
+    const cur = q && q.price !== null && q.price !== undefined ? q.price : null;
     if (els.price) els.price.value = cur !== null ? String(cur) : '';
     if (els.note) els.note.value = '';
     els.modal.classList.add('active');
