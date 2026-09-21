@@ -117,6 +117,12 @@ const Events = (() => {
       const key = dedupeKey(raw.title);
       if (key && seen.has(key)) return;
       if (key) seen.add(key);
+      // 政治风险规避：屏蔽 Polymarket 上涉及中国主权/领导人/台湾的预测问题（question 原文含敏感词）
+      // 注意：只检查 question 原文，不检查 title/questionZh（后者是翻译，可能有偏差）；
+      //       也不检查普通新闻标题（"Tariffs on China" 之类的经济新闻无需过滤）
+      const question = String(raw.question || '');
+      const isPolymarketSensitive = question && /\b(china.*invade.*taiwan|taiwan.*independence|xi jinping)\b/i.test(question);
+      if (isPolymarketSensitive) return;
       // 注意 +null === 0：字面 null 必须显式排除，否则"无坐标"会被算成 (0,0) 落在 Null Island
       const hasGeo = raw.lat !== null && raw.lat !== undefined && raw.lat !== '' &&
         raw.lng !== null && raw.lng !== undefined && raw.lng !== '';
