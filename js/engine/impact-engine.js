@@ -134,11 +134,31 @@ const ImpactEngine = (() => {
     /* 按兵不动：没有机制性价格方向，宁缺毋假不产边（此前兜底指向不存在的规则，
        静默产出 0 条边还伪装成有映射） */
     RATE_DECISION_HOLD: [],
+    /* 大选：方向完全取决于候选人政策立场（财政/关税/监管两组相反方向都可能），
+       规则表给不出机制性方向——显式空表 + 注释，与 RATE_DECISION_HOLD 同款处理，
+       别让 KIND_RULES 承认了它、RULES 却查无此键静默吞掉 */
+    ELECTION: [],
+    BANK_STRESS: [
+      { assetKind: 'equity', relationship: 'inverse', direction: 'down', confidence: 0.7,
+        evidence: { kind: 'CORRELATION', note: '信用担忧直接冲击银行板块估值与扩张预期',
+          historicalCases: [
+            { label: '硅谷银行挤兑', date: '2023-03', move: '地区银行股指数周内重挫' },
+            { label: '雷曼兄弟破产', date: '2008-09', move: '全球银行股深度下跌' },
+          ] } },
+      { assetKind: 'gold', relationship: 'risk_off', direction: 'up', confidence: 0.6,
+        evidence: { kind: 'CORRELATION', note: '信用/流动性担忧推升避险需求' } },
+      { assetKind: 'bond_yield', relationship: 'inverse', direction: 'down', confidence: 0.5,
+        evidence: { kind: 'CORRELATION', note: '避险买盘压低收益率；若救助演变为财政扩张则反转' } },
+    ],
   };
 
-  /** category 兜底映射（eventKind 未命中时给粗粒度边） */
+  /** category 兜底映射（eventKind 未命中时给粗粒度边）。
+     geopolitics 刻意不兜底：军演/峰会/外交声明曾被一律套成 SANCTIONS 边，
+     把推测包装成「被制裁方资本外流」的机制事实，违反证据分级铁律——
+     真制裁新闻的标题必含 制裁|sanction|禁运|embargo，KIND_RULES 会直接命中，
+     不需要类别兜底；其余地缘事件宁缺毋假 0 边。 */
   const CATEGORY_FALLBACK = {
-    war: 'ARMED_CONFLICT', geopolitics: 'SANCTIONS', natural_disaster: 'EARTHQUAKE',
+    war: 'ARMED_CONFLICT', natural_disaster: 'EARTHQUAKE',
     trade: 'TRADE_TARIFF', energy: 'OIL_SUPPLY_SHOCK', central_bank: 'RATE_DECISION_HOLD',
   };
 

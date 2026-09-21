@@ -36,8 +36,11 @@ const Polymarket = (() => {
   ];
 
   /* 黑名单一票否决：文体/娱乐/名人/crypto 价格/社媒杂谈。白名单已拦掉大头，
-     这里拦"挂了 Politics 之类宽标签的杂题"（如"Trump 本周会不会发帖"）。 */
-  const BLACKLIST_RE = /\b(nfl|nba|mlb|nhl|ufc|wwe|fifa|uefa|premier league|la liga|serie a|bundesliga|mls|cricket|formula 1|grand prix|nascar|olympics?|wimbledon|us open|french open|australian open|super bowl|world cup|champions league|europa league|fa cup|copa america|grand slam|boxing|oscar|academy award|grammy|emmy|golden globe|eurovision|album|box office|met gala|celebrit|kardashian|taylor swift|nobel prize|bitcoin|btc|ethereum|eth price|solana|xrp|dogecoin|memecoin|stablecoin|crypto|tweets?|truth social|post on|posting on|posts? a (photo|video|statement)|time person of the year|pope|papa|rumor|dating|divorce|netflix show|stranger things|squid game|minecraft|grand theft auto|gta 6)\b/i;
+     这里拦"挂了 Politics 之类宽标签的杂题"（如"Trump 本周会不会发帖"）。
+     注意 us open 不能放进 /i 的大名单：'the US open a dialogue with Iran'
+     （小写动词 open）会被一票否决误杀——赛事专名两词都大写，单独用大小写敏感正则拦。 */
+  const BLACKLIST_RE = /\b(nfl|nba|mlb|nhl|ufc|wwe|fifa|uefa|premier league|la liga|serie a|bundesliga|mls|cricket|formula 1|grand prix|nascar|olympics?|wimbledon|french open|australian open|super bowl|world cup|champions league|europa league|fa cup|copa america|grand slam|boxing|oscar|academy award|grammy|emmy|golden globe|eurovision|album|box office|met gala|celebrit|kardashian|taylor swift|nobel prize|bitcoin|btc|ethereum|eth price|solana|xrp|dogecoin|memecoin|stablecoin|crypto|tweets?|truth social|post on|posting on|posts? a (photo|video|statement)|time person of the year|pope|papa|rumor|dating|divorce|netflix show|stranger things|squid game|minecraft|grand theft auto|gta 6)\b/i;
+  const BLACKLIST_CS_RE = /\bUS Open\b/;   // 大小写敏感：只拦体育赛事专名，不误杀 "US open + 动词"
 
   /* 量级门槛：任一达标即视为"有人在认真交易这个问题"（防杂题污染榜单） */
   const MIN_VOLUME_24H = 3000;   // 24h 成交 $3k
@@ -109,7 +112,7 @@ const Polymarket = (() => {
       .join(' ');
     const cat = catOf(tagText) || catOf(title);
     if (!cat) return [];
-    if (BLACKLIST_RE.test(title)) return [];
+    if (BLACKLIST_RE.test(title) || BLACKLIST_CS_RE.test(title)) return [];
 
     const vol24 = num(ev.volume24hr);
     const total = num(ev.volume);
@@ -200,7 +203,7 @@ const Polymarket = (() => {
     return out.slice(0, cap || CAP);
   }
 
-  return { CAT_META, CAT_RULES, BLACKLIST_RE, MIN_VOLUME_24H, MIN_VOLUME, CAP,
+  return { CAT_META, CAT_RULES, BLACKLIST_RE, BLACKLIST_CS_RE, MIN_VOLUME_24H, MIN_VOLUME, CAP,
     parseList, num, dedupeKey, catOf, rowsForEvent, normalize, sanitize };
 })();
 

@@ -35,6 +35,19 @@ await test('dedupeKey：不同媒体对同一事件的标题归一为同键', ()
   assert.equal(EV.dedupeKey(''), '');
 });
 
+await test('dedupeKey：第 9-10 词分岔或数字不同的两条新闻不得同键（20260921）', () => {
+  // 前 8 词相同、词尾事实相反的实例（旧键会把增产说成减产、整条误删）
+  assert.notEqual(
+    EV.dedupeKey('Oil falls as demand worries grow despite OPEC cuts'),
+    EV.dedupeKey('Oil falls as demand worries grow despite OPEC output boost'),
+  );
+  // 数字进键：加息幅度不同的两条不是同一件事
+  assert.notEqual(
+    EV.dedupeKey('Fed hikes rates by 25 basis points'),
+    EV.dedupeKey('Fed hikes rates by 50 basis points'),
+  );
+});
+
 await test('normalize：清洗无效条目、去重、按时间倒序、坏坐标置 null', () => {
   const raw = [
     { type: 'macro', title: 'Inflation cools in US', publishedAt: T0 - HOUR, lat: 38.9, lng: -77.04, source: 'reuters.com', importance: 'high', relatedSymbols: ['usINX'] },
@@ -76,6 +89,10 @@ await test('matchSymbols：标题关键词 → 内部标的（只映射真实存
   assert.ok(EV.matchSymbols('Bitcoin ETF inflows').includes('BTCUSDT'));
   assert.ok(EV.matchSymbols('USDCNH steady as PBOC sets fix').includes('EM:133.USDCNH'));
   assert.deepEqual(EV.matchSymbols('Random local news about cats'), []);
+  // US 缩写大小写敏感（20260921）：小写代词 us 不误挂美股，U.S. 与大写 US 照常
+  assert.ok(!EV.matchSymbols('Markets give us a warning on inflation').includes('usINX'));
+  assert.ok(EV.matchSymbols('U.S. futures edge higher').includes('usINX'));
+  assert.ok(EV.matchSymbols('US futures edge higher').includes('usINX'));
 });
 
 await test('时间语义：publishedAt → UTC 日期；龙虎榜披露日按上海 17:00 界', () => {

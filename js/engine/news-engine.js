@@ -86,17 +86,17 @@ const NewsEngine = (() => {
   /* ---------- 分类（关键词规则，命中即停，规则序=优先级） ---------- */
 
   const CATEGORY_RULES = [
-    ['war', /开火|空袭|导弹|火箭弹|炮击|入侵|停火协议破裂|宣战|war\b|airstrike|missile strike|invasion/i],
+    ['war', /开火|空袭|导弹|火箭弹|炮击|入侵|停火协议破裂|宣战|war\b|air ?strikes?|missile strikes?|invasion/i],
     ['natural_disaster', /地震|海啸|台风|飓风|洪水|野火|火山|earthquake|tsunami|hurricane|typhoon|wildfire/i],
     ['central_bank', /央行|中央银行|美联储|FOMC|欧洲央行|日本央行|英格兰银行|加息|降息|利率决议|联邦基金利率|逆回购|存款准备金|powell|central bank|rate hike|rate cut|interest rate/i],
     ['energy', /原油|石油|OPEC|天然气|LNG|油价|减产|输油管|crude oil|natural gas|opec|\boil\b/i],
     ['commodities', /黄金|白银|铜价|铁矿|大豆|小麦|commodity|gold price|silver/i],
     ['trade', /关税|贸易战|贸易谈判|出口管制|制裁|进口配额|tariff|trade war|sanction|export control/i],
     ['markets', /股市|股指|收盘|开盘|暴跌|暴涨|熔断|IPO|债市|汇市|stocks plunge|market rally|selloff/i],
-    ['technology', /芯片|半导体|AI\b|人工智能|科技公司|反垄断|数据泄露|chip ban|semiconductor|antitrust|data breach/i],
+    ['technology', /芯片|半导体|\bAI\b|人工智能|科技公司|反垄断|数据泄露|chip ban|semiconductor|antitrust|data breach/i],
     ['economy', /GDP|CPI|PPI|PMI|失业率|通胀|通缩|衰退|财政|赤字|经济数据|inflation|recession|gdp growth/i],
     ['politics', /大选|选举|总统|首相|内阁|议会|公投|辞职|election|president resign/i],
-    ['social', /罢工|抗议|示威|骚乱|罢市|strike\b|protest|riot/i],
+    ['social', /罢工|抗议|示威|骚乱|罢市|strikes?\b|protest|riot/i],
     ['geopolitics', /地缘|边界|领土|领海|外交|峰会|条约|军事演习|军舰|海军|geopolitic|naval drill|navy|naval|strait|hormuz|diplomat/i],
   ];
 
@@ -127,13 +127,16 @@ const NewsEngine = (() => {
     if (!Number.isFinite(ts)) return null;
 
     const url = String(raw.url || '').trim();
+    const source = String(raw.source || '').toLowerCase();
     const geo = EngineGeo.resolveCountry(title);
     /** @type {NewsItem} */
     return {
-      id: hash(url || title),
+      // 无 URL 时以「来源+标题」作幂等键：只用标题的话，不同来源的同标题新闻共享 id，
+      // 会把事件来源数算少、timeline 出现重复条目
+      id: hash(url || (source + '|' + title)),
       title,
       url,
-      source: String(raw.source || '').toLowerCase(),
+      source,
       publishedAt: ts,
       category: classify(title),
       country: geo ? geo.country : null,
@@ -143,6 +146,16 @@ const NewsEngine = (() => {
   }
 
   /* ---------- 去重 ---------- */
+
+  /* 两标题的数字集合是否一致。25bp 与 50bp 加息、伤亡 10 人与 100 人，词面高度相似
+     但事实不同/递进——数字正是标题的信息量所在，不一致时绝不按相似度合并。 */
+  function sameNumbers(a, b) {
+    const set = (s) => {
+      const m = String(s || '').match(/\d+(?:\.\d+)?/g);
+      return m ? [...new Set(m)].sort().join(',') : '';
+    };
+    return set(a) === set(b);
+  }
 
   /**
    * URL 精确去重 + 标题相似度去重（DEDUPE_JACCARD），保留最早一条（首发源）。
@@ -160,6 +173,7 @@ const NewsEngine = (() => {
       let dup = false;
       for (const k of kept) {
         if (k.country !== null && it.country !== null && k.country !== it.country) continue; // 同国才可能同事件
+        if (!sameNumbers(k.title, it.title)) continue;   // 数字不同：不是同一条新闻
         if (titleSimilarity(k.title, it.title) >= (DEDUPE_JACCARD || 0.62)) { dup = true; break; }
       }
       if (dup) { dropped++; continue; }
@@ -168,7 +182,7 @@ const NewsEngine = (() => {
     return { items: kept, dropped };
   }
 
-  return { hash, tokenize, titleSimilarity, classify, normalizeNews, dedupeNews, CATEGORY_RULES };
+  return { hash, tokenize, titleSimilarity, sameNumbers, classify, normalizeNews, dedupeNews, CATEGORY_RULES };
 })();
 
 if (typeof window !== 'undefined') window.NewsEngine = NewsEngine;

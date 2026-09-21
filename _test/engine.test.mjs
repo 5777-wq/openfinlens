@@ -124,6 +124,20 @@ await test('聚类：global 桶（无坐标新闻）也能聚类', () => {
   assert.equal(evs[0].countries.length, 0);
 });
 
+await test('聚类：地理桶相似度下限——词面零交集的两件事不再被格子揉成一团（20260921）', () => {
+  const mk = (title, source, hoursAgo) => W.NewsEngine.normalizeNews({
+    title, url: 'https://' + source + '/x', source, publishedAt: NOW - hoursAgo * 3600000,
+  });
+  const strike1 = mk('Russia launches massive missile strike on Kyiv', 'reuters.com', 3);
+  const strike2 = mk('Missile strike hits Kyiv amid Russian barrage', 'apnews.com', 2);
+  const swap = mk('Russia denies invasion as prisoner swap completes', 'bbc.com', 1);
+  const evs = W.EventEngine.cluster([strike1, strike2, swap], NOW);
+  assert.equal(evs.length, 2, '空袭与换俘应各自成事件，实际 ' + evs.length + '：' + evs.map(e => e.title).join(' | '));
+  const big = evs.find(e => e.newsIds.length === 2);
+  assert.ok(big, '同一空袭的两篇报道（同格同类同窗+词面重叠）仍应合并');
+  assert.ok(big.newsIds.includes(strike1.id) && big.newsIds.includes(strike2.id));
+});
+
 await test('状态机：陈旧事件 → resolved', () => {
   const news = W.EngineMockData.iranTension().map(W.NewsEngine.normalizeNews);
   const future = Date.UTC(2026, 11, 31);              // 一个多月后
@@ -245,6 +259,56 @@ await test('geo：词表边界修复（won/real/dow 不再误报；比索/卢比
   assert.equal(W.EngineGeo.resolveCountry('瑞典克朗下跌')?.country, 'SE');
 });
 
+await test('geo：20260921 词边界补课（rial/franc/indiana/guangdong/durban/New Mexico/小写 us）', () => {
+  // rial 曾命中 industr*ial* → 伊朗（美国工业数据是财经高频题材）
+  assert.equal(W.EngineGeo.resolveCountry('US industrial output slows sharply')?.country, 'US');
+  assert.notEqual(W.EngineGeo.resolveCountry('Industrial output rises in Germany')?.country, 'IR');
+  // franc 曾命中 San *Franc*isco → 瑞士
+  assert.equal(W.EngineGeo.resolveCountry('San Francisco Fed president speaks on rates')?.country, 'US');
+  // india(?!nesia) 防不了 Ind*iana*
+  assert.notEqual(W.EngineGeo.resolveCountry('Chip plant to be built in Indiana')?.country, 'IN');
+  // dong\b 挡得住 Guan*dong*（\b 前导缺失）；拼音广东应归中国
+  assert.equal(W.EngineGeo.resolveCountry('Guangdong exports rise 5% in August')?.country, 'CN');
+  // RBA 曾命中 Du*rba*n → 澳大利亚
+  assert.notEqual(W.EngineGeo.resolveCountry('Durban port reopens after floods')?.country, 'AU');
+  // mexico 是完整词，\b 挡不住 New Mexico，靠 (?<!new )
+  assert.notEqual(W.EngineGeo.resolveCountry('Wildfires spread in New Mexico')?.country, 'MX');
+  assert.equal(W.EngineGeo.resolveCountry('Mexico peso drops after rate decision')?.country, 'MX');
+  // \b 不许打断 demonym：Iranian/Japanese/Australian 仍要归位
+  assert.equal(W.EngineGeo.resolveCountry('Iranian oil exports fall')?.country, 'IR');
+  assert.equal(W.EngineGeo.resolveCountry('Japanese yen slides past 150')?.country, 'JP');
+  assert.equal(W.EngineGeo.resolveCountry('Australian inflation cools')?.country, 'AU');
+  // Canadian 不是 canada 的子串，需显式收录（否则经 dollar 兜底错判美国）
+  assert.equal(W.EngineGeo.resolveCountry('Canadian dollar slides after BoC decision')?.country, 'CA');
+  // US 缩写大小写敏感：小写代词 us 不再判美国
+  assert.notEqual(W.EngineGeo.resolveCountry('Markets give us a warning on inflation')?.country, 'US');
+});
+
+await test('news-engine：数字不同的标题不按相似度合并（25bp vs 50bp）；词边界分类', () => {
+  const NE = W.NewsEngine;
+  const mk = (title, min, url) => ({ title, url: url || ('u' + min), source: 'x', publishedAt: min * 60000 });
+  const r = NE.dedupeNews([
+    mk('Fed hikes rates by 25 basis points', 1),
+    mk('Fed hikes rates by 50 basis points', 2),
+    mk('Fed hikes rates by 25 basis points', 3),
+  ]);
+  assert.equal(r.items.length, 2, '25/50 是两个事件，25 的重复报道才合并');
+  assert.notEqual(NE.classify('Dubai ruler unveils new plan'), 'technology', 'Dubai 不含 AI 误命中');
+  assert.notEqual(NE.classify('Thai baht slides to record low'), 'technology');
+  assert.equal(NE.classify('Air strikes hit Yemen port'), 'war', 'air strikes 分写也要进 war');
+  assert.equal(NE.classify('Workers strikes spread across factories'), 'social');
+  const a = NE.normalizeNews({ title: 'Big news', url: '', source: 'a.com', publishedAt: 1 });
+  const b = NE.normalizeNews({ title: 'Big news', url: '', source: 'b.com', publishedAt: 1 });
+  assert.notEqual(a.id, b.id, '无 URL 时同标题不同来源不得共享幂等键');
+});
+
+await test('impact：BANK_STRESS 有机制边、ELECTION 显式 0 边（宁缺毋假）', () => {
+  const bank = W.ImpactEngine.inferImpacts({ title: 'Bank run hits regional lender', countries: ['US'], categories: ['economy'] });
+  assert.ok(bank.length > 0, '银行挤兑不应再静默 0 边');
+  const el = W.ImpactEngine.inferImpacts({ title: 'US election results shock markets', countries: ['US'], categories: ['politics'] });
+  assert.equal(el.length, 0, '大选方向取决于候选人，显式 0 边');
+});
+
 await test('geo：110m feature.id（ISO numeric）→ ISO2 映射（地图点在多边形接线用）', () => {
   assert.equal(W.EngineGeo.iso2OfNumeric('156'), 'CN');
   assert.equal(W.EngineGeo.iso2OfNumeric('840'), 'US');
@@ -260,6 +324,15 @@ await test('impact：未命中 kind → 类别兜底产出；资产缺失的边�
   // 未知国家：equity_local/insurance 都解析不出 symbol → 边整条跳过（旧版显示"equity 行情未接入"是噪音）
   const xx = W.ImpactEngine.inferImpacts({ title: '某地发生强烈地震', countries: ['XX'], categories: ['natural_disaster'] });
   assert.equal(xx.length, 0, '未知国家的地震不应产出 equity/insurance 原始 token 边');
+});
+
+await test('impact：geopolitics 不再兜底 SANCTIONS——军演 0 边、真制裁标题仍命中（20260921）', () => {
+  // 军演/峰会/外交声明曾被一律套成"制裁"边，把推测包装成机制事实
+  const drill = W.ImpactEngine.inferImpacts({ title: 'Naval drill near strait raises tensions', countries: ['KR'], categories: ['geopolitics'] });
+  assert.equal(drill.length, 0, '军演不是制裁，宁缺毋假 0 边');
+  // 真制裁新闻的标题必含 sanctions/制裁/禁运，走 KIND_RULES 直达，不依赖类别兜底
+  const sanc = W.ImpactEngine.inferImpacts({ title: 'US announces new sanctions on oil exports', countries: ['US'], categories: ['geopolitics'] });
+  assert.ok(sanc.length > 0, '标题含 sanctions 应命中 SANCTIONS 规则产出边');
 });
 
 await test('impact：冲突 → 黄金 risk_off；保险资产暂缺显式 null 不硬造', () => {
