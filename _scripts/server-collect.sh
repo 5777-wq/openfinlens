@@ -16,8 +16,8 @@
 #
 # 说明：
 # - Polymarket 概率每 30 分钟窗口采一轮（gamma-api 国内大概率连不通：失败自动跳过，
-   Actions 侧每 30 分钟兜底采集，两边幂等不撞车）。
- - GDELT 国内服务器大概率连不通：collect-events.mjs 会自动降级为只用新浪财经7x24，
+#   Actions 侧每 30 分钟兜底采集，两边幂等不撞车）。
+# - GDELT 国内服务器大概率连不通：collect-events.mjs 会自动降级为只用新浪财经7x24，
 #   数据源标签随之变化，属预期；需要 GDELT 时给 cron 环境配 HTTPS_PROXY 即可（脚本继承）。
 # - GitHub Actions 的 collect.yml 保留作备份（它跑得再慢也无害：无变化不提交；两边都用
 #   pull --rebase + 重试推送，撞车概率极低，撞上也只影响一轮）。
@@ -32,6 +32,13 @@ cd "${OPENFINLENS_DIR:-$SCRIPT_DIR/..}"
 # 防重入：上一轮没跑完就直接跳过（cron 每 2 分钟一跳，采集本身 ~30s）
 exec 9>"/tmp/openfinlens-collect.lock"
 flock -n 9 || { echo "$(date -u +%FT%TZ) 上一轮仍在进行，跳过"; exit 0; }
+
+# 防御：历史版本可能遗留 rebase 中间态（push 重试冲突时没有 --abort），不清理的话
+# 每轮 pull 都报 "unstaged changes" 直接退出，采集通道静默断更
+if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then
+  git rebase --abort 2>/dev/null || true
+  echo "$(date -u +%FT%TZ) 清理遗留 rebase 中间态"
+fi
 
 # 1. 对齐远端（Actions 备份源仍可能提交）
 if ! git pull --rebase origin main; then
@@ -62,7 +69,12 @@ git commit -q -m "data: refresh global events [skip ci]"
 ok=0
 for i in 1 2 3 4 5; do
   if git push origin main; then ok=1; break; fi
-  git pull --rebase origin main || true
+  # -X theirs：撞车场景是双方都改 global-events.json 的同一行（单行 JSON），普通 rebase
+  # 必冲突并卡在中间态。rebase 语义里 theirs = 被重放的本地提交，即保留服务器刚采的新数据；
+  # Actions 侧 5 分钟内会再覆盖，谁新无所谓，关键是不能卡死。任何失败都不留中间态。
+  if ! git pull --rebase -X theirs origin main; then
+    git rebase --abort 2>/dev/null || true
+  fi
   sleep 10
 done
 if [ "$ok" != "1" ]; then
