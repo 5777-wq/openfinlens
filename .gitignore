@@ -22,3 +22,6 @@ keystore-*/
 凭据备忘-*.txt
 backup-*.bundle
 .workbuddy/
+
+# 美股监控(Meridian)是独立仓库 5777-wq/us-stock-monitor，有自己的 .git，防止外层误 gitlink
+美股监控/
