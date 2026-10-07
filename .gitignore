@@ -10,3 +10,15 @@ Thumbs.db
 .tmp-api-body.json
 .tmp-commit-msg.txt
 .tmpprobe/
+
+# 签名凭据与本地备份（2026-10-07 评审 P0：仓库是公开的，这些永远不能入库）
+keystore-*/
+*.jks
+*.keystore
+*.pem
+*.p12
+*.pfx
+.store-pw.txt
+凭据备忘-*.txt
+backup-*.bundle
+.workbuddy/
