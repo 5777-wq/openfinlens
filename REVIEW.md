@@ -6,6 +6,21 @@
 - **执行人**：Claude
 - **测试基线**：`_test/` 七组共 104 项自动化校验，全部通过（第六轮后）
 
+## 第七轮：收尾修复 + 加密真实市值（2026-10-11）
+
+全量代码扫描（app.js 全文、13 个 sources 适配器、计算层、index.html）后的收尾轮。
+
+**修复（P1×6）**：charts.js 换肤后 MA 线/图例用创建时捕获的过期颜色闭包；utils.js `_persist` 白名单缺 events/sb/brk/etf/fundholds/wbmacro（gdelt/polymarket 等降级链「localStorage 缓存」最后一环名不副实，刷新即断）；app.js 两处第三方字符串未转义进 HTML 属性（`data-bk`、13F aria-label）；compareview 搜索无竞态守卫（慢响应覆盖新输入，同 app.js searchGen 口径补齐）；产业链环节热度条仍写死 `/3` 刻度且初值缺位（首次 patch 跳变，改与板块行同源 chainHeatMaxAbs + renderChainOpen 设初值）；点星后 watchSet 不刷新（切产业链页星标状态陈旧）。
+
+**修复（P2）**：删除死代码 sources/report.js（93 行无调用方，连同 logic.test 的研报评级用例）；news.js showTime 解析失败产生 NaN 时间戳（回退 Date.now()）；history.js 美股兜底重试无后缀时同请求打两遍（去重）；BTCUSDT 残留死分支（HERO_LABEL/ensureSparks，TAPE_KEYS 的仍在用）；renderBrk 对采集 JSON holdings 字段零容错（缺失时诚实空态而非静默骨架）；gdelt.js 采集周期注释与实际矛盾（*/5 cron + keeper 每 10 分钟拉起）；build.sh 默认版本号 1.0.1→1.0.2；app.js 头注释删已废弃的研报链路。
+
+**新增：加密热力图真实流通市值**（补齐「市值=24h 成交额代理」的记录在案缺口）。新增 sources/paprika.js：CoinPaprika 免费接口（无密钥，实测 CORS `ACAO:*`、limit=1000 可用，主源）→ CoinGecko（备源，国内常不可达）→ localStorage 缓存 → 放弃富化。按基础币 symbol 匹配（币安全对名经 name 字段回基础币，1000X 前缀剥离），**覆盖 ≥80% 才整体切换口径**（行标 capReal），标签随实际数据走（「市值」/「24h成交额」），不混标。实测浏览器端到端：80/80 行命中真实市值（BTC≈$1.67T），标签切「市值」；worker.js 白名单补 paprika/coingecko（配代理的用户同样生效）。踩坑记录：① paprika 首探测留下的 250 条新鲜缓存会压住 1000 条新拉取（10 分钟窗口内 hits 58/80 低于阈值，表象是「改了不生效」）；② getCaps 返回的 Map 值是数字，接线误取 `.cap` 写出 undefined 市值、标签却说「市值」——dishonest 状态，由截图+缓存行核查抓出。
+
+**测试**：logic.test 删研报用例、增 paprika 纯函数用例（同码去重/坏行剔除/两家规格）；断言总数 250→248（README 徽章与 ci.yml 注释已校准）。离线 14 组 175 条全绿；联网组 breadth/degrade/boards/live/history 在本机失败为环境性（push2.eastmoney.com 不可达，git stash 前后对照失败一致，非本次改动引入）。
+
+**明确不做**：engine 层约 500 行未接线载荷（留待真正接线时再摘）；selftest 面板折叠仍全量渲染（涉及调度器，单独一轮）；state.pushed 单调（返回语义，需真机验证行为再动）。
+
+
 ## 第六轮：版式重构（2026-09-07，回应"一眼 AI、缺少美感"）
 
 3 个设计研究代理分别实测/研究 Linear・Vercel・Stripe（抓线上 CSS 提 token）、finviz・Bloomberg・TradingView（数据密度与数字排版）、"AI 模板感"成因（HN 讨论 #49452037 等）。三家研究收敛出同一诊断：**AI 感 = 均质**（等宽卡片、同圆角、胶囊按钮、强调色当墙纸、无字号对比）；人类感 = 编辑判断 + 层级例外 + 列对齐纪律。

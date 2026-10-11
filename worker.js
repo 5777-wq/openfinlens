@@ -31,6 +31,8 @@ const ALLOW_HOSTS = [
   'data-api.binance.vision',
   'www.okx.com',
   'aws.okx.com',
+  'api.coinpaprika.com',
+  'api.coingecko.com',
   'api.stlouisfed.org',
 ];
 

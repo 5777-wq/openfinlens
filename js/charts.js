@@ -133,7 +133,8 @@ const Charts = (() => {
     function applyTheme() {
       const c = themeColors();
       candle.applyOptions({ upColor: c.up, downColor: c.down, wickUpColor: c.up, wickDownColor: c.down });
-      lineSeries.forEach((s, i) => s.applyOptions({ color: LINE_COLORS[i] }));
+      // 均线取当前 c.lineColors：LINE_COLORS 是创建时捕获的闭包值，换肤/切红绿后会过期
+      lineSeries.forEach((s, i) => s.applyOptions({ color: c.lineColors[i] }));
       if (lastKlines.length) setVolume(lastKlines, c);
       paintLegend(lastKlines.length - 1);
     }
@@ -175,7 +176,7 @@ const Charts = (() => {
         if (!l.on) return '';
         const pt = maData[i] && maData[i][idx];
         if (!pt || pt.value === null || pt.value === undefined || !Number.isFinite(pt.value)) return '';
-        return `<span style="color:${LINE_COLORS[i]}">${l.type.toUpperCase()}${l.n} ${pt.value}</span>`;
+        return `<span style="color:${c.lineColors[i]}">${l.type.toUpperCase()}${l.n} ${pt.value}</span>`;
       }).join('');
       return `<span class="kl-time">${fmtLegendTime(k.time)}</span>` +
         `<span>开 <b style="color:${col}">${k.open}</b></span>` +

@@ -10,7 +10,7 @@
 
 [![license](https://img.shields.io/badge/license-MIT-000?style=flat-square)](LICENSE)
 [![release](https://img.shields.io/github/v/release/5777-wq/openfinlens?style=flat-square&label=release)](https://github.com/5777-wq/openfinlens/releases)
-![tests](https://img.shields.io/badge/tests-20%E7%BB%84%C2%B7250%E6%9D%A1%E6%96%AD%E8%A8%80-2ebd85?style=flat-square)
+![tests](https://img.shields.io/badge/tests-20%E7%BB%84%C2%B7248%E6%9D%A1%E6%96%AD%E8%A8%80-2ebd85?style=flat-square)
 
 <img src="assets/shot-overview.png" alt="OpenFinLens 首屏：全球市场" width="100%">
 
@@ -78,6 +78,7 @@ python -m http.server 8765   # → http://127.0.0.1:8765
 | A股 / 港股 / 美股 / 指数 | 腾讯 | 东财 |
 | 全市场热力图（A/港/美） | 东财 `clist` 分页并发 | — |
 | 加密 | 币安 | OKX |
+| 加密流通市值（热力图面积） | CoinPaprika | CoinGecko → 24h成交额代理 |
 | K线 / 长历史 | 腾讯 `ifzq` / 东财 `push2his`（含分红） | 熔断后腾讯兜底（标注口径） |
 | 全球事件 / 事件概率 / 13F | GDELT + 新浪 / Polymarket / SEC → Actions 采集 | 静态 JSON |
 | 外汇 / 商品 / 宏观 / 新闻 | 东财 secid / 世界银行 / 新浪 roll | 缓存 |

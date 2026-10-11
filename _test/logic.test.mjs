@@ -63,8 +63,8 @@ load(ctx, 'js/treemap.js');
 load(ctx, 'js/data/industry-chains.js');
 load(ctx, 'js/data/universe.js');
 load(ctx, 'js/sources/tencent.js');
-load(ctx, 'js/sources/report.js');
 load(ctx, 'js/sources/news.js');
+load(ctx, 'js/sources/paprika.js');
 
 const W = vm.runInContext('window', ctx);
 
@@ -333,19 +333,32 @@ test('新闻：关键词大小写不敏感', () => {
   assert.equal(M({ title: 'Eth 生态', summary: '' }, 'crypto'), true);
 });
 
-/* ================= 研报评级配色 ================= */
+/* ================= 加密市值富化（paprika.js 纯函数） ================= */
 
-test('研报：评级 → 语义色（买入红/增持签名色/中性灰/减持绿）', () => {
-  const R = W.ReportSource.ratingClass;
-  assert.equal(R('买入'), 'rt-buy');
-  assert.equal(R('强烈推荐'), 'rt-buy');
-  assert.equal(R('增持'), 'rt-add');
-  assert.equal(R('中性'), 'rt-hold');
-  assert.equal(R('持有'), 'rt-hold');
-  assert.equal(R('减持'), 'rt-sell');
-  assert.equal(R('卖出'), 'rt-sell');
-  assert.equal(R(''), 'rt-none');
-  assert.equal(R(null), 'rt-none');
+test('paprika：两家响应规格 → symbol→市值 Map（同码取 rank 最小，坏行剔除）', () => {
+  const P = W.PaprikaSource;
+  const pm = P.toCapMap(P.fromPaprikaRows([
+    { symbol: 'btc', rank: 1, quotes: { USD: { market_cap: 1.6e12 } } },
+    { symbol: 'ETH', rank: 2, quotes: { USD: { market_cap: 3e11 } } },
+    { symbol: 'BAD', rank: 3, quotes: { USD: { market_cap: -5 } } },   // 非正市值剔除
+    { symbol: '', rank: 4, quotes: { USD: { market_cap: 9 } } },       // 空 symbol 剔除
+    { rank: 5, quotes: { USD: { market_cap: 9 } } },                   // 缺 symbol 剔除
+  ]));
+  assert.equal(pm.get('BTC').cap, 1.6e12);
+  assert.equal(pm.get('ETH').cap, 3e11);
+  assert.equal(pm.size, 2);
+
+  const cg = P.toCapMap(P.fromCoingeckoRows([
+    { symbol: 'btc', market_cap: 1.6e12, market_cap_rank: 1 },
+    { symbol: 'reth', market_cap: 5e8, market_cap_rank: 60 },
+    { symbol: 'RETH', market_cap: 4e8, market_cap_rank: 80 },          // 同码 Wrapped：rank 小者胜
+  ]));
+  assert.equal(cg.get('RETH').cap, 5e8);
+  assert.equal(cg.get('BTC').cap, 1.6e12);
+  assert.equal(cg.size, 2);
+
+  assert.equal(P.toCapMap(null).size, 0);     // 垃圾输入不抛错
+  assert.equal(P.toCapMap('x').size, 0);
 });
 
 /* ================= Store ================= */

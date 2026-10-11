@@ -49,14 +49,18 @@ const NewsSource = (() => {
       `&column=348&order=1&needInteractData=0&page_index=1&page_size=${size}&req_trace=${trace}&fields=&types=1,20`;
     const j = await request(url, { timeout: 9000 });
     const list = (j && j.data && j.data.list) || [];
-    return list.filter(it => it && it.title).map(it => ({
-      id: 'em:' + (it.code || it.uniqueUrl),
-      title: String(it.title).trim(),
-      url: it.uniqueUrl || it.url,
-      time: it.showTime ? beijingToMs(it.showTime) : Date.now(),
-      source: it.mediaName || '东方财富',
-      summary: String(it.summary || '').trim(),
-    }));
+    return list.filter(it => it && it.title).map(it => {
+      // showTime 解析失败（上游格式漂移）时回退当前时间，不让 NaN 进排序与渲染
+      const t = it.showTime ? beijingToMs(it.showTime) : NaN;
+      return {
+        id: 'em:' + (it.code || it.uniqueUrl),
+        title: String(it.title).trim(),
+        url: it.uniqueUrl || it.url,
+        time: Number.isFinite(t) ? t : Date.now(),
+        source: it.mediaName || '东方财富',
+        summary: String(it.summary || '').trim(),
+      };
+    });
   }
 
   // 主源 → 备源 → 缓存（60s）

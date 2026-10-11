@@ -5,7 +5,6 @@
      加密                    : binance(data-api.binance.vision) → okx → 缓存
      外汇 / 商品 / 宏观利率   : eastmoney secid → sina(需代理) → 缓存
      新闻                    : sina roll(JSONP) → eastmoney news → 缓存(60s)
-     研报                    : eastmoney reportapi → 缓存(10min) → 隐藏研报区
    轮询一律用 setTimeout 链 + visibilitychange 暂停，动画一律 rAF。
 */
 
@@ -472,7 +471,7 @@
   const HERO_SLOTS = 4;
   const HERO_FLAG = { 'sh000001': 'cn', 'usIXIC': 'us', 'usINX': 'us', 'hkHSI': 'hk' };
   // 等待数据时也显示中文名：裸 symbol（SH000001）是数据源内部代号，不该抛给用户
-  const HERO_LABEL = { 'sh000001': '上证指数', 'usIXIC': '纳斯达克', 'usINX': '标普500', 'hkHSI': '恒生指数', 'BTCUSDT': '比特币' };
+  const HERO_LABEL = { 'sh000001': '上证指数', 'usIXIC': '纳斯达克', 'usINX': '标普500', 'hkHSI': '恒生指数' };
 
   /* symbol/market → 旗标代码。Flags.flag 对未知代码返回空串，所以不必穷举市场。 */
   function heroFlagCode(sym, market) {
@@ -673,7 +672,7 @@
   async function ensureSparks() {
     const items = HERO_KEYS.map(sym => {
       const q = findQuote(sym);
-      return { sym, market: (q && q.market) || (sym === 'BTCUSDT' ? 'crypto' : '') };
+      return { sym, market: (q && q.market) || '' };
     }).concat(homeWatchItems().map(x => ({ sym: x.item.symbol, market: (x.q && x.q.market) || x.item.market })));
     if (!items.length) return;
     await loadSparks(items).catch(() => { /* 画不出就不画 */ });
@@ -989,6 +988,27 @@
         code: q.symbol, name: q.name, price: q.price, changePct: q.changePct,
         change: q.change, marketCap: q.amount, binance: q.symbol, market: 'crypto',
       }));
+      // 真实流通市值富化（paprika/coingecko，见 sources/paprika.js）：按基础币 symbol 匹配。
+      // 币安的 code 是全对名（BTCUSDT），匹配键用 name（BTC）；覆盖 ≥80% 才整体切换
+      // 口径（行标 capReal），否则维持成交额代理——不混标。
+      try {
+        const caps = await window.PaprikaSource.getCaps();
+        if (caps.size) {
+          const baseOf = (r) => {
+            const n = String(r.name || '').toUpperCase() ||
+              String(r.code || '').toUpperCase().replace(/(USDT|USDC|FDUSD|TUSD|BUSD|USD)$/, '');
+            // 币安对小币用 1000X/1000000X 计价单位，paprika 用原始 symbol（1000PEPE → PEPE）
+            return n.replace(/^1000000/, '').replace(/^1000/, '') || n;
+          };
+          const hit = mapped.filter(r => caps.has(baseOf(r))).length;
+          if (hit / mapped.length >= 0.8) {
+            mapped.forEach(r => {
+              const cap = caps.get(baseOf(r));   // Map 值就是市值数字（见 paprika.js getCaps）
+              if (cap) { r.marketCap = cap; r.capReal = true; }
+            });
+          }
+        }
+      } catch { /* 富化失败 → 成交额代理，标签口径不变 */ }
       Cache.set('heat:crypto', mapped);
       state.heatItems.crypto = mapped;
       state.heatVia.crypto = via;
@@ -1071,7 +1091,13 @@
       ? (state.heatTopMode === 'top' ? ' · 市值 Top 500（宽度统计仍用全量）' : ' · 全市场')
       : (state.heatMode === 'hk' || state.heatMode === 'us')
         ? ' · 市值 Top 500（全市场共 ' + n + ' 只）' : '';
-    el.heatSub.textContent = `${n} 个标的 · 面积=${state.heatMode === 'crypto' && state.heatSize === 'cap' ? '24h成交额' : state.heatSize === 'cap' ? '市值' : '涨跌幅'}${rangeTxt} · ${viaTxt}` +
+    // 加密热力图面积口径跟着实际数据走：真实市值富化覆盖 ≥80% 才标「市值」，否则如实写「24h成交额」
+    const cryptoCapReal = state.heatMode === 'crypto'
+      && (state.heatItems.crypto || []).filter(r => r.capReal).length / Math.max(1, (state.heatItems.crypto || []).length) >= 0.8;
+    const sizeTxt = state.heatSize === 'cap'
+      ? (state.heatMode === 'crypto' ? (cryptoCapReal ? '市值' : '24h成交额') : '市值')
+      : '涨跌幅';
+    el.heatSub.textContent = `${n} 个标的 · 面积=${sizeTxt}${rangeTxt} · ${viaTxt}` +
       // 剩余矩形 <0.5px 时 squarify 会丢弃排序尾部的标的：静默丢数据不行，至少说一声
       (state.heat && state.heat.droppedCount ? `（另有 ${state.heat.droppedCount} 只低于显示阈值）` : '');
     // 空态：全源失败时给明确文案，而不是黑画布 + "0 个标的 · 等待数据"
@@ -2705,7 +2731,7 @@
       </div>` + hist.activities.map(a => {
       const cls = pctClass(a.net);
       return `<div class="srow" data-activity="${escapeHTML(a.id)}" tabindex="0" role="button"
-          aria-label="${a.tradeDate} ${escapeHTML(a.code)} ${a.action}">
+          aria-label="${escapeHTML(a.tradeDate)} ${escapeHTML(a.code)} ${escapeHTML(a.action)}">
         <span class="sr-date num">${escapeHTML(a.tradeDate.slice(5))}</span>
         <span class="sr-stock">${escapeHTML(stockDisplayName(a))}<span class="lr-code num">${escapeHTML(a.code)}</span></span>
         <span class="sr-act num ${a.action === 'BUY' ? 'up' : 'down'}">${a.action === 'BUY' ? '买入' : '卖出'}</span>
@@ -2790,6 +2816,8 @@
     const idx = Math.min(Math.max(state.brkIdx || 0, 0), list.length - 1);
     state.brkIdx = idx;
     const cur = list[idx];
+    // 采集 JSON 字段容错：holdings 缺失/畸形时诚实显示空态，不静默停在骨架
+    if (!Array.isArray(cur.holdings) || !cur.holdings.length) { renderBrkEmpty(); return; }
     if (el.brkVia) {
       // 滞后天数必须显示：13F 是季度披露，实测报告期末→提交日滞后 34~45 天，
       // 不写天数用户会把它当成"最近持仓"。
@@ -3034,7 +3062,7 @@
     el.boardStrip.innerHTML = state.boardItems.map((b, i) => {
       const chainId = matchChain(b.name);
       const chainName = chainId ? (window.INDUSTRY_CHAINS.find(c => c.id === chainId) || {}).name : null;
-      return `<button class="bchip" data-bk="${b.bk}" data-i="${i}"${chainName ? ` title="属产业链：${chainName}"` : ''}>
+      return `<button class="bchip" data-bk="${escapeHTML(b.bk)}" data-i="${i}"${chainName ? ` title="属产业链：${chainName}"` : ''}>
         <span class="bc-name">${escapeHTML(b.name)}</span>
         <span class="bc-pct num ${pctClass(b.changePct)}">${fmtPct(b.changePct)}</span>
         <span class="bc-lead">${b.leadName ? escapeHTML(b.leadName) : ''}</span>
@@ -3186,16 +3214,19 @@
 
   // 展开的单个板块：环节流程条 + 已展开环节的成分股
   function renderChainOpen(chain) {
+    // 环节条与板块行共用一个刻度，并在此设初值——否则首次 patch 前是 CSS 默认 scaleX(0)，条形会跳变
+    const maxAbs = chainHeatMaxAbs();
     const nodes = chain.links.map((link, i) => {
       const key = chain.id + ':' + i;
       const open = state.openLinks.has(key);
       const avg = linkAvg(link);
       const cls = pctClass(avg);
+      const ratio = avg === null ? 0 : Math.min(1, Math.abs(avg) / maxAbs);
       return `<div class="link-node${open ? ' open' : ''}" data-link="${key}" tabindex="0" role="button"
           title="${escapeHTML(link.name)} ${fmtPct(avg)} · ${escapeHTML(link.desc || '')}">
         <div class="link-name">${escapeHTML(link.name)}</div>
         <div class="link-pct num ${cls}">${fmtPct(avg)}</div>
-        <div class="link-bar-track"><span class="link-bar"></span></div>
+        <div class="link-bar-track"><span class="link-bar" style="transform:scaleX(${ratio.toFixed(3)})"></span></div>
         <div class="link-count">${link.stocks.length} 只成分股</div>
       </div>`;
     }).join('<span class="chain-arrow" aria-hidden="true">→</span>');
@@ -3258,11 +3289,8 @@
         }
         const bar = node.querySelector('.link-bar');
         if (bar) {
-          const avgAbs = Math.abs(link.stocks.reduce((acc, sk) => {
-            const q = state.chainQuotes.get(sk.symbol);
-            return acc + (q && q.changePct !== null && q.changePct !== undefined ? q.changePct : 0);
-          }, 0) / Math.max(1, link.stocks.length));
-          bar.style.transform = 'scaleX(' + Math.min(1, avgAbs / 3).toFixed(3) + ')';
+          // 与板块行同源刻度（heatMaxAbs），且复用 linkAvg 的滤空口径——不再写死 /3
+          bar.style.transform = 'scaleX(' + Math.min(1, Math.abs(avg ?? 0) / heatMaxAbs).toFixed(3) + ')';
           bar.style.background = avg === null ? 'rgba(255,255,255,0.15)'
             : `var(--${avg > 0 ? 'up' : avg < 0 ? 'down' : 'text-tertiary'})`;
         }
@@ -3956,6 +3984,7 @@
         const sym = star.getAttribute('data-star');
         const q = findQuote(sym) || { symbol: sym, name: sym, market: '' };
         const on = window.Store.watchlist.toggle({ symbol: sym, name: q.name, market: q.market });
+        refreshWatchSet();   // 立刻同步缓存集合：星标后直接切产业链页时 rowHTML 读到的不能是旧集合
         star.textContent = on ? '★' : '☆';
         star.classList.toggle('on', on);
         star.title = on ? '取消自选' : '加入自选';

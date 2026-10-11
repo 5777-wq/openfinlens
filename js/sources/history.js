@@ -146,7 +146,9 @@ const HistorySource = (() => {
     if (!sym) return null;
     const period = granularity === 'week' ? 'week' : granularity === 'month' ? 'month' : 'day';
     const lmt = Math.min(2000, Math.max(2, Math.round(limit)));
-    for (const code of [sym, sym.replace(/\.(AM|OQ|N)$/, '')]) {
+    const bare = sym.replace(/\.(AM|OQ|N)$/, '');
+    // 无后缀时 stripped 与原符号相同，去重避免同一失败请求打两遍
+    for (const code of (sym === bare ? [sym] : [sym, bare])) {
       for (const host of TENCENT_HOSTS) {
         try {
           const url = host + TENCENT_PATH + '?param=' + encodeURIComponent([code, period, '', '', lmt].join(','));

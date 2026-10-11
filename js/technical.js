@@ -63,7 +63,7 @@ const Technical = (() => {
   function macd(closes, fast = 12, slow = 26, signal = 9) {
     const c = clean(closes);
     if (c.length < slow + signal) return null;
-    const ef = emaSeries(c, fast).map(v => v === null ? null : v);
+    const ef = emaSeries(c, fast);
     const es = emaSeries(c, slow);
     const dif = c.map((_, i) => (ef[i] !== null && es[i] !== null) ? ef[i] - es[i] : null);
     const difValid = dif.filter(v => v !== null);

@@ -82,6 +82,6 @@ fi
   --overwrite
 
 echo "[6/6] 完成：$OUT/app.apk（已对齐+签名）"
-VERSION="${OFL_VERSION:-1.0.1}"
+VERSION="${OFL_VERSION:-1.0.2}"
 cp "$OUT/app.apk" "OpenFinLens-v${VERSION}.apk"
 ls -la "OpenFinLens-v${VERSION}.apk"

@@ -118,8 +118,12 @@ const Cache = {
   _m: new Map(),
   // heat:us（美股全市场 ≈1.38 万行）持久化会同步字符串化 ~1.5MB 卡主线程、
   // 逼近 localStorage 5MB 配额（超了以后每次写入都静默失败），只留内存缓存；
-  // heat:hk（~2900 行）与 lhb（日频 ~80 行）量级安全，照常持久化兜底
-  _persist: ['q:', 'heat:cn', 'heat:crypto', 'heat:hk', 'lhb', 'news', 'report:'],
+  // heat:hk（~2900 行）与 lhb（日频 ~80 行）量级安全，照常持久化兜底。
+  // events:/sb/brk/etf/fundholds/wbmacro 是各降级链的「静态 JSON → 缓存」最后一环
+  // （gdelt/polymarket/南向/13F/ETF持股/世界银行，最大单 key ~80KB），刷新后仍可用；
+  // crypto:cap 是加密流通市值富化（~250 条 [symbol,市值]，~10KB），旧市值仍比成交额代理诚实
+  _persist: ['q:', 'heat:cn', 'heat:crypto', 'heat:hk', 'lhb', 'news', 'report:',
+             'events:', 'sb', 'brk', 'etf', 'fundholds', 'wbmacro', 'crypto:cap'],
   _canPersist(key) { return this._persist.some(p => key.startsWith(p)); },
   set(key, val) {
     const e = { val, at: Date.now() };

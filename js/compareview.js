@@ -480,6 +480,7 @@ window.CompareView = (() => {
     let timer = null;
     let items = [];
     let sel = -1;
+    let searchGen = 0;
 
     const hide = () => { if (el.results) { el.results.classList.remove('active'); } sel = -1; };
     const paint = () => {
@@ -497,10 +498,13 @@ window.CompareView = (() => {
     const doSearch = async () => {
       const kw = el.input.value.trim();
       if (kw.length < 1) { items = []; paint(); return; }
+      // 竞态守卫：慢的旧响应不得覆盖新输入的结果（同 app.js runSearch 的 searchGen）
+      const gen = ++searchGen;
       try {
         const list = await window.EastmoneySource.search(kw);
+        if (gen !== searchGen) return;
         items = (list || []).slice(0, 8);
-      } catch { items = []; }
+      } catch { if (gen === searchGen) items = []; }
       sel = -1;
       paint();
     };

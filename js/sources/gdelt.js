@@ -1,6 +1,7 @@
 /* gdelt.js —— 全球事件源适配器
    架构（强约束）：浏览器永远不直连 GDELT。海外采集在 GitHub Actions 定时跑
-   （_scripts/collect-events.mjs，30 分钟/轮），产出 data/events/global-events.json
+   （_scripts/collect-events.mjs，名义 */5 cron + collect-keeper 每 10 分钟拉起，
+   见 docs/SERVER-COLLECT.md），产出 data/events/global-events.json
    随仓库静态托管；浏览器只读自己的 JSON。
    降级链：静态 JSON（live）→ localStorage 缓存（cache）。拿不到就诚实说"暂无数据"，
    绝不造假事件。 */
