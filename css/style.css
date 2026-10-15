@@ -1386,6 +1386,66 @@ html[data-theme="paper"] {
 html[data-theme="paper"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border: 3px solid transparent; background-clip: padding-box; }
 html[data-theme="paper"] .sk { background: rgba(25,25,20,0.055); }
 
+/* —— 瑞士国际主义：冷白底 + 瑞士红 1 强调，4/8 步长 + 0 圆角 + 1px hairline + Inter 几何无衬线 —— */
+html[data-theme="swiss"] {
+  --bg: #f7f6f2; --bg-elevated: #ffffff; --bg-card: #ffffff; --bg-hover: #ecebe3;
+  --text: #111111; --text-secondary: #4a4a45; --text-tertiary: #6f6f6b; --text-faint: #a8a8a2;
+  --border: rgba(17,17,17,0.10); --border-hover: rgba(17,17,17,0.28);
+  --accent-signature: #E30613; --accent-rgb: 227,6,19;
+  --chart-text: #6f6f6b; --chart-grid: rgba(17,17,17,0.06); --chart-border: rgba(17,17,17,0.16);
+  --glow-1: 227,6,19; --glow-2: 17,17,17;
+  --topbar-bg: rgba(247,246,242,0.92); --tape-bg: rgba(247,246,242,0.86);
+  scrollbar-color: rgba(17,17,17,0.20) transparent;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+html[data-theme="swiss"] ::-webkit-scrollbar-thumb { background: rgba(17,17,17,0.20); border: 3px solid transparent; background-clip: padding-box; }
+html[data-theme="swiss"] .sk { background: rgba(17,17,17,0.06); }
+
+/* —— 包豪斯：三原色红/黄/蓝 + 米白纸底，Jost 几何无衬线 + 0 圆角 + 粗黑规则线 —— */
+html[data-theme="bauhaus"] {
+  --bg: #faf7f0; --bg-elevated: #f3eee2; --bg-card: #ffffff; --bg-hover: #f0eadc;
+  --text: #1a1a1a; --text-secondary: #555048; --text-tertiary: #7a7466; --text-faint: #a8a294;
+  --border: rgba(26,26,26,0.18); --border-hover: rgba(26,26,26,0.40);
+  --accent-signature: #D7263D; --accent-rgb: 215,38,61;
+  --chart-text: #555048; --chart-grid: rgba(26,26,26,0.08); --chart-border: rgba(26,26,26,0.18);
+  --glow-1: 215,38,61; --glow-2: 26,71,184;
+  --topbar-bg: rgba(250,247,240,0.92); --tape-bg: rgba(250,247,240,0.86);
+  scrollbar-color: rgba(26,26,26,0.22) transparent;
+  --font-sans: "Jost", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+html[data-theme="bauhaus"] ::-webkit-scrollbar-thumb { background: rgba(26,26,26,0.22); border: 3px solid transparent; background-clip: padding-box; }
+html[data-theme="bauhaus"] .sk { background: rgba(26,26,26,0.07); }
+
+/* —— 纸感编辑部(Anthropic 风)：象牙白三阶 + clay 橙 1 强调 + Newsreader 衬线 + clay 灰阶 —— */
+html[data-theme="clay"] {
+  --bg: #FAF9F5; --bg-elevated: #F0EEE6; --bg-card: #ffffff; --bg-hover: #E3DACC;
+  --text: #2b2a26; --text-secondary: #5a574c; --text-tertiary: #807a6a; --text-faint: #aaa392;
+  --border: rgba(43,42,38,0.10); --border-hover: rgba(43,42,38,0.26);
+  --accent-signature: #D97757; --accent-rgb: 217,119,87;
+  --chart-text: #5a574c; --chart-grid: rgba(43,42,38,0.05); --chart-border: rgba(43,42,38,0.12);
+  --glow-1: 217,119,87; --glow-2: 90,87,76;
+  --topbar-bg: rgba(250,249,245,0.92); --tape-bg: rgba(250,249,245,0.86);
+  scrollbar-color: rgba(43,42,38,0.18) transparent;
+  --font-sans: "Newsreader", Georgia, "Times New Roman", "Songti SC", "STZhongsong", serif;
+}
+html[data-theme="clay"] ::-webkit-scrollbar-thumb { background: rgba(43,42,38,0.18); border: 3px solid transparent; background-clip: padding-box; }
+html[data-theme="clay"] .sk { background: rgba(43,42,38,0.05); }
+
+/* —— 孟菲斯：奶白底 + 4 色高饱和点缀（黄/粉/蓝/黑）+ Righteous display + 0 圆角（数据屏仍克制，只换大字/边角） —— */
+html[data-theme="memphis"] {
+  --bg: #FAF7F1; --bg-elevated: #f0ece2; --bg-card: #ffffff; --bg-hover: #f4f0e6;
+  --text: #18181a; --text-secondary: #4a494f; --text-tertiary: #6e6d74; --text-faint: #9e9da4;
+  --border: rgba(24,24,26,0.18); --border-hover: rgba(24,24,26,0.40);
+  --accent-signature: #FF3D7F; --accent-rgb: 255,61,127;     /* 强调：粉红；其余高饱和色作点缀用色 */
+  --chart-text: #4a494f; --chart-grid: rgba(24,24,26,0.08); --chart-border: rgba(24,24,26,0.18);
+  --glow-1: 255,61,127; --glow-2: 31,196,255;
+  --topbar-bg: rgba(250,247,241,0.92); --tape-bg: rgba(250,247,241,0.86);
+  scrollbar-color: rgba(24,24,26,0.22) transparent;
+  --font-sans: "Righteous", "Jost", -apple-system, BlinkMacSystemFont, "PingFang SC", system-ui, sans-serif;
+}
+html[data-theme="memphis"] ::-webkit-scrollbar-thumb { background: rgba(24,24,26,0.22); border: 3px solid transparent; background-clip: padding-box; }
+html[data-theme="memphis"] .sk { background: rgba(24,24,26,0.07); }
+
 /* —— 动效：全部包在 no-preference 里，减动效用户零打扰 —— */
 @media (prefers-reduced-motion: no-preference) {
   /* 换肤平滑过渡：切换瞬间短暂给全元素挂颜色过渡，450ms 后由 JS 摘掉 */
@@ -1513,3 +1573,152 @@ html[data-theme="oled"] .pm-fold { border-radius: 0; }
 /* 纸上编辑部：分类区块同报头双线，行内分隔用细黑线 */
 html[data-theme="paper"] .pm-sec { border-top: 3px double rgba(25,25,20,0.35); padding-top: 14px; }
 html[data-theme="paper"] .pm-sec-head { border-left: none; background: transparent; padding-left: 2px; }
+
+/* ==================== 皮肤 · 第三轮（设计语言四件套：swiss/bauhaus/clay/memphis） ====================
+   各自只换气质语言层（字体/标题/分隔/卡片边框/几何点缀），所有数据屏的栅格、mono 数字、
+   涨跌语义色都保持原样——金融数据不该被装饰吃掉。 */
+
+/* 共享：四套都用 --font-sans 接管非数字字体（var(--font-sans) 在 :root 已是系统栈，主题内已覆盖） */
+html[data-theme="swiss"] body,
+html[data-theme="bauhaus"] body,
+html[data-theme="clay"] body,
+html[data-theme="memphis"] body { font-family: var(--font-sans), system-ui, sans-serif; }
+
+/* ---------- 瑞士国际主义：网格 + hairline + 0 圆角 + 0 投影 + 极端字号对比 ---------- */
+html[data-theme="swiss"] * { border-radius: 0 !important; }
+html[data-theme="swiss"] .pm-tile, html[data-theme="swiss"] .pm-sec,
+html[data-theme="swiss"] .modal, html[data-theme="swiss"] .seg,
+html[data-theme="swiss"] .modal-close, html[data-theme="swiss"] .switch,
+html[data-theme="swiss"] .pm-fold, html[data-theme="swiss"] .event-detail,
+html[data-theme="swiss"] .pill, html[data-theme="swiss"] .bchip,
+html[data-theme="swiss"] .brow, html[data-theme="swiss"] .sr-pill,
+html[data-theme="swiss"] .qrow { box-shadow: none; }
+html[data-theme="swiss"] h1.page-title {
+  font-weight: 800; letter-spacing: -0.025em;
+  font-size: clamp(36px, 4.8vw, 64px); line-height: 1.0; }
+html[data-theme="swiss"] .section-title { letter-spacing: 0.10em; font-weight: 600; }
+html[data-theme="swiss"] .sec-line { background: var(--accent-signature); height: 2px; }
+html[data-theme="swiss"] .section { border-top: 2px solid var(--text); padding-top: 14px; }
+html[data-theme="swiss"] .pm-sec { border-top: 2px solid var(--text); padding-top: 14px; }
+html[data-theme="swiss"] .pm-tile {
+  border: 1px solid var(--border); border-left: 3px solid var(--text);
+  background: var(--bg-card); }
+html[data-theme="swiss"] .pm-tile:hover { border-color: var(--accent-signature); border-left-color: var(--accent-signature); }
+html[data-theme="swiss"] .seg button.active { background: var(--accent-signature); color: #fff; }
+html[data-theme="swiss"] .tab.active { color: var(--accent-signature); }
+html[data-theme="swiss"] .tab.active::after { background: var(--accent-signature); height: 2px; }
+html[data-theme="swiss"] .hero-strip { background: var(--bg-elevated); border: 1px solid var(--border); border-left: 3px solid var(--text); }
+html[data-theme="swiss"] .topbar { border-bottom: 2px solid var(--text); }
+html[data-theme="swiss"] .topbar::after { content: ''; position: absolute; left: 0; right: 0; bottom: -5px;
+  height: 1px; background: var(--text); }
+html[data-theme="swiss"] .modal { background: var(--bg-card); border: 1px solid var(--text); }
+html[data-theme="swiss"] .pill { background: transparent; border: 1px solid var(--border); }
+html[data-theme="swiss"] .pill.active { background: var(--accent-signature); color: #fff; border-color: var(--accent-signature); }
+html[data-theme="swiss"] body::before { display: none; }   /* 关掉默认环境光（瑞士要冷静） */
+
+/* ---------- 包豪斯：粗黑规则线 + 全大写宽字距标签 + Jost 几何 + 0 圆角 ---------- */
+html[data-theme="bauhaus"] * { border-radius: 0 !important; }
+html[data-theme="bauhaus"] .pm-tile, html[data-theme="bauhaus"] .pm-sec,
+html[data-theme="bauhaus"] .modal, html[data-theme="bauhaus"] .seg,
+html[data-theme="bauhaus"] .modal-close, html[data-theme="bauhaus"] .switch,
+html[data-theme="bauhaus"] .pm-fold, html[data-theme="bauhaus"] .event-detail,
+html[data-theme="bauhaus"] .pill, html[data-theme="bauhaus"] .bchip,
+html[data-theme="bauhaus"] .brow, html[data-theme="bauhaus"] .sr-pill,
+html[data-theme="bauhaus"] .qrow { box-shadow: none; }
+html[data-theme="bauhaus"] h1.page-title {
+  font-weight: 900; letter-spacing: -0.01em;
+  font-size: clamp(40px, 5.4vw, 72px); line-height: 0.95; text-transform: none; }
+html[data-theme="bauhaus"] .section-title { letter-spacing: 0.16em; font-weight: 700; text-transform: uppercase; }
+html[data-theme="bauhaus"] .section { border-top: 4px solid var(--text); padding-top: 14px; }
+html[data-theme="bauhaus"] .sec-line { background: var(--accent-signature); height: 3px; }
+html[data-theme="bauhaus"] .pm-sec { border-top: 4px solid var(--text); padding-top: 14px; }
+html[data-theme="bauhaus"] .pm-tile { border: 1px solid var(--text); background: var(--bg-card); }
+html[data-theme="bauhaus"] .pm-tile:hover { background: #F2B705; color: #1a1a1a; }
+html[data-theme="bauhaus"] .pm-tile:hover .num { color: #1a1a1a; }
+html[data-theme="bauhaus"] .seg button.active { background: #1A47B8; color: #fff; }
+html[data-theme="bauhaus"] .tab.active { color: var(--accent-signature); }
+html[data-theme="bauhaus"] .tab.active::after { background: var(--accent-signature); height: 3px; }
+html[data-theme="bauhaus"] .topbar { border-bottom: 4px solid var(--text); }
+html[data-theme="bauhaus"] .hero-strip { background: var(--bg-card); border: 1px solid var(--text); border-bottom: 4px solid var(--accent-signature); }
+html[data-theme="bauhaus"] .modal { background: var(--bg-card); border: 2px solid var(--text); }
+html[data-theme="bauhaus"] .pill { background: transparent; border: 1px solid var(--text); border-radius: 0; }
+html[data-theme="bauhaus"] .pill.active { background: var(--accent-signature); color: #fff; border-color: var(--accent-signature); }
+html[data-theme="bauhaus"] body::before {
+  background:
+    radial-gradient(28% 22% at 8% 92%, rgba(215,38,61,0.10), transparent 70%),
+    radial-gradient(20% 18% at 94% 4%, rgba(26,71,184,0.08), transparent 70%); }
+
+/* ---------- 纸感(Anthropic 风)：象牙白三阶 + Newsreader 衬线标题 + clay 点缀，保留终端感但更书卷气 ---------- */
+html[data-theme="clay"] * { border-radius: 0 !important; }
+html[data-theme="clay"] .pm-tile, html[data-theme="clay"] .pm-sec,
+html[data-theme="clay"] .modal, html[data-theme="clay"] .seg,
+html[data-theme="clay"] .modal-close, html[data-theme="clay"] .switch,
+html[data-theme="clay"] .pm-fold, html[data-theme="clay"] .event-detail,
+html[data-theme="clay"] .pill, html[data-theme="clay"] .bchip,
+html[data-theme="clay"] .brow, html[data-theme="clay"] .sr-pill,
+html[data-theme="clay"] .qrow { box-shadow: none; }
+html[data-theme="clay"] h1.page-title,
+html[data-theme="clay"] .section-title,
+html[data-theme="clay"] .modal h2,
+html[data-theme="clay"] .pm-tile-q,
+html[data-theme="clay"] .ev-title,
+html[data-theme="clay"] .board-head {
+  font-family: "Newsreader", Georgia, "Times New Roman", "Songti SC", "STZhongsong", serif; }
+html[data-theme="clay"] h1.page-title { font-weight: 500; font-size: clamp(38px, 5.2vw, 68px); line-height: 1.05; letter-spacing: -0.02em; }
+html[data-theme="clay"] .section-title { font-weight: 600; letter-spacing: 0.02em; text-transform: none; font-size: 18px; }
+html[data-theme="clay"] .section { border-top: 1px solid var(--text); padding-top: 16px; }
+html[data-theme="clay"] .sec-line { background: rgba(43,42,38,0.32); height: 1px; }
+html[data-theme="clay"] .pm-sec { border-top: 1px solid var(--text); padding-top: 16px; }
+html[data-theme="clay"] .pm-tile { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent-signature); }
+html[data-theme="clay"] .pm-tile:hover { background: var(--bg-hover); border-color: var(--accent-signature); }
+html[data-theme="clay"] .seg button.active { background: var(--accent-signature); color: #fff; }
+html[data-theme="clay"] .tab.active { color: var(--accent-signature); }
+html[data-theme="clay"] .tab.active::after { background: var(--accent-signature); height: 2px; }
+html[data-theme="clay"] .topbar { border-bottom: 1px solid var(--text); }
+html[data-theme="clay"] .hero-strip { background: var(--bg-elevated); border: 1px solid var(--border); border-top: 3px solid var(--accent-signature); }
+html[data-theme="clay"] .modal { background: var(--bg-card); border: 1px solid var(--text); }
+html[data-theme="clay"] .pill { background: transparent; border: 1px solid var(--border); }
+html[data-theme="clay"] .pill.active { background: var(--accent-signature); color: #fff; border-color: var(--accent-signature); }
+html[data-theme="clay"] body::before {
+  background:
+    radial-gradient(36% 28% at 14% 6%, rgba(217,119,87,0.08), transparent 70%),
+    radial-gradient(28% 22% at 90% 96%, rgba(90,87,76,0.05), transparent 70%); }
+html[data-theme="clay"] .logo { letter-spacing: 0.18em; font-weight: 500; }
+
+/* ---------- 孟菲斯：奶白底 + 高饱和点缀 + 0 圆角 + 倾斜 display，仅气质点缀不破坏数据屏 ---------- */
+html[data-theme="memphis"] * { border-radius: 0 !important; }
+html[data-theme="memphis"] .pm-tile, html[data-theme="memphis"] .pm-sec,
+html[data-theme="memphis"] .modal, html[data-theme="memphis"] .seg,
+html[data-theme="memphis"] .modal-close, html[data-theme="memphis"] .switch,
+html[data-theme="memphis"] .pm-fold, html[data-theme="memphis"] .event-detail,
+html[data-theme="memphis"] .pill, html[data-theme="memphis"] .bchip,
+html[data-theme="memphis"] .brow, html[data-theme="memphis"] .sr-pill,
+html[data-theme="memphis"] .qrow { box-shadow: none; }
+html[data-theme="memphis"] h1.page-title {
+  font-family: "Righteous", "Jost", system-ui, sans-serif;
+  font-weight: 400; letter-spacing: -0.005em;
+  font-size: clamp(36px, 5vw, 64px); line-height: 1.0;
+  transform: rotate(-1.5deg); transform-origin: left center; }
+html[data-theme="memphis"] .section-title { letter-spacing: 0.18em; font-weight: 700; text-transform: uppercase; }
+html[data-theme="memphis"] .section { border-top: 3px solid var(--text); padding-top: 14px; }
+html[data-theme="memphis"] .sec-line {
+  background: linear-gradient(90deg, #FF3D7F 0 30%, #FFD93D 30% 50%, #1FC4FF 50% 70%, #18181a 70%);
+  height: 4px; }
+html[data-theme="memphis"] .pm-sec { border-top: 3px solid var(--text); padding-top: 14px; }
+html[data-theme="memphis"] .pm-tile { background: var(--bg-card); border: 1px solid var(--text); border-bottom-width: 3px; }
+html[data-theme="memphis"] .pm-tile:hover { background: #FFF1A8; border-color: var(--accent-signature); }
+html[data-theme="memphis"] .pm-tile:hover .num { color: #18181a; }
+html[data-theme="memphis"] .seg button.active { background: #FFD93D; color: #18181a; border-color: #18181a; }
+html[data-theme="memphis"] .tab.active { color: var(--accent-signature); }
+html[data-theme="memphis"] .tab.active::after { background: var(--accent-signature); height: 3px; }
+html[data-theme="memphis"] .topbar { border-bottom: 3px solid var(--text); }
+html[data-theme="memphis"] .hero-strip { background: var(--bg-card); border: 1px solid var(--text); border-bottom: 4px solid #FFD93D; }
+html[data-theme="memphis"] .modal { background: var(--bg-card); border: 2px solid var(--text); }
+html[data-theme="memphis"] .pill { background: transparent; border: 1px solid var(--text); }
+html[data-theme="memphis"] .pill.active { background: #18181a; color: #FFD93D; border-color: #18181a; }
+html[data-theme="memphis"] body::before {
+  background:
+    radial-gradient(14% 14% at 12% 14%, rgba(255,61,127,0.10), transparent 70%),
+    radial-gradient(10% 10% at 88% 88%, rgba(31,196,255,0.10), transparent 70%),
+    radial-gradient(8% 8% at 76% 12%, rgba(255,217,61,0.12), transparent 70%); }
+

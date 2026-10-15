@@ -6,6 +6,32 @@
 - **执行人**：Claude
 - **测试基线**：`_test/` 七组共 104 项自动化校验，全部通过（第六轮后）
 
+## 第八轮：设计语言四件套（2026-10-11）
+
+8 套皮肤（终端黑 / 极光玻璃 / 硬核终端 / 纸上编辑部 / 瑞士 / 包豪斯 / 纸感 / 孟菲斯）+ 随机换肤 🎲。
+
+**新增四套的设计语言层**（design-styles 合集里挑气质差异最大的四套），不靠「换色板」做皮肤，而是换字体 + 标题 + 几何语言：
+- **swiss 瑞士国际主义**：冷白底 #F7F6F2 + 瑞士红 #E30613 + Inter 几何无衬线（800 字重）、`h1.page-title` clamp(36px, 4.8vw, 64px) 极端字号对比、`*` 全站 0 圆角、0 投影、2px 顶部黑分隔代替 hairline、tab 下划线切瑞士红（5% 占屏）、`body::before` 关掉默认环境光
+- **bauhaus 包豪斯**：米白纸 #FAF7F0 + 红 #D7263D / 蓝 #1A47B8 / 黄 #F2B705 三原色 + Jost 900 字重、`h1` clamp(40px, 5.4vw, 72px) 标题、4px 粗黑规则线、`*` 0 圆角、`.pm-tile:hover` 反相黄底黑字、保留数据屏该有的克制
+- **clay 纸感(Anthropic 风)**：象牙白三阶 #FAF9F5/#F0EEE6/#E3DACC + clay 橙 #D97757 + Newsreader 衬线（h1 / section-title / modal 标题 / 板块标题统一接管）、`h1` weight 500 不粗（衬线优雅在细）、clay 橙作 3px 顶边（< 5% 占屏）、`.pm-tile` 衬线小标题
+- **memphis 孟菲斯**：奶白 #FAF7F1 + 粉 #FF3D7F / 黄 #FFD93D / 蓝 #1FC4FF / 黑 4 色 + Righteous display + 0 圆角、`.sec-line` 用 4 段渐变 hairline(粉/黄/蓝/黑)、`h1` 右倾 -1.5°、3 颗高饱和装饰光斑。仅做气质点缀，数据屏的栅格 / mono 数字 / 涨跌色都保持原样——金融数据不该被装饰吃掉
+
+**实现路径**：每套 = 变量组(`html[data-theme="x"]` 改 bg/text/accent-signature/glow/chart-*)+ 设计语言层(同一选择器下的字体/标题/卡片 hover/分隔/几何点缀)。沿用第六轮既有的「后置同/高特异性覆盖」约定，不动上方任何既有规则。
+
+**随机换肤**：🎲 按钮 `data-theme="random"`，不持久化（`Store.settings` 不接收），`randomTheme()` 从 7 套里抽签，过滤掉当前主题防止连点抽到一样。视觉验证：dark → 🎲 → bauhaus → 🎲 → memphis，两次都换到了不同皮肤。
+
+**字体加载**：head 加 Google Fonts + preconnect，4 套字体 Inter / Jost / Newsreader + Instrument Sans / Righteous，CSS 变量 `--font-sans` 接管（其他 4 套走原系统栈）。`document.fonts` 实测 4 套全部 ready（瑞士 / 包豪斯 / 纸感 / 孟菲斯各字重 1+ 个），离线 / 加载失败时系统回退栈接管不会塌。
+
+**对数据屏的克制**：所有新皮肤只换语言层，`--up/--down` 涨跌色不动、`--font-mono` 数字等宽不动、hairline 1px 整列布局不动——这样同一组数据换肤时观感大变，但你看盘时 5 秒能抓的红绿/等宽数字/列对齐都一致。
+
+**端到端验证**：浏览器实测 4 套 h1 实际样式：
+- swiss: `Inter 800 61.44px` 无旋转
+- bauhaus: `Jost 900 69.12px` 无旋转
+- clay: `Newsreader 500 66.56px` 无旋转
+- memphis: `Righteous 400 64px` matrix(-1.5°) 旋转
+
+**测试**：离线 14 组 175 条全绿。版本号统一 bump 到 20261011d（vendor 库保持语义化版本号 4.2.3 / 3.1.0 / 3.2.4 / 3.1.1，CI 守着）。
+
 ## 第七轮：收尾修复 + 加密真实市值（2026-10-11）
 
 全量代码扫描（app.js 全文、13 个 sources 适配器、计算层、index.html）后的收尾轮。

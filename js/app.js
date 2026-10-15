@@ -3618,12 +3618,19 @@
 
   /* ==================== 界面皮肤（data-theme 变量组，保留终端排版换气质） ==================== */
 
-  const THEMES = ['dark', 'aurora', 'oled', 'paper'];
+  // 8 套：4 套原始 + 4 套设计语言层（瑞士/包豪斯/纸感/孟菲斯）。'random' 不在列表里——点击单独走抽签
+  const THEMES = ['dark', 'aurora', 'oled', 'paper', 'swiss', 'bauhaus', 'clay', 'memphis'];
   let themeTimer = 0;
+  let lastTheme = null;   // 防随机换肤抽到与当前相同的皮肤
 
   function applyTheme(t) {
     if (!THEMES.includes(t)) t = 'dark';
-    if (el.segTheme) el.segTheme.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+    if (el.segTheme) {
+      el.segTheme.querySelectorAll('button').forEach(b => {
+        // 随机按钮只有 hover/focus 态，不进 active（它是一次性动作，不是皮肤身份）
+        b.classList.toggle('active', b.dataset.theme === t);
+      });
+    }
     const root = document.documentElement;
     if (root.dataset.theme === t) return;
     // 苹果式无级换肤：切换瞬间给全元素短暂挂颜色过渡类，450ms 后摘掉
@@ -3633,8 +3640,15 @@
       themeTimer = setTimeout(() => root.classList.remove('theming'), 450);
     }
     root.dataset.theme = t;
+    lastTheme = t;
     // lightweight-charts 不吃 CSS 变量：已打开的图表增量重读主题色
     if (state.chart) window.Charts.retheme(state.chart);
+  }
+
+  function randomTheme() {
+    // 8 选 1；不与当前相同（连点两次至少能看到一次真换）
+    const pool = THEMES.filter(t => t !== lastTheme);
+    applyTheme(pool[Math.floor(Math.random() * pool.length)]);
   }
 
   /* 滚动显现（阶跃/Kimi/Apple 官网式）：区块进入视口才淡入上浮，hidden 面板在
@@ -4364,6 +4378,8 @@
     el.segTheme.addEventListener('click', (e) => {
       const b = e.target.closest('button');
       if (!b) return;
+      // 随机换肤按钮：data-theme="random"，不进设置存储（刷新就重抽，不持久化）
+      if (b.dataset.theme === 'random') { randomTheme(); return; }
       window.Store.settings.set({ theme: b.dataset.theme });
       applySettings();
     });
