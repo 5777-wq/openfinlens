@@ -968,6 +968,15 @@
       via = rows.length ? 'backup' : 'none';
     }
     if (rows.length) {
+      // 防御性：上游接口在某些时段会兜底返回 sp500 成分股等非 A 股数据
+      // （2026-10-11 用户反馈：A股全市场热力图里出现了苹果/英伟达/Meta）。
+      // secid 形如 0.xxxxxx（深圳）/1.xxxxxx（上海）/5.xxxxxx（基金）/1.5e6 段；
+      // 任何缺失 secid 或前缀不在白名单的行直接剔除，绝不进入热力图。
+      const before = rows.length;
+      rows = rows.filter(r => /^([015]\.|5\.)/.test(String(r.secid || '')));
+      if (rows.length !== before) {
+        via = (via === 'primary' ? 'primary·已剔除非A股权重 ' + (before - rows.length) : 'backup·已剔除非A股权重 ' + (before - rows.length));
+      }
       Cache.set('heat:cn', rows);
       state.heatItems.cn = rows;
       state.heatVia.cn = via;
