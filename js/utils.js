@@ -95,6 +95,15 @@ const fmtAgo = (ts) => {
   return Math.floor(s / 86400) + ' 天前';
 };
 
+// 本地日期（YYYY-MM-DD）。不用 toISOString——它按 UTC 取日期，
+// 中国时区早上八点前会把当天记成昨天
+const fmtDay = (ts) => {
+  if (!ts) return '--';
+  const d = new Date(ts);
+  const p = (x) => String(x).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+};
+
 const escapeHTML = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -154,5 +163,5 @@ const Cache = {
 window.U = {
   fetchJSONP, request, throttle, debounce,
   num, fmt, fmtPct, fmtChg, fmtVol, fmtPrice, priceDigits, fmtTime, fmtAgo,
-  escapeHTML, Cache, toChartTime,
+  escapeHTML, Cache, toChartTime, fmtDay,
 };

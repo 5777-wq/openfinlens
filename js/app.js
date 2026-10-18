@@ -131,6 +131,10 @@
     'cmpBar', 'cmpInput', 'cmpResults', 'cmpAdd', 'cmpStatus', 'cmpRetry', 'cmpPresets',
     'cmpChips', 'cmpChipsSub', 'cmpSub', 'cmpStart', 'cmpEnd', 'cmpQuick', 'cmpLog', 'cmpNormHint',
     'cmpChartBox', 'cmpChart', 'cmpLegend', 'cmpMetrics', 'cmpMetricsSub', 'cmpYearly', 'cmpCorr', 'cmpNote',
+    // 基金页子视图（对比/画像）
+    'cmpComparePane', 'fundProfilePane',
+    // 宏观策略面板 + 持仓跟踪页（新板块，视图模块自持 DOM，这里只交根节点）
+    'macroStrategy', 'portRoot',
     // 到价提醒（AlertCenter 视图模块，alerts.js）
     'alertBell', 'alertPanel', 'alertBadge', 'alertPerm', 'alertList', 'alertHint',
     'alertModal', 'alertModalTarget', 'alertDir', 'alertPrice', 'alertNote',
@@ -288,13 +292,15 @@
     fillFromCache(want);
   }
 
-  // 自选里不在轮询全集（TENCENT_SYMS / EM_SECIDS / CRYPTO_FEATURED）内的标的：
-  // 从搜索加入自选的冷门股、从加密热力图加自选的非精选币，否则自选页永远显示 --（"自选孤岛"）
+  // 自选与持仓里不在轮询全集（TENCENT_SYMS / EM_SECIDS / CRYPTO_FEATURED）内的标的：
+  // 从搜索加入自选的冷门股、从加密热力图加自选的非精选币、持仓页记的冷门票，
+  // 否则自选/持仓页永远显示 --（"自选孤岛"）
   async function fetchWatchQuotes() {
     const polled = new Set([...TENCENT_SYMS, ...EM_SECIDS, ...window.CRYPTO_FEATURED]);
-    const extras = window.Store.watchlist.all()
-      .map(w => w.symbol)
-      .filter(s => s && !polled.has(s));
+    const extras = [...new Set([
+      ...window.Store.watchlist.all().map(w => w.symbol),
+      ...window.Store.portfolio.symbols(),
+    ])].filter(s => s && !polled.has(s));
     if (!extras.length) { state.watchQuotes.clear(); return; }
     const emIds = extras.filter(s => s.startsWith('EM:')).map(s => s.slice(3));
     const tencentSyms = extras.filter(s => /^(sh|sz|bj|hk|us)/.test(s));
@@ -343,6 +349,8 @@
     if (window.AlertCenter) window.AlertCenter.check();
     if (state.view === 'market') { patchCards(el.cardWall); refreshSesChips(); }
     if (state.view === 'watch') patchCards(el.watchWall);
+    if (state.view === 'portfolio' && window.PortfolioView) window.PortfolioView.patch();
+    if (state.tab === 'fxmacro' && window.MacroView) window.MacroView.patch();
     if (state.view === 'detail') {
       refreshDetailQuote();
       // 停在分时页时分钟线跟着刷新（chartGen 守卫保证不与手动切换打架）
@@ -3313,7 +3321,8 @@
   const VIEW_OF_TAB = {
     all: 'market', cn: 'market', hk: 'market', us: 'market', crypto: 'market', fxmacro: 'market',
     events: 'events', chain: 'chain', watch: 'watch',
-    compare: 'compare',   // 基金对比：独立视图（跨市场，不挂在任何单一市场 tab 下）
+    compare: 'compare',   // 基金：独立视图（对比 + 画像两个子面板）
+    portfolio: 'portfolio',   // 持仓跟踪：本机记账 + 实时盈亏
     mood: 'market',   // 旧 hash：情绪已并入 A股板块
     // 旧快捷方式/hash 兼容：新闻→事件页，喊单→事件页的公开言论，资金页→A股（席位/龙虎榜已归位到 A股）
     news: 'events', voices: 'events', funds: 'market',
@@ -3381,6 +3390,7 @@
         state.tab = 'compare';
         setView('compare');
         window.CompareView.applyHash(h);
+        applyCmpModeFromHash(h);
         renderStatus();
         return;
       }
@@ -3411,6 +3421,34 @@
     state.pendingActivity = null;
     if (el.chartEventCard) el.chartEventCard.hidden = true;
     document.title = 'OpenFinLens · 全球金融看板';
+  }
+
+  /* ---- 基金页子视图（对比 / 画像）----
+     hash 带 m=profile 或 p=基金代码 时进画像并直接打开；画像模式只读 hash 不写
+     （对比模式的 hash 仍由 CompareView 维护，两套参数不互踩）。 */
+  let cmpMode = 'compare';
+  function setCmpMode(mode) {
+    cmpMode = mode === 'profile' ? 'profile' : 'compare';
+    document.querySelectorAll('[data-cmpmode]').forEach(b => {
+      const on = b.getAttribute('data-cmpmode') === cmpMode;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', String(on));
+    });
+    if (el.cmpComparePane) el.cmpComparePane.hidden = cmpMode !== 'compare';
+    if (el.fundProfilePane) el.fundProfilePane.hidden = cmpMode !== 'profile';
+    // 从画像切回对比：进 tab 时对比的 onEnter 被跳过了，这里补上（内部自带加载去重）
+    if (cmpMode === 'compare' && window.CompareView) window.CompareView.onEnter();
+  }
+  function applyCmpModeFromHash(h) {
+    const mMode = h.match(/[?&]m=([a-z]+)/);
+    const mP = h.match(/[?&]p=([^&]+)/);
+    if ((mMode && mMode[1] === 'profile') || mP) {
+      setCmpMode('profile');
+      // 深链参数只允许 5~6 位纯数字基金代码：这里就用捕获组收口，
+      // open() 内部还有同一形态的二次校验（fundprofile 同口径）
+      const codeM = mP ? decodeURIComponent(mP[1]).trim().match(/^(\d{5,6})$/) : null;
+      if (codeM && window.FundProfile) window.FundProfile.open(codeM[1]);
+    } else setCmpMode('compare');
   }
 
   function setTab(tab, opts) {
@@ -3449,7 +3487,7 @@
     // 切板块后"47 个标的"要等下一个刷新周期才变
     renderStatus();
     // 「全球市场」总览（hero + 全球指数条）只在「全部」出现；各板块用自己的标题（用户反馈：别到处粘）
-    const MKT_TITLE = { all: '全球市场', cn: 'A股市场', hk: '港股市场', us: '美股市场', crypto: '加密市场', fxmacro: '世界经济' };
+    const MKT_TITLE = { all: '全球市场', cn: 'A股市场', hk: '港股市场', us: '美股市场', crypto: '加密市场', fxmacro: '宏观策略', portfolio: '持仓跟踪' };
     if (el.marketTitle) el.marketTitle.textContent = MKT_TITLE[tab] || '全球市场';
     if (el.globalOverview) el.globalOverview.hidden = tab !== 'all';
     // 宏观 tab 只看世界经济仪表盘，不再叠一墙行情卡
@@ -3476,9 +3514,13 @@
     }
     // 进哪个市场 tab 就自动切到该市场的热力图，不用手点
     if (['cn', 'hk', 'us', 'crypto'].includes(tab)) switchHeat(tab);
-    // 世界经济仪表盘只在外汇宏观 tab 显示；全球指数条首次进市场视图时加载
+    // 世界经济仪表盘与宏观策略面板只在外汇宏观 tab 显示；全球指数条首次进市场视图时加载
     if (el.macroBox) el.macroBox.hidden = tab !== 'fxmacro';
-    if (tab === 'fxmacro') loadMacro();
+    if (el.macroStrategy) el.macroStrategy.hidden = tab !== 'fxmacro';
+    if (tab === 'fxmacro') {
+      loadMacro();
+      if (window.MacroView) window.MacroView.onEnter();
+    }
     if (tab === 'all' && !state.globeQuotes) loadGlobe();
     // 「全部」是唯一显示首屏指数 + 我的自选的板块：进页即渲染，并懒加载走势线（失败静默）
     if (tab === 'all') {
@@ -3498,8 +3540,10 @@
 
     if (view === 'market') renderCardWall(animate);
     if (view === 'watch') renderWatchlist();
+    if (view === 'portfolio' && window.PortfolioView) window.PortfolioView.onEnter();
     if (view === 'events') setEventsSub(state.eventsSub);
-    if (view === 'compare' && window.CompareView) window.CompareView.onEnter();
+    // 画像模式下对比面板不可见，别为它白拉 6 条十几年长历史
+    if (view === 'compare' && cmpMode !== 'profile' && window.CompareView) window.CompareView.onEnter();
     if (tab === 'cn') {
       if (state.breadth) renderMood();
       loadMood();
@@ -3632,8 +3676,25 @@
   let themeTimer = 0;
   let lastTheme = null;   // 防随机换肤抽到与当前相同的皮肤
 
+  // 皮肤的外围同步：原生控件明暗 + 移动端状态栏色。与换肤同值早退时也要跑
+  // （首帧静态 data-theme="swiss" 与存量设置同值时，applyTheme 会走到早退分支）
+  function syncThemeChrome(t) {
+    const root = document.documentElement;
+    // 明暗归属跟皮肤走：表单控件/滚动条的原生渲染要和底色一致（浅色5套/深色3套）
+    root.style.colorScheme = ['paper', 'swiss', 'bauhaus', 'clay', 'memphis'].includes(t) ? 'light' : 'dark';
+    // 移动端状态栏/标题栏颜色跟随皮肤。等 450ms 换肤过渡走完再读底色，
+    // 否则 rAF 时刻读到的是过渡前的旧色（实测滞后一步）
+    setTimeout(() => {
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) {
+        const bg = getComputedStyle(document.body).backgroundColor;
+        if (bg && bg !== 'rgba(0, 0, 0, 0)') meta.setAttribute('content', bg);
+      }
+    }, 500);
+  }
+
   function applyTheme(t) {
-    if (!THEMES.includes(t)) t = 'dark';
+    if (!THEMES.includes(t)) t = 'swiss';   // 非法存量值回落到默认主题（与 store.js 默认一致）
     if (el.segTheme) {
       el.segTheme.querySelectorAll('button').forEach(b => {
         // 随机按钮只有 hover/focus 态，不进 active（它是一次性动作，不是皮肤身份）
@@ -3641,7 +3702,7 @@
       });
     }
     const root = document.documentElement;
-    if (root.dataset.theme === t) return;
+    if (root.dataset.theme === t) { syncThemeChrome(t); return; }
     // 苹果式无级换肤：切换瞬间给全元素短暂挂颜色过渡类，450ms 后摘掉
     if (!reduceMotion()) {
       root.classList.add('theming');
@@ -3650,6 +3711,7 @@
     }
     root.dataset.theme = t;
     lastTheme = t;
+    syncThemeChrome(t);
     // lightweight-charts 不吃 CSS 变量：已打开的图表增量重读主题色
     if (state.chart) window.Charts.retheme(state.chart);
   }
@@ -3868,11 +3930,12 @@
       if (tab === 'events') return `全球事件 ${(state.events || []).length} 条 · ${fetchTxt}`;
       if (tab === 'chain') return `${(window.INDUSTRY_CHAINS || []).length} 条产业链 · ${fetchTxt}`;
       if (tab === 'watch') return `自选 ${window.Store.watchlist.all().length} 只 · ${fetchTxt}`;
+      if (tab === 'portfolio') return `持仓 ${window.Store.portfolio.all().length} 笔 · ${fetchTxt}`;
       return fetchTxt;
     }
     if (tab === 'fxmacro') {
       const n = window.WorldBankSource ? window.WorldBankSource.COUNTRIES.length : 8;
-      return `世界经济 · ${n} 国年度指标 · ${fetchTxt}`;
+      return `宏观策略 · ${n} 国年度指标 · ${fetchTxt}`;
     }
     // 归位到市场 tab 的披露类数据也报个数（原"聪明钱"tab 的状态行）
     if (tab === 'cn') {
@@ -4091,6 +4154,9 @@
       }
       const wsortBtn = e.target.closest('[data-wsort]');
       if (wsortBtn) { state.watchSort = wsortBtn.dataset.wsort; renderWatchlist(true); return; }
+      // 基金页子视图：对比 / 画像
+      const cmpModeBtn = e.target.closest('[data-cmpmode]');
+      if (cmpModeBtn) { setCmpMode(cmpModeBtn.getAttribute('data-cmpmode')); return; }
       // ---- 事件页：子面板切换 / 类型过滤 / 事件行 / 关联资产 / 聚合清单 / 详情卡 ----
       const evsub = e.target.closest('[data-evsub]');
       if (evsub) { setEventsSub(evsub.dataset.evsub); return; }
@@ -4475,6 +4541,38 @@
       }, {
         openDetail,
         tencentOfSecid,
+      });
+    }
+
+    // 基金画像子面板：自持 DOM，进画像模式时由用户/深链触发查询
+    if (window.FundProfile) {
+      window.FundProfile.mount(el.fundProfilePane, {
+        openDetail, marketOfSecid: window.EastmoneySource.marketOfSecid, tencentOfSecid,
+      });
+    }
+
+    // 宏观策略面板：零新增请求，读已轮询 universe 行情（含扩容后的国债期限点）
+    if (window.MacroView) {
+      window.MacroView.mount(el.macroStrategy, {
+        getQuote: (sym) => state.quotes.get(sym) || state.watchQuotes.get(sym) || null,
+        openDetail,
+        targetFromSymbol,
+      });
+    }
+
+    // 持仓跟踪：本机记账 + 实时盈亏；行情走统一 getQuote（轮询全集 + 自选/持仓补抓）
+    if (window.PortfolioView) {
+      window.PortfolioView.mount(el.portRoot, {
+        getQuote: (sym) => state.quotes.get(sym) || state.watchQuotes.get(sym) || null,
+        openDetail,
+        targetFromSymbol,
+        search: window.EastmoneySource ? window.EastmoneySource.search : null,
+        marketOfSecid: window.EastmoneySource.marketOfSecid,
+        tencentOfSecid,
+        // 记完账立刻补抓并原地重绘：不等下一个轮询 tick（否则新行要 -- 最长 10s）
+        onHoldingsChanged: () => fetchWatchQuotes().then(() => {
+          if (state.view === 'portfolio' && window.PortfolioView) window.PortfolioView.patch();
+        }),
       });
     }
 

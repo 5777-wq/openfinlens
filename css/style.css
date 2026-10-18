@@ -1722,3 +1722,97 @@ html[data-theme="memphis"] body::before {
     radial-gradient(10% 10% at 88% 88%, rgba(31,196,255,0.10), transparent 70%),
     radial-gradient(8% 8% at 76% 12%, rgba(255,217,61,0.12), transparent 70%); }
 
+
+/* ==================== 宏观策略面板（macroview.js） ==================== */
+.mac-curves { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.mac-col-title { font-size: 12px; color: var(--text-tertiary); margin: 0 0 10px; font-weight: 600; letter-spacing: 0.04em; }
+.mac-curve-row { display: grid; grid-template-columns: 42px 1fr 76px 76px; align-items: center; gap: 10px; padding: 5px 0; }
+.mac-clabel { font-size: 12px; color: var(--text-secondary); }
+.mac-cbar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.06); overflow: hidden; }
+.mac-cbar i { display: block; height: 100%; border-radius: 4px; background: var(--accent-signature); opacity: 0.75; transition: width 0.4s ease; }
+.mac-cval { font-size: 13px; text-align: right; }
+.mac-cchg { font-size: 12px; text-align: right; }
+.mac-spreads { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.mac-spread { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid rgba(255,255,255,0.10); border-radius: 8px; font-size: 12px; color: var(--text-secondary); }
+.mac-spread b { font-weight: 600; color: var(--text); }
+.mac-spread i { font-style: normal; padding: 1px 7px; border-radius: 6px; font-size: 11px; background: rgba(246,70,93,0.16); color: var(--down); }
+.mac-spread.inv { border-color: rgba(246,70,93,0.45); }
+.mac-group { margin-bottom: 16px; }
+.mac-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.mac-chip { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: baseline; gap: 0 8px; padding: 8px 10px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: var(--bg-card); cursor: pointer; text-align: left; transition: border-color 0.15s ease, transform 0.15s ease; }
+.mac-chip:hover { border-color: var(--accent-signature); transform: translateY(-1px); }
+.mc-name { grid-column: 1 / -1; font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-price { font-size: 13px; }
+.mc-pct { font-size: 12px; text-align: right; }
+.mac-sig-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.sig-card { padding: 14px; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; background: var(--bg-card); }
+.sig-card.inv { border-color: rgba(246,70,93,0.45); }
+.sig-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.sig-value { font-size: 22px; font-weight: 700; }
+.sig-value small { font-size: 11px; color: var(--text-tertiary); margin-left: 3px; font-weight: 400; }
+.sig-extra { font-size: 12px; margin-top: 2px; }
+.sig-caption { font-size: 11px; color: var(--text-tertiary); margin-top: 8px; line-height: 1.5; }
+
+/* ==================== 持仓跟踪页（portfolio.js） ==================== */
+.port-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.pstat { padding: 14px; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; background: var(--bg-card); }
+.pstat-label { font-size: 12px; color: var(--text-secondary); }
+.pstat-value { font-size: 21px; font-weight: 700; margin-top: 4px; }
+.pstat-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 5px; }
+.port-addbar { flex-wrap: wrap; }
+.port-search { flex: 1 1 220px; }
+.port-num { width: 130px; padding: 7px 10px; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; background: var(--bg-card); color: var(--text); font: inherit; }
+.prow-head, .prow { display: grid; grid-template-columns: minmax(110px, 1.4fr) 76px 64px 76px 70px minmax(90px, 1fr) minmax(110px, 1.1fr) minmax(90px, 1fr) 118px; gap: 8px; align-items: center; padding: 8px 10px; }
+.prow-head { font-size: 11px; color: var(--text-tertiary); border-bottom: 1px solid rgba(255,255,255,0.08); }
+.prow { border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: background 0.12s ease; }
+.prow:hover { background: rgba(255,255,255,0.03); }
+.pr-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pr-code { font-size: 11px; color: var(--text-tertiary); margin-left: 6px; }
+.prow .num { font-size: 12px; }
+.prow .num i { font-style: normal; color: var(--text-tertiary); font-size: 11px; }
+.pr-ops { display: flex; gap: 6px; justify-content: flex-end; }
+.pr-op { font-size: 11px; padding: 3px 9px; }
+.pr-op.danger { color: var(--down); }
+.pr-op.armed { background: rgba(246,70,93,0.14); border-color: rgba(246,70,93,0.5); }
+.port-curve-wrap { position: relative; }
+.port-curve-wrap canvas { width: 100%; display: block; }
+@media (max-width: 900px) {
+  .prow-head { display: none; }
+  .prow { grid-template-columns: 1fr 1fr; gap: 4px 12px; padding: 10px; }
+  .pr-ops { grid-column: 1 / -1; justify-content: flex-start; }
+}
+
+/* ==================== 基金画像（fundprofile.js） ==================== */
+.fp-head { margin-bottom: 20px; }
+.fp-title { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.fp-title h2 { margin: 0; }
+.fp-code { color: var(--text-tertiary); font-size: 13px; }
+.fp-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 8px; font-size: 12px; color: var(--text-secondary); }
+.fp-returns { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.fp-ret { padding: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: var(--bg-card); }
+.fp-ret-label { font-size: 12px; color: var(--text-secondary); display: block; }
+.fp-ret-val { font-size: 19px; font-weight: 700; display: block; margin-top: 4px; }
+.fp-sub { font-size: 12px; color: var(--text-tertiary); font-weight: 600; margin: 16px 0 8px; }
+.fp-bars { display: grid; gap: 7px; }
+.fp-bar-row { display: grid; grid-template-columns: 76px 1fr 84px; gap: 10px; align-items: center; }
+.fp-bar-label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fp-bar { height: 9px; border-radius: 5px; background: rgba(255,255,255,0.06); overflow: hidden; }
+.fp-bar i { display: block; height: 100%; border-radius: 5px; background: var(--accent-signature); opacity: 0.8; }
+.fp-bar-val { font-size: 12px; text-align: right; }
+.fp-bar-val i { font-style: normal; color: var(--text-tertiary); margin-left: 5px; font-size: 11px; }
+.fp-table { display: grid; gap: 2px; }
+.fp-tr { display: grid; grid-template-columns: 40px 1fr 100px 70px; gap: 10px; align-items: center; padding: 7px 8px; font-size: 13px; border-radius: 6px; }
+.fp-th { font-size: 11px; color: var(--text-tertiary); border-bottom: 1px solid rgba(255,255,255,0.08); border-radius: 0; }
+.fp-tr:not(.fp-th):nth-child(odd) { background: rgba(255,255,255,0.025); }
+.fp-tr.fp-click { cursor: pointer; }
+.fp-tr.fp-click:hover { background: rgba(255,255,255,0.05); }
+.fp-stock-code { color: var(--text-tertiary); font-size: 11px; margin-left: 6px; }
+.fp-stack { display: flex; height: 30px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+.fp-seg { display: flex; align-items: center; justify-content: center; min-width: 2px; overflow: hidden; }
+.fp-seg i { font-style: normal; font-size: 11px; color: rgba(0,0,0,0.72); white-space: nowrap; }
+.fp-chart-wrap { width: 100%; }
+.fp-chart-wrap canvas { width: 100%; display: block; }
+@media (max-width: 720px) {
+  .fp-tr { grid-template-columns: 30px 1fr 80px 54px; font-size: 12px; }
+  .fp-bar-row { grid-template-columns: 64px 1fr 74px; }
+}

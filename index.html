@@ -1,29 +1,39 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<!-- 默认皮肤与 store.js 的 settings 默认值一致（瑞士白）；JS 起来后按存量设置修正。
+     静态写在这里是为了首帧就按白底渲染，不等 app.js（否则暗色→白闪一下） -->
+<html lang="zh-CN" data-theme="swiss">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light dark">
 <title>OpenFinLens · 全球金融看板</title>
 <meta name="description" content="全球金融情报终端：A股/港股/美股/加密/外汇/指数/大宗商品/宏观利率，3D 全球事件地图、热力图、K线事件标记、龙虎榜资金动向、新闻流与产业链。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23e8a33d'/%3E%3C/svg%3E">
 <!-- PWA：手机浏览器"添加到主屏幕"后以独立窗口+品牌图标运行（个人主体上不了小程序 web-view 的替代体验） -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-<meta name="theme-color" content="#0a0c0f">
+<meta name="theme-color" content="#f7f6f2">
 <!-- 设计语言四件套字体：Inter (瑞士) / Jost (包豪斯) / Newsreader + Instrument Sans (纸感) / Righteous (孟菲斯)。
-     系统回退栈已在 CSS 内补全，Google Fonts 加载失败时也不会塌 -->
+     系统回退栈已在 CSS 内补全，Google Fonts 加载失败时也不会塌。
+     字体 CSS 非阻塞加载（preload + media 切换）：跨境链路慢时不再阻塞首屏渲染，
+     display=swap 保证字体到达前后都有字；禁 JS 时由 noscript 回退为阻塞加载 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style"
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Jost:wght@400;500;600;700;800;900&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Instrument+Sans:wght@400;500;600&family=Righteous&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'"
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Jost:wght@400;500;600;700;800;900&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Instrument+Sans:wght@400;500;600&family=Righteous&display=swap">
+<noscript>
 <link rel="stylesheet"
   href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Jost:wght@400;500;600;700;800;900&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Instrument+Sans:wght@400;500;600&family=Righteous&display=swap">
+</noscript>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
 <!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
      对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
-<link rel="stylesheet" href="css/style.css?v=20261011e">
+<link rel="stylesheet" href="css/style.css?v=20261018a">
 </head>
 <body data-updown="red">
 
@@ -39,7 +49,8 @@
     <button class="tab" data-tab="events" role="tab" aria-selected="false" aria-controls="view-events">事件</button>
     <button class="tab" data-tab="chain" role="tab" aria-selected="false" aria-controls="view-chain">产业链</button>
     <button class="tab" data-tab="watch" role="tab" aria-selected="false" aria-controls="view-watch">自选</button>
-    <button class="tab" data-tab="compare" role="tab" aria-selected="false" aria-controls="view-compare">基金对比</button>
+    <button class="tab" data-tab="portfolio" role="tab" aria-selected="false" aria-controls="view-portfolio">持仓</button>
+    <button class="tab" data-tab="compare" role="tab" aria-selected="false" aria-controls="view-compare">基金</button>
   </nav>
   <div class="topbar-actions">
     <button id="alertBell" class="icon-btn" title="到价提醒" aria-haspopup="true" aria-expanded="false">提醒<span id="alertBadge" class="alert-badge num" hidden>0</span></button>
@@ -427,11 +438,18 @@
     <div id="watchWall"></div>
   </section>
 
-  <!-- ========== 基金对比（多标的总收益：归一曲线 + 区间指标 + 年度收益 + 相关性） ========== -->
+  <!-- ========== 持仓跟踪（本机记账 + 实时盈亏；视图模块 portfolio.js 自持内部 DOM） ========== -->
+  <section class="view tab-panel" id="view-portfolio" role="tabpanel" tabindex="-1" aria-label="portfolio">
+    <h1 class="page-title">持仓跟踪</h1>
+    <p class="page-sub">记录数量与成本价，行情到位后实时算市值与盈亏 · 数据只存本机浏览器，不上传</p>
+    <div id="portRoot"></div>
+  </section>
+
+  <!-- ========== 基金（对比 + 画像两个子面板） ========== -->
   <section class="view tab-panel" id="view-compare" role="tabpanel" tabindex="-1" aria-label="compare">
     <div class="page-head">
-      <h1 class="page-title">基金对比</h1>
-      <p class="page-sub" id="cmpSub">归一化曲线 + 年化/回撤/年度收益/相关性（口径由实际数据源决定，见下方脚注）</p>
+      <h1 class="page-title">基金</h1>
+      <p class="page-sub" id="cmpSub">多标的归一化对比 + 单基金画像（档案 / 净值 / 排名 / 规模 / 持有人 / 重仓股）</p>
     </div>
 
     <div class="cmp-bar" id="cmpBar">
@@ -447,6 +465,12 @@
       <button id="cmpRetry" class="pill cmp-retry" title="重新取数（数据源限流时用）">重新取数</button>
     </div>
 
+    <div class="heat-toolbar" id="cmpModeBar" role="tablist" aria-label="基金页子视图切换">
+      <button class="pill active" data-cmpmode="compare" role="tab" aria-selected="true">对比</button>
+      <button class="pill" data-cmpmode="profile" role="tab" aria-selected="false">画像</button>
+    </div>
+
+    <div id="cmpComparePane">
     <div class="cmp-presets" id="cmpPresets" role="group" aria-label="常用组合"></div>
     <div class="cmp-chips-head">
       <span class="cmp-chips-cap">对比标的</span>
@@ -522,9 +546,14 @@
     </div>
 
     <div class="cmp-note" id="cmpNote"></div>
+    </div><!-- /cmpComparePane -->
+
+    <!-- 画像子面板（fundprofile.js 自持内部 DOM）：档案/收益/净值/五维/规模/持有人/重仓股 -->
+    <div id="fundProfilePane" hidden></div>
   </section>
 
-  <!-- ========== 世界经济仪表盘（外汇宏观 tab 时显示） ========== -->
+  <!-- ========== 宏观策略（曲线/矩阵/读数，macroview.js 自持 DOM）+ 世界经济仪表盘 ========== -->
+  <div class="macro-wrap" id="macroStrategy" hidden></div>
   <div class="macro-wrap" id="macroBox" hidden></div>
 
   <footer class="footer">
@@ -635,57 +664,66 @@
 </div>
 
 <!-- 图表库本地化（v4.2.3 锁版）：原 unpkg latest 不锁版本，上游发版或 CDN 不可达时详情页全废 -->
-<script src="lib/lightweight-charts.standalone.production.js?v=4.2.3"></script>
+<script defer src="lib/lightweight-charts.standalone.production.js?v=4.2.3"></script>
 <!-- 平面地图的本地 vendor：topojson 解析国界、d3-geo 做投影 + 在 ±180° 处切跨线几何（俄罗斯/斐济/南极）
      + geoContains 做点在多边形国家命中。禁止运行时海外 CDN（lib/THIRD_PARTY.md）。
      defer 加载不阻塞开屏，worldmap.js 只在首次进入"事件"页时才真正使用它们 -->
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script src="js/utils.js?v=20261011e"></script>
-<script src="js/store.js?v=20261011e"></script>
-<script src="js/proxy.js?v=20261011e"></script>
-<script src="js/data/universe.js?v=20261011e"></script>
-<script src="js/data/industry-chains.js?v=20261011e"></script>
-<script src="js/data/explain.js?v=20261011e"></script>
-<script src="js/technical.js?v=20261011e"></script>
-<script src="js/flags.js?v=20261011e"></script>
-<script src="js/bus.js?v=20261011e"></script>
-<script src="js/events.js?v=20261011e"></script>
-<script src="js/polymarket.js?v=20261011e"></script>
-<script src="js/actors.js?v=20261011e"></script>
-<script src="js/sources/tencent.js?v=20261011e"></script>
-<script src="js/sources/sina.js?v=20261011e"></script>
-<script src="js/sources/eastmoney.js?v=20261011e"></script>
-<script src="js/sources/okx.js?v=20261011e"></script>
-<script src="js/sources/binance.js?v=20261011e"></script>
-<script src="js/sources/paprika.js?v=20261011e"></script>
-<script src="js/sources/fred.js?v=20261011e"></script>
-<script src="js/sources/news.js?v=20261011e"></script>
-<script src="js/sources/worldbank.js?v=20261011e"></script>
-<script src="js/sources/gdelt.js?v=20261011e"></script>
-<script src="js/sources/polymarket.js?v=20261011e"></script>
-<script src="js/sources/lhb.js?v=20261011e"></script>
-<script src="js/sources/southbound.js?v=20261011e"></script>
-<script src="js/sources/fundholds.js?v=20261011e"></script>
-<script src="js/sources/etf.js?v=20261011e"></script>
-<script src="js/sources/sec.js?v=20261011e"></script>
-<script src="js/sources/history.js?v=20261011e"></script>
-<script src="js/breadth.js?v=20261011e"></script>
-<script src="js/sessions.js?v=20261011e"></script>
-<script src="js/treemap.js?v=20261011e"></script>
-<script src="js/spark.js?v=20261011e"></script>
-<script src="js/charts.js?v=20261011e"></script>
-<script src="js/engine/types.js?v=20261011e"></script>
-<script src="js/engine/geo.js?v=20261011e"></script>
-<script src="js/engine/news-engine.js?v=20261011e"></script>
-<script src="js/engine/event-engine.js?v=20261011e"></script>
-<script src="js/engine/impact-engine.js?v=20261011e"></script>
-<script src="js/engine/llm-provider.js?v=20261011e"></script>
-<script src="js/worldmap.js?v=20261011e"></script>
-<script src="js/compare.js?v=20261011e"></script>
-<script src="js/compareview.js?v=20261011e"></script>
-<script src="js/alerts.js?v=20261011e"></script>
-<script src="js/app.js?v=20261011e"></script>
+<script defer src="js/utils.js?v=20261018a"></script>
+<script defer src="js/store.js?v=20261018a"></script>
+<script defer src="js/proxy.js?v=20261018a"></script>
+<script defer src="js/data/universe.js?v=20261018a"></script>
+<script defer src="js/data/industry-chains.js?v=20261018a"></script>
+<script defer src="js/data/explain.js?v=20261018a"></script>
+<script defer src="js/technical.js?v=20261018a"></script>
+<script defer src="js/flags.js?v=20261018a"></script>
+<script defer src="js/bus.js?v=20261018a"></script>
+<script defer src="js/events.js?v=20261018a"></script>
+<script defer src="js/polymarket.js?v=20261018a"></script>
+<script defer src="js/actors.js?v=20261018a"></script>
+<script defer src="js/sources/tencent.js?v=20261018a"></script>
+<script defer src="js/sources/sina.js?v=20261018a"></script>
+<script defer src="js/sources/eastmoney.js?v=20261018a"></script>
+<script defer src="js/sources/okx.js?v=20261018a"></script>
+<script defer src="js/sources/binance.js?v=20261018a"></script>
+<script defer src="js/sources/paprika.js?v=20261018a"></script>
+<script defer src="js/sources/fred.js?v=20261018a"></script>
+<script defer src="js/sources/news.js?v=20261018a"></script>
+<script defer src="js/sources/worldbank.js?v=20261018a"></script>
+<script defer src="js/sources/gdelt.js?v=20261018a"></script>
+<script defer src="js/sources/polymarket.js?v=20261018a"></script>
+<script defer src="js/sources/lhb.js?v=20261018a"></script>
+<script defer src="js/sources/southbound.js?v=20261018a"></script>
+<script defer src="js/sources/fundholds.js?v=20261018a"></script>
+<script defer src="js/sources/etf.js?v=20261018a"></script>
+<script defer src="js/sources/sec.js?v=20261018a"></script>
+<script defer src="js/sources/history.js?v=20261018a"></script>
+<script defer src="js/breadth.js?v=20261018a"></script>
+<script defer src="js/sessions.js?v=20261018a"></script>
+<script defer src="js/treemap.js?v=20261018a"></script>
+<script defer src="js/spark.js?v=20261018a"></script>
+<script defer src="js/charts.js?v=20261018a"></script>
+<script defer src="js/engine/types.js?v=20261018a"></script>
+<script defer src="js/engine/geo.js?v=20261018a"></script>
+<script defer src="js/engine/news-engine.js?v=20261018a"></script>
+<script defer src="js/engine/event-engine.js?v=20261018a"></script>
+<script defer src="js/engine/impact-engine.js?v=20261018a"></script>
+<script defer src="js/engine/llm-provider.js?v=20261018a"></script>
+<script defer src="js/worldmap.js?v=20261018a"></script>
+<script defer src="js/compare.js?v=20261018a"></script>
+<script defer src="js/compareview.js?v=20261018a"></script>
+<script defer src="js/alerts.js?v=20261018a"></script>
+<!-- 宏观策略：纯计算（macrocalc）+ 视图（macroview） -->
+<script defer src="js/macrocalc.js?v=20261018a"></script>
+<script defer src="js/macroview.js?v=20261018a"></script>
+<!-- 持仓跟踪：纯计算（portfoliomath）+ 视图（portfolio） -->
+<script defer src="js/portfoliomath.js?v=20261018a"></script>
+<script defer src="js/portfolio.js?v=20261018a"></script>
+<!-- 基金画像：纯解析（fundparse）+ 视图（fundprofile） -->
+<script defer src="js/fundparse.js?v=20261018a"></script>
+<script defer src="js/fundprofile.js?v=20261018a"></script>
+<script defer src="js/app.js?v=20261018a"></script>
 </body>
 </html>

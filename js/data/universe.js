@@ -114,11 +114,17 @@ const EM_UNIVERSE = [
   { symbol: 'EM:102.CL00Y', secid: '102.CL00Y', group: 'commodity', tab: 'fxmacro', label: 'NYMEX原油' },
   { symbol: 'EM:102.NG00Y', secid: '102.NG00Y', group: 'commodity', tab: 'fxmacro', label: '天然气' },
   { symbol: 'EM:103.ZC00Y', secid: '103.ZC00Y', group: 'commodity', tab: 'fxmacro', label: '玉米连续' },
-  // 宏观利率（m:171 国债收益率）
-  { symbol: 'EM:171.US10Y', secid: '171.US10Y', group: 'macro', tab: 'fxmacro', label: '美债10年' },
+  // 宏观利率（m:171 国债收益率）。期限点 2026-10 实测扩容：171.CN1Y / 171.US1Y 无行情（缺就是缺），
+  // CN2Y/CN5Y/CN30Y 与 US3M/US5Y 有效——宏观页的收益率曲线靠这批点撑起来
+  { symbol: 'EM:171.US3M', secid: '171.US3M', group: 'macro', tab: 'fxmacro', label: '美债3月' },
   { symbol: 'EM:171.US2Y', secid: '171.US2Y', group: 'macro', tab: 'fxmacro', label: '美债2年' },
+  { symbol: 'EM:171.US5Y', secid: '171.US5Y', group: 'macro', tab: 'fxmacro', label: '美债5年' },
+  { symbol: 'EM:171.US10Y', secid: '171.US10Y', group: 'macro', tab: 'fxmacro', label: '美债10年' },
   { symbol: 'EM:171.US30Y', secid: '171.US30Y', group: 'macro', tab: 'fxmacro', label: '美债30年' },
+  { symbol: 'EM:171.CN2Y', secid: '171.CN2Y', group: 'macro', tab: 'fxmacro', label: '中债2年' },
+  { symbol: 'EM:171.CN5Y', secid: '171.CN5Y', group: 'macro', tab: 'fxmacro', label: '中债5年' },
   { symbol: 'EM:171.CN10Y', secid: '171.CN10Y', group: 'macro', tab: 'fxmacro', label: '中债10年' },
+  { symbol: 'EM:171.CN30Y', secid: '171.CN30Y', group: 'macro', tab: 'fxmacro', label: '中债30年' },
   { symbol: 'EM:171.DE10Y', secid: '171.DE10Y', group: 'macro', tab: 'fxmacro', label: '德债10年' },
   { symbol: 'EM:171.JP10Y', secid: '171.JP10Y', group: 'macro', tab: 'fxmacro', label: '日债10年' },
 ];

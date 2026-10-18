@@ -1,10 +1,13 @@
 /* gdelt.js —— 全球事件源适配器
    架构（强约束）：浏览器永远不直连 GDELT。海外采集在 GitHub Actions 定时跑
-   （_scripts/collect-events.mjs，名义 */5 cron + collect-keeper 每 10 分钟拉起，
+   （_scripts/collect-events.mjs，名义每 5 分钟一轮的 cron + collect-keeper 每 10 分钟拉起，
    见 docs/SERVER-COLLECT.md），产出 data/events/global-events.json
    随仓库静态托管；浏览器只读自己的 JSON。
    降级链：静态 JSON（live）→ localStorage 缓存（cache）。拿不到就诚实说"暂无数据"，
-   绝不造假事件。 */
+   绝不造假事件。
+   ⚠ 本注释不能出现「星号紧跟斜杠」的字符序列（如每 5 分钟的 cron 写法）：它会提前
+   终结上面的块注释，整个文件语法错误、EventsSource 变 undefined、事件页永远
+   "数据更新中"（第七轮引入，2026-10-18 发现并修复；tokens.test 有全量解析守卫）。 */
 
 const EventsSource = (() => {
   const CACHE_KEY = 'events:global';

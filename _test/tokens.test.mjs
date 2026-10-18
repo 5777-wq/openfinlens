@@ -8,7 +8,7 @@
  *   · 测试里若用自造的假 CSS 值，就永远测不出上面两件事（历史缺口）。
  * 因此这里直接读真实源文件，把"不可能漂"变成"漂了就红"。
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
@@ -194,6 +194,24 @@ test('开屏 splash 的所有形态都不得复活（解释性注释不计）', 
     });
   });
   assert.equal(bad.length, 0, '发现开屏残留: ' + bad.join(', '));
+});
+
+test('js/ 全部脚本必须可解析（块注释里写 */ 会让整个文件静默变 undefined）', () => {
+  // 真实事故：gdelt.js 头注释里写了"*/5 cron"，*/ 提前终结块注释 → 整个文件 SyntaxError，
+  // script 标签不报加载失败、window.EventsSource 变 undefined、事件页永远"数据更新中"。
+  // 本项目全部是经典脚本（IIFE），new Function 即可当解析器用。
+  const walk = (d) => readdirSync(path.join(ROOT, d), { withFileTypes: true }).flatMap(e => {
+    const p = path.join(ROOT, d, e.name);
+    return e.isDirectory() ? walk(path.join(d, e.name)) : (e.name.endsWith('.js') ? [p] : []);
+  });
+  const files = walk('js');
+  assert.ok(files.length > 30, 'js 文件数异常，walk 选择器可能失效');
+  const bad = [];
+  files.forEach(f => {
+    try { new Function(readFileSync(f, 'utf8')); }
+    catch (e) { bad.push(path.relative(ROOT, f) + ' → ' + e.message.split('\n')[0]); }
+  });
+  assert.equal(bad.length, 0, '存在语法错误的脚本: ' + bad.join(' | '));
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

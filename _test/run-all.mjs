@@ -16,6 +16,9 @@ const groups = [
   { file: 'logic.test.mjs', net: false },
   { file: 'compare.test.mjs', net: false },  // 基金对比纯计算：归一/年化/回撤/年度收益/相关性（手算核对）
   { file: 'compareview.test.mjs', net: false }, // 基金对比视图层：深链解析/渲染/重试通道（DOM 打桩，无浏览器）
+  { file: 'macrocalc.test.mjs', net: false },  // 宏观策略纯计算：曲线装配/利差bp换算/倒挂判定/金油比
+  { file: 'portfoliomath.test.mjs', net: false }, // 持仓估值/多币种折算/快照合并（手算核对）
+  { file: 'fundparse.test.mjs', net: false },  // 基金画像解析：pingzhongdata 值归一 + jjcc 重仓股表格
   { file: 'spark.test.mjs', net: false },   // 首屏图形层：振幅条位置/走势线坐标（纯函数，画歪了才算错）
   { file: 'insight.test.mjs', net: false },
   { file: 'evolve.test.mjs', net: false },  // 市场时段/情绪历史/请求去重（纯函数）

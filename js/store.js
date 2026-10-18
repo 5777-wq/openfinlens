@@ -27,12 +27,55 @@ const Store = {
 
   settings: {
     get() {
+      // 默认主题 = 瑞士（白底红强调，用户 2026-10-18 指定）；老用户已存过设置的不受影响
       return Object.assign(
-        { updown: 'red', refresh: 10, showDegraded: true, theme: 'dark' },
+        { updown: 'red', refresh: 10, showDegraded: true, theme: 'swiss' },
         Store.get('settings', {})
       );
     },
     set(s) { Store.set('settings', Object.assign(this.get(), s)); },
+  },
+
+  // 持仓跟踪（2026-10-18）：本机记账，行情 tick 里实时算市值/盈亏。
+  // holding = { id, symbol, name, code, market, secid, shares, cost, createdAt }
+  // cost 允许 null（用户没填成本价：只算市值，不算盈亏）
+  portfolio: {
+    all() { return Store.get('portfolio', []); },
+    add(h) {
+      const list = this.all();
+      const rec = Object.assign({
+        id: 'pf_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        createdAt: Date.now(), secid: '', cost: null,
+      }, h);
+      list.push(rec);
+      Store.set('portfolio', list);
+      return rec;
+    },
+    update(id, patch) {
+      const list = this.all();
+      const i = list.findIndex(x => x.id === id);
+      if (i < 0) return null;
+      Object.assign(list[i], patch);
+      Store.set('portfolio', list);
+      return list[i];
+    },
+    remove(id) { Store.set('portfolio', this.all().filter(x => x.id !== id)); },
+    symbols() { return this.all().map(x => x.symbol).filter(Boolean); },
+  },
+
+  // 组合总市值的每日快照（资产曲线）。value 为人民币口径；同日覆盖、上限 400 条
+  portSnaps: {
+    all() { return Store.get('portSnaps', []); },
+    push(dateStr, value) {
+      const list = this.all().filter(x => x && x.d && typeof x.v === 'number');
+      const i = list.findIndex(x => x.d === dateStr);
+      if (i >= 0) list[i] = { d: dateStr, v: value };
+      else list.push({ d: dateStr, v: value });
+      list.sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
+      const trimmed = list.slice(-400);
+      Store.set('portSnaps', trimmed);
+      return trimmed;
+    },
   },
 
   // 到价提醒（2026-09-17）：纯本地规则，行情 tick 里判定。
