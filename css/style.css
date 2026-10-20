@@ -378,7 +378,16 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .detail-stats b { display: block; font-size: 13px; color: var(--text); font-weight: 500;
   margin-top: 2px; font-family: var(--font-mono); }
 .chart-box { border: 1px solid var(--border); padding: 10px; min-height: 300px; }
+/* 主图高度（副图在它下面自己画，TradingView 的"主图 + 指标窗"结构）。
+   副图高度固定 110px（见 .k-pane），两块总高 420 + 110。 */
 #klineChart { width: 100%; height: 420px; }
+/* 副图指标窗：独立 canvas（lightweight-charts 4.2.3 没有多窗格，
+   详见 js/paneview.js 的说明）。宽度与主图一致，横向严格对齐。
+   高度固定 110px（与 js/charts.js 的 PANE_H 一致）：原来按主图高度的
+   26% 算，而详情页还没展开时读到的主图高度不是 420，算出来会时对时不对。
+   上边框把两块隔开（TradingView 的主图/副图之间就是一条细线）。 */
+.k-pane { display: block; width: 100%; height: 110px; margin-top: 0;
+  border-top: 1px solid var(--border); }
 /* 该周期无数据时整块收起（不留"暂无数据"占位文案） */
 .chart-box.off { display: none; }
 
@@ -516,6 +525,21 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .setting-row:last-of-type { border-bottom: none; }
 .setting-label { font-size: 13px; }
 .setting-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+/* 顶栏板块配置（顺序 + 显隐）：整行独占一块，列表在下方展开 */
+.setting-row-block { display: block; }
+.tab-cfg { margin-top: 12px; display: flex; flex-direction: column; gap: 2px; }
+.tab-cfg-row { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 5px 8px; border: 1px solid transparent; border-radius: 3px; }
+.tab-cfg-row:hover { background: var(--bg-hover); }
+.tab-cfg-row.fixed { opacity: 0.55; }
+.tab-cfg-name { display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; }
+.tab-cfg-name input { accent-color: var(--accent-signature); width: 14px; height: 14px; cursor: pointer; }
+.tab-cfg-move { display: flex; gap: 4px; }
+.tab-cfg-move button { width: 24px; height: 22px; font-size: 12px; line-height: 1; color: var(--text-tertiary);
+  background: transparent; border: 1px solid var(--border); border-radius: 3px; cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+.tab-cfg-move button:hover:not(:disabled) { color: var(--text); border-color: var(--border-hover); }
+.tab-cfg-move button:disabled { opacity: 0.28; cursor: default; }
 .seg { display: flex; gap: 2px; border: 1px solid var(--border); border-radius: 3px; padding: 2px; }
 .seg button { padding: 4px 10px; font-size: 11px; color: var(--text-tertiary); border-radius: 2px;
   transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
@@ -752,6 +776,10 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
   margin-top: 14px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .gcard { padding: 16px 14px 14px; border-right: 1px solid var(--border); min-width: 0;
   border-top: 1px solid var(--border); }
+/* 全球指数卡可点进详情看 K 线（2026-10-20）：给出手型与 hover 反馈，
+   否则用户不知道这六张卡能点。 */
+.gcard[data-gidx] { cursor: pointer; transition: background var(--dur-fast) var(--ease-out); }
+.gcard[data-gidx]:hover { background: var(--bg-hover); }
 .gcard:nth-child(6n) { border-right: none; }
 .globe-grid .gcard:nth-child(-n+6) { border-top: none; }
 /* 名称区固定两行高度：长短名混排（富时100/KOSPI）曾让同一行三个数字高低差 16px */
@@ -781,12 +809,17 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 [data-fold].folded > :not(.section-head) { display: none; }
 [data-fold] > .section-head:focus-visible { outline: 1px solid var(--border-hover); }
 
-/* 均线自定义菜单（详情页 toolbar 弹层） */
+/* 指标自定义菜单（详情页 toolbar 弹层）
+   结构：副图指标（单选） + 主图指标（可增删的列表）+ 添加按钮。
+   TradingView 的模型：主图叠加指标可任意增删，副图指标独立成一个窗。 */
 .ma-wrap { position: relative; display: inline-block; }
 .ma-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
-  min-width: 148px; padding: 8px 12px;
+  min-width: 232px; padding: 10px 12px;
   background: var(--bg-card, #111); border: 1px solid rgba(255,255,255,0.14); border-radius: 4px;
   box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
+.ma-sec + .ma-sec { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+.ma-sec-t { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-faint); margin-bottom: 6px; }
 .ma-menu label { display: flex; align-items: center; gap: 8px; padding: 5px 0;
   font-size: 12px; color: var(--text-secondary); cursor: pointer; }
 .ma-menu label:hover { color: var(--text); }
@@ -797,6 +830,27 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
   color: var(--text); font-family: var(--font-mono); font-size: 11px; }
 .ma-menu input[type="number"]:focus { outline: none; border-color: rgba(255,255,255,0.3); }
 .ma-menu label input[type="checkbox"] { margin-right: 2px; }
+/* 副图单选行：选中时整行高亮（radio 之外还要看得见选中态） */
+.ma-pane-row.on { color: var(--text); }
+.ma-pane-row.on span { font-weight: 600; }
+.ma-pane-row input[type="number"] { margin-left: 0; width: 48px; }
+/* 主图指标行：开关 / 类型 / 周期 / 色标 / 删除 */
+.ma-line-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
+.ma-line-row select { background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  border-radius: 3px; color: var(--text); font-size: 11px; font-family: var(--font-mono);
+  padding: 2px 3px; }
+.ma-line-row select:focus { outline: none; border-color: rgba(255,255,255,0.3); }
+.ma-line-row input[type="number"] { margin-left: 0; width: 46px; }
+.ma-line-dot { width: 12px; height: 3px; border-radius: 1px; display: inline-block; margin-left: auto; }
+.ma-line-row button { width: 20px; height: 20px; line-height: 1; font-size: 14px;
+  color: var(--text-faint); background: transparent; border: 1px solid transparent;
+  border-radius: 3px; cursor: pointer; }
+.ma-line-row button:hover { color: var(--down); border-color: var(--border); }
+.ma-add { width: 100%; margin-top: 6px; padding: 5px 0; font-size: 12px;
+  color: var(--text-secondary); background: transparent; border: 1px dashed var(--border);
+  border-radius: 3px; cursor: pointer; }
+.ma-add:hover { color: var(--text); border-color: var(--border-hover); }
+.ma-empty { font-size: 11px; color: var(--text-faint); padding: 4px 0; }
 
 /* 技术面板块（替换原大师卡片） */
 .tech-summary { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;

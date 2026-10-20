@@ -142,16 +142,26 @@ const PMView = (() => {
     // 走势线用"当前选中档位"的颜色——这条线就是这一档
     const selIdx = sel ? Math.max(0, outs.indexOf(sel)) : 0;
     const selColor = C.PALETTE[selIdx % C.PALETTE.length];
-    let trendBody, trendMeta = '';
+    // 采集不到历史就**整块不出现**：原来留一个"历史序列积累中"的占位框，
+    // 30 张卡里 29 张都是这句占位（实测历史只回填了 1 个事件的 42 点），
+    // 等于每张卡都在喊"还没好"，把真正有图的那张也淹了。
+    // 采集端每轮回填有限（HIST_FETCH_MAX=60），大部分事件长期没有历史。
+    let trendBlock = '';
     if (series.length >= 2) {
       const bin = (o.history && o.history.binMs) || 14400000;
-      trendBody = window.PMCharts.trendSVG(series, { w: 340, h: 54, maxGapMs: bin * 2.5 });
+      const trendBody = window.PMCharts.trendSVG(series, { w: 340, h: 54, maxGapMs: bin * 2.5 });
       let lo = Infinity, hi = -Infinity;
       series.forEach(s => { if (s.p < lo) lo = s.p; if (s.p > hi) hi = s.p; });
-      trendMeta = `<span class="pm-trend-r num">${(lo * 100).toFixed(1)}% ~ ${(hi * 100).toFixed(1)}%</span>`
+      const trendMeta = `<span class="pm-trend-r num">${(lo * 100).toFixed(1)}% ~ ${(hi * 100).toFixed(1)}%</span>`
         + `<span class="pm-trend-d num">${pmDay(series[0].t)} → ${pmDay(series[series.length - 1].t)}</span>`;
-    } else {
-      trendBody = '<div class="pm-trend-empty">概率走势：历史序列积累中（采集端回填近 7 天窗口）</div>';
+      trendBlock = `<div class="pm-trend" style="--pm-trend-c:${selColor}">
+        <div class="pm-trend-hd">
+          <span class="pm-trend-t">概率走势</span>
+          <span class="pm-trend-cur">${esc(sel ? (sel.labelZh || sel.label) : '')}</span>
+          ${trendMeta}
+        </div>
+        <div class="pm-trend-wrap">${trendBody}</div>
+      </div>`;
     }
 
     const badge = e.partition
@@ -178,14 +188,7 @@ const PMView = (() => {
         ${viz}
         <div class="pm-outs">${rows}${restRow}</div>
       </div>
-      <div class="pm-trend" style="--pm-trend-c:${selColor}">
-        <div class="pm-trend-hd">
-          <span class="pm-trend-t">概率走势</span>
-          <span class="pm-trend-cur">${esc(sel ? (sel.labelZh || sel.label) : '')}</span>
-          ${trendMeta}
-        </div>
-        <div class="pm-trend-wrap">${trendBody}</div>
-      </div>
+      ${trendBlock}
     </article>`;
   }
 

@@ -134,13 +134,18 @@ test('均线槽位不得与涨跌色混淆（ΔE ≥ 15）', () => {
 
 /* ---------------- 单一来源：不许有第二份字面量 ---------------- */
 
-test('index.html 均线菜单色块必须用 var(--ma-N)，不得写死 hex', () => {
-  const i0 = HTML.indexOf('id="maMenu"');
-  assert.ok(i0 > 0, '找不到均线菜单');
-  const block = HTML.slice(i0, HTML.indexOf('</span>', i0));
-  const swatches = [...block.matchAll(/<i style="background:([^"]+)"/g)].map(m => m[1]);
-  assert.equal(swatches.length, 6, `应恰好 6 个色块，实际 ${swatches.length}`);
-  swatches.forEach((s, i) => assert.ok(s.trim() === `var(--ma-${i})`, `槽位 ${i} 应为 var(--ma-${i})，实际 "${s}"`));
+test('指标菜单色块必须用 var(--ma-N)，不得写死 hex', () => {
+  // 2026-10-20 起指标菜单改成动态渲染（可增删指标），色块不再静态写在 index.html 里，
+  // 而是由 app.js 按槽位序号生成。断言的**意图**不变：色板只能来自 CSS 令牌，
+  // 不许出现第二份字面量（改了 --ma-N 而菜单不变，就是两处漂移）。
+  const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
+  assert.ok(/id="maMenu"/.test(HTML), '找不到指标菜单');
+  const gen = app.slice(app.indexOf('function renderMaMenu'));
+  const block = gen.slice(0, gen.indexOf('\n  }'));
+  assert.ok(/var\(--ma-\$\{i % 6\}\)/.test(block), '色块必须按槽位序号取 var(--ma-N) 令牌');
+  // 菜单与图表两处都不许写死 hex 色值
+  const hexInMenu = block.match(/#[0-9a-f]{3,8}\b/gi);
+  assert.equal(hexInMenu, null, '指标菜单里出现了写死的 hex 色值: ' + (hexInMenu || []).join(','));
 });
 
 test('charts.js 不得再自带一份均线调色板字面量', () => {

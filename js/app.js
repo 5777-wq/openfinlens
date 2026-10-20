@@ -69,7 +69,12 @@
     boardOpenBk: null, boardStocks: [], boardGen: 0,
     voices: null, voicesAt: 0, voicesGen: 0, globeQuotes: null,
     events: null, eventsVia: null, eventsLoadedAt: 0,
-    eventsSub: Store.get('evMode', 'map'),     // 事件页子视图：map（平面地图）| news（实时快讯）| pm（市场预测）；存量 'globe' 由 setEventsSub 归一
+    // 事件页子视图：map（平面地图）| news（实时快讯）| pm（市场预测）
+    // 存量 'globe' 由 setEventsSub 归一。
+    // 键名带 v2：默认页从「平面地图」改成「市场预测」（用户 2026-10-20 要求），
+    // 换键而不是改默认值——旧键里存的是"用户上次选的视图"，
+    // 直接改默认值对它无效（它已经存了值），换键让所有人第一次进来都是市场预测。
+    eventsSub: Store.get('evModeV2', 'pm'),
     eventsType: 'all',         // 事件类型过滤（all / macro / central_bank / …）
     // 市场预测（Polymarket 隐含概率，只读展示）；pmExpand 记录各分类是否展开全部
     // pmEvents 是"事件"数组（每个事件带若干档位），pmSel 记录每张卡片当前选中的档位（走势图跟谁）
@@ -118,9 +123,10 @@
     'boardStrip', 'boardVia', 'boardDrawer',
     'moodSub', 'moodScore', 'moodBand', 'moodFill', 'breadthGrid', 'distWrap', 'distSub', 'moodSpark', 'heroStrip', 'moodCrypto', 'moodUS',
     'searchInput', 'searchResults', 'settingsBtn', 'settingsModal', 'settingsClose',
-    'segUpdown', 'segRefresh', 'segTheme', 'swDegraded', 'sourceStatus', 'updatedLine',
+    'segUpdown', 'segRefresh', 'segTheme', 'swDegraded', 'sourceStatus', 'updatedLine', 'tabCfg',
     'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats',
     'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle', 'intradaySeg',
+    'maMenu', 'maLinesBox', 'maPaneBox', 'maAdd',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
     'globeStatus', 'mapLegend', 'mapStatusPts',
     'evGlobePane', 'evNewsPane', 'evPmPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
@@ -1902,6 +1908,9 @@
       state.chartKind = kind;
     }
     if (!state.chart) { el.chartBox.classList.add('off'); return; }
+    // 副图指标（成交量 / RSI / MACD）：**先设副图再 setData**——
+    // setData 内部会按当前副图重画，顺序反了会用上一次的副图类型。
+    if (state.chart && state.chart.setPane) state.chart.setPane(state.detailMACfg.pane);
     if (kind === 'trend') {
       // prevClose 优先用卡片/缓存里同步可得的报价，避免与 refreshDetailQuote 的竞态
       // （四路并行时 quote 常常未到，null 会让 charts 把收跌日整条染成涨色）
@@ -2149,9 +2158,13 @@
       if (!q) return '';
       const cls = pctClass(q.changePct);
       const digits = U.priceDigits(q.price);
-      // 与 hero-cell 同构：国旗+名称 / 大数字 / 涨跌行——六大市场与中美平级，不再挤成一行小字
-      // 纯展示卡：全球指数的详情页 K 线免费源不稳，不提供点击进详情
-      return `<div class="gcard">
+      // 与 hero-cell 同构：国旗+名称 / 大数字 / 涨跌行——六大市场与中美平级，不再挤成一行小字。
+      // 接入 K 线（用户 2026-10-20："图片上的指数都没有接入 k 线"）：
+      // 这六张卡原先是纯展示卡，点不开。symbol 用 EM:<东财 secid>，
+      // 详情页的 klineForRaw 会自动按「腾讯 → 东财」降级取日K；
+      // 两边都取不到时详情页整块收起（不留空壳），不编假线。
+      return `<div class="gcard" data-gidx="${escapeHTML(x.secid)}" tabindex="0" role="button"
+        aria-label="${escapeHTML(x.name)} 详情" title="点击看 ${escapeHTML(x.name)} 走势">
         <div class="hero-label"><span>${window.Flags.flag(x.flag)}${escapeHTML(x.name)}</span></div>
         <div class="hero-value">${fmt(q.price, digits)}</div>
         <div class="hero-chg ${cls}"><span>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
@@ -2538,10 +2551,11 @@
   }
 
   function setEventsSub(sub) {
-    // 'globe' 存量值归一为 'map'：3D 地球已按用户决策移除，平面地图是唯一地理视图
-    if (sub !== 'news' && sub !== 'map' && sub !== 'pm') sub = 'map';
+    // 'globe' 存量值归一为 'map'：3D 地球已按用户决策移除，平面地图是唯一地理视图。
+    // 兜底用 'pm'（市场预测）：用户 2026-10-20 指定事件页默认落在市场预测。
+    if (sub !== 'news' && sub !== 'map' && sub !== 'pm') sub = 'pm';
     state.eventsSub = sub;
-    Store.set('evMode', sub);                 // 记住上次用的视图（平面 / 快讯 / 市场预测）
+    Store.set('evModeV2', sub);                // 记住上次用的视图（平面 / 快讯 / 市场预测）
     document.querySelectorAll('[data-evsub]').forEach(b => {
       const on = b.dataset.evsub === state.eventsSub;
       b.classList.toggle('active', on);
@@ -3596,6 +3610,68 @@
      公开言论归事件页——所以 #tab=funds 落到 A股，用户要找的东西就在那一屏。 */
   const TAB_ALIAS = { news: 'events', voices: 'events', funds: 'cn', mood: 'cn' };
 
+  /* ==================== 顶栏板块：顺序与显隐可自定义 ====================
+     用户 2026-10-20："图二的 tag 顺序应该有设置可以自定义调整（顺序和是否显示）"。
+     合法性规则全在 js/tabscope.js（纯函数、可单测），这里只把结果落到 DOM。
+
+     顶栏按钮原本是 index.html 里的静态标签：改顺序/隐藏只能改源码。
+     现在改成**运行时渲染**——按用户配置重排、隐藏，多余的按钮直接不建。 */
+  function tabCfg() {
+    return window.Store.get('tabCfg', null) || { order: [], hidden: [] };
+  }
+
+  function saveTabCfg(cfg) {
+    window.Store.set('tabCfg', cfg);
+    applyTabCfg();
+  }
+
+  /* 按配置重排顶栏。隐藏的板块不渲染（不是加 display:none——
+     那样它还在 Tab 序里、还会被数字快捷键选中）。 */
+  function applyTabCfg() {
+    const nav = el.tabs;
+    if (!nav || !window.TabScope) return;
+    const keys = window.TabScope.visibleTabs(tabCfg(), CRYPTO_ON);
+    // 按 DOM 现有顺序建索引，重排时只移动真实存在的按钮
+    const nodes = Array.from(nav.querySelectorAll('.tab'));
+    const byTab = {};
+    nodes.forEach(n => { byTab[n.dataset.tab] = n; });
+    keys.forEach(k => {
+      const n = byTab[k];
+      if (n) nav.appendChild(n);   // appendChild = 移到末尾
+    });
+    nodes.forEach(n => {
+      if (keys.indexOf(n.dataset.tab) < 0 && n.parentNode === nav) nav.removeChild(n);
+    });
+    // 当前 tab 被藏了 → 回到「全部」
+    if (keys.indexOf(state.tab) < 0 && state.view === 'market') {
+      setTab('all', { animate: false });
+    }
+    renderTabCfgUI();
+  }
+
+  /* 设置弹层里的顶栏板块配置列表 */
+  function renderTabCfgUI() {
+    const box = el.tabCfg;
+    if (!box || !window.TabScope) return;
+    const cfg = tabCfg();
+    const n = window.TabScope.normalize(cfg, CRYPTO_ON);
+    const hidden = n.hidden;
+    box.innerHTML = n.order.map((k, i) => {
+      const isAll = k === 'all';
+      const off = hidden.indexOf(k) >= 0;
+      return `<div class="tab-cfg-row${isAll ? ' fixed' : ''}">
+        <label class="tab-cfg-name">
+          <input type="checkbox" data-tabcfg-hide="${k}"${off ? '' : ' checked'}${isAll ? ' disabled' : ''}>
+          <span>${window.TabScope.labelOf(k)}</span>
+        </label>
+        <span class="tab-cfg-move">
+          <button type="button" data-tabcfg-move="${k}" data-dir="-1"${isAll || i <= 1 ? ' disabled' : ''} aria-label="上移">↑</button>
+          <button type="button" data-tabcfg-move="${k}" data-dir="1"${isAll || i >= n.order.length - 1 ? ' disabled' : ''} aria-label="下移">↓</button>
+        </span>
+      </div>`;
+    }).join('');
+  }
+
   function setView(view) {
     state.view = view;
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -4554,6 +4630,13 @@
       }
       const bchip = e.target.closest('[data-bk]');
       if (bchip) { toggleBoard(bchip.getAttribute('data-bk'), +bchip.dataset.i); return; }
+      // 全球指数卡（六大市场）：点进详情看 K 线
+      const gcard = e.target.closest('[data-gidx]');
+      if (gcard) {
+        const t = targetFromHashSymbol('EM:' + gcard.getAttribute('data-gidx'));
+        if (t) openDetail(t);
+        return;
+      }
       const bsRow = e.target.closest('.bs-row');
       if (bsRow) {
         const t = targetFromHashSymbol(bsRow.getAttribute('data-symbol'));
@@ -4812,39 +4895,143 @@
       if (on) fetchWatchQuotes();
       renderHomeWatch();   // 首屏指数固定，「我的自选」块跟着收藏状态变（详情页加星也要同步）
     });
-    // 均线菜单：打开时按真实配置回显勾选与周期数值（否则菜单全空、用户以为"都关了"图上还有线）
+    /* 指标菜单（TradingView 模型）：副图指标可切换 + 主图指标可增删。
+       原来只有"均线"开关（固定 6 槽），加不了一条新指标（用户 2026-10-20 要求）。 */
+
+    // 主图指标可用的类型（配置项 → 画线槽位数）
+    const MA_TYPES = [
+      { key: 'ma', label: 'MA', slots: 1 },
+      { key: 'ema', label: 'EMA', slots: 1 },
+      { key: 'boll', label: 'BOLL', slots: 3 },
+    ];
+    const MA_MAX_LINES = 8;
+
+    function maCfgLines() {
+      return (state.detailMACfg && Array.isArray(state.detailMACfg.lines)) ? state.detailMACfg.lines : [];
+    }
+
+    function saveMaCfg(lines, pane) {
+      state.detailMACfg = { lines, pane: pane || (state.detailMACfg && state.detailMACfg.pane) || { key: 'vol', params: {} } };
+      window.Store.set('maCfg', state.detailMACfg);
+      if (state.chart) {
+        state.chart.setMAVisible(state.detailMACfg.lines);
+        state.chart.setPane(state.detailMACfg.pane);
+      }
+    }
+
+    /* 渲染指标菜单（打开时回显真实配置） */
+    function renderMaMenu() {
+      const linesBox = el.maLinesBox, paneBox = el.maPaneBox;
+      if (!linesBox || !paneBox) return;
+      const lines = maCfgLines();
+      const pane = (state.detailMACfg && state.detailMACfg.pane) || { key: 'vol', params: {} };
+
+      // 副图：类型单选 + 该类型自己的参数
+      const pdefs = (window.Panes && window.Panes.PANE_DEFS) || [];
+      paneBox.innerHTML = pdefs.map(d => {
+        const on = (pane.key || 'vol') === d.key;
+        const params = (d.params || []).map(p => {
+          const v = (pane.params && pane.params[p.key] != null) ? pane.params[p.key] : p.def;
+          return `<input type="number" min="${p.min}" max="${p.max}" value="${v}" data-paneparam="${d.key}:${p.key}">`;
+        }).join('');
+        return `<label class="ma-pane-row${on ? ' on' : ''}">
+          <input type="radio" name="mapane" value="${d.key}"${on ? ' checked' : ''} data-pane="${d.key}">
+          <span>${d.label}</span>${params}
+        </label>`;
+      }).join('');
+
+      // 主图：每行 = 开关 + 类型 + 周期 + 删除
+      linesBox.innerHTML = lines.map((l, i) => {
+        const t = MA_TYPES.find(x => x.key === l.type) || MA_TYPES[0];
+        return `<div class="ma-line-row" data-maline-row="${i}">
+          <input type="checkbox" data-maline="${i}"${l.on ? ' checked' : ''}>
+          <select data-matype="${i}">
+            ${MA_TYPES.map(x => `<option value="${x.key}"${x.key === l.type ? ' selected' : ''}>${x.label}</option>`).join('')}
+          </select>
+          <input type="number" min="2" max="500" value="${l.n}" data-man="${i}">
+          <i class="ma-line-dot" style="background:var(--ma-${i % 6})"></i>
+          <button type="button" data-madel="${i}" title="删除这条指标" aria-label="删除这条指标">×</button>
+        </div>`;
+      }).join('') || '<div class="ma-empty">还没有主图指标</div>';
+    }
+
+    // 指标菜单：打开时按真实配置回显（否则菜单全空、用户以为"都关了"图上还有线）
     el.maToggle.addEventListener('click', () => {
       const menu = document.getElementById('maMenu');
       if (!menu) return;
       const open = menu.hidden;
-      if (open) {
-        (state.detailMACfg.lines || []).forEach((l, i) => {
-          const cb = menu.querySelector(`[data-maline="${i}"]`);
-          const num = menu.querySelector(`[data-man="${i}"]`);
-          if (cb) cb.checked = !!l.on;
-          if (num) num.value = l.n;
-        });
-      }
+      if (open) renderMaMenu();
       menu.hidden = !open;
       el.maToggle.classList.toggle('active', open);
     });
-    // 勾选/改周期 → 立即应用并存 localStorage（周期 clamp 到 2~500）
+
+    // 勾选/改周期/改类型 → 立即应用并存 localStorage（周期 clamp 到 2~500）
     const applyMaLine = (i, patch) => {
-      const lines = state.detailMACfg.lines || [];
+      const lines = maCfgLines();
       if (!lines[i]) return;
-      state.detailMACfg = { lines: lines.map((l, k) => k === i ? Object.assign({}, l, patch) : l) };
-      window.Store.set('maCfg', state.detailMACfg);
-      if (state.chart) state.chart.setMAVisible(state.detailMACfg.lines);
+      saveMaCfg(lines.map((l, k) => k === i ? Object.assign({}, l, patch) : l));
+      renderMaMenu();
     };
+    // 新增一条指标：默认 MA20（TV 里最常用的中长均线）
+    const addMaLine = () => {
+      const lines = maCfgLines();
+      if (lines.length >= MA_MAX_LINES) return;
+      saveMaCfg(lines.concat([{ type: 'ma', n: 20, on: true }]));
+      renderMaMenu();
+    };
+    // 删除一条指标
+    const delMaLine = (i) => {
+      const lines = maCfgLines();
+      if (!lines[i]) return;
+      saveMaCfg(lines.filter((_, k) => k !== i));
+      renderMaMenu();
+    };
+    if (el.maAdd) el.maAdd.addEventListener('click', addMaLine);
+
     document.addEventListener('change', (e) => {
+      // 副图指标切换
+      const paneRadio = e.target.closest('[data-pane]');
+      if (paneRadio) {
+        const key = paneRadio.dataset.pane;
+        const def = window.Panes && window.Panes.paneDef(key);
+        const params = {};
+        (def && def.params || []).forEach(p => { params[p.key] = p.def; });
+        saveMaCfg(maCfgLines(), { key, params });
+        renderMaMenu();
+        return;
+      }
+      // 副图参数（RSI 周期 / MACD 快慢信号）
+      const pparam = e.target.closest('[data-paneparam]');
+      if (pparam) {
+        const [key, pkey] = pparam.dataset.paneparam.split(':');
+        const pane = (state.detailMACfg && state.detailMACfg.pane) || { key: 'vol', params: {} };
+        const params = Object.assign({}, pane.params);
+        const def = window.Panes && window.Panes.paneDef(key);
+        const pd = def && (def.params || []).find(x => x.key === pkey);
+        let v = Math.round(+pparam.value);
+        if (pd) v = Math.max(pd.min, Math.min(pd.max, v));
+        params[pkey] = v;
+        saveMaCfg(maCfgLines(), { key: pane.key || key, params });
+        renderMaMenu();
+        return;
+      }
       const cb = e.target.closest('[data-maline]');
       if (cb) { applyMaLine(+cb.dataset.maline, { on: cb.checked }); return; }
+      // 切换指标类型（MA / EMA / BOLL）：BOLL 占 3 个画线槽，槽位总数会变，
+      // charts.js 的动态池会按需增删 series
+      const mtype = e.target.closest('[data-matype]');
+      if (mtype) { applyMaLine(+mtype.dataset.matype, { type: mtype.value }); return; }
       const num = e.target.closest('[data-man]');
       if (num) {
         const n = Math.max(2, Math.min(500, Math.round(+num.value || 5)));
         num.value = n;
         applyMaLine(+num.dataset.man, { n });
       }
+    });
+    // 删除一条主图指标（× 按钮）
+    document.addEventListener('click', (e) => {
+      const del = e.target.closest('[data-madel]');
+      if (del) { delMaLine(+del.dataset.madel); return; }
     });
 
     // 席位档案返回：有本会话历史走浏览器后退（#tab= / #symbol= hash 会被还原），深链直达退回之前 tab
@@ -4936,6 +5123,25 @@
       if (state.view === 'watch') renderWatchlist();
     });
 
+    // 顶栏板块：显隐（复选框）与顺序（↑↓）
+    if (el.tabCfg) {
+      el.tabCfg.addEventListener('change', (e) => {
+        const cb = e.target.closest('[data-tabcfg-hide]');
+        if (!cb) return;
+        const k = cb.dataset.tabcfgHide;
+        const cur = tabCfg();
+        const hidden = window.TabScope.toggleHidden(cur, k, CRYPTO_ON);
+        saveTabCfg({ order: cur.order, hidden });
+      });
+      el.tabCfg.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-tabcfg-move]');
+        if (!b) return;
+        const cur = tabCfg();
+        const order = window.TabScope.move(cur.order, b.dataset.tabcfgMove, +b.dataset.dir);
+        saveTabCfg({ order, hidden: cur.hidden });
+      });
+    }
+
     // 窗口尺寸变化 → 热力图重排 + 走势线重画（rAF 节流）
     // 走势线也要重画：hero 四条线走对齐模式（同一 x = 同一天），
     // 窗口变宽变窄后画布宽度变了，不重画的话四格的横坐标就不再对应同一天。
@@ -4960,6 +5166,9 @@
     DOM_IDS.forEach(id => { el[id] = $(id); });
     bindHashNav();
     applySettings();
+    // 顶栏板块按用户配置重排/隐藏：必须在 renderFromHash 之前——
+    // 否则深链指向一个被隐藏的板块时，hash 解析完才发现那个 tab 根本不在顶栏里。
+    applyTabCfg();
     initReveal();
     bindEvents();
     renderStatus();
@@ -5103,18 +5312,24 @@
     schedule('selftest', async () => { renderSelfTest(); }, 15000);
 
     // 深链还原：带 #tab= / #symbol= 打开时直达对应视图（此时数据调度已起，详情会自行拉数）
-    // 默认均线配置（6 槽：MA 5/10/20/60 + EMA 12/26，默认开 MA5/MA20/EMA26）
-    const MA_CFG_DEFAULT = { lines: [
-      { type: 'ma', n: 5, on: true },
-      { type: 'ma', n: 10, on: false },
-      { type: 'ma', n: 20, on: true },
-      { type: 'ma', n: 60, on: false },
-      { type: 'ema', n: 12, on: false },
-      { type: 'ema', n: 26, on: true },
-    ] };
+    // 默认指标配置：主图 3 条（MA5 / MA20 / EMA26）+ 副图成交量。
+    // 主图条数不固定（可增删，上限 8）；副图三选一（成交量 / RSI / MACD）。
+    // 存量配置（只有 lines、没有 pane）也会被补上默认副图。
+    const MA_CFG_DEFAULT = {
+      lines: [
+        { type: 'ma', n: 5, on: true },
+        { type: 'ma', n: 20, on: true },
+        { type: 'ema', n: 26, on: true },
+      ],
+      pane: { key: 'vol', params: {} },
+    };
     const storedCfg = window.Store.get('maCfg', null);
     state.detailMACfg = (storedCfg && Array.isArray(storedCfg.lines) && storedCfg.lines.length)
-      ? storedCfg : MA_CFG_DEFAULT;
+      ? {
+        lines: storedCfg.lines,
+        pane: (storedCfg.pane && storedCfg.pane.key) ? storedCfg.pane : MA_CFG_DEFAULT.pane,
+      }
+      : MA_CFG_DEFAULT;
     state.breadthHist = window.Store.get('breadthHist', []);
     if (location.hash && location.hash !== '#') renderFromHash();
   }

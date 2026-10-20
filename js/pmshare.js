@@ -125,6 +125,67 @@
     return fmtDay(d.getTime()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
   }
 
+  /* ==================== 环图（分享卡片） ====================
+     用户 2026-10-20："分享也应该是饼图之类的图像"。
+     口径与页面完全一致（复用 PMCharts.donutSlices）：
+       · 只有**互斥事件**（partition=true）才画环图——各档位互斥且穷尽，扇区才有意义；
+         独立问句事件画环图等于暗示了并不存在的互斥关系，是范畴错误；
+       · 扇区角度按"显示总质量"归一化，图例数字是**市场真实报价**，两者分开。
+     独立问句事件改为画"概率条堆叠"（横向堆叠条），
+     同样是饼图类图像，但表达的是"这几档各自的概率"而不是"占比关系"。 */
+
+  /* 画环图。slices 来自 PMCharts.donutSlices。 */
+  function drawDonut(c, cx, cy, rOut, rIn, slices, T, opts) {
+    const o = opts || {};
+    c.save();
+    for (const s of slices) {
+      const a0 = s.a0 * Math.PI * 2 - Math.PI / 2;
+      const a1 = s.a1 * Math.PI * 2 - Math.PI / 2;
+      const large = (s.a1 - s.a0) > 0.5 ? 1 : 0;
+      c.beginPath();
+      c.arc(cx, cy, rOut, a0, a1, false);
+      c.arc(cx, cy, rIn, a1, a0, true);
+      c.closePath();
+      c.fillStyle = s.color;
+      c.fill();
+    }
+    c.restore();
+    // 中心：显示最大档位的概率（读者第一眼要知道"最大的一档有多大"）
+    let top = null;
+    for (const s of slices) if (!s.rest && (!top || s.value > top.value)) top = s;
+    if (top) {
+      c.textAlign = 'center';
+      c.fillStyle = T.text;
+      c.font = '600 34px ' + MONO;
+      c.fillText(fmtPct(top.value), cx, cy + 4);
+      c.fillStyle = T.text3;
+      c.font = '15px ' + CJK;
+      c.fillText('最大档位', cx, cy + 28);
+    }
+    if (o.note) {
+      c.textAlign = 'center';
+      c.fillStyle = T.faint;
+      c.font = '14px ' + CJK;
+      c.fillText(o.note, cx, cy + rOut + 22);
+    }
+  }
+
+  /* 独立问句事件的"概率堆叠条"：每个档位一段，宽度按其概率（相对最大档位归一），
+     表达"这几档各自多大"而不是"占比关系"。 */
+  function drawStack(c, x, y, w, h, outs, palette, T) {
+    let max = 0;
+    for (const o of outs) if (Number(o.probability) > max) max = Number(o.probability);
+    if (!(max > 0)) return;
+    let cx = x;
+    for (let i = 0; i < outs.length; i++) {
+      const p = Number(outs[i].probability) || 0;
+      const seg = (p / max) * w;
+      c.fillStyle = palette[i % palette.length];
+      c.fillRect(cx, y, Math.max(2, seg - 3), h);
+      cx += seg;
+    }
+  }
+
   /* ==================== 卡片绘制 ==================== */
 
   /* 事件 → 竖版卡片画布。
@@ -215,6 +276,33 @@
     const areaH = footTop - areaTop - 40;         // 留给档位区的高度
     const rowH = outs.length ? Math.max(74, Math.min(112, areaH / outs.length)) : 0;
 
+    /* 饼图类图像（用户 2026-10-20："分享也应该是饼图之类的图像"）。
+       互斥事件 → 左侧环图，档位列表在右；
+       独立问句 → 不画环图（画了就是暗示不存在的互斥关系），改画概率堆叠条，
+                  同样是"图像"，但表达的是各档位各自多大。 */
+    const isPartition = !!ev.partition;
+    const slices = (global.PMCharts && global.PMCharts.donutSlices)
+      ? global.PMCharts.donutSlices(ev.outcomes || [], ev.rest, '其他')
+      : [];
+    const donutR = 92;
+    const donutCx = PAD + donutR + 6;
+    const listX = isPartition ? donutCx + donutR + 34 : PAD;
+    const listW = W - PAD - listX;
+
+    if (isPartition && slices.length) {
+      const donutCy = areaTop + Math.min(rowH * outs.length, areaH) / 2;
+      drawDonut(c, donutCx, donutCy, donutR, donutR * 0.6, slices, T,
+        { note: '环图按各档位报价占比绘制' });
+    } else if (outs.length) {
+      // 独立问句：概率堆叠条 + 一句"不可相加"
+      const barY = areaTop + 6;
+      drawStack(c, listX, barY, listW, 16, outs, palette, T);
+      c.textAlign = 'left';
+      c.fillStyle = T.text3;
+      c.font = '15px ' + CJK;
+      c.fillText('各档位为独立问句，概率不可相加（下方为各自报价）', listX, barY + 40);
+    }
+
     outs.forEach((o2, i) => {
       const ry = areaTop + i * rowH;
       const p = Number(o2.probability);
@@ -224,8 +312,8 @@
       c.font = '23px ' + CJK;
       c.textAlign = 'left';
       const label = o2.labelZh || o2.label || '';
-      const maxLabelW = W - PAD * 2 - 220;
-      c.fillText(wrapText(c, label, maxLabelW, 1)[0] || '', PAD, ry + 26);
+      const maxLabelW = listW - 200;
+      c.fillText(wrapText(c, label, maxLabelW, 1)[0] || '', listX, ry + 26);
       // 概率
       c.fillStyle = col;
       c.font = '600 34px ' + MONO;
@@ -241,12 +329,11 @@
       }
       // 概率条
       const barY = ry + rowH - 22;
-      const barW = W - PAD * 2;
       c.fillStyle = over(T.border, T.bg);
-      c.fillRect(PAD, barY, barW, 7);
+      c.fillRect(listX, barY, listW, 7);
       if (!isNaN(p) && p > 0) {
         c.fillStyle = col;
-        c.fillRect(PAD, barY, Math.max(3, barW * Math.min(1, p)), 7);
+        c.fillRect(listX, barY, Math.max(3, listW * Math.min(1, p)), 7);
       }
     });
 
@@ -257,7 +344,7 @@
     const note = ev.partition
       ? '档位互斥，概率合计约 100%'
       : '各档位是彼此独立的问句，概率不可加总';
-    c.fillText(note, PAD, Math.min(footTop - 16, areaTop + Math.max(0, outs.length) * rowH + 4));
+    c.fillText(note, listX, Math.min(footTop - 16, areaTop + Math.max(0, outs.length) * rowH + 4));
 
     // 底部品牌区
     c.fillStyle = T.borderSolid;

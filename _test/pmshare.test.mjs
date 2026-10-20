@@ -85,5 +85,22 @@ await test('导出：优先系统分享，不可用时退回下载（不给人�
   assert.doesNotMatch(src, /download\s*=\s*`[^`]*\$\{[^}]*id/i, '下载文件名里带了事件 id');
 });
 
+await test('分享卡片是"饼图类图像"：互斥事件画环图，独立问句画概率堆叠条', () => {
+  // 用户 2026-10-20："分享也应该是饼图之类的图像"——原来整张卡只有文字+细条。
+  assert.match(src, /drawDonut/, '缺少环图绘制');
+  assert.match(src, /drawStack/, '缺少独立问句事件的堆叠条');
+  assert.match(src, /arc\(/, '环图没有画圆弧');
+  // 环图口径必须与页面一致：复用 PMCharts.donutSlices，不自己另算一套占比
+  assert.match(src, /PMCharts\.donutSlices/, '环图没复用 PMCharts.donutSlices（口径会与页面对不上）');
+  // 互斥才画环图：独立问句画环图等于暗示了并不存在的互斥关系
+  assert.match(src, /isPartition/, '没有区分互斥/独立事件');
+});
+
+await test('分享卡片：环图中心显示最大档位概率，图注说明"占比"与"真实报价"是两件事', () => {
+  assert.match(src, /最大档位/, '环图中心没标最大档位');
+  assert.match(src, /环图按各档位报价占比绘制/, '缺少"环图是占比形状、数字是真实报价"的说明');
+  assert.match(src, /不可相加/, '独立问句事件缺少"概率不可加总"的口径');
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

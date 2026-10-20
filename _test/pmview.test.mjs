@@ -71,7 +71,7 @@ await test('cardHTML（互斥事件）：有环图，档位行带真实报价，
   assert.match(html, />85%</, '图例数字是真实报价（84.5% → 85%）');
   assert.match(html, /其他 2 项/, '未展开档位要单列');
   assert.match(html, /互斥档位/, '应标注档位互斥');
-  assert.match(html, /pm-trend/);
+  assert.ok(!/pm-trend/.test(html), '没给历史时不该出现走势区（无历史就不显示）');
 });
 
 await test('cardHTML（独立问句事件）：不出环图，标"不可相加"', () => {
@@ -101,11 +101,17 @@ await test('cardHTML：走势图跟的是选中的档位，切选择就换序列
   assert.match(b, /class="pm-out on"[^>]*data-pmout="pm:2"/);
 });
 
-await test('cardHTML：没有历史序列时给诚实空态，不画假线', () => {
+await test('cardHTML：没有历史序列时整块走势都不出现（不留空壳占位）', () => {
+  // 用户 2026-10-20："事件的概率走势似乎都没有显示 如果采集不到就不要显示了"。
+  // 采集端每轮只回填有限条（HIST_FETCH_MAX=60），实测 30 张卡里只有 1 个事件有历史，
+  // 其余 29 张都挂着"历史序列积累中"的占位框——占位比空白更吵。
   const html = V.cardHTML(partitionEvent, META.central_bank, { history: null });
   assert.ok(!/pm-trend-line/.test(html), '没有历史不能画线');
-  assert.match(html, /pm-trend-empty/, '应显示空态说明');
-  assert.match(html, /历史序列积累中/);
+  assert.ok(!/pm-trend/.test(html), '没有历史时整个走势区都不该出现（含标题与空态）');
+  assert.ok(!/pm-trend-empty/.test(html), '不该再留"积累中"占位');
+  assert.ok(!/历史序列积累中/.test(html), '不该出现"积累中"这类占位文案');
+  // 卡的其余部分照常（档位行、环图都在）
+  assert.match(html, /class="pm-out/, '档位行仍应渲染');
 });
 
 await test('sectionsHTML：按分类分区，超过 6 个出折叠按钮', () => {
@@ -127,7 +133,12 @@ await test('sectionsHTML：按分类分区，超过 6 个出折叠按钮', () =>
 await test('cardHTML：概率条与走势线跟档位同色（图例↔扇区↔条↔线一个色）', () => {
   const bin = PM.HIST_BIN_MS;
   const from = 1792400000000 - 6 * bin;
-  const grid = { binMs: bin, from, count: 6, series: { 'pm:1': [800, 820, 840, 845, 845, 845] } };
+  // 两个档位都给历史：切档位后走势线要换色，
+  // 而"切到没历史的档位"是另一种情况（整块走势不出现），另有一条测试钉着。
+  const grid = {
+    binMs: bin, from, count: 6,
+    series: { 'pm:1': [800, 820, 840, 845, 845, 845], 'pm:2': [100, 110, 130, 140, 145, 145] },
+  };
   const html = V.cardHTML(partitionEvent, META.central_bank, { history: grid, sel: { 'ev:1': 'pm:1' } });
   const C = ctx.window.PMCharts;
   // 第一档的色 = 调色板第 0 号
@@ -146,7 +157,7 @@ await test('合规回归：渲染结果里不出现任何链接/交易入口', (
   assert.ok(!/https?:|slug|polymarket\.com|clob/i.test(html), '渲染结果里不允许出现链接或平台名');
 });
 
-await test('真实产物：polymarket.json 渲染出环图 + 档位行 + 走势图', () => {
+await test('真实产物：polymarket.json 渲染出环图 + 档位行（无历史的卡不出现走势区）', () => {
   const f = path.join(ROOT, 'data/events/polymarket.json');
   if (!readFileSync) return;
   let d;
@@ -157,11 +168,42 @@ await test('真实产物：polymarket.json 渲染出环图 + 档位行 + 走势�
   const html = V.sectionsHTML(groups, {});
   assert.match(html, /pm-donut/, '真实数据里应有互斥事件出环图');
   assert.match(html, /pm-out/, '应有档位行');
-  assert.match(html, /pm-trend/, '应有走势区');
+  // 没带 history → 走势区整块不出现（采集不到就不显示）
+  assert.ok(!/pm-trend/.test(html), '无历史数据时不该出现走势区');
   // 独立事件必须一条环图都没有（逐个断言，不能只看整体）
   const indep = events.filter(e => !e.partition);
   indep.forEach(e => {
     const h = V.cardHTML(e, PM.CAT_META[e.category], {});
     assert.ok(!/pm-donut/.test(h), `独立事件「${e.title}」不该有环图`);
   });
+});
+
+await test('真实历史产物：有数据的档位能画出走势图（前端确实用上了采集数据）', () => {
+  const fh = path.join(ROOT, 'data/events/polymarket-history.json');
+  const fp = path.join(ROOT, 'data/events/polymarket.json');
+  if (!readFileSync) return;
+  let grid, d;
+  try {
+    grid = JSON.parse(readFileSync(fh, 'utf8'));
+    d = JSON.parse(readFileSync(fp, 'utf8'));
+  } catch { console.log('   （产物尚未生成，跳过）'); return; }
+  if (!grid || !grid.series || !Object.keys(grid.series).length) {
+    console.log('   （历史产物为空，跳过）');
+    return;
+  }
+  const events = PM.sanitizeEvents(d.events);
+  // 找出"采集到了历史"的档位
+  const withHist = [];
+  events.forEach(e => (e.outcomes || []).forEach(o => {
+    if (grid.series[o.id] && PM.seriesFromGrid(grid, o.id).length >= 2) withHist.push({ e, o });
+  }));
+  if (!withHist.length) {
+    console.log('   （产物里的档位与历史 key 对不上，跳过）');
+    return;
+  }
+  const { e, o } = withHist[0];
+  const html = V.cardHTML(e, PM.CAT_META[e.category], { history: grid, sel: { [e.id]: o.id } });
+  assert.match(html, /pm-trend-line/, '有历史的档位应画出走势线');
+  assert.match(html, /pm-trend-cur/, '走势区应标明跟的是哪个档位');
+  assert.ok(!/pm-trend-empty/.test(html), '有历史就不该出现空态占位');
 });
