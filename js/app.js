@@ -122,7 +122,7 @@
     'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats',
     'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle', 'intradaySeg',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
-    'globeStatus', 'mapLegend',
+    'globeStatus', 'mapLegend', 'mapStatusPts',
     'evGlobePane', 'evNewsPane', 'evPmPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
     'pmSub', 'pmList', 'pmOverview',
     'mapLayers', 'countryDetail',
@@ -2137,10 +2137,14 @@
     const stale = !newest || ageMs > 2 * 3600 * 1000;   // 最新事件也老过 2 小时 = 上游真停了
     el.globeStatus.classList.toggle('warn', stale);
     const ageTxt = newest ? fmtAgo(newest) : '时间未知';
+    // 这一行只讲两件事：数据从哪来、还新不新。
+    // 地图点数统计是地图自己的信息（它有独立的图例与落点），
+    // 塞进状态行会把它撑成一长串换行，把工具栏顶高——信息各归其位。
     const src = (state.eventsVia === 'cache' ? '缓存 · ' : '') + (state.eventsSource || '') +
       ' · 最新事件 ' + ageTxt +
       (stale ? ' · 上游疑似停更' : '');
-    el.globeStatus.textContent = state.mapStatusPts ? src + ' · ' + state.mapStatusPts : src;
+    el.globeStatus.textContent = src;
+    el.globeStatus.title = src;
   }
 
   function renderEvTypeBar() {
@@ -2429,7 +2433,12 @@
     return window.WorldMapView.create(el.mapStage, {
       onSelect: selectGlobalEvent,
       onCluster: showCluster,
-      onStatus: (t) => { state.mapStatusPts = t; if (state.eventsSub === 'map') renderGlobeStatus(); },
+      onStatus: (t) => {
+        // 落点统计是地图自己的信息，显示在地图角落（与操作提示同一处），
+        // 不塞进顶部状态行——那边只讲"数据从哪来、还新不新"。
+        state.mapStatusPts = t;
+        if (el.mapStatusPts) el.mapStatusPts.textContent = t ? t + ' · ' : '';
+      },
       onCountryPick: ({ lat, lng, land }) => {
         // 平面地图空白点击：优先用 countries-110m 点在多边形（精确国界命中，
         // 修复"点新疆判给巴基斯坦"的最近首都算法），海面/无多边形国家再退

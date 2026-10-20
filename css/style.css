@@ -840,10 +840,12 @@ html[data-theme] .seg-lg button.active:not(.x) {
 /* ==================== 全球事件（3D 地球 + 事件流） ==================== */
 /* 状态行（数据源 + 新鲜度 + 告警）属于"信息"不属于"控件"：
    靠右对齐 + 压到最弱的一档，让左边的导航/筛选控件保持主位。
-   告警态（warn）才允许提亮——平时它是背景噪音，不该跟按钮抢眼。 */
-.tool-status { margin-left: auto; max-width: 46%; text-align: right;
-  font-size: 10px; color: var(--text-faint); font-family: var(--font-mono); letter-spacing: 0.04em;
-  line-height: 1.5; }
+   告警态（warn）才允许提亮——平时它是背景噪音，不该跟按钮抢眼。
+   宽度必须限住：数据源名 + 新鲜度 + 地图统计拼起来能有一百多字符，
+   硬换行会撑出两三行把工具栏顶高，单行截断更可控。 */
+.tool-status { margin-left: auto; max-width: 42%; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+  font-size: 10px; color: var(--text-faint); font-family: var(--font-mono); letter-spacing: 0.04em; }
 .tool-status.warn { color: var(--warn); }
 .ev-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex: none; }
 .ev-imp { font-size: 9px; padding: 1px 6px; border: 1px solid var(--warn); color: var(--warn);
@@ -863,6 +865,9 @@ html[data-theme] .seg-lg button.active:not(.x) {
 /* 叠在画布之上：地图画布自带不透明海洋底色，不给 z-index 会盖住图例与提示 */
 .globe-hint { position: absolute; z-index: 2; right: 12px; bottom: 10px; font-size: 10px;
   color: var(--text-faint); letter-spacing: 0.06em; pointer-events: none; }
+/* 落点统计与操作提示同属"地图的辅助信息"，放一起才对；
+   统计在前、提示在后，中间留一点间隔才读得出是两条信息 */
+.globe-hint #mapStatusPts { margin-right: 10px; color: var(--text-tertiary); }
 
 /* 2D 平面世界地图（与 3D 地球同一容器语言：暗海、灰蓝陆地、类型色事件点） */
 #mapStage { cursor: grab; }
