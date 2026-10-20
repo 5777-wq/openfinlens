@@ -170,12 +170,16 @@
     watchSet = new Set(window.Store.watchlist.all().map(x => x.symbol));
   }
 
-  /* ---- LOGO：加密=本地化开源图标集(MIT)；美股=域名 favicon(免密钥)；A股无稳定免费源，不造假 ---- */
+  /* ---- LOGO：加密=本地化开源图标集(MIT)；美股=本地化 favicon(抓取自域名 favicon 源，零运行时外部请求)；
+       A股无稳定免费源，不造假 ----
+     美股 logo 原先走 https://www.google.com/s2/favicons：**国内不可达**，而且每个可见行
+     都会触发一次跨域请求（失败后 onerror 移除，界面一直缺 logo）。改为一次性抓取到
+     assets/icons/us/<symbol>.png（29 个共 19.7 KB），运行时只读本地。 */
   const US_DOMAINS = {
     'usAAPL': 'apple.com', 'usNVDA': 'nvidia.com', 'usMSFT': 'microsoft.com', 'usTSLA': 'tesla.com',
     'usAMZN': 'amazon.com', 'usGOOG': 'google.com', 'usMETA': 'meta.com', 'usAVGO': 'broadcom.com',
     'usAMD': 'amd.com', 'usQCOM': 'qualcomm.com', 'usINTC': 'intel.com', 'usTSM': 'tsmc.com',
-    'usASML': 'asml.com', 'usAMAT': 'appliedmaterials.com', 'usLRCX': 'lnvtx.com', 'usPLTR': 'palantir.com',
+    'usASML': 'asml.com', 'usAMAT': 'appliedmaterials.com', 'usPLTR': 'palantir.com',
     'usENPH': 'enphase.com', 'usFSLR': 'firstsolar.com', 'usSEDG': 'solaredge.com', 'usFLNC': 'fluenceenergy.com',
     'usPFE': 'pfizer.com', 'usMRK': 'msd.com', 'usJNJ': 'jnj.com', 'usLMT': 'lockheedmartin.com',
     'usRTX': 'rtx.com', 'usNOC': 'northropgrumman.com', 'usCHPT': 'chargepoint.com',
@@ -188,7 +192,7 @@
       return base ? 'assets/icons/crypto/' + base + '.svg' : null;
     }
     if (/^us/i.test(q.symbol || '') && US_DOMAINS[q.symbol]) {
-      return 'https://www.google.com/s2/favicons?domain=' + US_DOMAINS[q.symbol] + '&sz=64';
+      return 'assets/icons/us/' + q.symbol + '.png';
     }
     return null;
   }
