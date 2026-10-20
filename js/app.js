@@ -109,7 +109,7 @@
     // 吸顶跑马条 + Movers 三榜（2026-09-17）
     'tape', 'moversSection', 'moversGrid', 'moversTitle', 'moversSub',
     // 首屏下方的「我的自选」块与全球涨跌概览条
-    'watchSection', 'watchGrid', 'watchSub', 'watchMore', 'globeSum',
+    'watchSection', 'watchGrid', 'watchSub', 'watchMore', 'marketBrief',
     'heatCanvas', 'heatTip', 'heatWrap', 'heatSection', 'heatSub', 'heatSizeToggle', 'heatTopToggle',
     'heatReset', 'heatZoom', 'heatHint',
     'newsList', 'newsSub', 'chainList',
@@ -693,26 +693,50 @@
     await loadSparks(items).catch(() => { /* 画不出就不画 */ });
     hydrateSparks(el.heroStrip);
     hydrateSparks(el.watchGrid);
-    renderGlobeSum();
+    renderMarketBrief();
   }
 
-  /* 全球指数涨跌概览：一条堆叠条 + 平均涨跌（零请求，用已加载的指数行情）。
-     首屏除了四张卡就是表格会显得干，这条给"今天全球几涨几跌"一个一眼可读的形状。 */
-  function renderGlobeSum() {
-    if (!el.globeSum) return;
+  /* 「市场简报」带（2026-10-20）：首屏先给答案，再给数据。
+     终端顶部仪表条（annunciator panel）的语言：左标签 / 中间连续分布条 / 右数字。
+     两行仪表：
+       ① 全球指数 —— 几涨几跌 + 平均涨跌（零请求，用已加载的指数行情）
+       ② A股全市场 —— 涨跌家数 + 情绪分（宽度调度器后台已经算好，零新增请求）
+     旧版是一条 180px 的小概览条夹在指数卡中间，信息量小、位置也深；
+     现在提到首屏最顶，一眼回答"现在市场怎么样"。 */
+  function renderMarketBrief() {
+    if (!el.marketBrief) return;
+    const rows = [];
+    const bar = (up, flat, down, total, label) => {
+      const pc = (n) => (n / total * 100).toFixed(2);
+      return `<span class="brief-bar" role="img" aria-label="${label}">
+        <i class="b-up" style="width:${pc(up)}%"></i><i class="b-flat" style="width:${pc(flat)}%"></i><i class="b-down" style="width:${pc(down)}%"></i>
+      </span>`;
+    };
+
     const qs = heroKeys().map(findQuote).concat(state.globeQuotes ? [...state.globeQuotes.values()] : []);
     const valid = qs.filter(q => q && typeof q.changePct === 'number' && !isNaN(q.changePct));
-    if (!valid.length) { el.globeSum.innerHTML = ''; return; }
-    const up = valid.filter(q => q.changePct > 0).length;
-    const flat = valid.filter(q => q.changePct === 0).length;
-    const down = valid.length - up - flat;
-    const avg = valid.reduce((s, q) => s + q.changePct, 0) / valid.length;
-    const pc = (n) => (n / valid.length * 100).toFixed(1);
-    el.globeSum.innerHTML = `<span class="gs-bar" role="img" aria-label="${up} 涨 / ${flat} 平 / ${down} 跌">
-        <i class="gs-up" style="width:${pc(up)}%"></i><i class="gs-flat" style="width:${pc(flat)}%"></i><i class="gs-down" style="width:${pc(down)}%"></i>
-      </span>
-      <span class="gs-avg num ${pctClass(avg)}">${fmtPct(avg)}</span>
-      <span class="gs-txt"><span class="up num">${up}</span> 涨 · <span class="down num">${down}</span> 跌 · 共 ${valid.length} 个全球指数</span>`;
+    if (valid.length) {
+      const up = valid.filter(q => q.changePct > 0).length;
+      const flat = valid.filter(q => q.changePct === 0).length;
+      const down = valid.length - up - flat;
+      const avg = valid.reduce((s, q) => s + q.changePct, 0) / valid.length;
+      rows.push(`<div class="brief-row">
+        <span class="brief-k">全球指数<i class="brief-c num">${valid.length}</i></span>
+        ${bar(up, flat, down, valid.length, up + ' 涨 / ' + flat + ' 平 / ' + down + ' 跌')}
+        <span class="brief-v num"><b class="up">${up}</b> 涨 · <b class="down">${down}</b> 跌${flat ? ' · <b class="flat">' + flat + '</b> 平' : ''} · 均值 <b class="lead ${pctClass(avg)}">${fmtPct(avg)}</b></span>
+      </div>`);
+    }
+
+    const b = state.breadth;
+    if (b && b.total) {
+      rows.push(`<div class="brief-row">
+        <span class="brief-k">A股全市场<i class="brief-c num">${b.total}</i></span>
+        ${bar(b.up, b.flat, b.down, b.total, b.up + ' 涨 / ' + b.flat + ' 平 / ' + b.down + ' 跌')}
+        <span class="brief-v num"><b class="up">${b.up}</b> 涨 · <b class="down">${b.down}</b> 跌${b.flat ? ' · <b class="flat">' + b.flat + '</b> 平' : ''} · 情绪 <b class="lead">${b.score === null || b.score === undefined ? '--' : b.score.toFixed(1)}</b></span>
+      </div>`);
+    }
+
+    el.marketBrief.innerHTML = rows.join('');
   }
 
   /* ==================== 吸顶指数跑马条（2026-09-17） ====================
@@ -1330,6 +1354,8 @@
     }
     state.breadthAt = Date.now();
     renderMood();
+    // 市场简报带的 A股行跟着宽度数据走
+    renderMarketBrief();
     // 加密宽度与美股宽度**不在这里拉**：它们与 A股 无关，挂在 A股 tab 的"情绪与市场宽度"里
     // 既文不对题，又让 A股 tab 白跑一次美股全市场（139 页）。各自归位到 加密/美股 tab，
     // 由那边的 setTab 触发（见 renderMoodCrypto/renderMoodUS 的调用点）。
@@ -1992,7 +2018,7 @@
 
   function renderGlobe() {
     if (!el.globeBar || !state.globeQuotes) return;
-    renderGlobeSum();   // 概览条与指数卡共用同一批数据，一起刷新
+    renderMarketBrief();   // 概览条与指数卡共用同一批数据，一起刷新
     const cells = GLOBAL_IDX.map(x => {
       const q = state.globeQuotes.get(x.secid);
       if (!q) return '';
@@ -3621,7 +3647,7 @@
     if (tab === 'all') {
       renderHero();
       renderHomeWatch();
-      renderGlobeSum();
+      renderMarketBrief();
       ensureSparks();
     }
     // hidden→visible 时之前所有 drawHeat 都被可见性守卫跳过了，回视图必须补一次，
@@ -4619,7 +4645,7 @@
     // 所以首屏专属的两块（我的自选 / 全球涨跌概览）与走势线必须在 init 里自己来一遍
     if (state.tab === 'all') {
       renderHomeWatch();
-      renderGlobeSum();
+      renderMarketBrief();
       ensureSparks();
     }
     renderStatus();

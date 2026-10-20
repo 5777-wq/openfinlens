@@ -512,6 +512,16 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
   .link-bar, .thermo-fill, .dist-bar { transition: none; }
 }
 
+/* 全球指数栅格按宽度降列（6 → 4 → 3 → 2）：
+   6 列在 1280px 以下每格不足 105px，"138,220.7" 这类 9~10 位指数放不下会压到邻格。
+   声明顺序必须 1279 → 960 → 640，后面的断点才能覆盖前面的列数。 */
+@media (max-width: 1279px) {
+  .globe-grid { grid-template-columns: repeat(4, 1fr); }
+  .gcard:nth-child(6n) { border-right: 1px solid var(--border); }
+  .gcard:nth-child(4n) { border-right: none; }
+  .globe-grid .gcard:nth-child(-n+4) { border-top: none; }
+}
+
 @media (max-width: 960px) {
   .main { padding: calc(var(--topbar-h) + var(--tape-h) + 24px) 16px 56px; }
   .topbar { padding: 0 16px; gap: 16px; }
@@ -519,6 +529,12 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
   .hero-cell:nth-child(3) { border-left: none; }
   .hero-cell { border-top: 1px solid var(--border); }
   .hero-cell:nth-child(-n+2) { border-top: none; }
+  /* 全球指数栅格：6 列在 960px 以下每格只剩 ~100px，"138,220.7" 这类 9~10 位数字
+     放不下、压到邻格（数字相撞＝读不出来）。按宽度降列：6 → 4 → 3 → 2。 */
+  .globe-grid { grid-template-columns: repeat(3, 1fr); }
+  .gcard:nth-child(4n) { border-right: 1px solid var(--border); }
+  .gcard:nth-child(3n) { border-right: none; }
+  .globe-grid .gcard:nth-child(-n+3) { border-top: none; }
   .mood-top { grid-template-columns: 1fr; gap: 24px; }
   .breadth-grid { grid-template-columns: repeat(2, 1fr); }
   .bd-cell:nth-child(3) { border-left: none; padding-left: 0; }
@@ -532,6 +548,10 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
   .tabs { gap: 14px; }
   h1.page-title { font-size: 22px; }
   .hero-value { font-size: 24px; }
+  /* 简报带在窄屏改成三行堆叠：标签 / 分布条 / 数字，不挤压也不截断 */
+  .brief-row { grid-template-columns: 1fr; gap: 5px; padding: 10px 2px; }
+  .brief-bar { width: 100%; }
+  .brief-v { white-space: normal; }
   .qrow { grid-template-columns: 1fr auto auto; grid-template-rows: auto auto; gap: 2px 14px;
     padding: 10px 34px 10px 4px; }
   .qrow-head { display: none; }
@@ -656,8 +676,10 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 /* 全球指数卡网格（hero 同构，六大市场与中美视觉平级） */
 .globe-grid { display: grid; grid-template-columns: repeat(6, 1fr);
   margin-top: 14px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.gcard { padding: 16px 14px 14px; border-right: 1px solid var(--border); min-width: 0; }
+.gcard { padding: 16px 14px 14px; border-right: 1px solid var(--border); min-width: 0;
+  border-top: 1px solid var(--border); }
 .gcard:nth-child(6n) { border-right: none; }
+.globe-grid .gcard:nth-child(-n+6) { border-top: none; }
 /* 名称区固定两行高度：长短名混排（富时100/KOSPI）曾让同一行三个数字高低差 16px */
 .gcard .hero-label { font-size: 11px; color: var(--text-tertiary); min-height: 30px;
   line-height: 1.35; align-items: flex-end; overflow: hidden; }
@@ -749,11 +771,11 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 @media (max-width: 640px) {
   .tech-grid { grid-template-columns: 1fr; }
   .mrow { grid-template-columns: 92px repeat(6, minmax(74px, 1fr)); }
-  .globe-grid { grid-template-columns: repeat(3, 1fr); }
-  .gcard:nth-child(6n) { border-right: 1px solid var(--border); }
-  .gcard:nth-child(3n) { border-right: none; }
+  .globe-grid { grid-template-columns: repeat(2, 1fr); }
+  .gcard:nth-child(3n) { border-right: 1px solid var(--border); }
+  .gcard:nth-child(2n) { border-right: none; }
   .gcard { border-top: 1px solid var(--border); }
-  .globe-grid .gcard:nth-child(-n+3) { border-top: none; }
+  .globe-grid .gcard:nth-child(-n+2) { border-top: none; }
   .gcard .hero-value { font-size: 17px; }
   .ma-menu { right: 0; left: auto; }
 }
@@ -1201,17 +1223,39 @@ body.no-crypto .crypto-only { display: none !important; }
 @media (max-width: 860px) {
   .rbar .rb-lo, .rbar .rb-hi { display: none; }   /* 窄屏只留轨道，数值靠 title 提示 */
 }
-/* 全球涨跌概览条：一眼看清"今天几个涨几个跌" */
-.globe-sum { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 11px;
-  color: var(--text-tertiary); }
-.globe-sum .gs-bar { display: flex; flex: 0 0 180px; height: 6px; border-radius: 3px;
-  overflow: hidden; background: var(--border); }
-.globe-sum .gs-bar > i { display: block; height: 100%; }
-.globe-sum .gs-up { background: var(--up); }
-.globe-sum .gs-down { background: var(--down); }
-.globe-sum .gs-flat { background: var(--text-faint); }
-.globe-sum .gs-avg { font-size: 12px; font-weight: 600; }
-.globe-sum .gs-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* ---- 市场简报带（首屏的"答案"）----
+   终端顶部仪表条（annunciator panel）的语言：左标签 / 中间连续分布条 / 右数字。
+   条身是这条带子的签名：不是三段色块，是"市场实际的形状"——
+   涨的宽度就是涨的占比，看一眼就知道今天是普涨、普跌还是分化。 */
+.brief { display: flex; flex-direction: column;
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  margin-bottom: 30px; }
+.brief-row { display: grid; grid-template-columns: 170px minmax(140px, 1fr) auto;
+  align-items: center; gap: 18px; padding: 10px 2px;
+  border-bottom: 1px solid var(--border); }
+.brief-row:last-child { border-bottom: none; }
+.brief-k { display: flex; align-items: baseline; gap: 9px; min-width: 0;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--text-tertiary); white-space: nowrap; }
+.brief-c { font-size: 11px; letter-spacing: 0; color: var(--text-faint); }
+/* 条身是"尺"不是"块"：4px、无边框，只做形状提示。
+   （第一版做成 9px 带边框的满幅色块，结果两条红绿条比下面 hero 的 30px 大数字还响，
+    签名元素不能是两声大嗓门——boldness 只花在一处。） */
+.brief-bar { display: flex; height: 4px; border-radius: 2px; overflow: hidden;
+  background: var(--bg-elevated); }
+.brief-bar > i { display: block; height: 100%; }
+.brief-bar > .b-up { background: var(--up); }
+.brief-bar > .b-down { background: var(--down); }
+.brief-bar > .b-flat { background: var(--text-faint); }
+.brief-v { font-size: 12px; color: var(--text-tertiary); white-space: nowrap; }
+.brief-v b { font-weight: 600; color: var(--text-secondary); }
+.brief-v b.up { color: var(--up); }
+.brief-v b.down { color: var(--down); }
+.brief-v b.flat { color: var(--text-tertiary); }
+/* 结论数字（均值 / 情绪）是这一行的主角：涨跌家数是证据，均值才是判断 */
+.brief-v b.lead { color: var(--text); font-size: 13px; font-weight: 700; }
+.brief-v b.lead.up { color: var(--up); }
+.brief-v b.lead.down { color: var(--down); }
 
 /* 我的自选：卡片网格（窄屏 2 列 → 宽屏 4 列，与 hero 同构） */
 .wgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
