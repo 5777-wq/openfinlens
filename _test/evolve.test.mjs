@@ -192,7 +192,7 @@ await test('全市场去重：并发两次调用只发一轮请求', async () =>
     }
     return fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(20000) });
   });
-  load(ctx, 'js/utils.js'); load(ctx, 'js/store.js'); load(ctx, 'js/proxy.js'); load(ctx, 'js/sources/eastmoney.js');
+  load(ctx, 'js/utils.js'); load(ctx, 'js/store.js'); load(ctx, 'js/proxy.js'); load(ctx, 'js/auniverse.js'); load(ctx, 'js/sources/eastmoney.js');
   const EM = vm.runInContext('window.EastmoneySource', ctx);
 
   // total=1 → 单页。无去重时两次并发调用会发 2 次首页请求；去重后只应 1 次。
@@ -217,7 +217,7 @@ await test('全市场去重：失败后 inflight 释放，下次调用重试而�
     }
     return Promise.reject(new Error('ignore'));
   });
-  load(ctx, 'js/utils.js'); load(ctx, 'js/store.js'); load(ctx, 'js/proxy.js'); load(ctx, 'js/sources/eastmoney.js');
+  load(ctx, 'js/utils.js'); load(ctx, 'js/store.js'); load(ctx, 'js/proxy.js'); load(ctx, 'js/auniverse.js'); load(ctx, 'js/sources/eastmoney.js');
   const EM = vm.runInContext('window.EastmoneySource', ctx);
   const r1 = await EM.getFullMarket();
   assert.equal(r1.length, 0, '失败应返回空数组');
@@ -261,6 +261,34 @@ await test('targetFromHashSymbol 前缀规则（与适配器对齐）', () => {
   const em = call('EM:171.US10Y');
   assert.equal(em.secid, '171.US10Y');
   assert.equal(em.market, 'macro');
+});
+
+/* ================= Eastmoney：全市场列表剔除指数 ================= */
+await test('全市场取数：指数行被剔除（热力图/宽度/Movers 共用这份数据）', async () => {
+  const ctx = makeCtx((url) => {
+    if (String(url).includes('/api/qt/clist/get')) {
+      const body = JSON.stringify({
+        data: { total: 4, diff: [
+          { f2: 3727, f3: -0.08, f4: -3, f5: 1e8, f6: 1e10, f12: '000001', f13: 1, f14: '上证指数', f20: 5e13 },
+          { f2: 3991, f3: 0.18, f4: 7, f5: 1e8, f6: 1e10, f12: '399001', f13: 0, f14: '深证成指', f20: 4e13 },
+          { f2: 1800, f3: 1.2, f4: 20, f5: 1e6, f6: 1e9, f12: '600519', f13: 1, f14: '贵州茅台', f20: 1.8e12 },
+          { f2: 10, f3: -0.5, f4: -0.05, f5: 1e6, f6: 1e8, f12: '000002', f13: 0, f14: '万科A', f20: 9e11 },
+        ] },
+      });
+      return Promise.resolve(new Response(body, { status: 200 }));
+    }
+    return fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(20000) });
+  });
+  load(ctx, 'js/utils.js'); load(ctx, 'js/store.js'); load(ctx, 'js/proxy.js');
+  load(ctx, 'js/auniverse.js'); load(ctx, 'js/sources/eastmoney.js');
+  const EM = vm.runInContext('window.EastmoneySource', ctx);
+  const rows = await EM.getFullMarket();
+  const codes = rows.map(r => r.code);
+  assert.ok(!codes.includes('000001'), '上证指数不该出现在全市场列表里');
+  assert.ok(!codes.includes('399001'), '深证成指不该出现在全市场列表里');
+  assert.deepEqual(codes, ['600519', '000002'], '个股必须完整保留，顺序不变');
+  // 行上要带市场码：下游（宽度/热力图）按 f13 判断市场
+  assert.equal(rows[0].market, 1);
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

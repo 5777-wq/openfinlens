@@ -1107,7 +1107,8 @@
       ? '缓存 · ' + fmtTime(state.heatCachedAt[state.heatMode])
       : via === 'backup' ? '备用源' : via ? '主源直连' : '等待数据';
     const rangeTxt = state.heatMode === 'cn'
-      ? (state.heatTopMode === 'top' ? ' · 市值 Top 500（宽度统计仍用全量）' : ' · 全市场')
+      // "全市场"指全市场个股：指数是成分股的加权聚合，不是成分股（口径见 js/auniverse.js）
+      ? (state.heatTopMode === 'top' ? ' · 市值 Top 500（宽度统计仍用全量个股）' : ' · 全市场个股（不含指数）')
       : (state.heatMode === 'hk' || state.heatMode === 'us')
         ? ' · 市值 Top 500（全市场共 ' + n + ' 只）' : '';
     // 加密热力图面积口径跟着实际数据走：真实市值富化覆盖 ≥80% 才标「市值」，否则如实写「24h成交额」

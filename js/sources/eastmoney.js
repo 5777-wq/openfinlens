@@ -116,6 +116,7 @@ const EastmoneySource = (() => {
           code: String(d.f12 || ''),
           name: String(d.f14 || ''),
           secid: (num(d.f13) !== null ? d.f13 : (String(d.f12).startsWith('6') ? 1 : 0)) + '.' + d.f12,
+          market: num(d.f13),          // 0=深 1=沪：判断"是不是指数"要用（行级分类见 js/auniverse.js）
           price: num(d.f2), changePct: num(d.f3), change: num(d.f4),
           volume: num(d.f5), amount: num(d.f6),
           marketCap: num(d.f20),
@@ -124,7 +125,12 @@ const EastmoneySource = (() => {
           if (!x.code || x.changePct === null || seen.has(x.code)) return false;
           seen.add(x.code);
           return true;
-        });
+        })
+        /* 指数不是成分股：全市场列表里各板块的头条指数（上证指数/深证成指/创业板指/科创50…）
+           会一起返回。它们是成分股的加权聚合，留在"全市场"里等于把同一批市值算两遍：
+           面积失真、视觉被巨大指数块吃掉、还会被算进"涨跌家数"（家数只该数个股）。
+           在数据源剔一次，热力图 / 市场宽度 / Movers 三榜同时干净。 */
+        .filter(x => !window.AUniverse.isIndexRow(x));
       if (list.length) {
         // total 字段缺失/为 0 时只抓到首页 100 行样本：宽度与热力图建立在残缺样本上，
         // 必须打 fail 让角标说话——照常 ok 会让降级完全隐形

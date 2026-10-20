@@ -10,7 +10,7 @@
 
 [![license](https://img.shields.io/badge/license-MIT-000?style=flat-square)](LICENSE)
 [![release](https://img.shields.io/github/v/release/5777-wq/openfinlens?style=flat-square&label=release)](https://github.com/5777-wq/openfinlens/releases)
-![tests](https://img.shields.io/badge/tests-25%E7%BB%84%C2%B7%E7%A6%BB%E7%BA%BF229%E6%9D%A1-2ebd85?style=flat-square)
+![tests](https://img.shields.io/badge/tests-26%E7%BB%84%C2%B7%E7%A6%BB%E7%BA%BF236%E6%9D%A1-2ebd85?style=flat-square)
 
 <img src="assets/shot-overview.png" alt="OpenFinLens 首屏：全球市场" width="100%">
 
@@ -27,6 +27,8 @@ OpenFinLens 在你的浏览器里直接把数据抓回来、拼成一块屏幕�
 ### 全市场热力图
 
 A股 5000+、港股约 2900、美股约 13800、加密 80 币种，全市场热力图用手写的 squarify 布局加 Canvas 渲染：滚轮以光标为锚缩放，拖拽平移，双指捏合。哪个板块涨疯了，一眼看到，不用开 VIP。
+
+图里只有个股，**指数不进图**：上证指数、深证成指、创业板指、科创50 这些是成分股的加权聚合，不是成分股——留着等于把同一批市值算两遍，巨大指数块还会吃掉半屏面积。更要紧的是涨跌家数只该数个股，所以过滤放在取数层，热力图、市场宽度、涨跌幅榜同时干净。
 
 <img src="assets/shot-treemap.png" alt="A股全市场热力图与市场宽度" width="100%">
 
@@ -131,8 +133,8 @@ push 到你的 GitHub 仓库 → Settings → Pages → `Deploy from a branch`�
 ## 测试
 
 ```bash
-node _test/run-all.mjs            # 25 组（含联网组）
-node _test/run-all.mjs --offline  # 19 组 229 条，断网可跑，已挂 CI
+node _test/run-all.mjs            # 26 组（含联网组）
+node _test/run-all.mjs --offline  # 20 组 236 条，断网可跑，已挂 CI
 ```
 
 技术指标有构造序列对账；降级链是逐条改坏主源实测的，不是纸面设计。预测市场的三层（数据模型 / 图形几何 / 视图渲染）各自可离线单测——扇区角度、走势坐标、档位归属、"互斥才给环图"这些约束都是断言出来的，不靠肉眼看图。
