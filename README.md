@@ -157,6 +157,14 @@ node _test/run-all.mjs --offline  # 20 组 236 条，断网可跑，已挂 CI
 
 仅供学习与技术研究，**不构成投资建议**。数据来自第三方公开接口，有延迟、会出错；据此交易，后果自负。
 
+## Contributors
+
+感谢每一个为这个看板付出的人。
+
+[![5777-wq](https://avatars.githubusercontent.com/u/264733989?v=4&s=40)](https://github.com/5777-wq) **[5777-wq](https://github.com/5777-wq)** · 项目作者
+[![Mavis](https://avatars.githubusercontent.com/u/194880281?v=4&s=40)](https://github.com/MiniMax-AI) **[Mavis](https://github.com/MiniMax-AI)** · [MiniMax Code](https://github.com/MiniMax-AI) 的 AI 编程助手，负责架构设计、代码实现与测试
+[![zhipuai](https://avatars.githubusercontent.com/u/133244859?v=4&s=40)](https://github.com/zhipuai) **[智谱 AI · GLM](https://github.com/zhipuai)** · 模型与推理能力支持
+
 ## License
 
 [MIT](LICENSE)
