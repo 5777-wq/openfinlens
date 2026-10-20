@@ -122,5 +122,246 @@ test('draw：无有效数据时返回 false 且不抛（调用方据此保持空
   assert.equal(S.draw(stub, [1, 2, 3], { color: '#fff' }), true);
 });
 
+/* ---------------- 多序列对齐（全球指数并排） ----------------
+   盯的是一个具体事故：hero 上四条全球指数并排，各按自己的 min-max 缩放，
+   结果 ① 幅度全丢（每条都填满高度，"谁涨得多"看不出来）
+        ② x 轴是"第几根"不是日期——实测各市场交易日集合只重合 54/60 天、
+           末点还差一天（上证 10-20 / 标普 10-19），同屏并列看着像同一条时间轴。
+   用户反馈"上证怎么还感觉和标普不对齐"。 */
+
+const D = (s) => s;   // 日期键就是 'YYYY-MM-DD' 字符串
+
+test('alignSeries：共享日期轴是各序列日期的并集（升序去重）', () => {
+  const a = S.alignSeries([
+    { key: 'cn', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 101 }] },
+    { key: 'us', rows: [{ time: D('2026-10-16'), close: 200 }, { time: D('2026-10-20'), close: 202 }] },
+  ]);
+  assert.deepEqual(Array.from(a.axis), ['2026-10-16', '2026-10-19', '2026-10-20'],
+    '日期轴应是并集——某市场休市那天也要在轴上占位，否则 x 就对不上');
+  assert.equal(a.series.length, 2);
+});
+
+test('alignSeries：缺交易日的位置是 null（不插值、不连直线）', () => {
+  const a = S.alignSeries([
+    { key: 'cn', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 101 }] },
+    { key: 'us', rows: [{ time: D('2026-10-16'), close: 200 }, { time: D('2026-10-19'), close: 201 }, { time: D('2026-10-20'), close: 202 }] },
+  ]);
+  const cn = a.series[0];
+  assert.equal(cn.values.length, 3, '长度等于共享轴长度');
+  assert.equal(cn.values[2], null, '10-20 美股有、A股没有 → 留 null');
+  assert.ok(cn.values[0] === 0, '首日相对自身首日 = 0%');
+});
+
+test('alignSeries：涨跌幅以各自的第一个有效点为基准（不是共享轴的第一天）', () => {
+  // 上证可能缺共享轴的头几天：若用轴首日当基准，会算出一个虚假的巨幅涨跌幅。
+  // 基准 = 该序列自己的首个有效点 → 那个位置的涨跌幅是 0%。
+  const a = S.alignSeries([
+    { key: 'cn', rows: [{ time: D('2026-10-19'), close: 100 }, { time: D('2026-10-20'), close: 102 }] },
+    { key: 'us', rows: [{ time: D('2026-10-16'), close: 200 }, { time: D('2026-10-19'), close: 210 }, { time: D('2026-10-20'), close: 220 }] },
+  ]);
+  const axis = Array.from(a.axis);
+  const cn = a.series[0];
+  const cnBase = axis.indexOf('2026-10-19');
+  assert.equal(cn.values[cnBase], 0, '上证在自己首个有效点处 = 0%');
+  assert.equal(cn.values[cnBase + 1], 2, '100 → 102 = +2%');
+  assert.equal(cn.values[0], null, '共享轴首日上证没数据 → null（不编造）');
+  const us = a.series[1];
+  assert.equal(us.values[0], 0, '标普从 200 起算 = 0%');
+  assert.equal(us.values[2], 10, '200 → 220 = +10%');
+});
+
+test('alignedScale：全体共用一套上下限且关于 0 对称（0% 基线在正中）', () => {
+  const a = S.alignSeries([
+    { key: 'a', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 110 }] },  // +10%
+    { key: 'b', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 95 }] },   // -5%
+  ]);
+  const s = S.alignedScale(a);
+  assert.ok(s.max >= 10, '最大绝对涨跌幅应被覆盖，实际 ' + s.max);
+  assert.ok(Math.abs(s.max + s.min) < 1e-6, '上下限应对称，实际 ' + s.min + ' ~ ' + s.max);
+  assert.ok(s.min < 0 && s.max > 0);
+});
+
+test('alignedScale：全平序列时给一个非零标尺（否则除零）', () => {
+  const a = S.alignSeries([{ key: 'a', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 100 }] }]);
+  const s = S.alignedScale(a);
+  assert.ok(s.max > s.min, '标尺不能塌成一个点');
+});
+
+test('alignedPoints：同一日期在所有序列里落在同一个 x（这才是"对齐"）', () => {
+  const rows = [
+    { key: 'cn', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 101 }, { time: D('2026-10-20'), close: 102 }] },
+    { key: 'us', rows: [{ time: D('2026-10-16'), close: 200 }, { time: D('2026-10-19'), close: 201 }, { time: D('2026-10-20'), close: 201 }] },
+  ];
+  const a = S.alignSeries(rows);
+  const s = S.alignedScale(a);
+  const p1 = S.alignedPoints(rows[0].rows, a.axis, s, 100, 40);
+  const p2 = S.alignedPoints(rows[1].rows, a.axis, s, 100, 40);
+  assert.equal(p1.length, 3);
+  assert.equal(p2.length, 3);
+  for (let i = 0; i < 3; i++) {
+    assert.equal(p1[i].x, p2[i].x, `第 ${i} 个点（${a.axis[i]}）两条线的 x 必须相同`);
+  }
+});
+
+test('alignedPoints：缺交易日不产出点（画线时要断开，不能接直线）', () => {
+  const rows = [
+    { key: 'cn', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-20'), close: 102 }] },
+    { key: 'us', rows: [{ time: D('2026-10-16'), close: 200 }, { time: D('2026-10-19'), close: 201 }, { time: D('2026-10-20'), close: 202 }] },
+  ];
+  const a = S.alignSeries(rows);
+  const s = S.alignedScale(a);
+  const p = S.alignedPoints(rows[0].rows, a.axis, s, 100, 40);
+  assert.equal(p.length, 2, '缺 10-19 → 只有 2 个点');
+  assert.equal(p[0].x, 0, '10-16 在轴首');
+  assert.equal(p[1].x, 100, '10-20 在轴尾（x 按轴下标，不是按自己的点数）');
+});
+
+test('alignedPoints：涨得多的线在更高的位置（纵轴幅度可比）', () => {
+  const rows = [
+    { key: 'a', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 120 }] },  // +20%
+    { key: 'b', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 90 }] },   // -10%
+  ];
+  const a = S.alignSeries(rows);
+  const s = S.alignedScale(a);
+  const pa = S.alignedPoints(rows[0].rows, a.axis, s, 100, 40);
+  const pb = S.alignedPoints(rows[1].rows, a.axis, s, 100, 40);
+  assert.ok(pa[1].y < pb[1].y, '涨 20% 的线末点必须比跌 10% 的线末点更高（y 向下）');
+});
+
+test('alignedPoints：首日落在 0% 基线上（共享标尺的中线附近）', () => {
+  const rows = [{ key: 'a', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 110 }] }];
+  const a = S.alignSeries(rows);
+  const s = S.alignedScale(a);
+  const p = S.alignedPoints(rows[0].rows, a.axis, s, 100, 40);
+  // 0% 在对称标尺里对应中线（h/2 = 20）
+  assert.ok(Math.abs(p[0].y - 20) < 0.5, '首日 0% 应落在中线附近，实际 y=' + p[0].y);
+});
+
+test('alignedPoints：数据不足或尺寸非法返回 null（不画）', () => {
+  const a = S.alignSeries([{ key: 'a', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 110 }] }]);
+  const s = S.alignedScale(a);
+  assert.equal(S.alignedPoints([{ time: D('2026-10-16'), close: 100 }], a.axis, s, 100, 40), null, '单点不画');
+  assert.equal(S.alignedPoints([], a.axis, s, 100, 40), null);
+  assert.equal(S.alignedPoints(null, a.axis, s, 100, 40), null);
+  assert.equal(S.alignedPoints([{ time: D('2026-10-16'), close: 1 }], a.axis, s, 0, 40), null, '宽度为 0 不画');
+  assert.equal(S.alignedPoints([{ time: D('2026-10-16'), close: 1 }], [], s, 100, 40), null, '空轴不画');
+});
+
+test('alignedPoints：某序列在共享轴上完全没有点 → null（不画）', () => {
+  const a = S.alignSeries([
+    { key: 'cn', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 101 }] },
+    { key: 'us', rows: [{ time: D('2026-10-16'), close: 200 }, { time: D('2026-10-19'), close: 201 }] },
+  ]);
+  const s = S.alignedScale(a);
+  assert.equal(S.alignedPoints([{ time: D('2026-01-01'), close: 5 }], a.axis, s, 100, 40), null,
+    '日期完全不在轴上的序列不该画出东西');
+});
+
+test('drawAligned：缺口处的两点之间不连线（避免画出根本不存在的走势）', () => {
+  const segs = [];
+  const stub = {
+    clientWidth: 100, clientHeight: 30,
+    getContext: () => ({
+      setTransform() {}, clearRect() {}, beginPath() {},
+      moveTo(x, y) { segs.push(['move', x]); },
+      lineTo(x, y) { segs.push(['line', x]); },
+      closePath() {}, stroke() { segs.push(['stroke']); }, fill() {},
+    }),
+  };
+  // 共享轴长 11 天，本序列只有首尾两天 → x 从 0 跳到 100，中间缺了 9 天
+  const ok = S.drawAligned(stub, [{ x: 0, y: 10 }, { x: 100, y: 20 }], { color: '#fff', axisLen: 11 });
+  assert.equal(ok, true);
+  const strokes = segs.filter(s => s[0] === 'stroke').length;
+  assert.equal(strokes, 2, '缺口两侧应分成两段（两次 stroke），实际 ' + strokes);
+});
+
+test('drawAligned：相邻点（无缺口）应连成一段', () => {
+  const segs = [];
+  const stub = {
+    clientWidth: 100, clientHeight: 30,
+    getContext: () => ({
+      setTransform() {}, clearRect() {}, beginPath() {},
+      moveTo(x, y) { segs.push(['move', x]); },
+      lineTo(x, y) { segs.push(['line', x]); },
+      closePath() {}, stroke() { segs.push(['stroke']); }, fill() {},
+    }),
+  };
+  // 共享轴 11 天 → 正常步长 = 100/10 = 10；连续三天（10-16/17/18）间距正好是步长
+  const ok = S.drawAligned(stub, [{ x: 0, y: 10 }, { x: 10, y: 12 }, { x: 20, y: 8 }],
+    { color: '#fff', axisLen: 11 });
+  assert.equal(ok, true);
+  const strokes = segs.filter(s => s[0] === 'stroke').length;
+  assert.equal(strokes, 1, '连续点只画一段，实际 ' + strokes);
+  const lines = segs.filter(s => s[0] === 'line').length;
+  assert.equal(lines, 2, '三个点 = 两条连线');
+});
+
+test('alignSeries：传入非数组（缓存包装对象等）不崩，返回空结构', () => {
+  // 真实事故：Cache.get 返回 { val, at } 包装，直接传进去会在这里炸
+  // "object is not iterable"，整个 hero 走势图全部画不出来。
+  const a = S.alignSeries({ val: [{ time: D('2026-10-16'), close: 1 }] });
+  assert.equal(a.axis.length, 0);
+  assert.equal(a.series.length, 0);
+  assert.deepEqual(S.alignSeries(null).axis, []);
+  assert.deepEqual(S.alignSeries(undefined).axis, []);
+});
+
+test('alignSeries：单条序列也能工作（不因只有一条就拒绝）', () => {
+  const a = S.alignSeries([{ key: 'a', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 110 }] }]);
+  assert.equal(a.axis.length, 2);
+  assert.equal(a.series.length, 1);
+  assert.equal(a.series[0].values[0], 0);
+});
+
+test('drawAligned：跨过一个休市日（缺 1 天）仍连成一段 —— 那是真实的"这天没开盘"', () => {
+  const segs = [];
+  const stub = {
+    clientWidth: 100, clientHeight: 30,
+    getContext: () => ({
+      setTransform() {}, clearRect() {}, beginPath() {},
+      moveTo(x, y) { segs.push(['move', x]); },
+      lineTo(x, y) { segs.push(['line', x]); },
+      closePath() {}, stroke() { segs.push(['stroke']); }, fill() {},
+      save() {}, restore() {}, setLineDash() {},
+    }),
+  };
+  // 共享轴 11 天（步长 10），本序列缺 10-17 一天 → 两点间距 20（= 2 步）
+  const ok = S.drawAligned(stub, [{ x: 0, y: 10 }, { x: 20, y: 12 }], { color: '#fff', axisLen: 11 });
+  assert.equal(ok, true);
+  const strokes = segs.filter(s => s[0] === 'stroke').length;
+  assert.equal(strokes, 1, '缺 1 个休市日不该断线（时间上确实隔了一天），实际 ' + strokes);
+});
+
+test('drawAligned：空出一整段（> 4 步）才断线（长假/长时间无数据）', () => {
+  const segs = [];
+  const stub = {
+    clientWidth: 100, clientHeight: 30,
+    getContext: () => ({
+      setTransform() {}, clearRect() {}, beginPath() {},
+      moveTo(x, y) { segs.push(['move', x]); },
+      lineTo(x, y) { segs.push(['line', x]); },
+      closePath() {}, stroke() { segs.push(['stroke']); }, fill() {},
+      save() {}, restore() {}, setLineDash() {},
+    }),
+  };
+  // 共享轴 11 天（步长 10），两点间距 100 → 中间空了 9 天
+  const ok = S.drawAligned(stub, [{ x: 0, y: 10 }, { x: 100, y: 20 }], { color: '#fff', axisLen: 11 });
+  assert.equal(ok, true);
+  const strokes = segs.filter(s => s[0] === 'stroke').length;
+  assert.equal(strokes, 2, '空出一整段应断成两段，实际 ' + strokes);
+});
+
+test('zeroLineY：0% 基准线在对称标尺的正中', () => {
+  const a = S.alignSeries([
+    { key: 'a', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 120 }] },
+    { key: 'b', rows: [{ time: D('2026-10-16'), close: 100 }, { time: D('2026-10-19'), close: 90 }] },
+  ]);
+  const s = S.alignedScale(a);
+  const y = S.zeroLineY(s, 40);
+  assert.ok(Math.abs(y - 20) < 0.01, '0% 应在中线 y=20，实际 ' + y);
+  assert.equal(S.zeroLineY(null, 40), null);
+  assert.equal(S.zeroLineY({ min: 0, max: 0 }, 40), null, '标尺塌了不给基准线');
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

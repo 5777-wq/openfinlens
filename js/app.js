@@ -538,7 +538,10 @@
     const cap = document.getElementById('heroCap');
     if (cap) {
       cap.hidden = false;
-      cap.textContent = '全球核心指数 · 点击进详情 · 曲线为近 60 个交易日';
+      // 读法要写清：四条线是同一条时间轴上的"相对首日涨跌幅"，
+      // 纵轴高度可直接横向比较（用户问"上证怎么和标普不对齐"——
+      // 之前各按自己的 min-max 缩放，幅度全丢了，看着像两条不相干的曲线）。
+      cap.textContent = '全球核心指数 · 点击进详情 · 曲线为近 60 个交易日 · 四条线同一时间轴，纵轴为相对首日涨跌幅';
     }
     box.innerHTML = keys.map(heroCellHTML).join('');
     hydrateSparks(box);
@@ -578,27 +581,48 @@
   const SPARK_TTL = 10 * 60 * 1000;
   const SPARK_BARS = 60;
 
+  /* 取一条日线序列。**必须连日期一起取**（rows: [{time, close}]）：
+     全球指数是并排显示的，光有收盘价无法知道每根线对应哪一天——
+     各市场的交易日集合并不相同（实测上证/标普只重合 54/60 天，末点还差一天），
+     按序号对齐会把不同的日子画到同一个 x 上，看着像同一条时间轴（用户反馈"不对齐"）。
+     缓存 key 带 v2：格式从「纯 close 数组」变成「带日期的 rows」，
+     不换 key 的话同一次会话里会命中旧结构的缓存，代码按新格式读就拿到 undefined。 */
+  const SPARK_KEY = 'spark2:';
   async function sparkCloses(sym, market) {
-    const key = 'spark:' + sym;
+    const key = SPARK_KEY + sym;
     const hit = Cache.get(key, SPARK_TTL);
     if (hit) return hit.val;
-    let closes = null;
+    let rows = null;
     try {
       if (market === 'crypto') {
-        const rows = await window.BinanceSource.getKline(sym, '1d', SPARK_BARS);
-        closes = (rows || []).map(k => k && k.close);
+        const r = await window.BinanceSource.getKline(sym, '1d', SPARK_BARS);
+        rows = (r || []).map(k => k && ({ time: dayKey(k.time), close: k.close }));
       } else if (!/^EM:/.test(sym)) {
-        const rows = await window.TencentSource.getKline(sym, 'day', SPARK_BARS);
-        closes = (rows || []).map(k => k && k.close);
+        const r = await window.TencentSource.getKline(sym, 'day', SPARK_BARS);
+        rows = (r || []).map(k => k && ({ time: dayKey(k.time), close: k.close }));
       }
-    } catch { closes = null; }
-    const ok = Array.isArray(closes) && closes.filter(v => typeof v === 'number' && isFinite(v)).length >= 2;
-    if (ok) { Cache.set(key, closes); return closes; }
+    } catch { rows = null; }
+    rows = (rows || []).filter(r => r && typeof r.time === 'string' && r.time
+      && typeof r.close === 'number' && isFinite(r.close));
+    const ok = rows.length >= 2;
+    if (ok) { Cache.set(key, rows); return rows; }
     return null;
   }
 
+  /* 日线时间戳 → 'YYYY-MM-DD'。腾讯给的是 'YYYY-MM-DD' 字符串，
+     币安给的是毫秒时间戳，两种都要归到同一个键格式上才能按日期对齐。 */
+  function dayKey(t) {
+    if (typeof t === 'string') return t.slice(0, 10);
+    if (typeof t === 'number' && isFinite(t)) {
+      const d = new Date(t);
+      if (isNaN(d.getTime())) return '';
+      return d.toISOString().slice(0, 10);
+    }
+    return '';
+  }
+
   async function loadSparks(items, max = 3) {
-    const todo = items.filter(it => it && it.sym && !Cache.get('spark:' + it.sym, SPARK_TTL));
+    const todo = items.filter(it => it && it.sym && !Cache.get(SPARK_KEY + it.sym, SPARK_TTL));
     let next = 0;
     const worker = async () => {
       while (next < todo.length) {
@@ -609,23 +633,58 @@
     await Promise.all(Array.from({ length: Math.min(max, todo.length) }, worker));
   }
 
-  /* 把已经在缓存里的走势线画到容器内的 canvas 上（先插 DOM 再画：canvas 得有尺寸） */
+  /* 把已经在缓存里的走势线画到容器内的 canvas 上（先插 DOM 再画：canvas 得有尺寸）
+   *
+   * hero 的四个全球指数走**对齐模式**：共享日期轴 + 共享涨跌幅标尺。
+   * 原因见 js/spark.js 的对齐模式说明——各按自己的 min-max 缩放时，
+   * 既看不出幅度差别，x 轴上的"第 N 根"又根本不是同一天（用户反馈"不对齐"）。
+   * 自选卡是单序列，单独看没有"跟谁比"的问题，继续用原样即可。 */
   function hydrateSparks(root) {
     if (!root || !window.Spark) return;
     const up = getComputedStyle(document.body).getPropertyValue('--up').trim() || '#ff5c5c';
     const down = getComputedStyle(document.body).getPropertyValue('--down').trim() || '#2ebd85';
+    const heroSyms = new Set(HERO_KEYS);
+    // 先把 hero 的几条序列凑齐，算出共享日期轴与共享标尺
+    const heroSeries = heroKeys().map(sym => ({
+      key: sym,
+      // Cache.get 返回 { val, at } 包装，取 .val 才是数据本身
+      rows: (Cache.get(SPARK_KEY + sym, SPARK_TTL) || {}).val || null,
+    })).filter(s => s.rows);
+    const aligned = heroSeries.length >= 2 ? window.Spark.alignSeries(heroSeries) : null;
+    const scale = aligned ? window.Spark.alignedScale(aligned) : null;
+    // 对齐模式下画布宽度必须四格一致（首格曾有 padding 特例，已在 CSS 去掉）。
+    // 若此刻宽度还没量出来（DOM 刚插入、尚未布局），延后一帧再画——
+    // 否则会静默退回单序列模式，出现"有时对齐有时不对齐"。
+    const widths = Array.from(root.querySelectorAll('canvas[data-spark]'))
+      .map(cv => cv.clientWidth || 0);
+    if (widths.some(w => w === 0)) {
+      requestAnimationFrame(() => hydrateSparks(root));
+      return;
+    }
+
     root.querySelectorAll('canvas[data-spark]').forEach(cv => {
       const sym = cv.getAttribute('data-spark');
-      const hit = Cache.get('spark:' + sym, SPARK_TTL);
+      const hit = Cache.get(SPARK_KEY + sym, SPARK_TTL);
       // 没有日线源（宏观/外汇）或数据不够：整块收起，不留一个 34px 的空白槽
       if (!hit) { cv.hidden = true; return; }
-      const closes = hit.val;
       const q = findQuote(sym);
+      const rows = Array.isArray(hit.val) ? hit.val : [];
+      const closes = rows.map(r => r && r.close).filter(v => typeof v === 'number' && isFinite(v));
       const rising = (q && typeof q.changePct === 'number') ? q.changePct >= 0
-        : closes[closes.length - 1] >= closes[0];
+        : (closes.length ? closes[closes.length - 1] >= closes[0] : true);
       const color = rising ? up : down;
       // 不画面积填充：迷你走势线并排时会连成一片色块墙（2026-10-20 用户反馈很突兀）
-      const ok = window.Spark.draw(cv, closes, { color, fill: '', width: 1.8 });
+      let ok = false;
+      if (heroSyms.has(sym) && aligned && scale) {
+        const w = cv.clientWidth || 0, h = cv.clientHeight || 0;
+        const pts = window.Spark.alignedPoints(rows, aligned.axis, scale, w, h);
+        ok = pts ? window.Spark.drawAligned(cv, pts, {
+          color, width: 1.8, axisLen: aligned.axis.length,
+          zeroY: window.Spark.zeroLineY(scale, h),
+          zeroColor: getComputedStyle(document.body).getPropertyValue('--border').trim(),
+        }) : false;
+      }
+      if (!ok) ok = window.Spark.draw(cv, closes, { color, fill: '', width: 1.8 });
       cv.hidden = !ok;
       if (ok) cv.removeAttribute('hidden');
     });
@@ -4856,11 +4915,17 @@
       if (state.view === 'watch') renderWatchlist();
     });
 
-    // 窗口尺寸变化 → 热力图重排（rAF 节流）
+    // 窗口尺寸变化 → 热力图重排 + 走势线重画（rAF 节流）
+    // 走势线也要重画：hero 四条线走对齐模式（同一 x = 同一天），
+    // 窗口变宽变窄后画布宽度变了，不重画的话四格的横坐标就不再对应同一天。
     let rz = 0;
     window.addEventListener('resize', () => {
       if (rz) return;
-      rz = requestAnimationFrame(() => { rz = 0; if (state.heat && isOn(el.heatSection)) drawHeat(); });
+      rz = requestAnimationFrame(() => {
+        rz = 0;
+        if (state.heat && isOn(el.heatSection)) drawHeat();
+        if (el.heroStrip) hydrateSparks(el.heroStrip);
+      });
     });
   }
 

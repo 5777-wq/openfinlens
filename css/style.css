@@ -177,7 +177,13 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
   margin-bottom: 44px; }
 .hero-cell { padding: 18px 20px 16px; border-left: 1px solid var(--border); cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out); min-width: 0; }
-.hero-cell:first-child { border-left: none; padding-left: 4px; }
+/* 首格原来 padding-left: 4px，做"与上方标题左对齐"的缩进。
+   但那会让首格的走势线画布比其余三格宽 16px —— hero 四条线走对齐模式
+   （同一 x = 同一天，见 js/spark.js），画布不等宽等于对齐失效：
+   上证那格按自己的宽度定位，同一天的横坐标就与标普差一截。
+   所以这里去掉首格特例，四格用完全相同的 padding —— 内容区严格等宽，
+   四条线才能共用同一套横坐标。 */
+.hero-cell:first-child { border-left: none; }
 .hero-cell:hover { background: var(--bg-hover); }
 .hero-label { font-size: 10px; letter-spacing: 0.14em; color: var(--text-tertiary);
   text-transform: uppercase; display: flex; justify-content: space-between;
