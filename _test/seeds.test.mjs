@@ -53,7 +53,9 @@ await test('13f.json：每家机构量级/占比/环比合法，期权单列且�
       assert.ok(h.valueUsd >= 0 && h.valueUsd <= inst.totalValueUsd, '单行市值不超过组合合计');
       assert.ok(['SH', 'CALL', 'PUT'].includes(h.kind), `${inst.slug} kind 非法: ${h.kind}`);
       pctSum += h.pctOfTotal || 0;
-      assert.ok(['NEW', 'ADD', 'TRIM', 'HOLD', 'EXIT'].includes(h.change), '环比标签合法');
+      // UNKNOWN：上期 13F 没取到 → 环比无法判断（2026-10-20 加；以前这种情况被标成 NEW，
+      // 界面于是断言"全部新进"，是假的）
+      assert.ok(['NEW', 'ADD', 'TRIM', 'HOLD', 'EXIT', 'UNKNOWN'].includes(h.change), '环比标签合法');
     }
     assert.ok(pctSum <= 100.5, `${inst.slug} 占比合计 ${pctSum}% 不该超过 100%`);
     // 同一 CUSIP 允许多行，但只能因"正股 + 期权"这种不同 kind 而重复；
@@ -67,6 +69,21 @@ await test('13f.json：每家机构量级/占比/环比合法，期权单列且�
       assert.equal(new Set(kinds).size, kinds.length,
         `${inst.slug} 的 ${cusip} 出现同 kind 重复行（聚合未按 CUSIP+kind 拆分）`);
     });
+    // 环比可信度标记（2026-10-20 加）：上期取不到时必须是 priorAvailable:false +
+    // 全部 change='UNKNOWN' + priorReportDate=null —— 绝不能照抄一个正常日期骗人，
+    // 更不能把"取不到"显示成"全部新进"。
+    assert.equal(typeof inst.priorAvailable, 'boolean', `${inst.slug} 缺 priorAvailable 标记`);
+    if (inst.priorAvailable === false) {
+      assert.equal(inst.priorReportDate, null, `${inst.slug} 上期不可用时 priorReportDate 应为 null`);
+      assert.ok(inst.holdings.every(h => h.change === 'UNKNOWN'),
+        `${inst.slug} 上期不可用时所有档位必须是 UNKNOWN，不得出现 NEW/ADD/TRIM/HOLD`);
+      assert.ok(!inst.exits || inst.exits.length === 0, `${inst.slug} 上期不可用时不该有 exits`);
+    } else {
+      assert.ok(typeof inst.priorReportDate === 'string' && inst.priorReportDate.length === 10,
+        `${inst.slug} 上期可用时 priorReportDate 应是 YYYY-MM-DD`);
+      assert.ok(!inst.holdings.some(h => h.change === 'UNKNOWN'),
+        `${inst.slug} 上期可用时不该出现 UNKNOWN`);
+    }
   }
 });
 

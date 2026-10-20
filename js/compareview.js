@@ -62,7 +62,10 @@ window.CompareView = (() => {
 
   /* ---------------- 工具 ---------------- */
 
-  const todayISO = () => new Date().toISOString().slice(0, 10);
+  /* 「今天」按**本地时区**取，不用 toISOString()（它按 UTC 取日期）：
+     中国时区 00:00–08:00 之间会算成昨天，基金对比页那个可见的「止」日期输入框
+     每天有 8 小时显示错一天。口径统一到 U.fmtDay（utils.js 里写了同样约定的注释）。 */
+  const todayISO = () => window.U.fmtDay(Date.now());
   const daysBetween = (a, b) => Math.max(1, Math.round((Date.parse(b) - Date.parse(a)) / 86400000));
   const palette = () => (window.Charts && window.Charts.themeColors
     ? window.Charts.themeColors().lineColors : ['#e8a33d']);

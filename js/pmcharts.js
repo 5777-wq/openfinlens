@@ -24,8 +24,13 @@ const PMCharts = (() => {
   const SLICE_MIN = 0.0005;         // 小于 0.05% 的扇区不再细分（几何上不可见）
 
   const isNum = (v) => typeof v === 'number' && isFinite(v);
-  const esc = (s) => String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  /* 转义优先用 js/utils.js 的 U.escapeHTML（单一事实源）。
+     兜底实现只给没加载 utils.js 的单测沙箱用；早前这里自己写的 esc 漏了单引号，
+     属性里会漏出去（"O'Reilly" 这类名字）。 */
+  const esc = (s) => (window.U && window.U.escapeHTML ? window.U.escapeHTML(s)
+    : String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
 
   /* ---------- 环图 ---------- */
 

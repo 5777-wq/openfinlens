@@ -89,6 +89,14 @@ function makeCtx() {
       fmtPct: (n) => (n === null || n === undefined || isNaN(n)) ? '--' : (n > 0 ? '+' : '') + Number(n).toFixed(2) + '%',
       escapeHTML: (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;'),
+      // 本地日期 YYYY-MM-DD（与 js/utils.js 的 fmtDay 同语义：不用 toISOString，
+      // 它按 UTC 取日期，中国时区早上八点前会把当天记成昨天）
+      fmtDay: (ts) => {
+        if (!ts) return '--';
+        const d = new Date(ts);
+        const p = (x) => String(x).padStart(2, '0');
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+      },
       fetchJSONP: async () => { throw new Error('no jsonp in test'); },
       Cache: { get: () => null, set: () => {}, raw: () => null },
       request: async () => { throw new Error('no network in test'); },

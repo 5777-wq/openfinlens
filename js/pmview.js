@@ -14,8 +14,14 @@
 
 const PMView = (() => {
 
-  const esc = (s) => String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  /* 转义/日期/数值一律优先用 js/utils.js 的公共实现（U.escapeHTML / U.fmtDay / U.fmtVol），
+     避免同一套逻辑写三遍、改一处漏一处。
+     这里的兜底实现只在单测沙箱（没加载 utils.js）里会走到；它同样转义单引号——
+     早前 pmview/pmcharts 各自的 esc 漏了 `'`，属性里会漏出去。 */
+  const esc = (s) => (window.U && window.U.escapeHTML ? window.U.escapeHTML(s)
+    : String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
 
   const pmDay = (ms) => {
     const d = new Date(ms);
@@ -24,20 +30,20 @@ const PMView = (() => {
   };
 
   /* 完整日期（截止日要看到年份——可能是明年） */
-  const fullDay = (ms) => {
+  const fullDay = (ms) => (window.U && window.U.fmtDay ? window.U.fmtDay(ms) : (() => {
     if (!ms) return '';
     const d = new Date(ms);
     const p = (x) => String(x).padStart(2, '0');
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
-  };
+  })());
 
   /* 金额紧凑写法（万/亿） */
-  const vol = (n) => {
+  const vol = (n) => (window.U && window.U.fmtVol ? window.U.fmtVol(n) : (() => {
     if (n === null || n === undefined || isNaN(n)) return '--';
     return n >= 1e8 ? (n / 1e8).toFixed(2) + '亿'
       : n >= 1e4 ? (n / 1e4).toFixed(0) + '万'
         : String(Math.round(n));
-  };
+  })());
 
   /* 类别分布总览：事件计数的环图。
      这块永远是有效饼图——数的是事件个数（计数），不是概率，

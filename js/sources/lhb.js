@@ -115,7 +115,8 @@ const LhbSource = (() => {
   /* 单席位历史活动（跨日）：90 天窗口按日期倒序。win.history.test 已实测可用。
      返回原始明细行（买卖各查一次，合并交给 Actors.buildSeatHistory）。 */
   async function getSeatRawHistory(seatCode, sinceDays) {
-    const since = new Date(Date.now() - (sinceDays || 90) * 86400000).toISOString().slice(0, 10);
+    // 本地日期，不用 toISOString()（UTC 会让 00:00–08:00 的窗口少一天）
+    const since = window.U.fmtDay(Date.now() - (sinceDays || 90) * 86400000);
     const one = (reportName, sortCol) => {
       const qs = new URLSearchParams({
         reportName, columns: 'ALL',

@@ -42,13 +42,13 @@
     newsVia: null,
     newsCachedAt: null,
     newsLoadedAt: 0,
-    reports: [],
     chainQuotes: new Map(),
     watchQuotes: new Map(),   // 自选里"轮询全集之外"的标的行情（自选孤岛修复）
     openLinks: new Set(),
     openChains: new Set(),   // 热度表中展开的板块
     breadth: null,
     breadthAt: null,
+    breadthStamp: 0,            // 上次算宽度时的 heatFetchedAt —— 数据没变就不重算（30s 数据 vs 10s 调度）
     breadthHist: [],          // 情绪逐日快照（localStorage 持久化，来源 Store.breadthHist）
     pushed: 0,                // 本会话 pushState 次数（详情返回按钮判断能否 history.back）
     hashLock: false,          // 编程式改 hash 时抑制一次 hashchange（pushState 不可用的回退路径）
@@ -66,13 +66,13 @@
     boardItems: [], boardLoadedAt: 0, boardVia: null,
     boardOpenBk: null, boardStocks: [], boardGen: 0,
     voices: null, voicesAt: 0, voicesGen: 0, globeQuotes: null,
-    events: null, eventsVia: null, eventsGenAt: null, eventsStale: true, eventsLoadedAt: 0,
+    events: null, eventsVia: null, eventsLoadedAt: 0,
     eventsSub: Store.get('evMode', 'map'),     // 事件页子视图：map（平面地图）| news（实时快讯）| pm（市场预测）；存量 'globe' 由 setEventsSub 归一
     eventsType: 'all',         // 事件类型过滤（all / macro / central_bank / …）
     // 市场预测（Polymarket 隐含概率，只读展示）；pmExpand 记录各分类是否展开全部
     // pmEvents 是"事件"数组（每个事件带若干档位），pmSel 记录每张卡片当前选中的档位（走势图跟谁）
     pmEvents: [], pmExpand: {}, pmSel: {}, pmHistory: null,
-    pmVia: null, pmGenAt: null, pmStale: true, pmLoadedAt: 0,
+    pmVia: null, pmGenAt: null, pmLoadedAt: 0,
     eventsSource: '',          // 数据源名（状态行合成用）
     mapStatusPts: null,        // 平面地图点数状态（onStatus 回调），与数据源状态行合并显示
     selEvent: null,            // 当前选中的全球事件
@@ -89,9 +89,10 @@
     // 港股通（南向）持有个股：日频，浏览器直连（datacenter 带 CORS，无需采集层）
     southbound: null, southboundDate: null, southboundAt: 0,
     // A股 基金持仓变动（东财采集静态 JSON，季度）：fundDir = add | trim
-    fundHolds: null, fundHoldsAt: 0, fundDir: 'add',
+    // fundHoldsVia/etfVia：走缓存兜底时必须标出来（读者分不出实时还是旧数据）
+    fundHolds: null, fundHoldsAt: 0, fundHoldsVia: null, fundHoldsCachedAt: 0, fundDir: 'add',
     // 美股 因子 ETF 持仓（Invesco 采集静态 JSON，日更）：etfSub = spmo | splv | both
-    etf: null, etfAt: 0, etfSub: 'spmo',
+    etf: null, etfAt: 0, etfVia: null, etfCachedAt: 0, etfSub: 'spmo',
     chartEventsOn: true,       // 详情页 K 线事件标记开关
     // Movers 三榜的行载荷（data-symbol → 全市场行）：行不在 universe 轮询全集里，
     // 点击进详情需要 secid/market 映射，渲染时顺手登记
@@ -104,14 +105,14 @@
 
   const $ = (id) => document.getElementById(id);
   const el = {};
-  const DOM_IDS = ['tabs', 'cardWall', 'watchWall', 'marketSub', 'selftestOut', 'selftest',
+  const DOM_IDS = ['tabs', 'cardWall', 'watchWall', 'marketSub', 'selftestOut',
     // 吸顶跑马条 + Movers 三榜（2026-09-17）
     'tape', 'moversSection', 'moversGrid', 'moversTitle', 'moversSub',
     // 首屏下方的「我的自选」块与全球涨跌概览条
     'watchSection', 'watchGrid', 'watchSub', 'watchMore', 'globeSum',
     'heatCanvas', 'heatTip', 'heatWrap', 'heatSection', 'heatSub', 'heatSizeToggle', 'heatTopToggle',
     'heatReset', 'heatZoom', 'heatHint',
-    'newsList', 'newsSub', 'chainList', 'chainSub',
+    'newsList', 'newsSub', 'chainList',
     'boardStrip', 'boardVia', 'boardDrawer',
     'moodSub', 'moodScore', 'moodBand', 'moodFill', 'breadthGrid', 'distWrap', 'distSub', 'moodSpark', 'heroStrip', 'moodCrypto', 'moodUS',
     'searchInput', 'searchResults', 'settingsBtn', 'settingsModal', 'settingsClose',
@@ -119,7 +120,7 @@
     'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats',
     'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle', 'intradaySeg',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
-    'eventsSub', 'globeStatus', 'mapLegend',
+    'globeStatus', 'mapLegend',
     'evGlobePane', 'evNewsPane', 'evPmPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
     'pmSub', 'pmList', 'pmOverview',
     'mapLayers', 'countryDetail',
@@ -128,7 +129,7 @@
     'brkBox', 'brkVia', 'marketTitle', 'globalOverview', 'moodPanel',
     'aFundsPanel', 'usFundsPanel', 'hkFundsPanel', 'sbBox', 'sbVia',
     'cryptoMoodPanel', 'usMoodPanel', 'fundBox', 'fundVia', 'etfBox', 'etfVia',
-    'actorBack', 'actorName', 'actorType', 'actorMeta', 'actorStats', 'actorStatsSub', 'actorTimeline',
+    'actorBack', 'actorName', 'actorMeta', 'actorStats', 'actorStatsSub', 'actorTimeline',
     // 基金对比：视图模块自己持有这些节点的引用（app.js 只负责在 init 时把节点交出去）
     'cmpBar', 'cmpInput', 'cmpResults', 'cmpAdd', 'cmpStatus', 'cmpRetry', 'cmpPresets',
     'cmpChips', 'cmpChipsSub', 'cmpSub', 'cmpStart', 'cmpEnd', 'cmpQuick', 'cmpLog', 'cmpNormHint',
@@ -761,10 +762,28 @@
 
   /* 价格闪烁（TradingView 的"数字会呼吸"）：涨/跌时给格子一次背景色淡出。
      用 Web Animations API 而不是类名开关——不需要 void offsetWidth 强制重排，
-     动画结束即自动释放，重复触发天然重启。 */
+     动画结束即自动释放，重复触发天然重启。
+
+     --up-rgb / --down-rgb 是主题常量，行情 tick 期间不会变，所以缓存起来：
+     原来每 tick 对每个变动的格子调一次 getComputedStyle(document.body)
+     （卡片墙 37 行 + 跑马灯 13 格 → 最多 50 次/tick），而这次读取还发生在
+     同循环里写完 textContent 之后，样式脏时会额外触发一次同步样式刷新。
+     换肤时由 invalidateFlashColors() 失效。 */
+  let flashRgb = { up: '', down: '' };
+  function invalidateFlashColors() { flashRgb = { up: '', down: '' }; }
+  function flashRgbOf(dir) {
+    const key = dir === 'up' ? 'up' : 'down';
+    if (!flashRgb[key]) {
+      const v = (getComputedStyle(document.body).getPropertyValue(key === 'up' ? '--up-rgb' : '--down-rgb') || '').trim();
+      if (!v) return '';
+      flashRgb[key] = v;
+    }
+    return flashRgb[key];
+  }
+
   function flashPrice(node, dir) {
     if (!node || reduceMotion() || typeof node.animate !== 'function') return;
-    const rgb = (getComputedStyle(document.body).getPropertyValue(dir === 'up' ? '--up-rgb' : '--down-rgb') || '').trim();
+    const rgb = flashRgbOf(dir);
     if (!rgb) return;
     node.animate(
       [{ backgroundColor: 'rgba(' + rgb + ', 0.20)' }, { backgroundColor: 'rgba(0,0,0,0)' }],
@@ -984,8 +1003,16 @@
       // 任何缺失 secid 或前缀不在白名单的行直接剔除，绝不进入热力图。
       const before = rows.length;
       rows = rows.filter(r => /^([015]\.|5\.)/.test(String(r.secid || '')));
+      // 指数剔除（口径见 js/auniverse.js）：指数是成分股的加权聚合，不是成分股。
+      // 必须在**消费端**也做一次——上面那条 secid 白名单只管"是不是 A 股"，
+      // 挡不住 1.000001(上证指数)/0.399001(深证成指) 这类"确实是 A 股的指数"。
+      // 东财兜底路径的行没有 market 字段，AUniverse 会从 secid 前缀反推市场。
+      const beforeIdx = rows.length;
+      rows = rows.filter(r => !window.AUniverse.isIndexRow(r));
       if (rows.length !== before) {
-        via = (via === 'primary' ? 'primary·已剔除非A股权重 ' + (before - rows.length) : 'backup·已剔除非A股权重 ' + (before - rows.length));
+        const dropped = before - rows.length;
+        const droppedIdx = beforeIdx - rows.length;
+        via = via + (droppedIdx ? `·已剔除指数 ${droppedIdx}` : '') + (dropped - droppedIdx ? `·已剔除非A股权重 ${dropped - droppedIdx}` : '');
       }
       Cache.set('heat:cn', rows);
       state.heatItems.cn = rows;
@@ -1044,6 +1071,17 @@
   const HEAT_RANGE_MODES = { cn: true };
   // 各市场的取数入口（函数声明已提升，这里只是把它们收成一张表，避免 switchHeat 里堆三元）
   const HEAT_LOADERS = { cn: loadHeatCN, crypto: loadHeatCrypto, hk: ensureHKRows, us: ensureUSRows };
+
+  /* 画出来的块数：调度器每 30 秒只为"数量有没有变"问一次。
+     原来走 heatItemsForRender()，里头把 5500 行按市值排序一遍再 slice——
+     为了拿一个数字付出 ~65k 次比较 + 5500 元素拷贝 + 500 次对象分配。
+     数量规则和 heatItemsForRender 完全一致，只是不用排序。 */
+  function heatRenderCount() {
+    const rows = state.heatItems[state.heatMode] || [];
+    const sliceTop = state.heatMode !== 'crypto' &&
+      (HEAT_RANGE_MODES[state.heatMode] ? state.heatTopMode !== 'all' : true);
+    return (sliceTop && rows.length > 500) ? 500 : rows.length;
+  }
 
   function heatItemsForRender() {
     let rows = state.heatItems[state.heatMode] || [];
@@ -1136,6 +1174,12 @@
   function bindHeatHover() {
     const canvas = el.heatCanvas;
     const tip = el.heatTip;
+    /* 提示框尺寸缓存：内容是固定 4 行（名称/代码/价/涨跌幅），宽高只随
+       "名称+代码"变，价与涨跌幅每次 hover 都在变但不影响尺寸。
+       原来每帧"写 innerHTML → 读 offsetWidth"= 写完立刻读布局，浏览器被迫
+       同步重排（节流到 60fps 也照样每帧一次 reflow）。现在按内容 key 缓存，
+       只有换格子才量一次尺寸。 */
+    let tipSize = { key: '', w: 0, h: 0 };
     const move = (clientX, clientY) => {
       const rect = canvas.getBoundingClientRect();
       const x = clientX - rect.left, y = clientY - rect.top;
@@ -1143,6 +1187,11 @@
       state.heat.setHover(i);
       if (i < 0) { tip.classList.remove('active'); return; }
       const it = state.heat.cellAt(i).item;
+      // 顺序要紧：先把要读的布局读完，再写 innerHTML —— 反过来就是强制同步重排
+      const wrapRect = el.heatWrap.getBoundingClientRect();
+      const sizeKey = it.name + '|' + it.code;
+      const sizeChanged = sizeKey !== tipSize.key;
+      if (sizeChanged) { tipSize.key = sizeKey; tipSize.w = 0; tipSize.h = 0; }
       tip.innerHTML = `<div class="ht-inner">
         <div class="ht-name">${escapeHTML(it.name)}</div>
         <div class="ht-row num">${escapeHTML(it.code)}</div>
@@ -1150,8 +1199,8 @@
         <div class="ht-row num ${pctClass(it.pct)}">${fmtPct(it.pct)}</div>
       </div>`;
       tip.classList.add('active');
-      const wrapRect = el.heatWrap.getBoundingClientRect();
-      const tw = tip.offsetWidth, th = tip.offsetHeight;
+      let tw = tipSize.w, th = tipSize.h;
+      if (!tw || !th) { tw = tipSize.w = tip.offsetWidth; th = tipSize.h = tip.offsetHeight; }
       let left = clientX - wrapRect.left + 14;
       let top = clientY - wrapRect.top + 14;
       if (left + tw > wrapRect.width) left = clientX - wrapRect.left - tw - 14;
@@ -1262,13 +1311,20 @@
 
   async function loadMood() {
     const rows = await ensureBreadthRows();
-    state.breadth = window.Breadth.compute(rows);
+    /* 全市场行 30 秒才换一次（heatFetchedAt），而 mood 每 10 秒被调度一次。
+       没必要每轮重算 5500 行的宽度指标（filter + 排序求中位数 + 每行 3 个正则），
+       也没必要每轮重写一遍 localStorage 的情绪历史。数据没变就复用上次的。 */
+    const stamp = state.heatFetchedAt || 0;
+    if (!state.breadth || state.breadthStamp !== stamp) {
+      state.breadth = window.Breadth.compute(rows);
+      state.breadthStamp = stamp;
+      // 情绪历史（方法论：market-breadth 的宽度时间序列）：逐日快照存本机，
+      // 全市场样本不足 3000 只不入库（腾讯兜底样本会算出假情绪）
+      state.breadthHist = window.Breadth.recordHistory(
+        window.Store.get('breadthHist', []), state.breadth.score, state.breadth.total);
+      window.Store.set('breadthHist', state.breadthHist);
+    }
     state.breadthAt = Date.now();
-    // 情绪历史（方法论：market-breadth 的宽度时间序列）：逐日快照存本机，
-    // 全市场样本不足 3000 只不入库（腾讯兜底样本会算出假情绪）
-    state.breadthHist = window.Breadth.recordHistory(
-      window.Store.get('breadthHist', []), state.breadth.score, state.breadth.total);
-    window.Store.set('breadthHist', state.breadthHist);
     renderMood();
     // 加密宽度与美股宽度**不在这里拉**：它们与 A股 无关，挂在 A股 tab 的"情绪与市场宽度"里
     // 既文不对题，又让 A股 tab 白跑一次美股全市场（139 页）。各自归位到 加密/美股 tab，
@@ -1370,12 +1426,35 @@
       </div>`;
   }
 
+  /* 宽度/情绪面板的 DOM 骨架（只建一次）。
+     原来每次 renderMood 都 innerHTML 重建整块（4 格 + 7 列 ≈ 45 个节点），两个后果：
+     ① 每 10 秒销毁重建一遍节点，.dist-bar 的 scaleY 过渡因为节点是新建的而**永远不播放**
+        （看着像"数据在跳"而不是"柱子在长"）；
+     ② 10 秒一次的全量 DOM 重建，在 A股 tab 上是纯浪费。
+     现在：骨架建一次，之后只改 textContent / transform —— 与卡片墙 patchCards 同一思路。 */
+  let moodSkeleton = null;
+
+  function buildMoodSkeleton() {
+    el.breadthGrid.innerHTML = '<div class="bd-cell"><div class="bd-label"></div><div class="bd-value num"></div><div class="bd-sub num"></div></div>'.repeat(4);
+    el.distWrap.innerHTML = '<div class="dist-col"><div class="dist-count num"></div><div class="dist-bar-area"><span class="dist-bar"></span></div><div class="dist-label"></div></div>'.repeat(7);
+    moodSkeleton = {
+      cells: Array.prototype.map.call(el.breadthGrid.querySelectorAll('.bd-cell'), c => ({
+        label: c.querySelector('.bd-label'), value: c.querySelector('.bd-value'), sub: c.querySelector('.bd-sub'),
+      })),
+      cols: Array.prototype.map.call(el.distWrap.querySelectorAll('.dist-col'), c => ({
+        root: c, count: c.querySelector('.dist-count'),
+        bar: c.querySelector('.dist-bar'), label: c.querySelector('.dist-label'),
+      })),
+    };
+  }
+
   function renderMood() {
     const b = state.breadth;
     if (!b || !b.total) {
       el.moodSub.textContent = '数据源暂不可用，稍后自动重试';
       el.breadthGrid.innerHTML = '<div class="empty">暂无市场宽度数据</div>';
       el.distWrap.innerHTML = '';
+      moodSkeleton = null;
       return;
     }
     // 情绪页数据来自 A 股全市场（cn），读 cn 槽位，不被加密热力图的加载状态污染
@@ -1398,26 +1477,29 @@
       { label: '平均涨跌幅', value: `<span class="${pctClass(b.avgPct)}">${fmtPct(b.avgPct)}</span>`, sub: `中位数 ${fmtPct(b.medianPct)}` },
       { label: '两市成交额', value: b.amount ? (b.amount >= 1e12 ? fmt(b.amount / 1e12, 2) + ' 万亿' : fmtVol(b.amount)) : '--', sub: b.amount ? '沪深京合计' : '该源未返回成交额' },
     ];
-    el.breadthGrid.innerHTML = cells.map(c => `<div class="bd-cell">
-        <div class="bd-label">${c.label}</div>
-        <div class="bd-value num">${c.value}</div>
-        <div class="bd-sub num">${c.sub}</div>
-      </div>`).join('');
+    if (!moodSkeleton) buildMoodSkeleton();
+    cells.forEach((c, i) => {
+      const t = moodSkeleton.cells[i];
+      if (!t) return;
+      t.label.textContent = c.label;
+      t.value.innerHTML = c.value;      // 值里带 <span class="up/down">，只换这一个小叶子
+      t.sub.textContent = c.sub;
+    });
 
     // 七段分布
     const maxRatio = Math.max(...b.dist.map(d => d.ratio), 0.0001);
     el.distSub.textContent = `七段合计 ${b.dist.reduce((s, d) => s + d.count, 0)} 只`;
-    el.distWrap.innerHTML = b.dist.map(d => {
+    b.dist.forEach((d, i) => {
+      const t = moodSkeleton.cols[i];
+      if (!t) return;
       const h = (d.ratio / maxRatio).toFixed(3);
       const color = d.dir === 'up' ? 'var(--up)' : d.dir === 'down' ? 'var(--down)' : 'var(--text-tertiary)';
-      return `<div class="dist-col" title="${d.label}：${d.count} 只（${(d.ratio * 100).toFixed(1)}%）">
-        <div class="dist-count num">${d.count}</div>
-        <div class="dist-bar-area">
-          <span class="dist-bar" style="transform:scaleY(${h});background:${color}"></span>
-        </div>
-        <div class="dist-label">${d.label}</div>
-      </div>`;
-    }).join('');
+      t.count.textContent = d.count;
+      t.label.textContent = d.label;
+      t.bar.style.transform = `scaleY(${h})`;
+      t.bar.style.background = color;
+      t.root.title = `${d.label}：${d.count} 只（${(d.ratio * 100).toFixed(1)}%）`;
+    });
 
     renderMoodSpark();
   }
@@ -1934,8 +2016,6 @@
     const { events, via, generatedAt, stale, source } = await window.EventsSource.getEvents();
     state.events = events;
     state.eventsVia = via;
-    state.eventsGenAt = generatedAt;
-    state.eventsStale = stale;
     state.eventsSource = source;
     state.eventsLoadedAt = Date.now();
     renderGlobeStatus();
@@ -2033,7 +2113,6 @@
     state.pmEvents = res.events;
     state.pmVia = res.via;
     state.pmGenAt = res.generatedAt;
-    state.pmStale = res.stale;
     state.pmHistory = (hist && hist.grid) ? hist.grid : null;
     state.pmLoadedAt = Date.now();
     renderPmList();
@@ -2467,14 +2546,17 @@
      口径必须随数据一起讲清楚：这是**基金合计**（含 ETF/指数基金），被动申赎也体现为加仓/减仓，
      榜单前列常是宽基权重股——不能读成"主动基金经理在买"。 */
   async function loadFundHolds() {
+    let via = 'live';
     try {
       const d = await window.FundHoldsSource.getFundHolds();
       state.fundHolds = d;
       state.fundHoldsAt = Date.now();
+      state.fundHoldsVia = via;
       Cache.set('fundholds', d);
     } catch {
       const c = Cache.raw('fundholds');
-      if (c && c.val) state.fundHolds = c.val;
+      if (c && c.val) { state.fundHolds = c.val; state.fundHoldsVia = 'cache'; state.fundHoldsCachedAt = c.at; }
+      else { state.fundHoldsVia = 'none'; }
     }
     renderFundHolds();
   }
@@ -2495,9 +2577,30 @@
       b.setAttribute('aria-selected', String(on));
     });
     if (el.fundVia) {
-      el.fundVia.textContent = (d.reportDate || '?') + (d.reportDateName ? ' ' + d.reportDateName : '') +
+      /* 口径行必须说清三件事（2026-10-20 补）：
+         ① 这一期是不是披露完整的（季报只披露前十大重仓股，中报/年报才全量；
+            不完整的期会让"减仓榜"变成"没几家基金交报告"的假信号）；
+         ② 下一期还在披露中（读者会问"为什么不是最新的"）；
+         ③ 披露范围：TOP10 时必须注明"仅前十大重仓股"。 */
+      const scopeTxt = d.disclosureScope === 'TOP10' ? ' · 仅前十大重仓股' : '';
+      const fundsTxt = d.fundsReporting ? '（约 ' + d.fundsReporting + ' 只基金）' : '';
+      const nextTxt = d.nextPeriodPending && d.nextPeriod
+        ? ' · 下一期 ' + d.nextPeriod.reportDate + ' 仍在披露中' +
+          (d.nextPeriod.fundsReporting ? '（目前约 ' + d.nextPeriod.fundsReporting + ' 只已披露）' : '') +
+          (d.nextPeriod.usableAfter ? '，预计 ' + d.nextPeriod.usableAfter + ' 后可用' : '')
+        : '';
+      el.fundVia.textContent = (state.fundHoldsVia === 'cache' ? '缓存 · ' + fmtTime(state.fundHoldsCachedAt) + ' · ' : '') +
+        (d.reportDate || '?') + (d.reportDateName ? ' ' + d.reportDateName : '') +
         (d.lagDays === null || d.lagDays === undefined ? '' : '（距期末 ' + d.lagDays + ' 天）') +
-        ' · 基金合计口径（含 ETF）· 按变动金额 Top ' + rows.length;
+        ' · 基金合计口径（含 ETF）' + scopeTxt +
+        (d.partial === false && d.fundsReporting ? ' · 披露完整' + fundsTxt : '') +
+        nextTxt +
+        ' · 按变动金额 Top ' + rows.length;
+      if (el.fundVia.title) {
+        el.fundVia.title = d.refReportDate
+          ? ('完整度以去年同期同类型报告期为基准（' + d.refReportDate + '）：' + (d.completenessBasis || ''))
+          : '';
+      }
     }
     el.fundBox.innerHTML = `<div class="srow-head" aria-hidden="true">
         <span>#</span><span>股票 / 代码</span><span>基金占流通</span><span>持仓市值</span><span>变动金额</span><span>变动幅度</span><span></span>
@@ -2526,10 +2629,12 @@
       const d = await window.EtfSource.getEtfHoldings();
       state.etf = d;
       state.etfAt = Date.now();
+      state.etfVia = 'live';
       Cache.set('etf', d);
     } catch {
       const c = Cache.raw('etf');
-      if (c && c.val) state.etf = c.val;
+      if (c && c.val) { state.etf = c.val; state.etfVia = 'cache'; state.etfCachedAt = c.at; }
+      else { state.etfVia = 'none'; }
     }
     renderEtf();
   }
@@ -2585,7 +2690,7 @@
       via = d.asOf + ' 持仓基准 · 官网发布 ' + d.published + ' · ' + f.zh + '（' + f.ticker +
         '）Top' + f.shownCount + ' 占净值 ' + f.shownPct.toFixed(1) + '%（共 ' + f.equityCount + ' 只股票）';
     }
-    if (el.etfVia) el.etfVia.textContent = via + ' · 点击行进 K 线';
+    if (el.etfVia) el.etfVia.textContent = (state.etfVia === 'cache' ? '缓存 · ' + fmtTime(state.etfCachedAt) + ' · ' : '') + via + ' · 点击行进 K 线';
     el.etfBox.innerHTML = head + rowsHtml;
   }
 
@@ -2773,6 +2878,10 @@
     TRIM: { label: '减持', cls: 'down' },
     HOLD: { label: '不变', cls: 'flat' },
     EXIT: { label: '退出', cls: 'down' },
+    // UNKNOWN：上期 13F 没取到，环比**无法判断**（不是"新进"！）。
+    // 采集端以前把这种情况一律标 NEW，界面于是断言"Pershing 14 只全部新进"——是假的。
+    // 现在用独立取值 + 中性灰显示，宁可说不知道也不说错。
+    UNKNOWN: { label: '环比不可用', cls: 'flat' },
   };
 
   async function loadBrk() {
@@ -2815,11 +2924,16 @@
     if (el.brkVia) {
       // 滞后天数必须显示：13F 是季度披露，实测报告期末→提交日滞后 34~45 天，
       // 不写天数用户会把它当成"最近持仓"。
+      // 上期没取到时（priorAvailable === false）必须说明"环比不可用"——
+      // 否则读者会把一屏"无法判断"读成"全部新进"。
+      const priorOk = cur.priorAvailable !== false;
       el.brkVia.textContent = (d.via === 'cache' ? '缓存 · ' : '') +
         cur.reportDate + ' 报告期 · 提交 ' + (cur.filedAt || '?') +
         (cur.lagDays === null || cur.lagDays === undefined ? '' : '（滞后 ' + cur.lagDays + ' 天）') +
         ' · 组合 ' + fmtUsd(cur.totalValueUsd) +
-        (cur.optionRows ? ' · 含 ' + cur.optionRows + ' 项期权' : '');
+        (cur.optionRows ? ' · 含 ' + cur.optionRows + ' 项期权' : '') +
+        (priorOk ? '' : ' · 上期未取得，环比不可用' + (cur.priorNote ? '（' + cur.priorNote + '）' : ''));
+      if (el.brkVia.title) el.brkVia.title = priorOk ? '' : ('上期 13F 未取得：' + (cur.priorNote || '原因未知') + '；本期持仓照常展示，但涨跌判定不可用');
     }
     const changeChip = (h) => {
       const m = BRK_CHANGE_META[h.change] || { label: '--', cls: 'flat' };
@@ -3644,6 +3758,8 @@
     el.swDegraded.classList.toggle('on', !!s.showDegraded);
     el.swDegraded.setAttribute('aria-checked', String(!!s.showDegraded));
     applyTheme(s.theme);
+    // 红涨绿跌切换会改 --up-rgb/--down-rgb，价格闪烁的颜色缓存要失效
+    invalidateFlashColors();
   }
 
   /* ==================== 界面皮肤（data-theme 变量组，保留终端排版换气质） ==================== */
@@ -3689,6 +3805,8 @@
     root.dataset.theme = t;
     lastTheme = t;
     syncThemeChrome(t);
+    // 价格闪烁用的 --up-rgb/--down-rgb 缓存要失效（换肤可能改涨跌色）
+    invalidateFlashColors();
     // lightweight-charts 不吃 CSS 变量：已打开的图表增量重读主题色
     if (state.chart) window.Charts.retheme(state.chart);
   }
@@ -3785,7 +3903,7 @@
       if (!state.heat) return;
       // 数量对比必须用"当前渲染子集"的块数：A股默认 Top500 只画 500 块，
       // 拿全市场 5500 行对比恒不相等，会每 30s 白做一次全量重排（"只换色不闪白"失效）
-      const renderCount = heatItemsForRender().length;
+      const renderCount = heatRenderCount();
       if (renderCount === state.heat.count) {
         // 数量没变（常规情况）：换色换价不重排；updatePct 按 code 匹配，直接吃全量行
         state.heat.updatePct(rows);

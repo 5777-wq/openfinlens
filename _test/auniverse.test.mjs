@@ -86,6 +86,33 @@ await test('isIndexRow：容错——空行、缺字段不崩', () => {
   assert.equal(AU.isIndexRow({ f12: '000001', f13: 1, f14: '上证指数' }), true);
 });
 
+await test('isIndexRow：东财兜底路径的行（只有 secid 没有 market）也要判出指数', () => {
+  // 主源东财挂掉时走腾讯精选兜底，行形状是 { code: symbol, name, secid }，没有 market 字段。
+  // 上证指数/深证成指/创业板指/科创50 的 secid 是 1./0. 开头 → 必须从 secid 反推市场。
+  const backup = [
+    { code: 'sh000001', name: '上证指数', secid: '1.000001' },
+    { code: 'sz399001', name: '深证成指', secid: '0.399001' },
+    { code: 'sz399006', name: '创业板指', secid: '0.399006' },
+    { code: 'sh000688', name: '科创50', secid: '1.000688' },
+  ];
+  backup.forEach(r => {
+    assert.equal(AU.isIndexRow(r), true, `${r.name} 在兜底路径上也应判为指数`);
+  });
+  // 同一路径下的个股/港股不能被误伤
+  assert.equal(AU.isIndexRow({ code: 'sh600519', name: '贵州茅台', secid: '1.600519' }), false);
+  assert.equal(AU.isIndexRow({ code: 'sz000002', name: '万科A', secid: '0.000002' }), false);
+  assert.equal(AU.isIndexRow({ code: 'hk00700', name: '腾讯控股', secid: '116.00700' }), false);
+});
+
+await test('marketFromSecid：只有 1.(沪) / 0.(深) 能反推出市场', () => {
+  assert.equal(AU.marketFromSecid('1.000001'), 1);
+  assert.equal(AU.marketFromSecid('0.399001'), 0);
+  assert.equal(AU.marketFromSecid('116.00700'), null);
+  assert.equal(AU.marketFromSecid('5.000001'), null);
+  assert.equal(AU.marketFromSecid(''), null);
+  assert.equal(AU.marketFromSecid(null), null);
+});
+
 await test('withoutIndices：过滤出指数行，且不改原数组', () => {
   const rows = [
     { code: '000001', market: 1, name: '上证指数' },

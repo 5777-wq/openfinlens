@@ -26,7 +26,16 @@ const SouthboundSource = (() => {
     sortTypes: '-1', sortColumns: 'HOLD_MARKET_CAP', source: 'WEB', client: 'WEB',
   }).toString();
 
-  const dayStr = (ms) => new Date(ms).toISOString().slice(0, 10);
+  /* 本地日期，不用 toISOString()（它按 UTC 取日期，会把当天算成昨天）。
+     南向披露的 HOLD_DATE 是港股交易日，查询参数必须与本地日历对齐。 */
+  const dayStr = (ms) => window.U.fmtDay(ms);
+
+  /* 是否周末：港股不开盘，披露日不会落在周六日 —— 回退时直接跳过，
+     省掉两次注定为空的请求（与 lhb.js 同一口径：交易日才有数据）。 */
+  const isWeekend = (ms) => {
+    const wd = new Date(ms).getDay();
+    return wd === 0 || wd === 6;
+  };
 
   /* 单日全量（分页并发）。未发布/非交易日时接口 success=false 且 data 为 null，返回空数组。 */
   async function fetchDay(date) {
@@ -72,11 +81,15 @@ const SouthboundSource = (() => {
      全部更早的披露日，刷新页面后（内存缓存已清）南向面板直接空掉。 */
   async function latest(days = 8) {
     const base = Date.now();
+    let tried = 0;
     for (let i = 0; i <= days; i++) {
-      const date = dayStr(base - i * 86400000);
+      const ms = base - i * 86400000;
+      if (isWeekend(ms)) continue;          // 周末必然无数据，不发无谓请求
+      const date = dayStr(ms);
       let rows = [];
       try { rows = await fetchDay(date); } catch { /* 当日失败继续往前找 */ }
       if (rows.length) return { date, rows };
+      if (++tried > days) break;
     }
     return { date: null, rows: [] };
   }

@@ -39,12 +39,23 @@ const AUniverse = (() => {
     return isFinite(n) ? n : null;
   }
 
-  /* 这一行是不是指数？入参是 clist 的原始字段映射（code/f13/f14）。 */
+  /* secid 前缀 → 东财市场码。行上没有 market/f13 字段时的兜底：
+     东财兜底路径（主源挂掉时走的腾讯精选）由 toSecid() 生成 secid，
+     形态是 "1."=沪 / "0."=深 —— 没这一步，"上证指数"(000001) 会因为
+     拿不到市场码而跳过名称规则，混进热力图变成巨大色块。 */
+  function marketFromSecid(secid) {
+    const m = String(secid || '').split('.')[0];
+    return (m === '1' || m === '0') ? +m : null;
+  }
+
+  /* 这一行是不是指数？入参是 clist 的原始字段映射（code/f13/f14），
+     也接受腾讯兜底路径的行（code/name/secid）。 */
   function isIndexRow(row) {
     if (!row) return false;
     const code = String(row.code || '');
     if (INDEX_CODE_RE.test(code)) return true;
-    const mkt = num(row.market !== undefined ? row.market : row.f13);
+    const raw = row.market !== undefined ? row.market : row.f13;
+    const mkt = num(raw) !== null ? num(raw) : marketFromSecid(row.secid);
     if (!CN_MARKETS.includes(mkt)) return false;      // 只对沪深行套名称规则
     const name = String(row.name || row.f14 || '');
     if (INDEX_NAME_PREFIX_RE.test(name)) return true;
@@ -57,7 +68,8 @@ const AUniverse = (() => {
     return (Array.isArray(rows) ? rows : []).filter(r => !isIndexRow(r));
   }
 
-  return { INDEX_CODE_RE, INDEX_NAME_PREFIX_RE, INDEX_NAME_SUFFIX_RE, CN_MARKETS, isIndexRow, withoutIndices };
+  return { INDEX_CODE_RE, INDEX_NAME_PREFIX_RE, INDEX_NAME_SUFFIX_RE, CN_MARKETS,
+    marketFromSecid, isIndexRow, withoutIndices };
 })();
 
 if (typeof window !== 'undefined') window.AUniverse = AUniverse;

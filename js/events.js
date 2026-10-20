@@ -117,12 +117,10 @@ const Events = (() => {
       const key = dedupeKey(raw.title);
       if (key && seen.has(key)) return;
       if (key) seen.add(key);
-      // 政治风险规避：屏蔽 Polymarket 上涉及中国主权/领导人/台湾的预测问题（question 原文含敏感词）
-      // 注意：只检查 question 原文，不检查 title/questionZh（后者是翻译，可能有偏差）；
-      //       也不检查普通新闻标题（"Tariffs on China" 之类的经济新闻无需过滤）
-      const question = String(raw.question || '');
-      const isPolymarketSensitive = question && /\b(china.*invade.*taiwan|taiwan.*independence|xi jinping)\b/i.test(question);
-      if (isPolymarketSensitive) return;
+      // 注：这里原来有一段"政治风险规避"过滤（检查 raw.question 里的中国主权/领导人/台湾关键词），
+      // 是段**永不生效的死代码**——事件数据（data/events/global-events.json）根本没有
+      // question 字段，raw.question 恒为 undefined。真正生效的那份在 js/polymarket.js
+      // 的 POLITICAL_RISK_RE（预测市场板块用），2026-10-20 迁移时旧副本忘了删，这里清掉。
       // 注意 +null === 0：字面 null 必须显式排除，否则"无坐标"会被算成 (0,0) 落在 Null Island
       const hasGeo = raw.lat !== null && raw.lat !== undefined && raw.lat !== '' &&
         raw.lng !== null && raw.lng !== undefined && raw.lng !== '';
