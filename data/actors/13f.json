@@ -1,8 +1,8 @@
 {
- "generatedAt": "2026-10-17T18:00:53.028Z",
+ "generatedAt": "2026-10-20T05:37:11.148Z",
  "source": "SEC EDGAR · 13F-HR（多家机构，官方季度披露）",
  "confidence": "REPORTED",
- "note": "13F 为季度披露的美股多头持仓，含看涨/看跌期权（kind=CALL/PUT，其\"股数\"为名义合约股数，不是持股）。报告期末到提交日实测滞后 34~45 天，每家机构的 lagDays 已单列，界面必须把天数标出。不含空头（除 put）/非美资产；环比为与上一期同 CUSIP 同类型的股数对比；CUSIP 换码可能误标\"新进\"。全部为历史事实陈述，不构成任何建议。",
+ "note": "13F 为季度披露的美股多头持仓，含看涨/看跌期权（kind=CALL/PUT，其\"股数\"为名义合约股数，不是持股）。报告期末到提交日实测滞后 34~45 天，每家机构的 lagDays 已单列，界面必须把天数标出。不含空头（除 put）/非美资产；环比为与上一期同 CUSIP 同类型的股数对比；CUSIP 换码可能误标\"新进\"。上期拿不到时（priorAvailable=false）该机构全部持仓 change=UNKNOWN、priorReportDate=null，界面必须渲染成中性的\"环比不可用\"，不得渲染成\"新进\"——UNKNOWN 表示无法判断，不是新进。全部为历史事实陈述，不构成任何建议。",
  "institutions": [
   {
    "slug": "berkshire",
@@ -13,7 +13,9 @@
    "reportDate": "2026-06-30",
    "filedAt": "2026-08-14",
    "lagDays": 45,
+   "priorAvailable": true,
    "priorReportDate": "2026-03-31",
+   "priorNote": null,
    "totalValueUsd": 299253556246,
    "holdingsCount": 29,
    "optionRows": 0,
@@ -356,7 +358,9 @@
    "reportDate": "2026-06-30",
    "filedAt": "2026-08-14",
    "lagDays": 45,
+   "priorAvailable": true,
    "priorReportDate": "2026-03-31",
+   "priorNote": null,
    "totalValueUsd": 24376086530,
    "holdingsCount": 997,
    "optionRows": 0,
@@ -1326,7 +1330,9 @@
    "reportDate": "2026-06-30",
    "filedAt": "2026-08-14",
    "lagDays": 45,
+   "priorAvailable": true,
    "priorReportDate": "2026-03-31",
+   "priorNote": null,
    "totalValueUsd": 15402788184,
    "holdingsCount": 191,
    "optionRows": 1,
@@ -2277,7 +2283,9 @@
    "reportDate": "2026-06-30",
    "filedAt": "2026-08-14",
    "lagDays": 45,
+   "priorAvailable": true,
    "priorReportDate": "2026-03-31",
+   "priorNote": null,
    "totalValueUsd": 19465692772,
    "holdingsCount": 14,
    "optionRows": 0,
@@ -2289,9 +2297,9 @@
      "valueUsd": 2476978592,
      "shares": 34326200,
      "pctOfTotal": 12.72,
-     "change": "NEW",
-     "sharesChange": null,
-     "sharesChangePct": null
+     "change": "ADD",
+     "sharesChange": 4367429,
+     "sharesChangePct": 14.58
     },
     {
      "issuer": "BROOKFIELD CORP",
@@ -2300,9 +2308,9 @@
      "valueUsd": 2448117792,
      "shares": 57481047,
      "pctOfTotal": 12.58,
-     "change": "NEW",
-     "sharesChange": null,
-     "sharesChangePct": null
+     "change": "TRIM",
+     "sharesChange": -2216161,
+     "sharesChangePct": -3.71
     },
     {
      "issuer": "MICROSOFT CORP",
@@ -2311,9 +2319,9 @@
      "valueUsd": 2315234425,
      "shares": 6206730,
      "pctOfTotal": 11.89,
-     "change": "NEW",
-     "sharesChange": null,
-     "sharesChangePct": null
+     "change": "ADD",
+     "sharesChange": 552652,
+     "sharesChangePct": 9.77
     },
     {
      "issuer": "AMAZON COM INC",
@@ -2322,9 +2330,9 @@
      "valueUsd": 2041109677,
      "shares": 8563857,
      "pctOfTotal": 10.49,
-     "change": "NEW",
-     "sharesChange": null,
-     "sharesChangePct": null
+     "change": "TRIM",
+     "sharesChange": -2888124,
+     "sharesChangePct": -25.22
     },
     {
      "issuer": "HOWARD HUGHES HOLDINGS INC",
@@ -2333,9 +2341,9 @@
      "valueUsd": 1991144055,
      "shares": 27852064,
      "pctOfTotal": 10.23,
-     "change": "NEW",
-     "sharesChange": null,
-     "sharesChangePct": null
+     "change": "HOLD",
+     "sharesChange": 0,
+     "sharesChangePct": 0
     },
     {
      "issuer": "RESTAURANT BRANDS INTL INC",
@@ -2344,9 +2352,9 @@
      "valueUsd": 1872301303,
      "shares": 25821284,
      "pctOfTotal": 9.62,
-     "change": "NEW",
-     "sharesChange": null,
-     "sharesChangePct": null
+     "change": "ADD",
+     "sharesChange": 3175801,
+     "sharesChangePct": 14.02
     },
     {
      "issuer": "META PLATFORMS INC",
@@ -2355,9 +2363,9 @@
      "valueUsd": 1800309764,
      "shares": 3196062,
      "pctOfTotal": 9.25,
-     "change": "NEW",
-     "sharesChange": null,
-     "sharesChangePct": null
+     "change": "ADD",
+     "sharesChange": 535201,
+     "sharesChangePct": 20.11
     },
     {
      "issuer": "VISA INC",
@@ -2421,9 +2429,9 @@
      "valueUsd": 133632548,
      "shares": 5023780,
      "pctOfTotal": 0.69,
-     "change": "NEW",
-     "sharesChange": null,
-     "sharesChangePct": null
+     "change": "HOLD",
+     "sharesChange": 0,
+     "sharesChangePct": 0
     },
     {
      "issuer": "HERTZ GLOBAL HLDGS INC",
@@ -2432,12 +2440,25 @@
      "valueUsd": 33955972,
      "shares": 14991599,
      "pctOfTotal": 0.17,
-     "change": "NEW",
-     "sharesChange": null,
-     "sharesChangePct": null
+     "change": "TRIM",
+     "sharesChange": -249528,
+     "sharesChangePct": -1.64
     }
    ],
-   "exits": []
+   "exits": [
+    {
+     "issuer": "ALPHABET INC",
+     "cusip": "02079K107",
+     "kind": "SH",
+     "prevShares": 311726
+    },
+    {
+     "issuer": "ALPHABET INC",
+     "cusip": "02079K305",
+     "kind": "SH",
+     "prevShares": 32376
+    }
+   ]
   }
  ]
 }
