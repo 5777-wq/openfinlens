@@ -46,6 +46,8 @@ GDELT + 新浪 7x24 每 5 分钟采集一次，按类别落在自绘世界地图
 
 数字口径：环图按报价占比绘制，**图例里永远是市场真实报价**；各档位是独立盘口，报价合计偏离 100% 时会单独标出来。
 
+颜色口径：**图例圆点、环图扇区、概率条、走势线四者同色**——一条线就是一个档位，不会串。概率刻意不用主题强调色（红/绿在本项目里是涨跌语义，用红色画概率会被误读成"涨"）。面板底色与各套皮肤一致：卡片底色和环图分隔线由同一个变量驱动，玻璃皮肤下不会"脱层"。
+
 ### 其他模块
 
 | 模块 | 能做什么 |
@@ -92,7 +94,7 @@ python -m http.server 8765   # → http://127.0.0.1:8765
 | 加密 | 币安 | OKX |
 | 加密流通市值（热力图面积） | CoinPaprika | CoinGecko → 24h成交额代理 |
 | K线 / 长历史 | 腾讯 `ifzq` / 东财 `push2his`（含分红） | 熔断后腾讯兜底（标注口径） |
-| 全球事件 / 事件概率 / 13F | GDELT + 新浪 / Polymarket / SEC → Actions 采集 | 静态 JSON |
+| 全球事件 / 事件概率 / 13F | GDELT + 新浪 / Polymarket（Gamma + CLOB 历史）/ SEC → Actions 采集 | 静态 JSON |
 | 外汇 / 商品 / 宏观 / 新闻 | 东财 secid / 世界银行 / 新浪 roll | 缓存 |
 
 ## 它怎么工作
@@ -106,7 +108,17 @@ python -m http.server 8765   # → http://127.0.0.1:8765
 └── worldmap + bus  地图 ↔ K线 ↔ 资金，事件总线联动
 ```
 
-海外源（GDELT / SEC EDGAR / Polymarket）不在浏览器里请求：GitHub Actions 定时抓取、清洗后把静态 JSON 提交进仓库，浏览器只读仓库里的数据。所以你不需要能直连海外接口。Polymarket 只提取「事件概率」一个数字，无链接、无交易入口。
+海外源（GDELT / SEC EDGAR / Polymarket）不在浏览器里请求：GitHub Actions 定时抓取、清洗后把静态 JSON 提交进仓库，浏览器只读仓库里的数据。所以你不需要能直连海外接口。
+
+Polymarket 只提取「事件概率」这个数字和它近 7 天的历史序列，**不存 slug / URL / tokenId**——产物里没有能外链到交易平台的字段，前端想引导交易也没有入口。
+
+市场预测落在三个产物文件里：
+
+| 文件 | 内容 |
+|---|---|
+| `data/events/polymarket.json` | 事件与档位：标题、类别、各档位报价与 24h 变化、成交/流动性 |
+| `data/events/polymarket-history.json` | 概率历史网格（4 小时一格 × 7 天，缺测为 null，不插值） |
+| `data/events/polymarket-i18n.json` | 中文标题缓存：同一个标题不重复请求翻译接口 |
 
 采集受 GitHub Actions 调度延迟影响时，可以把 cron 搬到自己服务器上，见 [docs/SERVER-COLLECT.md](docs/SERVER-COLLECT.md)。
 
@@ -119,11 +131,11 @@ push 到你的 GitHub 仓库 → Settings → Pages → `Deploy from a branch`�
 ## 测试
 
 ```bash
-node _test/run-all.mjs           # 20 组 250 条断言（含联网组）
-node _test/run-all.mjs --offline # 14 组 169 条，断网可跑，已挂 CI
+node _test/run-all.mjs            # 25 组（含联网组）
+node _test/run-all.mjs --offline  # 19 组 229 条，断网可跑，已挂 CI
 ```
 
-技术指标有构造序列对账；降级链是逐条改坏主源实测的，不是纸面设计。
+技术指标有构造序列对账；降级链是逐条改坏主源实测的，不是纸面设计。预测市场的三层（数据模型 / 图形几何 / 视图渲染）各自可离线单测——扇区角度、走势坐标、档位归属、"互斥才给环图"这些约束都是断言出来的，不靠肉眼看图。
 
 ## 常见问题
 

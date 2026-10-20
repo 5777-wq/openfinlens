@@ -28,6 +28,9 @@ js/
   compare.js               基金对比纯计算（归一/对齐/CAGR/波动/最大回撤/年度收益/相关性）—— 无 DOM 无网络
   compareview.js           基金对比视图（输入与控件 + 图表读数 + 三张矩阵/指标表）—— 依赖注入，自己绑事件
   spark.js                 首屏图形层（迷你走势线坐标 / 当日振幅条位置）—— 纯函数 + canvas 描线，可单测
+  polymarket.js           预测市场数据模型（事件+档位两层 / 类别闸门 / 历史网格）—— 纯函数，无 DOM 无网络
+  pmcharts.js             预测市场图形层（环图扇区几何 / 走势坐标）—— 纯函数 + SVG，可单测
+  pmview.js               预测市场视图层（事件卡 HTML）—— 数据→HTML 的确定性映射，离线可测
   sources/*.js             数据源 adapter（一源一文件，网络调用唯一合法位置）—— 已有；history.js 为长历史（后复权，含分红）
   engine/                  ★ 新增：语义引擎层（纯函数，无 DOM，node 可测）
     types.js               JSDoc 类型契约 + 类别/状态常量（单一事实源）
@@ -59,6 +62,7 @@ docs/                      本文档 + WorldMonitor 分析
 | 数据 | 存放 | 理由 |
 |---|---|---|
 | 事件/新闻快照 | `data/events/global-events.json`（git，静态分发） | 公开、只读、CDN 友好 |
+| 预测市场概率 + 历史 | `data/events/polymarket.json` / `polymarket-history.json` / `polymarket-i18n.json`（git，静态分发） | 同上；产物无 slug/URL/tokenId，无法外链到交易平台 |
 | 用户数据（自选/设置/颜色） | localStorage（`gfd_` 前缀） | 隐私优先、零后端 |
 | 引擎中间产物（聚簇缓存） | 内存 + 可选 `data/engine/*.json` 预计算 | 聚类是纯函数，可离线跑 |
 
