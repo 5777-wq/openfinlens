@@ -1,8 +1,30 @@
-# 全球事件采集任务：GDELT + 新浪7x24 → data/events/global-events.json（5 分钟/轮，GDELT 本体 15 分钟级）
-# 伯克希尔 13F：SEC EDGAR → data/actors/berkshire.json（季度数据，每 6 小时对时一次）
-# Polymarket 概率：Gamma API 公开只读 → data/events/polymarket.json（30 分钟/轮，只展示事件概率）
+# 全球事件采集任务：GDELT + 新浪7x24 → data/events/global-events.json
+# 伯克希尔 13F：SEC EDGAR → data/actors/13f.json（季度数据）
+# Polymarket 概率：Gamma API 公开只读 → data/events/polymarket.json
 # 海外源只在 Actions 侧访问；浏览器永远不直连 GDELT/SEC/Polymarket
 # （见 js/sources/gdelt.js、js/sources/sec.js、js/sources/polymarket.js）。
+#
+# ── 调度判据：从"墙钟时间窗"换成"产物年龄" ─────────────────────────────
+# 旧写法用 `date -u +%H` 取模决定本档跑不跑，但 GitHub schedule 在高负载下会
+# 拖延/丢弃（本仓库最近 200 次运行实测：collect 中位间隔 85 分钟、最大 488 分钟；
+# collect-keeper 自己的 */10 同样被拖成 232 分钟）。于是：
+#   · 6h 档命中 ≈1-(1-10/Δ)^3：Δ=120min 时 24%，Δ=300min 时 9.7%
+#     （即实际 1 次/25~62 小时，而不是 6 小时一次）；
+#   · 两个闸门分别求值（6h 档 :40、30min 档 :51），6h 档中间要跑 13F+fundholds+ETF
+#     （ETF 退避最长 120s×2），00:09 起跑的一轮到 00:12 时 30min 档已出窗。
+# 现在改成：读旧产物 JSON 里的 generatedAt，判断"距上次成功采集是否已满 N 分钟"，
+# 没满就跳过（no-op，退出 0）。runner 什么时候被拉起都既不漏跑也不重跑；
+# 两个闸门在同一时刻求值，竞态消失；各产物阈值不同，触发时刻天然错峰。
+# collect-keeper.yml 保留为"保证有人来敲门"的兜底：频率归它管，幂等归产物年龄管。
+#
+# ── 失败不再被吞掉 ────────────────────────────────────────────────────
+# 旧写法是 `node x.mjs || echo "failed"`：`||` 列表的退出码是 echo 的，恒 0，
+# 于是任何一档彻底失败都是"步骤恒绿 + 数据停在旧产物 + commit message 与完整
+# 更新一模一样"，事后分不出哪一轮是残缺的。
+# 现在：每个脚本的退出码记进 $RUNNER_TEMP/ofl-status.tsv；失败时**先提交已经成功
+# 的其它数据**（事件流是主数据，不能被 13F 的失败连累），提交完成后再由最后
+# 一个 gate 步骤 exit 1 —— CI 变红，Actions 界面能看出来。
+#
 # 数据无变化时不产生提交；push 冲突时 rebase 重试（用户可能同时手推代码）。
 name: collect
 
@@ -19,8 +41,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  events:
+  collect:
     runs-on: ubuntu-latest
+    # 单轮上限：各脚本自己都有超时（OFL_TIMEOUT，合计 50 分钟），这个 60 分钟是
+    # 兜底背压——真超时也是红的（gate 步骤会因"没有留下结果记录"而 exit 1），
+    # 不会静默停更。
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -28,32 +54,135 @@ jobs:
         with:
           node-version: 20
 
-      - name: Collect GDELT + Sina global events
-        run: node _scripts/collect-events.mjs
-
-      - name: Refresh 13F / fund holdings / factor-ETF holdings (every ~6h UTC 00/06/12/18)
+      - name: 准备采集闸门（产物年龄判据 + 结果记账）
         run: |
-          # GitHub 定时在高负载整点常延迟数分钟：精确匹配 M=="00" 曾会因延迟跨跳
-          # 静默跳过整个 6h 档。改用 10 分钟窗口（0:00/6:00/12:00/18:00 后 10 分钟内
-          # 必中某一跳）；脚本自身幂等（无变化不写文件），重复执行无害。
-          # ETF 持仓是日更数据，挂 6h 档而不是 */5：Invesco 接口对密集请求回 406（软限流）。
-          H=$(date -u +%H); M=$(date -u +%M); MINS=$((10#$H * 60 + 10#$M))
-          if [ $(( MINS % 360 )) -lt 10 ]; then
-            node _scripts/collect-13f.mjs || echo "13f collect failed (keep old data)"
-            node _scripts/collect-fundholds.mjs || echo "fundholds collect failed (keep old data)"
-            node _scripts/collect-etf.mjs || echo "etf collect failed (keep old data)"
+          # 把闸门逻辑写成独立脚本，5 个采集步骤共用同一份判据（也便于本地复现）
+          printf '' > "$RUNNER_TEMP/ofl-status.tsv"
+          cat > "$RUNNER_TEMP/ofl-collect.sh" <<'OFL'
+          #!/usr/bin/env bash
+          # ofl-collect.sh —— 产物年龄闸门 + 采集执行 + 结果记账
+          # 用法：bash ofl-collect.sh <名字> <产物路径> <阈值分钟> <脚本路径...>
+          #
+          # 判据：读产物 JSON 里的 generatedAt，算"距上次成功采集"多少分钟；
+          #       未满阈值 → 记 skip 并退出 0（幂等：被反复拉起也只真正跑一次）；
+          #       满阈值   → 跑脚本，记 ok/fail，退出码原样透出。
+          # 为什么失败不在这里 exit 1：失败要先让其它已成功的数据提交上去，
+          #       最后由 collect.yml 末尾的 gate 步骤统一 exit 1。
+          set -u
+
+          NAME=${1:?缺少名字}
+          FILE=${2:?缺少产物路径}
+          LIMIT=${3:?缺少阈值分钟}
+          shift 3
+
+          STATUS_FILE=${OFL_STATUS_FILE:-${RUNNER_TEMP:-/tmp}/ofl-status.tsv}
+          mkdir -p "$(dirname "$STATUS_FILE")"
+
+          # 产物年龄（分钟，整数）。读不出/时间戳非法 → 记成"无限旧"（宁可多跑一次）
+          age_minutes() {
+            node -e '
+              const fs = require("fs");
+              const BIG = 999999999;
+              let j = null;
+              try { j = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); } catch (e) { j = null; }
+              const t = j ? Date.parse(j.generatedAt) : NaN;
+              const now = Date.now();
+              if (!isFinite(t) || t > now + 5 * 60000) { process.stdout.write(String(BIG)); }
+              else { process.stdout.write(String(Math.floor((now - t) / 60000))); }
+            ' "$1" 2>/dev/null
+          }
+
+          record() {
+            printf '%s\t%s\t%s\n' "$1" "$2" "$3" >> "$STATUS_FILE"
+          }
+
+          AGE=$(age_minutes "$FILE" || true)
+          case "${AGE:-}" in
+            ''|*[!0-9]*) AGE=999999999 ;;
+          esac
+
+          if [ "$AGE" -lt "$LIMIT" ]; then
+            record "$NAME" skip "产物年龄 ${AGE}m < 阈值 ${LIMIT}m"
+            echo "⏭ ${NAME}：产物年龄 ${AGE}m 未满 ${LIMIT}m，本轮跳过"
+            exit 0
           fi
 
-      - name: Collect Polymarket event probabilities (every ~30min)
-        run: |
-          # 与 6h 档同一套 10 分钟窗口写法（Actions 定时在高负载整点常延迟数分钟）
-          # 概率变化不快，30 分钟/轮足够；失败不致命（|| echo），不影响主事件流提交
-          H=$(date -u +%H); M=$(date -u +%M); MINS=$((10#$H * 60 + 10#$M))
-          if [ $(( MINS % 30 )) -lt 10 ]; then
-            node _scripts/collect-polymarket.mjs || echo "polymarket collect failed (keep old data)"
+          echo "▶ ${NAME}：产物年龄 ${AGE}m ≥ 阈值 ${LIMIT}m，开始采集"
+          # 单个脚本加超时上限：网络挂死时不至于把整轮 job 拖到超时（那会连提交一起丢）
+          if command -v timeout >/dev/null 2>&1 && timeout --version >/dev/null 2>&1; then
+            timeout "${OFL_TIMEOUT:-900}" node "$@"
+            RC=$?
+          else
+            node "$@"
+            RC=$?
           fi
 
-      - name: Commit if changed
+          if [ "$RC" -eq 0 ]; then
+            record "$NAME" ok "成功"
+            echo "✅ ${NAME}：采集成功"
+          else
+            record "$NAME" fail "退出码 ${RC}（旧产物保留）"
+            echo "::error::${NAME} 采集失败（退出码 ${RC}）——旧产物保留，其它数据照常提交"
+          fi
+          exit "$RC"
+          OFL
+          chmod +x "$RUNNER_TEMP/ofl-collect.sh"
+
+      - name: 采集全球事件（GDELT + 新浪7x24，主数据）
+        # 主数据不能被 13F 的失败连累，所以单开一步；continue-on-error 让本步
+        # 失败不阻断后面的提交步骤（成败记录在 ofl-status.tsv，末尾统一 exit 1）。
+        # 阈值 10 分钟：新浪 7x24 是分钟级，再密只是重复写同一个 generatedAt 制造空提交
+        # （GDELT 本体 15 分钟级）。
+        continue-on-error: true
+        env:
+          OFL_TIMEOUT: "300"
+        run: |
+          bash "$RUNNER_TEMP/ofl-collect.sh" global-events \
+            data/events/global-events.json 10 _scripts/collect-events.mjs
+
+      - name: 采集 Polymarket 概率（30min 档）
+        # 概率变化不快，30 分钟/轮；与 6h 档的触发时刻由各自的产物年龄决定，
+        # 两个闸门同一时刻求值，不再有"前一档跑太久、后一档出窗"的竞态。
+        continue-on-error: true
+        env:
+          OFL_TIMEOUT: "600"
+        run: |
+          bash "$RUNNER_TEMP/ofl-collect.sh" polymarket \
+            data/events/polymarket.json 30 _scripts/collect-polymarket.mjs
+
+      - name: 采集 13F（6h 档）
+        # 13F 是季度披露，但新 filing 随时可能提交，6h 查一次足够便宜
+        # （报告期末到提交日实测滞后 34~45 天，分钟级轮询毫无意义）。
+        continue-on-error: true
+        env:
+          OFL_TIMEOUT: "900"
+        run: |
+          bash "$RUNNER_TEMP/ofl-collect.sh" 13f \
+            data/actors/13f.json 360 _scripts/collect-13f.mjs
+
+      - name: 采集基金持仓（24h 档）
+        # 季度披露（日更一次足够）；比 ETF 档早 1 小时触发，两个日更脚本天然错开。
+        continue-on-error: true
+        env:
+          OFL_TIMEOUT: "300"
+        run: |
+          bash "$RUNNER_TEMP/ofl-collect.sh" fundholds \
+            data/actors/fundholds.json 1440 _scripts/collect-fundholds.mjs
+
+      - name: 采集因子 ETF 持仓（25h 档）
+        # Invesco 持仓是日更数据，但该接口对密集请求回 406（软限流，实测静置
+        # 100s 才自愈），所以阈值给到 25h：既满足日更，又天然与 fundholds 错开。
+        # 单脚本超时给到 900s：406 退避阶梯 15+45+90+120s 是最坏情况，得留够。
+        continue-on-error: true
+        env:
+          OFL_TIMEOUT: "900"
+        run: |
+          bash "$RUNNER_TEMP/ofl-collect.sh" etf \
+            data/actors/etf.json 1500 _scripts/collect-etf.mjs
+
+      - name: 提交已变化的数据（失败不牵连已成功的数据）
+        # if: always()：哪怕某个采集步骤崩了，也要先把已经写盘的成功数据推上去
+        if: always()
         run: |
           git config user.name "openfinlens-bot"
           git config user.email "actions@users.noreply.github.com"
@@ -65,7 +194,32 @@ jobs:
           if git diff --cached --quiet; then
             echo "no changes"
           else
-            git commit -m "data: refresh global events + berkshire 13f + polymarket [skip ci]"
+            # commit message 区分本轮成败：+成功 !失败（跳过的写进正文，不进标题避免噪音）
+            # 旧写法是写死的 "refresh global events + berkshire 13f + polymarket"，
+            # 残缺轮次和完整轮次一模一样，事后分不出哪一轮缺了数据。
+            STATUS_FILE="$RUNNER_TEMP/ofl-status.tsv"
+            OK=""; BAD=""; BADNAMES=""; SKIPPED=""
+            if [ -f "$STATUS_FILE" ]; then
+              while IFS=$'\t' read -r n s d; do
+                case "$s" in
+                  ok)   OK="$OK +$n" ;;
+                  fail) BAD="$BAD !$n"; BADNAMES="$BADNAMES $n" ;;
+                  skip) SKIPPED="$SKIPPED $n" ;;
+                esac
+              done < "$STATUS_FILE"
+            fi
+            MSG="data: refresh${OK}${BAD} [skip ci]"
+            BODY=""
+            if [ -n "$SKIPPED" ]; then BODY="skipped(age not reached): ${SKIPPED# }"; fi
+            if [ -n "$BADNAMES" ]; then
+              FAILBODY="failed(kept old data): ${BADNAMES# }"
+              if [ -n "$BODY" ]; then BODY="${BODY}"$'\n'"${FAILBODY}"; else BODY="${FAILBODY}"; fi
+            fi
+            if [ -n "$BODY" ]; then
+              git commit -m "$MSG" -m "$BODY"
+            else
+              git commit -m "$MSG"
+            fi
             # 三连败必须红：本 workflow 是项目唯一的"后端"，commit 只在 runner 上，
             # 推不上去=数据静默断更（旧写法循环最后是 sleep 5，步骤恒绿）
             ok=0
@@ -79,3 +233,37 @@ jobs:
               exit 1
             fi
           fi
+
+      - name: 失败闸门（采集失败的脚本在这里让 workflow 变红）
+        # 必须排在提交步骤之后：先把已经成功的数据推上远端，再把失败暴露成红。
+        if: always()
+        run: |
+          STATUS_FILE="$RUNNER_TEMP/ofl-status.tsv"
+          status_of() {
+            want="$1"; st=""
+            if [ -f "$STATUS_FILE" ]; then
+              while IFS=$'\t' read -r n s d; do
+                if [ "$n" = "$want" ]; then st="$s"; fi
+              done < "$STATUS_FILE"
+            fi
+            printf '%s' "$st"
+          }
+          BAD=""; MISSING=""
+          for n in global-events polymarket 13f fundholds etf; do
+            st=$(status_of "$n")
+            case "$st" in
+              ok|skip) ;;
+              fail) BAD="$BAD $n" ;;
+              *) MISSING="$MISSING $n" ;;
+            esac
+          done
+          if [ -n "$MISSING" ]; then
+            echo "::error::这些采集脚本没有留下结果记录（步骤崩溃或未执行）：${MISSING# }"
+          fi
+          if [ -n "$BAD" ]; then
+            echo "::error::采集失败（旧产物已保留，其余数据已提交）：${BAD# }"
+          fi
+          if [ -n "${BAD}${MISSING}" ]; then
+            exit 1
+          fi
+          echo "本轮全部采集脚本正常（无失败、无缺记录）"

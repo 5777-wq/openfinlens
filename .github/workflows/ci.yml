@@ -1,5 +1,6 @@
-# 离线确定性测试（14 组 175 条，零外部依赖）挂到 push/PR；实网组（breadth/detail/degrade/boards/live/history）
-# 依赖第三方接口且受深夜清算时段守卫影响，留给本地/手动跑。
+# 离线确定性测试挂到 push/PR；组数与"离线/实网"划分以 _test/run-all.mjs 的 groups 数组为准
+# （该脚本跑完会打印"共 N 组（离线 x / 实网 y）"，别在注释里写死数字——写死必过期）。
+# 实网组（breadth/detail/degrade --net/boards/live/history）依赖第三方接口且受深夜清算时段守卫影响，留给本地/手动跑。
 # 数据提交带 [skip ci]，不会触发本 workflow。
 name: ci
 
@@ -25,3 +26,36 @@ jobs:
 
       - name: Run offline test groups
         run: node _test/run-all.mjs --offline
+
+      - name: Check data freshness (数据新鲜度体检)
+        run: |
+          # 各产物的 generatedAt 距今超过阈值就红：采集链路静默断更时，
+          # 离线单测照样全绿，这里是唯一的"数据还活着吗"哨兵。
+          # 阈值 = collect.yml 的产物年龄阈值 + 冗余（冗余量按 GitHub schedule
+          # 实测最大间隔 488 分钟算：产物实际年龄 ≤ 阈值 + 实际跑批间隔）。
+          node -e '
+            const fs = require("fs");
+            const LIMITS = {
+              "data/events/global-events.json": 24 * 3600e3,   // 24h（collect 阈值 10min）
+              "data/events/polymarket.json":    24 * 3600e3,   // 24h（collect 阈值 30min）
+              "data/actors/13f.json":            2 * 86400e3,  // 2 天（collect 阈值 6h）
+              "data/actors/fundholds.json":      3 * 86400e3,  // 3 天（collect 阈值 24h）
+              "data/actors/etf.json":            3 * 86400e3,  // 3 天（collect 阈值 25h）
+            };
+            let bad = 0;
+            for (const [f, lim] of Object.entries(LIMITS)) {
+              let g = null;
+              try { g = JSON.parse(fs.readFileSync(f, "utf8")).generatedAt; } catch (e) { g = null; }
+              const t = g ? Date.parse(g) : NaN;
+              const age = isFinite(t) ? Date.now() - t : Infinity;
+              const h = (age / 3600e3).toFixed(1);
+              if (age > lim) {
+                bad++;
+                console.error("::error::" + f + " 产物过期 " + h + "h（阈值 " + (lim / 3600e3).toFixed(0) + "h）——采集链路可能已断更");
+              } else {
+                console.log(f + " 产物年龄 " + h + "h，OK（阈值 " + (lim / 3600e3).toFixed(0) + "h）");
+              }
+            }
+            if (bad) { console.error("::error::" + bad + " 个产物超过新鲜度阈值"); process.exit(1); }
+            console.log("数据新鲜度 OK");
+          '

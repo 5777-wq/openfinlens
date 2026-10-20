@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /* run-all.mjs —— 一键跑全部测试组（纯 Node，无需依赖）
    用法：node _test/run-all.mjs            全部（含实网组）
-         node _test/run-all.mjs --offline  只跑不依赖网络的组（logic/insight/breadth）
-   退出码：全部通过 0；任一组失败 1。 */
+         node _test/run-all.mjs --offline  只跑不依赖网络的组
+   退出码：全部通过 0；任一组失败 1。
+   组数与"离线/实网"划分以本文件的 groups 数组为准——下方会打印实际执行的组数，
+   CI 注释里不要写死数字（写死必过期）。 */
 
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -34,20 +36,26 @@ const groups = [
   { file: 'seeds.test.mjs', net: false },   // 采集产物体检（全球事件/伯克希尔13F 种子 JSON）
   { file: 'breadth.test.mjs', net: true },  // 结构断言为主，但取数需联网
   { file: 'detail.test.mjs', net: true },
-  { file: 'degrade.test.mjs', net: true },
+  // 降级链拆两组：离线组（静态 JSON 源 + 缓存 + 诚实空态，零外网）进 CI；
+  // 实网组打真实第三方接口，只在本地/手动跑。同一个文件用 --net 切换。
+  { file: 'degrade.test.mjs', net: false },
+  { file: 'degrade.test.mjs', net: true, args: ['--net'] },
   { file: 'boards.test.mjs', net: true },   // 今日热门概念：榜单/成分股接口 + 链条匹配
   { file: 'live.test.mjs', net: true },
   { file: 'history.test.mjs', net: true },  // 基金对比长历史源：5000 根深度/CORS/复权口径/预设代码
 ];
 
 let failed = 0;
+let ran = 0, skipped = 0;
 for (const g of groups) {
-  if (offlineOnly && g.net) { console.log(`-- 跳过 ${g.file}（--offline 模式，需联网）`); continue; }
-  console.log(`\n===== ${g.file} =====`);
-  const r = spawnSync(process.execPath, [path.join(dir, g.file)], { stdio: 'inherit' });
+  if (offlineOnly && g.net) { console.log(`-- 跳过 ${g.file}（--offline 模式，需联网）`); skipped++; continue; }
+  console.log(`\n===== ${g.file}${g.args && g.args.length ? ' ' + g.args.join(' ') : ''} =====`);
+  ran++;
+  const r = spawnSync(process.execPath, [path.join(dir, g.file), ...(g.args || [])], { stdio: 'inherit' });
   if (r.status !== 0) { failed++; console.log(`✗ ${g.file} 失败（exit ${r.status}）`); }
 }
 
 console.log('\n===== 汇总 =====');
+console.log(`共 ${groups.length} 组（离线 ${groups.filter(g => !g.net).length} / 实网 ${groups.filter(g => g.net).length}），本次执行 ${ran} 组、跳过 ${skipped} 组`);
 if (failed) { console.log(`✗ ${failed} 组未通过`); process.exit(1); }
 console.log('✓ 全部测试组通过');
