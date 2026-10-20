@@ -113,7 +113,7 @@
     // 首屏下方的「我的自选」块与全球涨跌概览条
     'watchSection', 'watchGrid', 'watchSub', 'watchMore', 'marketBrief',
     'heatCanvas', 'heatTip', 'heatWrap', 'heatSection', 'heatSub', 'heatSizeToggle', 'heatTopToggle',
-    'heatReset', 'heatZoom', 'heatHint', 'heatLegend',
+    'heatReset', 'heatZoom', 'heatHint', 'heatLegend', 'heatMktSwitch', 'heatMktTag',
     'newsList', 'newsSub', 'chainList',
     'boardStrip', 'boardVia', 'boardDrawer',
     'moodSub', 'moodScore', 'moodBand', 'moodFill', 'breadthGrid', 'distWrap', 'distSub', 'moodSpark', 'heroStrip', 'moodCrypto', 'moodUS',
@@ -1941,7 +1941,7 @@
     const cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
     if (!cats.length) { el.newsCatBar.innerHTML = ''; return; }
     el.newsCatBar.innerHTML = ['all'].concat(cats).map(c =>
-      `<button class="pill${state.newsCat === c ? ' active' : ''}" data-newscat="${c}">${c === 'all' ? '全部板块' : escapeHTML(chainNames[c] || c)}<b class="num">${c === 'all' ? state.news.length : counts[c]}</b></button>`
+      `<button class="chip${state.newsCat === c ? ' active' : ''}" data-newscat="${c}">${c === 'all' ? '全部板块' : escapeHTML(chainNames[c] || c)}<b class="num">${c === 'all' ? state.news.length : counts[c]}</b></button>`
     ).join('');
   }
 
@@ -2154,7 +2154,7 @@
       const meta = window.Events.TYPE_META[t];
       const dot = meta ? `<i class="ev-dot" style="background:${meta.color}"></i>` : '';
       const label = t === 'all' ? '全部类型' : window.Events.typeLabel(t);
-      return `<button class="pill${state.eventsType === t ? ' active' : ''}" data-evtype="${t}">${dot}${label}<b class="num">${t === 'all' ? list.length : counts[t]}</b></button>`;
+      return `<button class="chip${state.eventsType === t ? ' active' : ''}" data-evtype="${t}">${dot}${label}<b class="num">${t === 'all' ? list.length : counts[t]}</b></button>`;
     }).join('');
   }
 
@@ -2466,8 +2466,11 @@
     if (sub !== 'news' && sub !== 'map' && sub !== 'pm') sub = 'map';
     state.eventsSub = sub;
     Store.set('evMode', sub);                 // 记住上次用的视图（平面 / 快讯 / 市场预测）
-    document.querySelectorAll('[data-evsub]').forEach(b =>
-      b.classList.toggle('active', b.dataset.evsub === state.eventsSub));
+    document.querySelectorAll('[data-evsub]').forEach(b => {
+      const on = b.dataset.evsub === state.eventsSub;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', String(on));   // 屏幕阅读器需要知道当前选中项
+    });
     const newsMode = sub === 'news', pmMode = sub === 'pm';
     if (el.evGlobePane) el.evGlobePane.hidden = newsMode || pmMode;   // 面板宿主（现仅平面地图）
     if (el.evNewsPane) el.evNewsPane.hidden = !newsMode;
@@ -3783,8 +3786,20 @@
     // 各市场的"情绪与宽度"只在各自的 tab 上出现（原本加密/美股宽度都塞在 A股 页里）
     if (el.cryptoMoodPanel) el.cryptoMoodPanel.hidden = tab !== 'crypto';
     if (el.usMoodPanel) el.usMoodPanel.hidden = tab !== 'us';
-    // 热力图在 全部/A股/港股/美股/加密 下有意义（宏观 tab 是世行年度指标，不放热力图）
-    el.heatSection.hidden = !['all', 'cn', 'hk', 'us', 'crypto'].includes(tab);
+    // 热力图：市场维度只由一级 tab 表达（js/marketscope.js）。
+    // 「全部」页没有单一市场归属，热力图市场由用户自己选；
+    // 具体市场页（A股/港股/美股/加密）市场已定，工具栏里的市场切换组必须撤掉——
+    // 否则用户能在 A股 页里切出美股热力图，标题写着「A股市场」画布却是美股。
+    const heatMkt = window.MarketScope.heatMarketOf(tab, CRYPTO_ON);
+    el.heatSection.hidden = !window.MarketScope.showsHeat(tab, CRYPTO_ON);
+    // 市场切换组与市场标签互斥：具体市场页显示"这张图是谁的"（只读），
+    // 「全部」页显示可点的切换组（那里它是唯一的市场选择入口）。
+    const heatSwitchable = window.MarketScope.showsMarketSwitcher(tab, CRYPTO_ON);
+    if (el.heatMktSwitch) el.heatMktSwitch.hidden = !heatSwitchable;
+    if (el.heatMktTag) {
+      el.heatMktTag.hidden = heatSwitchable;
+      el.heatMktTag.textContent = heatMkt ? window.MarketScope.marketTitle(heatMkt) : '';
+    }
     // Movers 三榜：只对有全市场行情的市场 tab 显示（2026-09-17）
     if (MOVERS_DEFS[tab]) {
       renderMovers();
@@ -3793,7 +3808,7 @@
       el.moversSection.hidden = true;
     }
     // 进哪个市场 tab 就自动切到该市场的热力图，不用手点
-    if (['cn', 'hk', 'us', 'crypto'].includes(tab)) switchHeat(tab);
+    if (heatMkt) switchHeat(heatMkt);
     // 世界经济仪表盘与宏观策略面板只在外汇宏观 tab 显示；全球指数条首次进市场视图时加载
     if (el.macroBox) el.macroBox.hidden = tab !== 'fxmacro';
     if (el.macroStrategy) el.macroStrategy.hidden = tab !== 'fxmacro';
@@ -3880,7 +3895,15 @@
     }
   }
 
-  function switchHeat(mode) {
+  /* 热力图换市场。两条调用路径要分清：
+   *   ① 程序化（切一级 tab 时跟随该市场）——总是允许，这正是"市场归一级 tab 管"的实现；
+   *   ② 用户手动点工具栏的市场按钮——只在这一屏允许选市场时才允许。
+   *      具体市场 tab（A股/港股/美股/加密）的市场已由一级 tab 表达过一遍，
+   *      此时再切就是"同一维度表达两次"：用户在 A股 页里点出美股热力图，
+   *      标题写着「A股市场」画布却是美股。
+   *      「全部」页没有单一市场归属，那里切换合法（也是唯一的市场选择入口）。 */
+  function switchHeat(mode, byUser) {
+    if (byUser && !window.MarketScope.showsMarketSwitcher(state.tab, CRYPTO_ON)) return;
     if (state.heatMode === mode) return;
     state.heatMode = mode;
     document.querySelectorAll('[data-heat]').forEach(b => b.classList.toggle('active', b.dataset.heat === mode));
@@ -4465,7 +4488,7 @@
         return;
       }
       const heatBtn = e.target.closest('[data-heat]');
-      if (heatBtn) { switchHeat(heatBtn.dataset.heat); return; }
+      if (heatBtn) { switchHeat(heatBtn.dataset.heat, true); return; }
       const periodBtn = e.target.closest('[data-period]');
       if (periodBtn) {
         state.detailPeriod = periodBtn.dataset.period;

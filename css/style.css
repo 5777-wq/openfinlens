@@ -262,9 +262,16 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 
 /* ============================================================ 热力图 */
 .heat-toolbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
-.pill { position: relative; padding: 4px 0; font-size: 12px; color: var(--text-tertiary);
+
+/* .pill —— 「文字型」切换标签（视图切换、周期切换、板块切换）
+   为什么是文字而不是方块：这一类控件在同一行里往往有 4~8 个，
+   每个都画成带边框的块，视觉噪音远大于信息量（用户反馈"太逼仄"）。
+   所以默认走"文字 + 底部强调线"这条克制的路：静默时几乎不占视觉重量，
+   选中时才用一条强调线表明位置。
+   padding 给足横向空间：0 的话文字会直接贴住下划线两端。 */
+.pill { position: relative; padding: 5px 2px; font-size: 12px; color: var(--text-tertiary);
   transition: color var(--dur-fast) var(--ease-out); }
-.pill::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 1px;
+.pill::after { content: ''; position: absolute; left: 2px; right: 2px; bottom: 0; height: 1px;
   background: var(--text); transform: scaleX(0); transform-origin: left;
   transition: transform var(--dur-fast) var(--ease-out); }
 .pill:hover { color: var(--text-secondary); }
@@ -273,6 +280,37 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .pill.active::after { transform: scaleX(1); background: var(--accent-signature); }
 .pill:disabled { opacity: 0.3; cursor: default; }
 .pill:disabled:hover::after { transform: none; }
+
+/* .chip —— 「筛选器」型标签（带计数的多选一：事件类型、新闻板块、地图图层）
+   与 .pill 分开的理由：筛选器是"这一堆里挑一个"，它需要携带计数和色点，
+   是个信息单元；视图切换是"去另一个地方"，它是导航。两者混用同一套视觉，
+   用户读不出层级（用户反馈"tag 做得太逼仄"）。
+   chip 用"实底 + 计数"承载信息，视觉重量天然比纯文字的 pill 重一档。 */
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px;
+  font-size: 12px; color: var(--text-tertiary); background: transparent;
+  border: 1px solid var(--border); border-radius: 3px; white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out); }
+.chip:hover { color: var(--text-secondary); border-color: var(--border-hover); }
+.chip.active { color: var(--text); border-color: var(--accent-signature);
+  background: rgba(var(--accent-rgb), 0.08); }
+.chip b { font-weight: 500; font-size: 11px; color: var(--text-faint); }
+.chip.active b { color: var(--text-secondary); }
+.chip .ev-dot { width: 6px; height: 6px; }
+/* chip 行：筛选器成排时留出横向呼吸——.heat-toolbar 的 14px 对 chip 偏挤 */
+.chipbar { gap: 8px; }
+
+/* 市场标签（具体市场页显示它，说明"这张热力图是谁的"）。
+   它是只读说明，不是可点控件，所以没有 active 态、没有 hover 反馈。 */
+.heat-mkt-tag { font-size: 12px; font-weight: 600; color: var(--text);
+  letter-spacing: 0.04em; padding: 4px 0; }
+.heat-mkt-tag::before { content: ''; display: inline-block; width: 5px; height: 5px;
+  margin-right: 7px; border-radius: 50%; background: var(--accent-signature);
+  vertical-align: 1px; }
+/* 切换组与市场标签互斥出现：容器是 inline-flex 才能让按钮正常排布 */
+.heat-mkt-switch { display: inline-flex; align-items: center; gap: 14px; }
+.heat-mkt-switch[hidden] { display: none; }
+.heat-mkt-tag[hidden] { display: none; }
 #heatReset { font-family: var(--font-mono); font-size: 11px; padding: 3px 8px;
   border: 1px solid var(--border); border-radius: 3px; color: var(--text-secondary);
   transition: opacity var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), visibility var(--dur-fast); }
@@ -465,6 +503,20 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .seg button { padding: 4px 10px; font-size: 11px; color: var(--text-tertiary); border-radius: 2px;
   transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out); }
 .seg button.active { color: var(--text); background: rgba(255,255,255,0.08); }
+/* .seg-lg：页面级子视图切换（事件页的 平面地图/快讯/预测）。
+   .seg 本体是设置弹层里的紧凑控件（11px），放到页面主导航上字太小、
+   层级不够——"这是去哪个视图"该比"这是弹层里改哪个选项"更醒目。 */
+.seg-lg { padding: 3px; gap: 3px; }
+.seg-lg button { padding: 7px 16px; font-size: 12.5px; font-weight: 500; }
+/* 页面级分段控件不做实心色块：accent 实心是设置弹层那种"小而确定"的选择，
+   放到页面主导航上会变成整页最刺眼的一块（用户反馈"tag 逼仄/难看"）。
+   改成浅底 + 强调色文字：选中态依然明确，但让位给下面的数据。
+   特异性必须压过各皮肤的 `html[data-theme="x"] .seg button.active`（0,3,1）——
+   同样的特异性下"文件里靠后"才赢，而主题块在后面，所以这里多带一层 :not()
+   把特异性提到 (0,4,1)，才能稳定压住。 */
+.seg-lg button.active:not(.x),
+html[data-theme] .seg-lg button.active:not(.x) {
+  background: rgba(var(--accent-rgb), 0.10); color: var(--accent-signature); }
 .modal-close { margin-top: 24px; width: 100%; padding: 9px;
   border: 1px solid var(--border); border-radius: 3px; font-size: 12px;
   letter-spacing: 0.1em; color: var(--text-secondary);
@@ -742,10 +794,9 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .tc-bias.down { color: var(--down); }
 .tc-text { font-size: 12px; line-height: 1.65; color: var(--text-secondary); }
 
-/* 新闻板块 pill 行 */
+/* 新闻板块 chip 行（板块筛选器：带计数的多选一） */
 .news-catbar { margin-top: 8px; }
 .news-catbar:empty { display: none; }
-.news-catbar .pill b { margin-left: 6px; font-weight: 500; opacity: 0.65; }
 
 /* 喊单页徽章：英文名 + 中文名 + 身份 */
 .voice-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -787,7 +838,12 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 }
 
 /* ==================== 全球事件（3D 地球 + 事件流） ==================== */
-.tool-status { font-size: 10px; color: var(--text-faint); font-family: var(--font-mono); letter-spacing: 0.06em; }
+/* 状态行（数据源 + 新鲜度 + 告警）属于"信息"不属于"控件"：
+   靠右对齐 + 压到最弱的一档，让左边的导航/筛选控件保持主位。
+   告警态（warn）才允许提亮——平时它是背景噪音，不该跟按钮抢眼。 */
+.tool-status { margin-left: auto; max-width: 46%; text-align: right;
+  font-size: 10px; color: var(--text-faint); font-family: var(--font-mono); letter-spacing: 0.04em;
+  line-height: 1.5; }
 .tool-status.warn { color: var(--warn); }
 .ev-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex: none; }
 .ev-imp { font-size: 9px; padding: 1px 6px; border: 1px solid var(--warn); color: var(--warn);
@@ -1766,6 +1822,11 @@ html[data-theme="memphis"] body { font-family: var(--font-sans), system-ui, sans
 
 /* ---------- 瑞士国际主义：网格 + hairline + 0 圆角 + 0 投影 + 极端字号对比 ---------- */
 html[data-theme="swiss"] * { border-radius: 0 !important; }
+/* 通配的 0 圆角是为了"瑞士网格"的硬朗感，但圆点是语义标记不是容器——
+   被压成方块后事件类型的前置色点就失去了"这是一个点"的读感（用户反馈 tag 难看）。
+   这里给真正的圆点形状开豁免。 */
+html[data-theme="swiss"] .ev-dot,
+html[data-theme="swiss"] .logo-dot { border-radius: 50% !important; }
 html[data-theme="swiss"] .pm-card, html[data-theme="swiss"] .pm-sec,
 html[data-theme="swiss"] .modal, html[data-theme="swiss"] .seg,
 html[data-theme="swiss"] .modal-close, html[data-theme="swiss"] .switch,
@@ -1792,12 +1853,23 @@ html[data-theme="swiss"] .topbar { border-bottom: 2px solid var(--text); }
 html[data-theme="swiss"] .topbar::after { content: ''; position: absolute; left: 0; right: 0; bottom: -5px;
   height: 1px; background: var(--text); }
 html[data-theme="swiss"] .modal { background: var(--bg-card); border: 1px solid var(--text); }
-html[data-theme="swiss"] .pill { background: transparent; border: 1px solid var(--border); }
-html[data-theme="swiss"] .pill.active { background: var(--accent-signature); color: #fff; border-color: var(--accent-signature); }
+/* 这四套皮肤给 .pill 套了边框，就必须自带内边距：
+   基础 .pill 的 padding 是给"下划线型"设计的（左右几乎为 0），
+   套上边框后文字会直接压在框线上——这就是"tag 逼仄"的来源。 */
+html[data-theme="swiss"] .pill { background: transparent; border: 1px solid var(--border);
+  padding: 5px 12px; }
+/* 选中态不做实心色块：accent 实心在设置弹层里是"小而确定"的选择，
+   但同一行里常有 4~8 个 pill，实心块会连成一片刺眼的色墙（用户反馈"逼仄"）。
+   改成浅底 + 强调色边框 + 强调色文字：选中同样明确，视觉重量降一档。 */
+html[data-theme="swiss"] .pill.active { background: rgba(var(--accent-rgb), 0.10); color: var(--accent-signature); border-color: var(--accent-signature); }
+html[data-theme="swiss"] .pill::after { display: none; }   /* 有边框了就不该再有下划线，两者是两套语言 */
+html[data-theme="swiss"] .chip { padding: 4px 10px; }
 html[data-theme="swiss"] body::before { display: none; }   /* 关掉默认环境光（瑞士要冷静） */
 
 /* ---------- 包豪斯：粗黑规则线 + 全大写宽字距标签 + Jost 几何 + 0 圆角 ---------- */
 html[data-theme="bauhaus"] * { border-radius: 0 !important; }
+html[data-theme="bauhaus"] .ev-dot,
+html[data-theme="bauhaus"] .logo-dot { border-radius: 50% !important; }
 html[data-theme="bauhaus"] .pm-card, html[data-theme="bauhaus"] .pm-sec,
 html[data-theme="bauhaus"] .modal, html[data-theme="bauhaus"] .seg,
 html[data-theme="bauhaus"] .modal-close, html[data-theme="bauhaus"] .switch,
@@ -1821,8 +1893,10 @@ html[data-theme="bauhaus"] .tab.active::after { background: var(--accent-signatu
 html[data-theme="bauhaus"] .topbar { border-bottom: 4px solid var(--text); }
 html[data-theme="bauhaus"] #heroStrip { background: var(--bg-card); border: 1px solid var(--text); border-bottom: 4px solid var(--accent-signature); }
 html[data-theme="bauhaus"] .modal { background: var(--bg-card); border: 2px solid var(--text); }
-html[data-theme="bauhaus"] .pill { background: transparent; border: 1px solid var(--text); border-radius: 0; }
-html[data-theme="bauhaus"] .pill.active { background: var(--accent-signature); color: #fff; border-color: var(--accent-signature); }
+html[data-theme="bauhaus"] .pill { background: transparent; border: 1px solid var(--text); border-radius: 0; padding: 5px 12px; }
+html[data-theme="bauhaus"] .pill.active { background: rgba(var(--accent-rgb), 0.10); color: var(--accent-signature); border-color: var(--accent-signature); }
+html[data-theme="bauhaus"] .pill::after { display: none; }
+html[data-theme="bauhaus"] .chip { padding: 4px 10px; }
 html[data-theme="bauhaus"] body::before {
   background:
     radial-gradient(28% 22% at 8% 92%, rgba(215,38,61,0.10), transparent 70%),
@@ -1830,6 +1904,8 @@ html[data-theme="bauhaus"] body::before {
 
 /* ---------- 纸感(Anthropic 风)：象牙白三阶 + Newsreader 衬线标题 + clay 点缀，保留终端感但更书卷气 ---------- */
 html[data-theme="clay"] * { border-radius: 0 !important; }
+html[data-theme="clay"] .ev-dot,
+html[data-theme="clay"] .logo-dot { border-radius: 50% !important; }
 html[data-theme="clay"] .pm-card, html[data-theme="clay"] .pm-sec,
 html[data-theme="clay"] .modal, html[data-theme="clay"] .seg,
 html[data-theme="clay"] .modal-close, html[data-theme="clay"] .switch,
@@ -1856,8 +1932,10 @@ html[data-theme="clay"] .tab.active::after { background: var(--accent-signature)
 html[data-theme="clay"] .topbar { border-bottom: 1px solid var(--text); }
 html[data-theme="clay"] #heroStrip { background: var(--bg-elevated); border: 1px solid var(--border); border-top: 3px solid var(--accent-signature); }
 html[data-theme="clay"] .modal { background: var(--bg-card); border: 1px solid var(--text); }
-html[data-theme="clay"] .pill { background: transparent; border: 1px solid var(--border); }
-html[data-theme="clay"] .pill.active { background: var(--accent-signature); color: #fff; border-color: var(--accent-signature); }
+html[data-theme="clay"] .pill { background: transparent; border: 1px solid var(--border); padding: 5px 12px; }
+html[data-theme="clay"] .pill.active { background: rgba(var(--accent-rgb), 0.10); color: var(--accent-signature); border-color: var(--accent-signature); }
+html[data-theme="clay"] .pill::after { display: none; }
+html[data-theme="clay"] .chip { padding: 4px 10px; }
 html[data-theme="clay"] body::before {
   background:
     radial-gradient(36% 28% at 14% 6%, rgba(217,119,87,0.08), transparent 70%),
@@ -1866,6 +1944,8 @@ html[data-theme="clay"] .logo { letter-spacing: 0.18em; font-weight: 500; }
 
 /* ---------- 孟菲斯：奶白底 + 高饱和点缀 + 0 圆角 + 倾斜 display，仅气质点缀不破坏数据屏 ---------- */
 html[data-theme="memphis"] * { border-radius: 0 !important; }
+html[data-theme="memphis"] .ev-dot,
+html[data-theme="memphis"] .logo-dot { border-radius: 50% !important; }
 html[data-theme="memphis"] .pm-card, html[data-theme="memphis"] .pm-sec,
 html[data-theme="memphis"] .modal, html[data-theme="memphis"] .seg,
 html[data-theme="memphis"] .modal-close, html[data-theme="memphis"] .switch,
@@ -1893,8 +1973,10 @@ html[data-theme="memphis"] .tab.active::after { background: var(--accent-signatu
 html[data-theme="memphis"] .topbar { border-bottom: 3px solid var(--text); }
 html[data-theme="memphis"] #heroStrip { background: var(--bg-card); border: 1px solid var(--text); border-bottom: 4px solid #FFD93D; }
 html[data-theme="memphis"] .modal { background: var(--bg-card); border: 2px solid var(--text); }
-html[data-theme="memphis"] .pill { background: transparent; border: 1px solid var(--text); }
-html[data-theme="memphis"] .pill.active { background: #18181a; color: #FFD93D; border-color: #18181a; }
+html[data-theme="memphis"] .pill { background: transparent; border: 1px solid var(--text); padding: 5px 12px; }
+html[data-theme="memphis"] .pill.active { background: rgba(var(--accent-rgb), 0.12); color: var(--accent-signature); border-color: var(--accent-signature); }
+html[data-theme="memphis"] .pill::after { display: none; }
+html[data-theme="memphis"] .chip { padding: 4px 10px; }
 html[data-theme="memphis"] body::before {
   background:
     radial-gradient(14% 14% at 12% 14%, rgba(255,61,127,0.10), transparent 70%),

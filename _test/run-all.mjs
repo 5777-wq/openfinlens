@@ -24,6 +24,7 @@ const groups = [
   { file: 'fundquiz.test.mjs', net: false },   // 投资风格测评：评分单调性 + 风险闸门（硬规则）+ 合规回归
   { file: 'qr.test.mjs', net: false },         // 二维码编码器：标准表核对 + RS 剩余式 + 编码→解码往返
   { file: 'zones.test.mjs', net: false },      // 二级分区判定：可用分区/导航条阈值/回落/自锁防护
+  { file: 'marketscope.test.mjs', net: false }, // 市场维度归属：市场只由一级 tab 表达/切换器与标签互斥
   { file: 'treemap.test.mjs', net: false },    // 热力图色带：区间边界归属/连续无缝/取色
   { file: 'pmshare.test.mjs', net: false },    // 分享卡片：源码级合规回归（不外泄上游标识）+ 零网络请求
   { file: 'spark.test.mjs', net: false },   // 首屏图形层：振幅条位置/走势线坐标（纯函数，画歪了才算错）

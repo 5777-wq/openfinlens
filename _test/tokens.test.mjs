@@ -214,5 +214,41 @@ test('js/ 全部脚本必须可解析（块注释里写 */ 会让整个文件静
   assert.equal(bad.length, 0, '存在语法错误的脚本: ' + bad.join(' | '));
 });
 
+/* ---------------- 标签控件的可读性守卫 ----------------
+   "tag 逼仄"是一类看不见的回归：padding 少 4px 不会有任何报错，
+   只在页面上表现为文字贴着边框。所以把它钉成断言。 */
+
+test('带边框的四种皮肤里 .pill 必须有自己的内边距（文字不能贴框线）', () => {
+  // 这四套给 .pill 套了 1px 边框，但基础 .pill 的 padding 是给"下划线型"设计的，
+  // 套上边框后文字直接压在框上——用户反馈"tag 做得太逼仄"的根因。
+  ['swiss', 'bauhaus', 'clay', 'memphis'].forEach(t => {
+    const re = new RegExp(`html\\[data-theme="${t}"\\] \\.pill \\{[^}]*\\}`);
+    const m = CSS.match(re);
+    assert.ok(m, `${t} 主题里找不到 .pill 规则`);
+    const pad = /padding:\s*([^;]+);/.exec(m[0]);
+    assert.ok(pad, `${t} 的 .pill 没有内边距`);
+    const nums = pad[1].match(/\d+/g).map(Number);
+    assert.ok(nums.length >= 2, `${t} 的 .pill 内边距应写"上下 左右"两段，实际 "${pad[1]}"`);
+    assert.ok(nums[1] >= 8, `${t} 的 .pill 左右内边距只有 ${nums[1]}px，文字会贴住边框`);
+  });
+});
+
+test('.chip 筛选器与 .pill 视图切换必须是两套独立的视觉', () => {
+  // 混用会让用户读不出层级：筛选器是信息单元（带计数/色点），
+  // 视图切换是导航。两者同款时，页面上两行 tag 看起来是一回事。
+  assert.ok(/\.chip \{[^}]*border:/.test(CSS), '.chip 应有自己的边框');
+  assert.ok(/\.chip \{[^}]*display: inline-flex/.test(CSS), '.chip 应为 inline-flex（色点+文字+计数要能对齐）');
+  assert.ok(/\.chip b \{/.test(CSS), '.chip 的计数应有独立样式');
+});
+
+test('0 圆角通配不得压掉语义圆点（事件类型色点必须是圆）', () => {
+  // 四套设计语言皮肤用 `* { border-radius: 0 !important }` 统一硬朗感，
+  // 但它会把 .ev-dot（事件类型前置色点）压成方块，丢掉"这是一个点"的读感。
+  ['swiss', 'bauhaus', 'clay', 'memphis'].forEach(t => {
+    const re = new RegExp(`html\\[data-theme="${t}"\\] \\.ev-dot[^{]*\\{[^}]*border-radius:\\s*50%`);
+    assert.ok(re.test(CSS), `${t} 主题的 .ev-dot 缺少圆角豁免`);
+  });
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
