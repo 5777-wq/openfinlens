@@ -165,6 +165,8 @@ node _test/run-all.mjs --offline  # 20 组 236 条，断网可跑，已挂 CI
 [![Mavis](https://avatars.githubusercontent.com/u/194880281?v=4&s=40)](https://github.com/MiniMax-AI) **[Mavis](https://github.com/MiniMax-AI)** · [MiniMax Code](https://github.com/MiniMax-AI) 的 AI 编程助手，负责架构设计、代码实现与测试
 [![zhipuai](https://avatars.githubusercontent.com/u/133244859?v=4&s=40)](https://github.com/zhipuai) **[智谱 AI · GLM](https://github.com/zhipuai)** · 模型与推理能力支持
 
+AI 协作部分在每次提交的 commit message 里也留了共同作者署名（`Co-Authored-By`），与 Claude Code 的做法一致——谁在写代码、用的哪个模型，翻历史都查得到。
+
 ## License
 
 [MIT](LICENSE)
