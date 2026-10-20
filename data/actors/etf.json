@@ -1,10 +1,10 @@
 {
- "generatedAt": "2026-10-17T18:02:09.412Z",
+ "generatedAt": "2026-10-20T06:41:51.466Z",
  "source": "Invesco 官网持仓接口（日更，免密钥）",
  "confidence": "REPORTED",
  "asOf": "2026-10-16",
- "published": "2026-10-17",
- "lagDays": 1,
+ "published": "2026-10-18",
+ "lagDays": 4,
  "note": "规则化因子 ETF 的**每日全量持仓**（官方发布，非申赎推算）：动量 ETF 的持仓回答\"趋势资金集中在哪\"，低波 ETF 回答\"防御资金在哪\"，交集是同时被两类因子选中的股票。这是编制规则定期调整（动量/低波指数半年或季度调仓）后的被动持仓，**不是某位基金经理的主观判断**，也不代表机构观点。持仓基准日到官网发布日有一到两天延迟。已剔除官方 feed 里的现金/货币基金/指数期货等非股票行。全部为历史事实陈述，不构成任何建议。",
  "funds": [
   {
@@ -14,7 +14,7 @@
    "name": "Invesco S&P 500 Momentum ETF",
    "indexName": "S&P 500 Momentum",
    "cusip": "46138E339",
-   "effectiveDate": "2026-10-17",
+   "effectiveDate": "2026-10-18",
    "total": 103,
    "equityCount": 99,
    "shownCount": 40,
@@ -429,7 +429,7 @@
    "name": "Invesco S&P 500 Low Volatility ETF",
    "indexName": "S&P 500 Low Volatility",
    "cusip": "46138E354",
-   "effectiveDate": "2026-10-17",
+   "effectiveDate": "2026-10-18",
    "total": 111,
    "equityCount": 100,
    "shownCount": 40,
