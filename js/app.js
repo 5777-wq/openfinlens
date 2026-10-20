@@ -27,6 +27,7 @@
     degraded: new Map(),      // symbol → 'backup' | 'cache'
     heatMode: 'cn',
     heatSize: 'cap',
+    heatBandsOff: {},       // 图例关掉的涨跌幅区间（key → true），关掉的块不进渲染
     heatTopMode: 'top',    // A股热力图范围：top=市值 Top500（默认）| all=全市场
     // 每个市场的全量行：hk/us 同时供"热力图"与"市场宽度"共用（us 原本就为宽度而抓）
     heatItems: { cn: [], hk: [], us: [], crypto: [] },
@@ -112,7 +113,7 @@
     // 首屏下方的「我的自选」块与全球涨跌概览条
     'watchSection', 'watchGrid', 'watchSub', 'watchMore', 'marketBrief',
     'heatCanvas', 'heatTip', 'heatWrap', 'heatSection', 'heatSub', 'heatSizeToggle', 'heatTopToggle',
-    'heatReset', 'heatZoom', 'heatHint',
+    'heatReset', 'heatZoom', 'heatHint', 'heatLegend',
     'newsList', 'newsSub', 'chainList',
     'boardStrip', 'boardVia', 'boardDrawer',
     'moodSub', 'moodScore', 'moodBand', 'moodFill', 'breadthGrid', 'distWrap', 'distSub', 'moodSpark', 'heroStrip', 'moodCrypto', 'moodUS',
@@ -1006,9 +1007,57 @@
 
   /* ==================== 热力图 ==================== */
 
+  /* 面积维度：市值 / 成交额 / 等面积。换着看的是三个不同的问题——
+     · 市值    谁大（市场结构）
+     · 成交额  今天谁在被交易（资金注意力）。跨市场量纲不同（A 元 / 港元 / 美元），
+                取对数正好抹平量纲差异，只留相对关系
+     · 等面积  每只一样大，纯粹看涨跌分布，小盘股才看得见
+     原先的「涨跌幅作面积」被等面积取代：它把颜色信息又编码进面积一遍，
+     而等面积正是 TradingView 的 Mono size。 */
+  const HEAT_SIZES = [
+    { key: 'cap', label: '市值' },
+    { key: 'amount', label: '成交额' },
+    { key: 'equal', label: '等面积' },
+  ];
+
   function heatValue(row) {
     if (state.heatSize === 'cap' && row.marketCap) return row.marketCap;
+    if (state.heatSize === 'amount' && row.amount) return Math.log10(row.amount + 1);
+    if (state.heatSize === 'equal') return 1;
     return Math.abs(row.changePct || 0) + 0.1;   // 保底面积，避免 0 面积块
+  }
+
+  /* 图例区间筛选：被关掉的区间不进渲染。放在 Top 500 切片之前——
+     这样"只看涨超 2% 的"给出的是剩下标的里市值最大的那些，
+     而不是把 500 个位置空出来。 */
+  function applyBandFilter(rows) {
+    const off = state.heatBandsOff;
+    let any = false;
+    for (const k in off) { if (off[k]) { any = true; break; } }
+    if (!any) return rows;
+    const B = window.Treemap.PCT_BANDS;
+    return rows.filter(r => {
+      const i = window.Treemap.bandOf(r.changePct);
+      if (i === null) return true;      // 没有涨跌幅的不参与筛选（停牌/缺数据），保留
+      return !off[B[i].key];
+    });
+  }
+
+  /* 图例：8 个离散区间，既是色阶说明也是筛选器。
+     点一下关掉该区间（块消失），再点恢复。区间是固定的（不随数据变），
+     否则点图例时边界会跳，用户点不准想要的那一段。 */
+  function renderHeatLegend() {
+    const box = el.heatLegend;
+    if (!box) return;
+    const B = window.Treemap.PCT_BANDS;
+    const off = state.heatBandsOff;
+    box.innerHTML = B.map(b => {
+      const hidden = !!off[b.key];
+      return `<button type="button" class="heat-band${hidden ? ' off' : ''}" data-band="${b.key}"
+        style="background:${window.Treemap.colorAt(b.rep)}"
+        title="${b.label}${hidden ? '（已隐藏，点击恢复）' : '（点击隐藏该区间）'}"
+        aria-pressed="${!hidden}" aria-label="${b.label}"></button>`;
+    }).join('') + '<span class="heat-legend-marks"><b>-3%</b><b>0</b><b>+3%</b></span>';
   }
 
   let heatCNPending = null;   // 在飞去重：schedule('heat') 与 scheduleMood 都会触发，56 页全市场抓取不该并发双跑
@@ -1114,14 +1163,14 @@
      为了拿一个数字付出 ~65k 次比较 + 5500 元素拷贝 + 500 次对象分配。
      数量规则和 heatItemsForRender 完全一致，只是不用排序。 */
   function heatRenderCount() {
-    const rows = state.heatItems[state.heatMode] || [];
+    const rows = applyBandFilter(state.heatItems[state.heatMode] || []);
     const sliceTop = state.heatMode !== 'crypto' &&
       (HEAT_RANGE_MODES[state.heatMode] ? state.heatTopMode !== 'all' : true);
     return (sliceTop && rows.length > 500) ? 500 : rows.length;
   }
 
   function heatItemsForRender() {
-    let rows = state.heatItems[state.heatMode] || [];
+    let rows = applyBandFilter(state.heatItems[state.heatMode] || []);
     const sliceTop = state.heatMode !== 'crypto' &&
       (HEAT_RANGE_MODES[state.heatMode] ? state.heatTopMode !== 'all' : true);
     if (sliceTop && rows.length > 500) {
@@ -1191,8 +1240,15 @@
       && (state.heatItems.crypto || []).filter(r => r.capReal).length / Math.max(1, (state.heatItems.crypto || []).length) >= 0.8;
     const sizeTxt = state.heatSize === 'cap'
       ? (state.heatMode === 'crypto' ? (cryptoCapReal ? '市值' : '24h成交额') : '市值')
-      : '涨跌幅';
-    el.heatSub.textContent = `${n} 个标的 · 面积=${sizeTxt}${rangeTxt} · ${viaTxt}` +
+      : state.heatSize === 'amount' ? '成交额' : '等面积';
+    // 按钮文案跟着实际口径走（加密的"市值"可能其实是 24h 成交额代理）
+    if (el.heatSizeToggle) {
+      el.heatSizeToggle.textContent = '面积：' + sizeTxt;
+      el.heatSizeToggle.dataset.size = state.heatSize;
+    }
+    const offCount = Object.keys(state.heatBandsOff).filter(k => state.heatBandsOff[k]).length;
+    const filterTxt = offCount ? ` · 已隐藏 ${offCount} 个涨跌幅区间` : '';
+    el.heatSub.textContent = `${n} 个标的 · 面积=${sizeTxt}${rangeTxt}${filterTxt} · ${viaTxt}` +
       // 剩余矩形 <0.5px 时 squarify 会丢弃排序尾部的标的：静默丢数据不行，至少说一声
       (state.heat && state.heat.droppedCount ? `（另有 ${state.heat.droppedCount} 只低于显示阈值）` : '');
     // 空态：全源失败时给明确文案，而不是黑画布 + "0 个标的 · 等待数据"
@@ -3505,15 +3561,7 @@
     if (!view) return;
     state.zone = key;
     const nodes = view.querySelectorAll('[data-zone]');
-    let i = 0;
-    nodes.forEach(n => {
-      const on = n.getAttribute('data-zone') === key;
-      n.classList.toggle('zone-off', !on);
-      if (on) {
-        n.classList.remove('zone-in');
-        n.style.setProperty('--zi', String(i++));
-      }
-    });
+    window.Zones.applyTo(nodes, key);
     view.classList.add('zone-active');
     if (animate && !reduceMotion()) {
       // 先摘掉旧类再强制重排，否则重播不了入场动画（类没变 = 动画不重启）
@@ -3952,6 +4000,8 @@
     syncThemeChrome(t);
     // 价格闪烁用的 --up-rgb/--down-rgb 缓存要失效（换肤可能改涨跌色）
     invalidateFlashColors();
+    // 图例色块是内联背景色（跟着 treemap 的涨/跌色走），换肤后要重画一遍
+    renderHeatLegend();
     // lightweight-charts 不吃 CSS 变量：已打开的图表增量重读主题色
     if (state.chart) window.Charts.retheme(state.chart);
   }
@@ -3985,6 +4035,7 @@
     // 只需重绘不吃变量的两处：热力图（canvas）与 K线（series 颜色）
     window.Treemap.refreshColors();
     if (state.heat) drawHeat();
+    renderHeatLegend();      // 图例色块是内联背景色，红绿一换也得跟着换
     if (state.chart) state.chart.applyTheme();
     if (state.view === 'watch') renderWatchlist();
     if (state.view === 'chain') renderChains();
@@ -4298,18 +4349,21 @@
 
     // 板块折叠：点标题收起/展开正文（聪明钱/情绪/热力图等长板块，按需收纳）
     document.addEventListener('click', (e) => {
-      // 二级分区切换
-      const zoneBtn = e.target.closest('[data-zone-btn]');
-      if (zoneBtn) {
-        const key = zoneBtn.getAttribute('data-zone-btn');
-        if (key && key !== state.zone) applyZone(key, true);
-        return;
-      }
       const head = e.target.closest('[data-fold] > .section-head');
       if (!head || e.target.closest('button, a, input, .pill, .ses-chip')) return;
       const sec = head.parentElement;
       setFold(sec, !sec.classList.contains('folded'));
     });
+    // 二级分区切换：直接绑在导航条上，不挂在 document——
+    // 导航条是稳定节点（只换 innerHTML），事件不必冒泡到 document 才被接住。
+    if (el.zoneBar) {
+      el.zoneBar.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-zone-btn]');
+        if (!btn) return;
+        const key = btn.getAttribute('data-zone-btn');
+        if (key && key !== state.zone) applyZone(key, true);
+      });
+    }
     // 市场预测卡片：分享为图片。
     // 用捕获阶段监听：卡片本身有点击行为，冒泡阶段再拦就晚了。
     document.addEventListener('click', (e) => {
@@ -4599,11 +4653,23 @@
     });
 
     el.heatSizeToggle.addEventListener('click', () => {
-      state.heatSize = state.heatSize === 'cap' ? 'pct' : 'cap';
-      el.heatSizeToggle.textContent = '面积：' + (state.heatSize === 'cap' ? '市值' : '涨跌幅');
-      el.heatSizeToggle.dataset.size = state.heatSize;   // 原先只写内存不改 dataset（死属性）
+      const i = HEAT_SIZES.findIndex(s => s.key === state.heatSize);
+      const next = HEAT_SIZES[(i + 1) % HEAT_SIZES.length];
+      state.heatSize = next.key;
       drawHeat();
     });
+
+    // 图例即筛选器：点一下关掉该涨跌幅区间，再点恢复
+    if (el.heatLegend) {
+      el.heatLegend.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-band]');
+        if (!b) return;
+        const k = b.getAttribute('data-band');
+        state.heatBandsOff[k] = !state.heatBandsOff[k];
+        renderHeatLegend();
+        drawHeat();
+      });
+    }
 
     // A股热力图范围：市值 Top 500（默认，块块有字）⇄ 全市场（放大探索用）
     el.heatTopToggle.addEventListener('click', () => {
@@ -4821,6 +4887,8 @@
     }
     // 数据到位后再算一次分区：此时自选块等才解开，可用分区可能变了
     syncZones();
+    // 图例：色块颜色取自 treemap 的涨/跌色（跟皮肤、红绿模式走），要先画出来
+    renderHeatLegend();
     renderStatus();
     drawHeat();
     void heatBg;

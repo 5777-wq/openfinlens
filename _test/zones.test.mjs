@@ -72,6 +72,66 @@ await test('自锁防护：可用性判定只读 tab 维度，不读分区维度
   assert.doesNotMatch(fn, /zone-off|zoneIn|classList/, 'availability 不该碰分区维度的 class');
 });
 
+await test('落位：切到某分区时，非当前分区的节点打上 zone-off，当前分区的排队号', () => {
+  const mk = (zone) => {
+    const classes = new Set();
+    const styles = {};
+    return {
+      zone,
+      classes,
+      styles,
+      classList: {
+        add: (c) => classes.add(c),
+        remove: (c) => classes.delete(c),
+        contains: (c) => classes.has(c),
+        toggle: (c, on) => { if (on) classes.add(c); else classes.delete(c); },
+      },
+      style: { setProperty: (k, v) => { styles[k] = v; } },
+      getAttribute: (k) => (k === 'data-zone' ? zone : null),
+    };
+  };
+  const nodes = [mk('overview'), mk('overview'), mk('heat'), mk('sentiment')];
+  const count = Z.applyTo(nodes, 'heat');
+  assert.equal(count, 1, '当前分区应只有 1 个节点');
+  assert.equal(nodes[0].classes.has('zone-off'), true, '概览的节点应被藏起来');
+  assert.equal(nodes[1].classes.has('zone-off'), true);
+  assert.equal(nodes[2].classes.has('zone-off'), false, '热力图的节点不该被藏');
+  assert.equal(nodes[3].classes.has('zone-off'), true, '情绪的节点应被藏');
+  assert.equal(nodes[2].styles['--zi'], '0', '当前分区的节点应排上入场序号');
+
+  // 切回概览：热力图要藏起来，概览要放出来
+  Z.applyTo(nodes, 'overview');
+  assert.equal(nodes[0].classes.has('zone-off'), false);
+  assert.equal(nodes[2].classes.has('zone-off'), true);
+  assert.equal(nodes[0].styles['--zi'], '0');
+  assert.equal(nodes[1].styles['--zi'], '1', '同一分区内应按顺序错开入场');
+});
+
+await test('落位：重播入场动画前要摘掉旧的 zone-in（类没变 = 动画不重启）', () => {
+  const mk = (zone) => {
+    const classes = new Set(['zone-in']);
+    return {
+      classes,
+      classList: {
+        add: (c) => classes.add(c),
+        remove: (c) => classes.delete(c),
+        contains: (c) => classes.has(c),
+        toggle: (c, on) => { if (on) classes.add(c); else classes.delete(c); },
+      },
+      style: { setProperty: () => {} },
+      getAttribute: (k) => (k === 'data-zone' ? zone : null),
+    };
+  };
+  const n = mk('heat');
+  Z.applyTo([n], 'heat');
+  assert.equal(n.classes.has('zone-in'), false, 'applyTo 应摘掉旧的 zone-in');
+});
+
+await test('落位：空节点列表不崩', () => {
+  assert.equal(Z.applyTo([], 'heat'), 0);
+  assert.equal(Z.applyTo(null, 'heat'), 0);
+});
+
 await test('定义完整性：五个分区都有标签与提示', () => {
   const keys = Z.ZONE_DEFS.map(d => d.key);
   assert.deepEqual(Array.from(keys), ['overview', 'focus', 'heat', 'sentiment', 'disclosure']);

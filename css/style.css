@@ -286,8 +286,14 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .heat-sk { position: absolute; inset: 6px; z-index: 2; }
 .heat-empty { position: absolute; inset: 0; display: grid; place-items: center;
   color: var(--text-tertiary); font-size: 12px; background: rgba(10,10,11,0.7); z-index: 2; }
-.heat-legend { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
-.heat-legend i { width: 64px; height: 4px; background: linear-gradient(90deg, var(--down), #3a3a3a, var(--up)); }
+/* 图例：8 个离散区间 + 两端刻度。它同时是色阶说明和筛选器——
+   点一段就隐藏该区间的块，再点恢复。 */
+.heat-legend { display: inline-flex; align-items: center; gap: 0; margin-left: auto; }
+.heat-band { width: 13px; height: 10px; padding: 0; border: 0; cursor: pointer;
+  opacity: .92; transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+.heat-band:hover { opacity: 1; transform: scaleY(1.35); }
+.heat-band.off { opacity: .16; }
+.heat-legend-marks { display: inline-flex; gap: 10px; margin-left: 8px; }
 .heat-legend b { font-size: 10px; font-weight: 400; color: var(--text-faint); font-family: var(--font-mono); }
 .heat-hint { position: absolute; right: 14px; bottom: 12px; font-size: 10px;
   color: var(--text-faint); letter-spacing: 0.06em; pointer-events: none;
@@ -2048,3 +2054,37 @@ html[data-theme="memphis"] body::before {
 .share-btn:hover { color: var(--text); border-color: var(--border-hover); }
 .share-btn.primary { color: var(--bg); background: var(--accent-signature); border-color: var(--accent-signature); }
 .share-btn.primary:hover { color: var(--bg); opacity: .88; }
+/* ---- 投资风格测评：适当性分级（C/R）、判断依据链、复评提示 ---- */
+
+/* C/R 双分级：左边是"你能承受多少"（关于人），右边是"能买什么"（关于产品） */
+.fq-levels { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0 6px; }
+.fq-lv { flex: 1 1 180px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 4px; }
+.fq-lv-k { display: block; font-size: 11px; color: var(--text-tertiary); }
+.fq-lv-v { display: block; margin-top: 3px; font-size: 14px; color: var(--text); }
+.fq-lv-v b { font-family: var(--font-mono); font-weight: 600; }
+.fq-lv-note { margin: 6px 0 0; font-size: 11px; line-height: 1.7; color: var(--text-faint); }
+.fq-lv-note i { font-style: normal; }
+
+/* 判断依据链：把六道题的推导摊开，用折叠块收纳但不默认藏 */
+.fq-chain { margin: 18px 0; border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; }
+.fq-chain > summary { cursor: pointer; font-size: 12px; color: var(--text-secondary); list-style: none; }
+.fq-chain > summary::-webkit-details-marker { display: none; }
+.fq-chain > summary::after { content: ' ▾'; color: var(--text-faint); }
+.fq-chain[open] > summary::after { content: ' ▸'; }
+.fq-chain-list { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 5px; }
+.fq-chain-row { display: flex; align-items: baseline; gap: 10px; font-size: 12px; }
+.fq-chain-q { flex: 1 1 auto; min-width: 0; color: var(--text); }
+.fq-chain-q i { display: inline-block; width: 16px; height: 16px; line-height: 16px; text-align: center;
+  margin-right: 7px; border-radius: 2px; background: rgba(255,255,255,0.06); color: var(--text-tertiary);
+  font-size: 10px; font-style: normal; font-family: var(--font-mono); }
+.fq-chain-e { flex: 0 0 auto; color: var(--text-tertiary); font-size: 11px; }
+.fq-chain-sum { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--border);
+  font-size: 12px; line-height: 1.8; color: var(--text-secondary); }
+.fq-chain-sum b { color: var(--text); }
+
+/* 复评提示：用品牌强调色而不是警示红——红色在本项目里是"跌"，这里不是风险事件 */
+.fq-stale { margin: 14px 0; padding: 11px 14px; border: 1px solid rgba(var(--accent-rgb), .35);
+  border-radius: 4px; background: rgba(var(--accent-rgb), .07);
+  font-size: 12px; line-height: 1.7; color: var(--text-secondary); }
+.fq-stale b { color: var(--text); }
+.fq-stale .pill { margin-left: 6px; }

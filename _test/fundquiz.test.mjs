@@ -120,15 +120,133 @@ await test('候选池每个波动档都有货（低档别断档，否则保守�
   }
 });
 
+/* 禁用词表要避开否定式：免责声明里写的是"不推荐买入"，
+   直接用 /推荐买入/ 匹配会把免责声明自己判成违规。
+   所以命中处的前一个字若是"不/非/未/别/勿"，算否定句，不算违规。 */
+const BANNED = ['建议买入', '推荐买入', '必涨', '稳赚', '保本', '保证收益', '一定能', '翻倍', '无风险'];
+function bannedHits(text) {
+  const hits = [];
+  for (const w of BANNED) {
+    let i = String(text).indexOf(w);
+    while (i >= 0) {
+      const prev = i > 0 ? String(text)[i - 1] : '';
+      if ('不非未别勿'.indexOf(prev) < 0) {
+        hits.push(w + '←「' + String(text).slice(Math.max(0, i - 10), i + w.length + 4) + '」');
+      }
+      i = String(text).indexOf(w, i + 1);
+    }
+  }
+  return hits;
+}
+
 await test('合规回归：结果文案不得出现买入/收益承诺类用语', () => {
-  const banned = /建议买入|推荐买入|必涨|稳赚|保本|保证收益|一定能|翻倍|无风险/;
   const res = Q.score(pick(3));
   const text = Q.profileText(res);
-  assert.ok(!banned.test(text), `结果解读出现承诺性用语：${text}`);
+  assert.deepEqual(bannedHits(text), [], `结果解读出现承诺性用语：${text}`);
   Q.CANDIDATES.forEach(c => {
-    assert.ok(!banned.test(c.why), `${c.code} 的推荐理由出现承诺性用语`);
-    assert.ok(!banned.test(c.risk), `${c.code} 的风险提示出现承诺性用语`);
+    assert.deepEqual(bannedHits(c.why), [], `${c.code} 的推荐理由出现承诺性用语`);
+    assert.deepEqual(bannedHits(c.risk), [], `${c.code} 的风险提示出现承诺性用语`);
   });
+});
+
+await test('适当性分级：对齐中基协 C1–C5 / R1–R5，且 C 级与可买产品上限一一对应', () => {
+  for (let r = 1; r <= 5; r++) {
+    const c = Q.abilityLevel(r);
+    const rc = Q.productCap(r);
+    assert.equal(c.code, 'C' + r, `风险档 ${r} 的投资者分级不是 C${r}`);
+    assert.equal(rc.code, 'R' + r, `风险档 ${r} 的产品上限不是 R${r}`);
+    assert.ok(c.name, `C${r} 缺名称`);
+    assert.ok(rc.name, `R${r} 缺名称`);
+  }
+  // 越界不崩，落到最低档
+  assert.equal(Q.abilityLevel(0).code, 'C1');
+  assert.equal(Q.abilityLevel(99).code, 'C1');
+  assert.equal(Q.productCap(0).code, 'R1');
+});
+
+await test('适当性分级：C 级与 R 级同档（Cn 可买 Rn 及以下），不允许出现"C 能买更高 R"的错配', () => {
+  for (let r = 1; r <= 5; r++) {
+    const cN = parseInt(Q.abilityLevel(r).code.slice(1), 10);
+    const rN = parseInt(Q.productCap(r).code.slice(1), 10);
+    assert.equal(cN, rN, `C${cN} 的产品上限应是 R${cN} 及以下，实际给了 R${rN}`);
+  }
+});
+
+await test('判断依据：score 给出逐题拆解，每题都能对上原答案', () => {
+  const res = Q.score(pick(2));
+  assert.equal(res.breakdown.length, N, '逐题拆解条数应等于题数');
+  res.breakdown.forEach((b, i) => {
+    assert.equal(b.qi, i, '拆解顺序应与题序一致');
+    assert.equal(b.opt, Q.QUESTIONS[i].options[2].t, `第 ${i + 1} 题选项对不上`);
+    assert.equal(b.r, Q.QUESTIONS[i].options[2].r, `第 ${i + 1} 题承受度分值对不上`);
+  });
+  assert.equal(res.rawRisk, res.breakdown.reduce((s, b) => s + b.r, 0), '承受度合计应等于逐题之和');
+  assert.equal(res.styleScore, res.breakdown.reduce((s, b) => s + b.s, 0), '风格合计应等于逐题之和');
+  assert.equal(res.maxRisk, N * 3, '满分应是题数 × 3');
+});
+
+await test('判断依据：只答了一题也能给出拆解（不崩、不虚报题数）', () => {
+  const res = Q.score({ 0: 1 });
+  assert.equal(res.breakdown.length, 1);
+  assert.equal(res.answered, 1);
+  assert.ok(res.risk >= 1 && res.risk <= 5);
+});
+
+await test('复评：一年的测评到期要提示，没到期不提示', () => {
+  const now = Date.now();
+  const day = 86400000;
+  const fresh = Q.ageInfo(now - 10 * day);
+  assert.equal(fresh.stale, false, '10 天前不该提示复评');
+  assert.ok(fresh.days >= 9 && fresh.days <= 10, '天数算错');
+  const old = Q.ageInfo(now - 400 * day);
+  assert.equal(old.stale, true, '400 天前该提示复评');
+  assert.ok(old.days >= 399, '天数算错');
+  // 没记录时间（老版本存的数据）不提示，但也不能崩
+  const none = Q.ageInfo(0);
+  assert.equal(none.stale, false);
+  assert.equal(none.days, null);
+});
+
+await test('复评周期：明确写成一年（与行业里定期重评的常见做法一致）', () => {
+  assert.equal(Q.REVALIDATE_DAYS, 365);
+});
+
+await test('结果面板：C/R 双分级与推导链都要出现在 HTML 里', () => {
+  const res = Q.score(pick(3));
+  const html = Q.resultHTML(res);
+  assert.match(html, /fq-levels/, '缺 C/R 双分级区块');
+  assert.match(html, /你的风险承受能力/, '缺投资者分级标签');
+  assert.match(html, /可买的产品风险上限/, '缺产品风险上限标签');
+  assert.match(html, /C\d/, '没出现 C 级编号');
+  assert.match(html, /R\d/, '没出现 R 级编号');
+  assert.match(html, /fq-chain/, '缺判断依据链');
+  assert.match(html, /这份清单是怎么算出来的/, '缺推导链标题');
+  // 推导链里要逐题列出（6 题都有行）
+  const rows = (html.match(/fq-chain-row/g) || []).length;
+  assert.equal(rows, N, `推导链应有 ${N} 行，实际 ${rows}`);
+  // 推导链的汇总要把承受度合计与闸门命中数说清楚
+  assert.match(html, /承受度合计/, '缺承受度合计');
+  assert.match(html, /闸门/, '缺闸门说明');
+});
+
+await test('结果面板：C 级与 R 级必须成对出现且同档（不允许 C3 配 R4 这种错配）', () => {
+  for (let r = 1; r <= 5; r++) {
+    const res = Q.score(pick(r === 5 ? 3 : 0));
+    const html = Q.resultHTML(res);
+    const c = html.match(/你的风险承受能力<\/span>\s*<span class="fq-lv-v"><b>(C\d)<\/b>/);
+    const rr = html.match(/可买的产品风险上限<\/span>\s*<span class="fq-lv-v"><b>(R\d)<\/b>/);
+    assert.ok(c && rr, `风险档 ${r}：C/R 没成对出现`);
+    assert.equal(c[1].slice(1), rr[1].slice(1), `C${c[1]} 配了 ${rr[1]}，应同档`);
+  }
+});
+
+await test('合规回归：新增的 C/R 说明与推导链也不能出现买入/收益承诺类用语', () => {
+  for (let i = 0; i <= 3; i++) {
+    const html = Q.resultHTML(Q.score(pick(i)));
+    assert.deepEqual(bannedHits(html), [], `选项 ${i} 的结果面板出现承诺性用语`);
+  }
+  const chain = Q.chainHTML(Q.score(pick(2)), 8, 6);
+  assert.deepEqual(bannedHits(chain), [], '推导链出现承诺性用语');
 });
 
 await test('容错：空答案/半截答案不崩', () => {

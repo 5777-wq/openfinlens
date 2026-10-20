@@ -182,13 +182,47 @@ window.FundQuiz = (() => {
     5: '高波动高弹性，需要能承受 30% 以上回撤且不改变计划',
   };
 
+  /* ==================== 适当性分级（对齐中基协口径）====================
+     《基金募集机构投资者适当性管理实施指引（试行）》：普通投资者按风险承受能力
+     分为 C1~C5，基金产品按风险从低到高分为 R1~R5，匹配规则是 Cn 可买 Rn 及以下。
+
+     这里把两条轴分开呈现，因为它们回答的是不同的问题：
+     · C 级 = **你**能承受多少（由问卷评估，是关于人的）
+     · R 级 = **产品**风险多高（上限由 C 级推出，是关于产品的）
+     用户在天天基金/蛋卷看到的也是这套词，不对齐就是两套话对不上。
+
+     但要说清一件事：我们的候选池标的标的用的是「波动档」（按品类典型波动特征标注），
+     它**不等于** R 级——R 级按资产配置比例划定（看股票仓位），波动档按实际波动。
+     两者会不一致：红利 ETF 波动低但股票仓位高，官方 R 级可能到 R4。
+     所以面板上两套口径都写出来，不含糊成一句。 */
+  const C_LEVELS = {
+    1: { code: 'C1', name: '保守型' },
+    2: { code: 'C2', name: '相对保守型' },
+    3: { code: 'C3', name: '稳健型' },
+    4: { code: 'C4', name: '相对积极型' },
+    5: { code: 'C5', name: '积极型' },
+  };
+  const R_LEVELS = {
+    1: { code: 'R1', name: '低风险' },
+    2: { code: 'R2', name: '中低风险' },
+    3: { code: 'R3', name: '中风险' },
+    4: { code: 'R4', name: '中高风险' },
+    5: { code: 'R5', name: '高风险' },
+  };
+
+  function abilityLevel(risk) { return C_LEVELS[risk] || C_LEVELS[1]; }
+  function productCap(risk) { return R_LEVELS[risk] || R_LEVELS[1]; }
+
   /* ==================== 纯逻辑 ==================== */
 
   /* 评分：answers = {题序号: 选项序号} → { risk, style, caps, tags }
-     risk 由"承受度"得分折成 1~5 档，再被"投资期限"给的上限压低（取 min）。 */
+     risk 由"承受度"得分折成 1~5 档，再被"投资期限"给的上限压低（取 min）。
+     breakdown 是逐题拆解：把"六道题的答案怎么变成这一档"摊开，
+     结果面板要能回答"为什么我是这一档"，而不只是给一个结论。 */
   function score(answers) {
     let r = 0, s = 0, cap = 5;
     const tags = [];
+    const breakdown = [];
     QUESTIONS.forEach((q, qi) => {
       const oi = answers && answers[qi];
       if (oi === undefined || oi === null || !q.options[oi]) return;
@@ -196,13 +230,18 @@ window.FundQuiz = (() => {
       r += o.r; s += o.s;
       if (typeof o.cap === 'number') cap = Math.min(cap, o.cap);
       if (o.tag) tags.push(o.tag);
+      breakdown.push({
+        qi, q: q.q, opt: o.t, r: o.r, s: o.s,
+        tag: o.tag || '',
+        cap: typeof o.cap === 'number' ? o.cap : null,
+      });
     });
     const maxR = QUESTIONS.length * 3;
     let risk = 1 + Math.round((r / maxR) * 4);
     risk = Math.max(1, Math.min(5, risk));
     risk = Math.min(risk, cap);          // 期限闸门：短钱只能拿低波动
     const style = s <= -2 ? '防守' : s >= 2 ? '进攻' : '平衡';
-    return { risk, style, rawRisk: r, styleScore: s, cap, tags, answered: countAnswered(answers) };
+    return { risk, style, rawRisk: r, styleScore: s, cap, tags, breakdown, answered: countAnswered(answers), maxRisk: maxR };
   }
 
   function countAnswered(answers) {
@@ -254,17 +293,36 @@ window.FundQuiz = (() => {
   let root = null;
   let deps = {};
   let answers = {};          // {题序号: 选项序号}
+  let savedAt = 0;           // 这次测评的作答时间（毫秒），用于判断该不该复评
   let el = {};
 
   const STATE_KEY = 'fundQuiz';
 
+  /* 复评周期：《证券期货投资者适当性管理办法》要求销售机构定期让投资者重新测评，
+     行业里常见做法是一年一次。这里按一年算——超期就在结果面板上明说，
+     而不是静默沿用一年前的答案（收入、经验、家庭责任都会变，
+     适当性评级本来就该跟着变）。 */
+  const REVALIDATE_DAYS = 365;
+
+  function ageInfo(at) {
+    if (!at) return { days: null, stale: false, text: '' };
+    const days = Math.max(0, Math.floor((Date.now() - at) / 86400000));
+    if (days <= REVALIDATE_DAYS) return { days, stale: false, text: `作答于 ${days} 天前` };
+    return { days, stale: true, text: `这份测评是 ${days} 天前做的` };
+  }
+
   function save() {
-    try { window.Store.set(STATE_KEY, { answers, result: score(answers) }); } catch { /* 隐私模式等 */ }
+    try { window.Store.set(STATE_KEY, { answers, result: score(answers), at: Date.now() }); } catch { /* 隐私模式等 */ }
+    savedAt = Date.now();
   }
   function load() {
     try {
       const s = window.Store.get(STATE_KEY, null);
-      if (s && s.answers && typeof s.answers === 'object') { answers = s.answers; return true; }
+      if (s && s.answers && typeof s.answers === 'object') {
+        answers = s.answers;
+        savedAt = Number(s.at) || 0;
+        return true;
+      }
     } catch { /* 忽略 */ }
     return false;
   }
@@ -318,11 +376,43 @@ window.FundQuiz = (() => {
       <div class="fq-grid">${blocks}</div>`;
   }
 
+  /* 判断依据：把"六道题 → 这一档 → 这份清单"的推导摊开。
+     只给结论不给推导，用户没法判断该不该改答案；这也是和那些"黑盒投顾"
+     拉开距离的地方——我们把推导过程摆在台面上，而不是让用户猜。 */
+  function chainHTML(res, hitCount, shown) {
+    const rows = (res.breakdown || []).map(b => {
+      const parts = [];
+      if (b.r) parts.push(`承受度 +${b.r}`);
+      if (b.s > 0) parts.push('风格偏进攻');
+      else if (b.s < 0) parts.push('风格偏防守');
+      if (b.cap) parts.push(`期限上限 ${b.cap} 档`);
+      return `<li class="fq-chain-row">
+        <span class="fq-chain-q"><i>${b.qi + 1}</i>${escapeHTML(b.opt)}</span>
+        <span class="fq-chain-e">${escapeHTML(parts.join(' · ') || '中性项')}</span>
+      </li>`;
+    }).join('');
+    const ab = abilityLevel(res.risk);
+    const rc = productCap(res.risk);
+    return `<details class="fq-chain" open>
+      <summary>这份清单是怎么算出来的</summary>
+      <ol class="fq-chain-list">${rows}</ol>
+      <p class="fq-chain-sum">
+        承受度合计 <b class="num">${res.rawRisk}/${res.maxRisk}</b> → 风险档 <b class="num">${res.risk}</b>（${ab.code} ${ab.name}）；
+        风格合计 <b class="num">${res.styleScore > 0 ? '+' : ''}${res.styleScore}</b> → ${STYLE_LABEL[res.style] || '平衡型'}；
+        闸门「候选波动档 ≤ ${res.risk}」命中 ${hitCount} 个品类，按匹配度取前 ${shown} 个。
+      </p>
+    </details>`;
+  }
+
   function resultHTML(res) {
     const recs = recommend(res);
     const stylePos = res.style === '防守' ? 1 : res.style === '进攻' ? 5 : 3;
     const scale = (pos, n) => Array.from({ length: n }, (_, i) =>
       `<i class="${i + 1 === pos ? 'on' : ''}"></i>`).join('');
+    const ab = abilityLevel(res.risk);
+    const rc = productCap(res.risk);
+    const hitCount = CANDIDATES.filter(c => c.tier <= res.risk).length;
+    const age = ageInfo(savedAt);
 
     const cards = recs.map(c => `<article class="fq-card" data-fq-code="${escapeHTML(c.code)}">
         <div class="fq-card-hd">
@@ -344,10 +434,27 @@ window.FundQuiz = (() => {
       这是刻意的：波动档高于你这一档的（更激进的主题基金）不会出现在这里。
       想看更多可选项，回第 1 题调整一下投资期限。</p>` : '';
 
+    /* 复评提示：适当性评级不是永久的。一年前的答案不该被静默沿用。 */
+    const stale = age.stale ? `<div class="fq-stale">
+        <b>该复评了</b>${escapeHTML(age.text)}。风险承受能力会随收入、经验与家庭责任变化，
+        评级也跟着变——重做一次约 1 分钟。
+        <button type="button" class="pill fq-again" data-fq-again>重新测评</button>
+      </div>` : '';
+
     return `<div class="fq-verdict">
         <div class="fq-verdict-t">你的风格：<b>${STYLE_LABEL[res.style] || '平衡型'}</b>
           <span class="fq-verdict-r">波动承受 ${res.risk}/5 · ${RISK_LABEL[res.risk]}</span></div>
         <p class="fq-verdict-p">${escapeHTML(profileText(res))}</p>
+        <div class="fq-levels">
+          <div class="fq-lv"><span class="fq-lv-k">你的风险承受能力</span>
+            <span class="fq-lv-v"><b>${ab.code}</b> ${ab.name}</span></div>
+          <div class="fq-lv"><span class="fq-lv-k">可买的产品风险上限</span>
+            <span class="fq-lv-v"><b>${rc.code}</b> ${rc.name}</span></div>
+        </div>
+        <p class="fq-lv-note">C/R 分级沿用中基协适当性口径（C1–C5 是投资者、R1–R5 是产品，
+          Cn 可买 Rn 及以下），方便和天天基金、蛋卷那边的测评结果对得上话。
+          卡片上的“波动档”是按品类典型波动特征标的，与 R 级不是一回事——
+          R 级按股票仓位划定，同一只基金两套口径可能不同。</p>
         <div class="fq-dims">
           <div class="fq-dim"><span class="fq-dim-k">风险承受</span>
             <span class="fq-scale">${scale(res.risk, 5)}</span><span class="fq-dim-v num">${res.risk}/5 ${RISK_LABEL[res.risk]}</span></div>
@@ -356,6 +463,8 @@ window.FundQuiz = (() => {
         </div>
         <p class="fq-dim-note">${escapeHTML(RISK_DESC[res.risk] || '')}</p>
       </div>
+      ${stale}
+      ${chainHTML(res, hitCount, recs.length)}
       <div class="fq-warn">
         <b>风险提示</b>　本测评只把你在 ${QUESTIONS.length} 道题上的偏好，映射成一组公开可查的品类清单。
         它不预测收益、不推荐买入、不构成投资建议；历史业绩不代表未来。
@@ -393,6 +502,7 @@ window.FundQuiz = (() => {
     }
     if (e.target.closest('[data-fq-again]')) {
       answers = {};
+      savedAt = 0;
       try { window.Store.set(STATE_KEY, { answers: {} }); } catch { /* 忽略 */ }
       render();
     }
@@ -400,9 +510,17 @@ window.FundQuiz = (() => {
 
   function reset() {
     answers = {};
+    savedAt = 0;
     try { window.Store.set(STATE_KEY, { answers: {} }); } catch { /* 忽略 */ }
     render();
   }
 
-  return { QUESTIONS, CANDIDATES, STYLE_LABEL, RISK_LABEL, score, recommend, profileText, mount, render, reset, onClick };
+  return {
+    QUESTIONS, CANDIDATES, STYLE_LABEL, RISK_LABEL,
+    C_LEVELS, R_LEVELS, abilityLevel, productCap, ageInfo, REVALIDATE_DAYS,
+    score, recommend, profileText, mount, render, reset, onClick,
+    // 渲染函数也导出：结果面板的文案要能离线单测（新加的 C/R 分级与推导链
+    // 同样要过一遍"不得出现买入/收益承诺类用语"的合规回归）
+    resultHTML, chainHTML,
+  };
 })();

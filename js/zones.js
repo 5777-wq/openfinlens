@@ -65,8 +65,27 @@
     return keys.indexOf(current) >= 0 ? current : keys[0];
   }
 
+  /* 把某个分区设为当前：非当前分区的节点打上 zone-off，当前分区的节点排队号（--zi）。
+     只用 classList / style.setProperty / getAttribute 三个接口，
+     所以能用假 DOM 直接单测——"点一下热力图，概览的内容真的藏起来了吗"
+     这种问题不该只能靠肉眼验。 */
+  function applyTo(nodes, key) {
+    const list = Array.prototype.slice.call(nodes || []);
+    let i = 0;
+    list.forEach(n => {
+      if (!n) return;
+      const on = n.getAttribute('data-zone') === key;
+      n.classList.toggle('zone-off', !on);
+      if (on) {
+        n.classList.remove('zone-in');
+        n.style.setProperty('--zi', String(i++));
+      }
+    });
+    return i;   // 当前分区里的节点数
+  }
+
   global.Zones = {
     ZONE_DEFS, ZONE_HINTS,
-    availability, keysOf, shouldShowBar, resolveZone,
+    availability, keysOf, shouldShowBar, resolveZone, applyTo,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

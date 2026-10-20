@@ -134,6 +134,39 @@ const Treemap = (() => {
     return `rgb(${c[0]},${c[1]},${c[2]})`;
   }
 
+  /* 对外取色：图例要用与色块完全一致的颜色，否则图例就是骗人的。
+     颜色脏标记在这里一并刷新——图例是低频调用，多一次 refreshColors 无所谓。 */
+  function colorAt(pct) {
+    if (_csDirty) refreshColors();
+    return pctColor(pct);
+  }
+
+  /* ---- 颜色区间（与图例一一对应）----
+     图例不只是"解释色阶"，它同时是筛选器：点某一区间就隐藏该区间的块。
+     所以区间必须离散且稳定——不能像 TradingView 那样按当前数据自动算范围，
+     否则点一下图例、颜色边界就跳了，用户点不到想要的那一段。
+     分档以 ±3% 为界（与色阶封顶一致），中间按 1 个百分点切，两端为开区间。 */
+  const PCT_BANDS = [
+    { key: 'b0', label: '≤ -3%', lo: -Infinity, hi: -3, rep: -4 },
+    { key: 'b1', label: '-3 ~ -2%', lo: -3, hi: -2, rep: -2.5 },
+    { key: 'b2', label: '-2 ~ -1%', lo: -2, hi: -1, rep: -1.5 },
+    { key: 'b3', label: '-1 ~ 0%', lo: -1, hi: 0, rep: -0.5 },
+    { key: 'b4', label: '0 ~ +1%', lo: 0, hi: 1, rep: 0.5 },
+    { key: 'b5', label: '+1 ~ +2%', lo: 1, hi: 2, rep: 1.5 },
+    { key: 'b6', label: '+2 ~ +3%', lo: 2, hi: 3, rep: 2.5 },
+    { key: 'b7', label: '≥ +3%', lo: 3, hi: Infinity, rep: 4 },
+  ];
+
+  /* 涨跌幅落在哪一档。null = 没有涨跌幅（停牌/缺数据），这类不参与区间筛选 */
+  function bandOf(pct) {
+    if (pct === null || pct === undefined || isNaN(pct)) return null;
+    for (let i = 0; i < PCT_BANDS.length; i++) {
+      const b = PCT_BANDS[i];
+      if (pct >= b.lo && pct < b.hi) return i;
+    }
+    return null;
+  }
+
   // ---------- 渲染 + 视口 ----------
   // items: [{ name, code, value(面积权重), pct, price, payload }]
   function create(canvas, { onClick, onViewportChange, iconFor } = {}) {
@@ -495,7 +528,7 @@ const Treemap = (() => {
     };
   }
 
-  return { create, squarify, pctColor, refreshColors,
+  return { create, squarify, pctColor, refreshColors, colorAt, PCT_BANDS, bandOf,
     // 视口纯函数（单测用）：语义见文件头注释
     viewport: { clamp, applyZoom, applyPan, ZOOM_MAX } };
 })();
