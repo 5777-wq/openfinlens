@@ -901,13 +901,9 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
   background: var(--bg-elevated); font-size: 11px; line-height: 1.6;
   color: var(--text-secondary); }
 
-/* 图层控制条（平面地图左上角） */
+/* 图层控制条（平面地图左上角）。按钮用 .map-btn（文件末尾有专属外观），
+   不用 .pill —— 它浮在深色画布上，不该继承文字型标签的皮肤样式。 */
 .map-layers { position: absolute; z-index: 2; left: 8px; top: 8px; display: flex; gap: 6px; }
-.map-layers .pill { padding: 2px 8px; font-size: 10px; }
-/* 地图图层是浮在深色画布上的开关，亮色皮肤那套"实心强调色块"叠在深底上
-   极其刺眼（swiss 的红块压在暗海上像报错标记）。
-   浮层控件的专属外观放在皮肤区块**之后**（见文件末尾"地图图层浮层"一节）——
-   放在这里会被后面各皮肤的 .pill.active 覆盖掉（同样的特异性，文件里靠后���赢）。 */
 
 /* 底部事件时间轴（最近 72h）与样式随之在第五轮移除，此处不再保留空规则 */
 
@@ -948,10 +944,17 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
   border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .cd-kind { font-size: 10px; letter-spacing: .1em; color: var(--text-faint);
   text-transform: uppercase; min-width: 28px; }
-.globe-legend { position: absolute; z-index: 2; left: 12px; bottom: 10px; display: flex; gap: 12px;
-  flex-wrap: wrap; pointer-events: none; }
+/* 图例（事件类型色点 + 名称）。
+   原来在 bottom:10px，与右下角的 .globe-hint（操作提示，长句）**同一行**——
+   窄视口下两者直接叠在一起（实测"15个事件点(10°…"压在"央行 宏观 地缘 市场"上）。
+   两边都是底部就必然打架，所以图例改到左上角、图层按钮下方，
+   底部整行留给操作提示。图例文字浅色，压在深色地图上可读。 */
+.globe-legend { position: absolute; z-index: 2; left: 12px; top: 40px; display: flex; gap: 10px;
+  flex-wrap: wrap; max-width: calc(100% - 24px); pointer-events: none;
+  /* 深色地图上的浅色小字没有对比度，衬一层半透明深底才读得出 */
+  padding: 3px 8px; background: rgba(12, 14, 20, 0.62); border-radius: 3px; }
 .gl-item { display: inline-flex; align-items: center; gap: 5px; font-size: 10px;
-  color: var(--text-tertiary); font-family: var(--font-mono); }
+  color: rgba(255, 255, 255, 0.78); font-family: var(--font-mono); }
 /* 事件详情卡（选中事件 / 聚合点清单共用） */
 .event-detail { border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card);
   padding: 14px 16px; margin-bottom: 18px; }
@@ -2209,17 +2212,20 @@ html[data-theme="memphis"] body::before {
    ------------------------------------------------------------
    平面地图的图层开关浮在深色画布上，却继承亮色皮肤的"实心强调色块"，
    压在暗海上像两个报错标记（用户反馈"很突兀"）。
-   这里给浮层控件单独一套：深底半透明 + 细边框 + 强调色文字，
-   开着与否一眼可辨，又不会在地图上砸出色块。
 
-   位置必须在各皮肤区块**之后**：`html[data-theme="x"] .pill.active` 是 (0,3,1)，
-   裸的 `.map-layers .pill` 只有 (0,2,0) —— 特异性更低，靠后也压不住。
-   所以选择器统一带 `html[data-theme]` 前缀提到同等特异性，再靠文件位置取胜。 */
-html[data-theme] .map-layers .pill { background: rgba(12, 14, 20, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.18); color: rgba(255, 255, 255, 0.72); }
-html[data-theme] .map-layers .pill::after { display: none; }
-html[data-theme] .map-layers .pill:hover { color: #fff; border-color: rgba(255, 255, 255, 0.36); }
-html[data-theme] .map-layers .pill.active { background: rgba(255, 255, 255, 0.16); color: #fff;
+   这组按钮**不用 .pill**，改用独立的 .map-btn：
+   .pill 是"文字型切换标签"，会继承各皮肤对它的 active 态定义，
+   而各皮肤定义的位置与特异性各不相同（swiss 是 html[data-theme="x"] .pill.active，
+   0,3,1），靠 CSS 覆盖去压住它既脆弱又难维护——
+   这里实测覆盖写在了皮肤区块之后仍然被盖住。
+   换成自己的类，样式只在这里定义一次，不会再被皮肤规则波及。 */
+.map-btn { padding: 3px 9px; font-size: 10px; color: rgba(255, 255, 255, 0.72);
+  background: rgba(12, 14, 20, 0.72); border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 3px; white-space: nowrap; cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out); }
+.map-btn:hover { color: #fff; border-color: rgba(255, 255, 255, 0.36); }
+.map-btn.active { color: #fff; background: rgba(255, 255, 255, 0.16);
   border-color: rgba(255, 255, 255, 0.5); }
 
 /* ============================================================

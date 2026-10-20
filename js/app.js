@@ -2428,7 +2428,7 @@
     const st = window.WorldMapView.layerState();
     const defs = [['points', '事件点'], ['grid', '网格']];
     el.mapLayers.innerHTML = defs.map(([id, label]) =>
-      `<button class="pill${st[id] ? ' active' : ''}" data-maplayer="${id}">${label}</button>`).join('');
+      `<button class="map-btn${st[id] ? ' active' : ''}" data-maplayer="${id}">${label}</button>`).join('');
   }
 
   /* 国家详情（平面地图点空白 / 后续可从列表国家 chip 进入） */
