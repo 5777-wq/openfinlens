@@ -100,7 +100,9 @@ const Charts = (() => {
         .filter(e => times.has(tKey(e.time)))
         .slice(0, 40)
         .map(e => ({
-          time: e.time, position: 'aboveBar', shape: 'circle', size: 1,
+          // size 3：marker 不带文字了（见 js/events.js 的 toChartEvent），
+          // 圆点就是唯一的可见线索，太小（1~2px）在浅色图上根本看不见。
+          time: e.time, position: 'aboveBar', shape: 'circle', size: 3,
           color: e.color || '#e8a33d', text: e.text || '',
         }))
         .sort((a, b) => tCmp(a.time, b.time));

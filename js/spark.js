@@ -127,7 +127,7 @@ const Spark = (() => {
    * = 总宽 / (axisLen - 1)。用本序列自己的点数算会错——缺交易日的市场
    * 点数少，步长被算大，缺口就检测不出来。 */
   const MAX_GAP_STEPS = 4;   // 允许跨过 3 个休市日（一个长周末）；再多就断开
-  function drawAligned(canvas, pts, { color = '#86868b', width = 1.8, axisLen = 0, zeroY = null, zeroColor = '' } = {}) {
+  function drawAligned(canvas, pts, { color = '#86868b', width = 1.8, axisLen = 0, zeroY = null, zeroColor = '', endMark = false } = {}) {
     if (!canvas || typeof canvas.getContext !== 'function') return false;
     if (!Array.isArray(pts) || pts.length < 2) return false;
     const w = canvas.clientWidth || canvas.width;
@@ -175,6 +175,20 @@ const Spark = (() => {
       }
     }
     ctx.stroke();
+    // 末点标记：这 60 天的**累计涨跌**是用户最想比较的量（纳指涨了多少、
+    // 恒指跌了多少）。但共享标尺要覆盖全程波动（中途可能到过 ±11%），
+    // 末值（±3~6%）在 46px 画布上只有十来个像素的差别，光看曲线形状分不出高低。
+    // 所以在末点画一个实心方点——它的高度直接就是该指数这 60 天的成绩，
+    // 一眼可比。曲线本身仍完整画出，不裁任何数据。
+    if (endMark && pts.length) {
+      const last = pts[pts.length - 1];
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, 2.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
     return true;
   }
 

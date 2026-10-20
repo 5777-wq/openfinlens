@@ -384,7 +384,10 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 
 /* ============================================================ 新闻 */
 .news-list { display: flex; flex-direction: column; counter-reset: newsidx; }
-.news-item { display: block; padding: 12px 0 12px 64px; border-bottom: 1px solid var(--border);
+/* 序号列原来留 64px：两位序号的实际宽度只有 ~20px，剩下的空白让每条新闻
+   都从屏幕 1/8 处才开始，扫读时眼睛要横跨一大段空白才到正文。
+   收到 44px —— 序号与正文之间留够呼吸，又不浪费横向空间。 */
+.news-item { display: block; padding: 12px 0 12px 44px; border-bottom: 1px solid var(--border);
   position: relative; counter-increment: newsidx; }
 .news-item::before { content: counter(newsidx, decimal-leading-zero);
   position: absolute; left: 0; top: 15px;
@@ -479,8 +482,16 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
   padding: 14px 0; border-bottom: 1px solid var(--border); margin-bottom: 4px; font-size: 13px; }
 .ws-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); }
 .ws-dim { margin-left: auto; font-size: 11px; color: var(--text-faint); font-family: var(--font-mono); }
+/* 空态分两种，不要混用：
+   .empty       —— "数据没有"（源挂了/还没到/筛选无结果）。虚线框是提示"这里本该有东西"。
+   .empty-hint  —— "你还没开始用"（还没收藏自选、没有持仓记录）。
+                  这是引导不是故障，用虚线框会让人以为出错了；
+                  去掉框、压掉留白，让它像一句说明而不是一个错误块。 */
 .empty { padding: 44px 24px; text-align: center; color: var(--text-tertiary); font-size: 12px;
   border: 1px dashed var(--border); }
+.empty-hint { padding: 18px 20px; text-align: left; color: var(--text-tertiary); font-size: 12px;
+  border: 1px solid var(--border); border-left: 2px solid var(--border-hover);
+  background: var(--bg-card); line-height: 1.6; }
 
 .sk { background: rgba(255,255,255,0.05); animation: skPulse 1.4s ease-in-out infinite; }
 @keyframes skPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
@@ -541,8 +552,11 @@ html[data-theme] .seg-lg button.active:not(.x) {
   font-size: 11px; color: var(--text-faint); line-height: 1.9; }
 .footer .status-line { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 6px;
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; }
-/* 数据源状态已改为人话单句，异常时给警示色 */
-#sourceStatus.warn { color: var(--warn); }
+/* 数据源状态已改为人话单句，异常时给警示色。
+   整行只在异常时出现（正常时 hidden）——"一切正常"不需要占据版面。
+   异常时做成一��提示条（左侧竖线 + 淡底），而不是一行漂浮的红字。 */
+#sourceStatus.warn { color: var(--warn); padding: 6px 10px; margin-bottom: 10px;
+  border-left: 2px solid var(--warn); background: rgba(255, 92, 92, 0.06); }
 .selftest { margin-bottom: 32px; }
 .selftest summary { cursor: pointer; font-size: 11px; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--text-tertiary); }
@@ -632,6 +646,9 @@ html[data-theme] .seg-lg button.active:not(.x) {
   .news-item { padding-left: 0; }
   .news-item::before { display: none; }
   .detail-price { font-size: 28px; }
+  /* 分段控件在窄屏收一档：三个按钮各 7px 16px 内边距时总宽接近 250px，
+     375px 屏上勉强放得下，但与下方筛选行的间距会被挤没。 */
+  .seg-lg button { padding: 6px 12px; font-size: 12px; }
 }
 
 @media (pointer: coarse) {
@@ -747,6 +764,12 @@ html[data-theme] .seg-lg button.active:not(.x) {
 /* 名称区固定两行高度：长短名混排（富时100/KOSPI）曾让同一行三个数字高低差 16px */
 .gcard .hero-label { font-size: 11px; color: var(--text-tertiary); min-height: 30px;
   line-height: 1.35; align-items: flex-end; overflow: hidden; }
+/* 名字必须能读出来。hero-label 是 flex 容器（justify-content: space-between），
+   flex 子项默认 min-width:auto 不收缩，于是父级 overflow:hidden 会把长名字
+   **硬裁**掉——窄屏下「英国富时100」变成「英国富…」，半个字没有任何信息量。
+   这里让子项可收缩，并允许折成两行（名称区本来就预留了两行高度）：
+   「英国富时100」竖着排两行，比截成「英国富…」信息完整得多。 */
+.gcard .hero-label > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .gcard .hero-value { font-size: 20px; }
 .gcard .hero-chg { font-size: 12px; }
 .gcard .flag { width: 14px; height: 10px; margin-right: 5px; }
@@ -888,6 +911,16 @@ html[data-theme] .seg-lg button.active:not(.x) {
 /* 图层控制条（平面地图左上角） */
 .map-layers { position: absolute; z-index: 2; left: 8px; top: 8px; display: flex; gap: 6px; }
 .map-layers .pill { padding: 2px 8px; font-size: 10px; }
+/* 地图图层是浮在深色画布上的开关，亮色皮肤那套"实心强调色块"叠在深底上
+   极其刺眼（swiss 的红块压在暗海上像报错标记）。
+   这里给浮层控件单独一套：深底半透明 + 细边框 + 强调色文字，
+   开着与否一眼可辨，又不会在地图上砸出两个色块。 */
+.map-layers .pill { background: rgba(12, 14, 20, 0.72); border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--text-secondary); }
+.map-layers .pill::after { display: none; }
+.map-layers .pill:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.32); }
+.map-layers .pill.active { background: rgba(255, 255, 255, 0.14); color: #fff;
+  border-color: var(--accent-signature); }
 
 /* 底部事件时间轴（最近 72h）与样式随之在第五轮移除，此处不再保留空规则 */
 
@@ -1281,7 +1314,9 @@ body.no-crypto .crypto-only { display: none !important; }
    hero 四格固定为全球核心指数；自选移到下方 .wgrid 卡片网格，带迷你走势线与当日振幅条。
    hero 里也加了同样两样东西——首屏除了四张大数字就没有形状，用户反馈"页面太单调"。 */
 .hero-cell { position: relative; }
-.hero-cell .spark, .wcard .spark { display: block; width: 100%; height: 34px; margin-top: 10px; }
+/* 走势线高度：34px 原本只画一条线，现在同屏还有 0% 基准线与末点标记，
+   挤在一起三条线互相干扰。给到 40px，基准线与曲线才分得开。 */
+.hero-cell .spark, .wcard .spark { display: block; width: 100%; height: 40px; margin-top: 10px; }
 .wcard .spark { height: 30px; margin-top: 8px; }
 
 /* 日内区间条：**左端=今日最低、右端=今日最高**，轨道上的点=现价位置。
@@ -1448,7 +1483,7 @@ body.no-crypto .crypto-only { display: none !important; }
   .wgrid { grid-template-columns: repeat(2, 1fr); }
   .wcard { padding: 12px 12px 10px; }
   .wcard .hero-value { font-size: 18px; }
-  .hero-cell .spark, .wcard .spark { height: 26px; }
+  .hero-cell .spark, .wcard .spark { height: 30px; }
 }
 
 /* ============================================================ 吸顶指数跑马条（2026-09-17）

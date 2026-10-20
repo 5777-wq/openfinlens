@@ -120,5 +120,70 @@ await test('具体市场页必须显示市场标签（说明"这张热力图是�
   assert.match(APP, /heatMktTag\.textContent = heatMkt/, '市场标签应写入当前市场名');
 });
 
+/* ---- 数据源告警的相关性 ----
+   事故模式：页脚告警统计**所有**源的失败，于是产业链页数据完全正常、
+   只因 A 股全市场源降级就飘一条红字。与眼前数据无关的告警是噪音，
+   真出事时反而被稀释。 */
+
+await test('告警只报与当前页相关的源（产业链页不该被 A 股全市场源的降级打扰）', () => {
+  const items = [
+    ['tencent', { ok: true }],
+    ['em-clist', { ok: false, msg: 'x' }],   // A 股全市场降级
+    ['em-board', { ok: true }],
+  ];
+  // 产业链页只用 em-board/tencent/eastmoney → em-clist 与本页无关，不该报
+  assert.deepEqual(Array.from(M.failingSources(items, 'chain')), []);
+  // A 股页用了 em-clist → 该报
+  assert.deepEqual(Array.from(M.failingSources(items, 'cn')), ['em-clist']);
+});
+
+await test('告警：正常源不报，失败的相关源要报', () => {
+  const items = [
+    ['tencent', { ok: true }],
+    ['eastmoney', { ok: false }],
+    ['lhb', { ok: false }],
+  ];
+  assert.deepEqual(Array.from(M.failingSources(items, 'cn')), ['eastmoney', 'lhb']);
+  assert.deepEqual(Array.from(M.failingSources(items, 'hk')), ['eastmoney'],
+    '港股页不用 lhb，不该报龙虎榜');
+});
+
+await test('告警：搜索是全局源，任何页坏了都该提示', () => {
+  const items = [['em-search', { ok: false }]];
+  for (const tab of ['cn', 'chain', 'events', 'compare', 'watch']) {
+    assert.deepEqual(Array.from(M.failingSources(items, tab)), ['em-search'],
+      `${tab} 页应提示搜索源异常`);
+  }
+});
+
+await test('告警：未知 tab 不筛（宁可多报不漏报）', () => {
+  const items = [['whatever', { ok: false }]];
+  assert.deepEqual(Array.from(M.failingSources(items, '不存在的tab')), ['whatever']);
+});
+
+await test('告警：空条目/空数组不崩', () => {
+  assert.deepEqual(Array.from(M.failingSources(null, 'cn')), []);
+  assert.deepEqual(Array.from(M.failingSources([], 'cn')), []);
+  assert.deepEqual(Array.from(M.failingSources([['x', null]], 'cn')), [],
+    '状态为 null 不该当成失败');
+});
+
+await test('告警：renderStatus 必须用相关源判定（不得再统计全部源）', () => {
+  assert.match(APP, /MarketScope\.failingSources\(items, state\.tab\)/,
+    'renderStatus 应按当前 tab 过滤失败源');
+  assert.doesNotMatch(APP, /const bad = items\.filter\(\(\[, v\]\) => !v\.ok\)/,
+    '不该再统计全部源的失败');
+});
+
+await test('健壮性：renderStatus 挂了不许中断 setTab（曾把标题与内容搞成对不上）', () => {
+  // 真实事故：MarketScope 缺一个函数 → renderStatus 抛错 → setTab 在设置标题之前就断了，
+  // 结果"点了 A股 tab 但页面标题还是全球市场"，整屏对不上。
+  // renderStatus 是纯展示层，必须自己吞掉异常。
+  const body = APP.slice(APP.indexOf('function renderStatus'));
+  const fn = body.slice(0, body.indexOf('\n  }'));
+  assert.match(fn, /try\s*\{/, 'renderStatus 内部要有 try 保护');
+  assert.match(fn, /catch\s*\{/, 'renderStatus 内部要吞掉异常');
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

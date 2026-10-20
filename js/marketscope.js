@@ -93,13 +93,76 @@
     return MARKET_TITLE[m] || '';
   }
 
+  /* ==================== 数据源告警的相关性 ====================
+     页脚的"数据源响应异常"原先统计**所有**源的失败，于是：
+     产业链页的数据完全正常，但 A 股全市场源在降级 → 用户在产业链页
+     也会看到一条红色告警。告警与自己眼前的数据无关，就成了噪音，
+     真出问题时反而被稀释。
+
+     所以要按"这一屏实际用到哪些源"来判定。
+     源 → 页面 的映射写死在这里（纯数据，可单测）：
+       tencent/eastmoney  行情主源，所有行情页
+       em-clist           A股全市场（热力图/宽度/三榜）→ A股页、全部页
+       em-board           板块榜 → 产业链页
+       lhb                龙虎榜 → A股页
+       brk                13F → 美股页
+       news/sina          新闻快讯 → 事件页
+       gdelt              全球事件 → 事件页
+       forecast           预测市场 → 事件页
+       worldbank          世行年度指标 → 宏观页
+       fred               利率序列 → 宏观页
+       history            基金长历史 → 基金页
+       em-search          搜索（任何页都可能用）→ 视为全局
+       binance/okx        加密行情 → 加密页 */
+
+  const TAB_SOURCES = {
+    all: ['tencent', 'eastmoney', 'em-clist'],
+    cn: ['tencent', 'eastmoney', 'em-clist', 'lhb'],
+    hk: ['tencent', 'eastmoney'],
+    us: ['tencent', 'eastmoney', 'brk'],
+    crypto: ['tencent', 'binance', 'okx'],
+    fxmacro: ['tencent', 'eastmoney', 'worldbank', 'fred'],
+    events: ['tencent', 'news', 'sina', 'gdelt', 'forecast'],
+    chain: ['tencent', 'eastmoney', 'em-board'],
+    watch: ['tencent', 'eastmoney'],
+    portfolio: ['tencent', 'eastmoney'],
+    compare: ['history', 'eastmoney', 'tencent'],
+  };
+
+  /* 任何页面都可能用到的源（搜索是全局的）：它们坏了任何页都该提示 */
+  const GLOBAL_SOURCES = ['em-search'];
+
+  /* 这一屏该关注哪些源。tab 未知时返回全部（宁可多报不漏报）。 */
+  function relevantSources(tab) {
+    const list = TAB_SOURCES[tab];
+    if (!list) return null;    // null = 不筛选（全部源都算）
+    return list.concat(GLOBAL_SOURCES);
+  }
+
+  /* 从 SourceState 的条目里挑出"与当前页相关且失败"的源。
+   * items: [[key, {ok, via, msg}]]（SourceState.all() 的形状）
+   * 返回相关且失败的 key 数组。 */
+  function failingSources(items, tab) {
+    const rel = relevantSources(tab);
+    const bad = [];
+    for (const [k, v] of (items || [])) {
+      if (!v || v.ok) continue;
+      if (rel && rel.indexOf(k) < 0) continue;   // 与本页无关的源不算
+      bad.push(k);
+    }
+    return bad;
+  }
+
   global.MarketScope = {
     HEAT_MARKETS,
     TAB_MARKET,
+    TAB_SOURCES,
     heatMarketOf,
     showsHeat,
     showsMarketSwitcher,
     marketLabel,
     marketTitle,
+    relevantSources,
+    failingSources,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

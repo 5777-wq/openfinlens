@@ -283,7 +283,7 @@ window.PortfolioView = (() => {
 
   function renderTable(val) {
     if (!val.rows.length) {
-      els.table.innerHTML = `<div class="empty">还没有持仓记录。在上面搜一个标的、填上数量和成本价，行情到位后这里会实时算出市值与盈亏。所有记录只保存在本机浏览器。</div>`;
+      els.table.innerHTML = `<div class="empty-hint">还没有持仓记录。在上面搜一个标的、填上数量和成本价，行情到位后这里会实时算出市值与盈亏。所有记录只保存在本机浏览器。</div>`;
       return;
     }
     els.table.innerHTML = `<div class="prow-head" aria-hidden="true">

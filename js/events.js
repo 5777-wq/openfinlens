@@ -183,11 +183,17 @@ const Events = (() => {
     return (events || []).filter(e => e.relatedSymbols.includes(symbol));
   }
 
-  /* K线 marker：日频，时间取 UTC 日期（publishedAt 语义 = 报道见闻时间） */
+  /* K线 marker：日频，时间取 UTC 日期（publishedAt 语义 = 报道见闻时间）
+   *
+   * marker 上**不画文字**：图表是一年跨度，事件都集中在最近几天，
+   * 于是十几个 marker 全挤在图的最右 2% 宽度里。带文字（"地缘""央行"）时
+   * 它们互相重叠、还被 price scale 挤成竖排乱码（实测右侧一列"地""地""地…"）。
+   * 只留一个带类型色的小圆点就够——点它会弹事件卡，卡里有类型、时间与标题
+   * （js/app.js 的 renderChartEventCard），信息不丢。 */
   function toChartEvent(ev) {
     const time = dayOf(ev.publishedAt);
     if (!time) return null;
-    return { time, color: typeColor(ev.type), text: typeLabel(ev.type), ev };
+    return { time, color: typeColor(ev.type), text: '', ev };
   }
 
   /* 龙虎榜披露日（上海时区，17:00 后算当日，否则回退到上一个工作日）。

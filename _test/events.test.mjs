@@ -105,11 +105,15 @@ await test('时间语义：publishedAt → UTC 日期；龙虎榜披露日按上
   assert.equal(EV.latestLhbDate(Date.UTC(2026, 8, 13, 5, 0)), '2026-09-11');   // 周日 → 周五
 });
 
-await test('toChartEvent：marker 带类型色与短标签，坏时间返回 null', () => {
+await test('toChartEvent：marker 只带类型色、**不带文字**，坏时间返回 null', () => {
+  // marker 文字必须留空：图表是一年跨度，事件都集中在最近几天，
+  // 十几个 marker 全挤在图的最右 2% 宽度里。带文字（"地缘""央行"）时
+  // 它们互相重叠、还被 price scale 挤成竖排乱码（实测右侧一列"地""地""地…"）。
+  // 圆点是唯一可见线索，类型与时间由点击后的详情卡给出。
   const ev = EV.normalize([{ type: 'central_bank', title: 'FOMC day', publishedAt: T0 }])[0];
   const ce = EV.toChartEvent(ev);
   assert.equal(ce.time, '2026-09-09');
-  assert.equal(ce.text, '央行');
+  assert.equal(ce.text, '', 'marker 文字必须为空');
   assert.ok(ce.color && ce.color.startsWith('#'));
   assert.equal(EV.toChartEvent({ publishedAt: null }), null);
 });
@@ -118,6 +122,16 @@ await test('isStale：无 generatedAt 即滞后，超龄滞后', () => {
   assert.equal(EV.isStale(null, 1000, T0), true);
   assert.equal(EV.isStale(T0 - 500, 1000, T0), false);
   assert.equal(EV.isStale(T0 - 5000, 1000, T0), true);
+});
+
+await test('marker 不画字了，但类型名仍必须能取到（图上省了、详情卡不能丢）', () => {
+  // 图上的 marker 只剩一个彩色圆点，类型/时间/标题全靠点击后的详情卡
+  // （app.js 的 renderChartEventCard 用 typeLabel 渲染 ce-tag）。
+  assert.equal(EV.typeLabel('central_bank'), '央行');
+  assert.equal(EV.typeLabel('geopolitics'), '地缘');
+  assert.ok(EV.typeLabel('conflict').length > 0);
+  // 未知类型不能崩（回落到市场类）
+  assert.equal(typeof EV.typeLabel('不存在的类型'), 'string');
 });
 
 await test('bus：on/emit/off，监听器抛错不炸其他监听器', () => {

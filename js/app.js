@@ -74,7 +74,7 @@
     // 市场预测（Polymarket 隐含概率，只读展示）；pmExpand 记录各分类是否展开全部
     // pmEvents 是"事件"数组（每个事件带若干档位），pmSel 记录每张卡片当前选中的档位（走势图跟谁）
     pmEvents: [], pmExpand: {}, pmSel: {}, pmHistory: null,
-    pmVia: null, pmGenAt: null, pmLoadedAt: 0,
+    pmVia: null, pmGenAt: null, pmLoadedAt: 0, pmStale: false,
     eventsSource: '',          // 数据源名（状态行合成用）
     mapStatusPts: null,        // 平面地图点数状态（onStatus 回调），与数据源状态行合并显示
     selEvent: null,            // 当前选中的全球事件
@@ -682,6 +682,7 @@
           color, width: 1.8, axisLen: aligned.axis.length,
           zeroY: window.Spark.zeroLineY(scale, h),
           zeroColor: getComputedStyle(document.body).getPropertyValue('--border').trim(),
+          endMark: true,   // 末点标出累计涨跌的高度：曲线全程要覆盖波动，末值高低才是主要比较量
         }) : false;
       }
       if (!ok) ok = window.Spark.draw(cv, closes, { color, fill: '', width: 1.8 });
@@ -721,7 +722,7 @@
       }
     }
     if (!list.length) {
-      box.innerHTML = '<div class="empty">在任意卡片右上角点 ★ 收藏，这里就会出现你的自选（带走势图）</div>';
+      box.innerHTML = '<div class="empty-hint">在任意卡片右上角点 ★ 收藏，这里就会出现你的自选（带走势图）</div>';
       return;
     }
     box.innerHTML = list.map(({ item, q }) => wcardHTML(item, q)).join('');
@@ -1022,7 +1023,7 @@
     // 合规开关关闭：加密标的从列表隐藏（自选数据本身保留，开关打开即恢复）
     const items = window.Store.watchlist.all().filter(it => CRYPTO_ON || !/USDT$/i.test(it.symbol));
     if (!items.length) {
-      el.watchWall.innerHTML = '<div class="empty">点击卡片右上角 ★ 添加自选</div>';
+      el.watchWall.innerHTML = '<div class="empty-hint">点击卡片右上角 ★ 添加自选</div>';
       return;
     }
     refreshWatchSet();
@@ -2037,7 +2038,7 @@
       : state.newsVia === 'eastmoney' ? '备用源 · 东方财富'
         : state.newsVia === 'sina' ? '新浪滚动' : '暂无数据源';
     const shown = Math.min(list.length, 120);
-    el.newsSub.textContent = `${viaTxt} · 显示 ${shown} / 共 ${list.length} 条 · 60s 自动刷新`;
+    el.newsSub.textContent = `${viaTxt} · 显示 ${shown} / 共 ${list.length} 条 · 页面每 60s 拉取`;
     if (!list.length) {
       el.newsList.innerHTML = '<div class="empty">暂无相关新闻</div>';
       state.newsFilterKey = null;
@@ -2102,7 +2103,7 @@
     if (!el.voicesList) return;
     const list = state.voices || [];
     el.voicesSub.textContent = list.length
-      ? `${list.length} 条 · 新浪+东财新闻聚合 · 60s 刷新 · 非原始推文`
+      ? `${list.length} 条 · 新浪+东财新闻聚合 · 页面每 60s 拉取 · 非原始推文`
       : '新闻池里暂时没有相关发言（口径：新闻聚合，非原始推文）';
     if (!list.length) {
       el.voicesList.innerHTML = '<div class="empty">暂无相关新闻</div>';
@@ -2271,6 +2272,7 @@
     state.pmEvents = res.events;
     state.pmVia = res.via;
     state.pmGenAt = res.generatedAt;
+    state.pmStale = !!res.stale;   // 采集 30 分钟一轮，超过 1 小时没更新 = 已滞后
     state.pmHistory = (hist && hist.grid) ? hist.grid : null;
     state.pmLoadedAt = Date.now();
     renderPmList();
@@ -2283,9 +2285,15 @@
       if (!state.pmVia) {
         el.pmSub.textContent = '数据更新中，请稍候 · 概率仅为市场隐含参考';
       } else {
-        const viaTxt = state.pmVia === 'cache' ? '缓存' : '实时';
-        const ageTxt = state.pmGenAt ? ' · 数据 ' + fmtAgo(state.pmGenAt) : '';
-        el.pmSub.textContent = `市场隐含概率（${viaTxt}${ageTxt}）· 仅供参考，不构成预测或投资建议`;
+        // 这里**不能写"实时"**：via='live' 的意思是"这次成功读到了采集产物文件"，
+        // 而采集本身是 30 分钟一轮的定时任务，不是实时行情。
+        // 之前写「实时」会和后面的「数据 5 小时前」自相矛盾（用户看到会以为标注错了）。
+        // 口径改成"定时采集"，并按数据年龄给出准确的措辞。
+        const stale = state.pmStale;
+        const ageTxt = state.pmGenAt ? '数据 ' + fmtAgo(state.pmGenAt) : '';
+        const viaTxt = state.pmVia === 'cache' ? '本地缓存' : '定时采集';
+        el.pmSub.textContent = `市场隐含概率（${viaTxt}${ageTxt ? ' · ' + ageTxt : ''}）`
+          + (stale ? ' · 数据已滞后' : '') + ' · 仅供参考，不构成预测或投资建议';
       }
     }
     const V = window.PMView;
@@ -4338,13 +4346,26 @@
   }
 
   function renderStatus() {
-    // 数据源状态说人话：逐源代号对用户是噪音（细节保留在"开发者自检"区）
-    const items = window.SourceState.all();
-    const bad = items.filter(([, v]) => !v.ok);
-    el.sourceStatus.textContent = bad.length
-      ? '部分数据源响应异常 · 已自动切换备用源，数据仍在刷新'
-      : '数据源全部正常';
-    el.sourceStatus.classList.toggle('warn', bad.length > 0);
+    // 数据源状态说人话：逐源代号对用户是噪音（细节保留在"开发者自检"区）。
+    // 正常时**整行不出现**——"数据源全部正常"是纯噪音，没人需要被告知一切安好；
+    // 只有真出问题时才留一行提示，页脚平时少一行的视觉噪音。
+    //
+    // 只报**与当前页相关**的源：原先统计全部源，于是产业链页数据完全正常、
+    // 只因 A 股全市场源降级就飘一条红字——与自己眼前的数据无关的告警是噪音，
+    // 真出事时反而被稀释（见 js/marketscope.js 的 TAB_SOURCES 映射）。
+    //
+    // 整段包在 try 里：这是纯展示层，它挂了不该让调用方（setTab / 轮询 tick）整条链断掉。
+    // 真出过这种事：一次函数缺失让 setTab 在设置标题之前就抛异常，
+    // 结果"点了 A股 tab 但标题还是全球市场"，整个页面对不上。
+    try {
+      const items = window.SourceState.all();
+      const bad = window.MarketScope.failingSources(items, state.tab);
+      el.sourceStatus.hidden = bad.length === 0;
+      el.sourceStatus.textContent = bad.length
+        ? '部分数据源响应异常 · 已自动切换备用源，数据仍在刷新'
+        : '';
+      el.sourceStatus.classList.toggle('warn', bad.length > 0);
+    } catch { /* 状态行显示不出来不影响内容 */ }
     const degCount = state.degraded.size;
     const quoteAt = latestQuoteAt();
     const fetchAt = state.lastUpdate;
