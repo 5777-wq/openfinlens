@@ -525,15 +525,8 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
    层级不够——"这是去哪个视图"该比"这是弹层里改哪个选项"更醒目。 */
 .seg-lg { padding: 3px; gap: 3px; }
 .seg-lg button { padding: 7px 16px; font-size: 12.5px; font-weight: 500; }
-/* 页面级分段控件不做实心色块：accent 实心是设置弹层那种"小而确定"的选择，
-   放到页面主导航上会变成整页最刺眼的一块（用户反馈"tag 逼仄/难看"）。
-   改成浅底 + 强调色文字：选中态依然明确，但让位给下面的数据。
-   特异性必须压过各皮肤的 `html[data-theme="x"] .seg button.active`（0,3,1）——
-   同样的特异性下"文件里靠后"才赢，而主题块在后面，所以这里多带一层 :not()
-   把特异性提到 (0,4,1)，才能稳定压住。 */
-.seg-lg button.active:not(.x),
-html[data-theme] .seg-lg button.active:not(.x) {
-  background: rgba(var(--accent-rgb), 0.10); color: var(--accent-signature); }
+/* 选中态的规则放在文件末尾（见"页面级分段控件"一节）——
+   各皮肤区块里也有 .seg button.active，必须排在它们之后才生效。 */
 .modal-close { margin-top: 24px; width: 100%; padding: 9px;
   border: 1px solid var(--border); border-radius: 3px; font-size: 12px;
   letter-spacing: 0.1em; color: var(--text-secondary);
@@ -913,14 +906,8 @@ html[data-theme] .seg-lg button.active:not(.x) {
 .map-layers .pill { padding: 2px 8px; font-size: 10px; }
 /* 地图图层是浮在深色画布上的开关，亮色皮肤那套"实心强调色块"叠在深底上
    极其刺眼（swiss 的红块压在暗海上像报错标记）。
-   这里给浮层控件单独一套：深底半透明 + 细边框 + 强调色文字，
-   开着与否一眼可辨，又不会在地图上砸出两个色块。 */
-.map-layers .pill { background: rgba(12, 14, 20, 0.72); border: 1px solid rgba(255, 255, 255, 0.18);
-  color: var(--text-secondary); }
-.map-layers .pill::after { display: none; }
-.map-layers .pill:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.32); }
-.map-layers .pill.active { background: rgba(255, 255, 255, 0.14); color: #fff;
-  border-color: var(--accent-signature); }
+   浮层控件的专属外观放在皮肤区块**之后**（见文件末尾"地图图层浮层"一节）——
+   放在这里会被后面各皮肤的 .pill.active 覆盖掉（同样的特异性，文件里靠后���赢）。 */
 
 /* 底部事件时间轴（最近 72h）与样式随之在第五轮移除，此处不再保留空规则 */
 
@@ -2216,3 +2203,34 @@ html[data-theme="memphis"] body::before {
   font-size: 12px; line-height: 1.7; color: var(--text-secondary); }
 .fq-stale b { color: var(--text); }
 .fq-stale .pill { margin-left: 6px; }
+
+/* ============================================================
+   地图图层浮层（放在皮肤区块之后）
+   ------------------------------------------------------------
+   平面地图的图层开关浮在深色画布上，却继承亮色皮肤的"实心强调色块"，
+   压在暗海上像两个报错标记（用户反馈"很突兀"）。
+   这里给浮层控件单独一套：深底半透明 + 细边框 + 强调色文字，
+   开着与否一眼可辨，又不会在地图上砸出色块。
+
+   位置必须在各皮肤区块**之后**：`html[data-theme="x"] .pill.active` 是 (0,3,1)，
+   裸的 `.map-layers .pill` 只有 (0,2,0) —— 特异性更低，靠后也压不住。
+   所以选择器统一带 `html[data-theme]` 前缀提到同等特异性，再靠文件位置取胜。 */
+html[data-theme] .map-layers .pill { background: rgba(12, 14, 20, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.18); color: rgba(255, 255, 255, 0.72); }
+html[data-theme] .map-layers .pill::after { display: none; }
+html[data-theme] .map-layers .pill:hover { color: #fff; border-color: rgba(255, 255, 255, 0.36); }
+html[data-theme] .map-layers .pill.active { background: rgba(255, 255, 255, 0.16); color: #fff;
+  border-color: rgba(255, 255, 255, 0.5); }
+
+/* ============================================================
+   页面级分段控件（放在皮肤区块之后）
+   ------------------------------------------------------------
+   accent 实心色块是设置弹层那种"小而确定"的选择（换个选项而已），
+   放到页面主导航上会变成整页最刺眼的一块（用户反馈"tag 逼仄/难看"）。
+   页面级分段控件改成浅底 + 强调色文字：选中态一样明确，但让位给下面的数据。
+
+   位置必须在各皮肤区块**之后**：`html[data-theme="x"] .seg button.active`
+   是 (0,3,1)，这里必须同等或更高特异性且靠后，才压得住。 */
+.seg-lg button.active,
+html[data-theme] .seg-lg button.active {
+  background: rgba(var(--accent-rgb), 0.10); color: var(--accent-signature); }
