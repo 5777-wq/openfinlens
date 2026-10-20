@@ -242,7 +242,12 @@ const Spark = (() => {
    * 若该序列在 axis 上一个点都没有，返回 null（不画）。
    *
    * x 按**日期在 axis 上的下标**定位，不是按本序列自己的有效点数——
-   * 后者会让缺交易日的市场"挤"到右边，与别的市场不在同一时间轴上。 */
+   * 后者会让缺交易日的市场"挤"到右边，与别的市场不在同一时间轴上。
+   *
+   * 关于各格宽度差 1~2px（CSS 栅格 1fr 不除尽的分数分配）：
+   * x = (i/last) × 本格宽度，于是每个格子的**相对位置**完全一致——
+   * 同一个日期在四格里占的比例相同。绝对像素差 1~2px 肉眼不可见，
+   * 而"位置对齐"这件事是精确成立的（同一比例 = 同一时刻）。 */
   function alignedPoints(rows, axis, scale, w, h, pad = 2) {
     if (!Array.isArray(rows) || !Array.isArray(axis) || axis.length < 2) return null;
     if (!scale || !isNum(scale.min) || !isNum(scale.max) || !(w > 0) || !(h > pad * 2)) return null;

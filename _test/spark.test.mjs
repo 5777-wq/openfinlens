@@ -363,5 +363,25 @@ test('zeroLineY：0% 基准线在对称标尺的正中', () => {
   assert.equal(S.zeroLineY({ min: 0, max: 0 }, 40), null, '标尺塌了不给基准线');
 });
 
+test('alignedPoints：各格宽度差 1~2px 时，同一日期的相对位置仍一致（栅格分数分配的固有误差）', () => {
+  // 线上实测 hero 四格画布宽 478/476/478/476（1fr 不除尽的分数分配）。
+  // 对齐的标准是"相对位置一致"（同一日期占同一比例），不是绝对像素相同。
+  const rows = [
+    { time: D('2026-10-16'), close: 100 },
+    { time: D('2026-10-19'), close: 101 },
+    { time: D('2026-10-20'), close: 102 },
+  ];
+  const a = S.alignSeries([{ key: 'a', rows }]);
+  const s = S.alignedScale(a);
+  const pA = S.alignedPoints(rows, a.axis, s, 478, 40);
+  const pB = S.alignedPoints(rows, a.axis, s, 476, 40);
+  assert.equal(pA.length, 3);
+  assert.equal(pB.length, 3);
+  for (let i = 0; i < 3; i++) {
+    const rA = pA[i].x / 478, rB = pB[i].x / 476;
+    assert.ok(Math.abs(rA - rB) < 1e-6, `第 ${i} 点相对位置应相同：${rA} vs ${rB}`);
+  }
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
