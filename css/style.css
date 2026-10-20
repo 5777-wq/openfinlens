@@ -963,9 +963,11 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
 .pm-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; display: inline-block; }
 
 /* ---- 类别分布总览（事件计数环图，永远是有效饼图） ---- */
+/* 总览面板与事件卡用同一层底色（--bg-card），这样"总览—分区—卡片"是一条
+   连续的纸面；各皮肤需要特殊质感（玻璃/透明）时改 --pm-ov-bg 即可。 */
 .pm-overview { display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
   padding: 12px 16px; margin-bottom: 14px; border: 1px solid var(--border);
-  border-radius: 6px; background: var(--bg-elevated); }
+  border-radius: 6px; background: var(--pm-ov-bg, var(--bg-card)); }
 .pm-ov { flex: 0 0 auto; }
 .pm-ov-side { flex: 1 1 280px; min-width: 240px; }
 .pm-ov-leg { display: flex; flex-wrap: wrap; gap: 6px 16px; }
@@ -974,9 +976,12 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
 .pm-ov-note { margin-top: 9px; font-size: 10px; color: var(--text-faint); line-height: 1.7; }
 
 /* ---- 事件卡 ---- */
+/* 卡片底色与环图扇区分隔线由同一个变量驱动（--pm-card-bg / --pm-ov-bg）：
+   半透明玻璃皮肤下如果分隔线写死成不透明色，卡片与环图会明显"脱层"。
+   同一变量 → 两者永远同色，不可能错位。 */
 .pm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 10px; }
 .pm-card { border: 1px solid var(--border); border-left: 2px solid var(--cat-c, var(--border-hover));
-  border-radius: 5px; background: var(--bg-card); padding: 12px 14px 10px;
+  border-radius: 5px; background: var(--pm-card-bg, var(--bg-card)); padding: 12px 14px 10px;
   display: flex; flex-direction: column; gap: 10px; }
 .pm-card:hover { border-color: var(--border-hover); }
 .pm-card-hd { display: flex; flex-direction: column; gap: 6px; }
@@ -1004,7 +1009,10 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
   overflow: hidden; text-overflow: ellipsis; max-width: 44%; }
 .pm-out-bar { flex: 1 1 auto; min-width: 26px; height: 5px; border-radius: 3px;
   background: var(--bg-elevated); overflow: hidden; border: 1px solid var(--border); }
-.pm-out-bar i { display: block; height: 100%; background: var(--accent-signature); border-radius: 3px; }
+/* 概率条用该档位自己的颜色（与环图扇区同一个色）——图例↔扇区↔条↔走势线四者同色。
+   不用主题强调色：Swiss 主题的强调色是红的，而红/绿在本项目里是涨跌语义，
+   概率用红会被误读成"涨"。 */
+.pm-out-bar i { display: block; height: 100%; background: var(--pm-bar-c, var(--accent-signature)); border-radius: 3px; }
 .pm-out-p { font-size: 12px; font-weight: 700; font-family: var(--font-mono);
   font-variant-numeric: tabular-nums; min-width: 42px; text-align: right; color: var(--text); }
 .pm-out-na { font-size: 10px; font-weight: 400; color: var(--text-faint); }
@@ -1017,7 +1025,10 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
 .pm-chg.down { color: var(--down); }
 
 /* ---- 概率走势 ---- */
-.pm-trend { border-top: 1px solid var(--border); padding-top: 8px; }
+/* 走势线跟的是某一个档位，颜色就用那个档位的颜色（currentColor 由 pmview 注入），
+   和它的扇区、概率条同色——"这条线就是这一档"。 */
+.pm-trend { border-top: 1px solid var(--border); padding-top: 8px;
+  color: var(--pm-trend-c, var(--accent-signature)); }
 .pm-trend-hd { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; }
 .pm-trend-t { font-size: 10px; color: var(--text-faint); letter-spacing: .08em; flex: 0 0 auto; }
 .pm-trend-cur { font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap;
@@ -1027,16 +1038,19 @@ a.report-item:hover .report-title { text-decoration: underline; text-underline-o
 .pm-trend-wrap { height: 54px; }
 .pm-trend-empty { height: 54px; display: flex; align-items: center; justify-content: center;
   font-size: 10px; color: var(--text-faint); border: 1px dashed var(--border); border-radius: 3px; }
-.pm-trend-line { fill: none; stroke: var(--accent-signature); stroke-width: 1.6;
+.pm-trend-line { fill: none; stroke: currentColor; stroke-width: 1.6;
   stroke-linejoin: round; stroke-linecap: round; }
-.pm-trend-area { fill: rgba(var(--accent-rgb), .1); stroke: none; }
-.pm-trend-dot { fill: var(--accent-signature); }
+.pm-trend-area { fill: currentColor; opacity: .12; stroke: none; }
+.pm-trend-dot { fill: currentColor; }
 
 /* ---- 环图 ---- */
 .pm-donut { display: block; }
-.pm-slice { stroke: var(--bg-card); stroke-width: 1.5; transition: opacity .18s var(--ease-out); }
+/* 扇区分隔线 = 所在面板的底色（继承卡片/总览面板的 --pm-card-bg / --pm-ov-bg） */
+.pm-slice { stroke: var(--pm-slice-sep, var(--pm-card-bg, var(--bg-card))); stroke-width: 1.5;
+  transition: opacity .18s var(--ease-out); }
 .pm-slice:hover { opacity: .82; }
 .pm-slice-rest { stroke-dasharray: 2 2; }
+.pm-overview .pm-slice { stroke: var(--pm-ov-sep, var(--pm-ov-bg, var(--bg-card))); }
 .pm-donut-center { pointer-events: none; }
 .pm-donut-ct { font-size: 8px; fill: var(--text-faint); text-anchor: middle; }
 .pm-donut-cm { font-size: 15px; font-weight: 700; fill: var(--text); text-anchor: middle; }
@@ -1624,17 +1638,26 @@ html[data-theme="aurora"] .pm-sec {
   box-shadow: 0 16px 44px rgba(0,0,0,0.38); }
 html[data-theme="aurora"] .pm-sec-head { background: transparent; border-left: none;
   border-bottom: 1px solid rgba(140,160,255,0.14); border-radius: 0; padding: 0 2px 10px; }
-html[data-theme="aurora"] .pm-card { background: rgba(24,29,48,0.55); }
+/* 玻璃卡片：底色是半透明的，环图分隔线必须跟着它走，否则环图与卡片"脱层" */
+html[data-theme="aurora"] .pm-card { --pm-card-bg: rgba(24,29,48,0.55); }
+/* 总览面板与分类区块同一套玻璃质感（原来是实心盒子，浮在玻璃页面上很突兀） */
+html[data-theme="aurora"] .pm-overview { --pm-ov-bg: rgba(18,22,38,0.5);
+  border-color: rgba(140,160,255,0.13); border-radius: 16px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 16px 44px rgba(0,0,0,0.38); }
 
 /* 硬核终端：单列密排行式布局（不是卡片墙），整块灰底行 + 方角 */
 html[data-theme="oled"] .pm-sec { border-top: 3px double var(--border-hover); padding-top: 14px; }
 html[data-theme="oled"] .pm-cards { grid-template-columns: 1fr; gap: 0; }
 html[data-theme="oled"] .pm-card { border: none; border-bottom: 1px solid var(--border);
-  border-radius: 0; background: transparent; padding: 10px 6px; }
+  border-radius: 0; --pm-card-bg: transparent; --pm-slice-sep: var(--bg-card); padding: 10px 6px; }
 html[data-theme="oled"] .pm-card:hover { background: var(--bg-hover); box-shadow: none;
   transform: none; border-color: var(--border); }
 html[data-theme="oled"] .pm-sec-head { border-left: none; background: transparent; padding-left: 6px; }
 html[data-theme="oled"] .pm-fold { border-radius: 0; }
+/* 总览：终端里不要浮起的卡片，整块贴底 */
+html[data-theme="oled"] .pm-overview { --pm-ov-bg: transparent; --pm-ov-sep: var(--bg-card);
+  border: none; border-top: 3px double var(--border-hover); border-radius: 0; padding: 12px 6px; }
 
 /* 纸上编辑部：分类区块同报头双线，行内分隔用细黑线 */
 html[data-theme="paper"] .pm-sec { border-top: 3px double rgba(25,25,20,0.35); padding-top: 14px; }

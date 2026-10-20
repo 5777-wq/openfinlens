@@ -105,13 +105,15 @@ const PMView = (() => {
       const chg = x.change24h;
       const chgTxt = (chg === null || chg === undefined || isNaN(chg) || !chg) ? ''
         : `<span class="pm-chg num ${chg > 0 ? 'up' : 'down'}" title="24 小时概率变化（百分点）">${chg > 0 ? '▲' : '▼'} ${Math.abs(chg).toFixed(1)}</span>`;
-      const color = e.partition ? C.PALETTE[i % C.PALETTE.length] : 'var(--accent-signature)';
+      // 档位色：环图扇区、圆点、概率条、走势线都用它（互斥事件里一一对应扇区；
+      // 独立问句事件没有环图，但同一个色系让"点—条—线"仍然成组）
+      const color = C.PALETTE[i % C.PALETTE.length];
       const tip = esc(x.q || x.label) + '｜隐含概率 ' + pct.toFixed(1) + '%'
         + (chg ? '｜24h ' + (chg > 0 ? '+' : '') + chg.toFixed(1) + ' 个百分点' : '');
       return `<button type="button" class="pm-out${on ? ' on' : ''}" data-pmout="${esc(x.id)}" data-pmev="${esc(e.id)}" title="${tip}">
         <i class="pm-dot" style="background:${color}"></i>
         <span class="pm-out-l">${esc(x.labelZh || x.label)}</span>
-        <span class="pm-out-bar"><i style="width:${Math.max(1, Math.min(100, pct))}%"></i></span>
+        <span class="pm-out-bar" style="--pm-bar-c:${color}"><i style="width:${Math.max(1, Math.min(100, pct))}%"></i></span>
         <span class="pm-out-p num">${pct.toFixed(pct >= 10 ? 0 : 1)}%</span>
         ${chgTxt}
       </button>`;
@@ -125,12 +127,15 @@ const PMView = (() => {
         <i class="pm-dot" style="background:${C.REST_COLOR}"></i>
         <span class="pm-out-l">其他 ${e.rest.count} 项</span>
         ${e.partition
-          ? `<span class="pm-out-bar"><i style="width:${Math.max(1, Math.min(100, rp))}%"></i></span><span class="pm-out-p num">${rp.toFixed(1)}%</span>`
+          ? `<span class="pm-out-bar" style="--pm-bar-c:${C.REST_COLOR}"><i style="width:${Math.max(1, Math.min(100, rp))}%"></i></span><span class="pm-out-p num">${rp.toFixed(1)}%</span>`
           : '<span class="pm-out-p pm-out-na">不可相加</span>'}
       </div>`;
     }
 
     const series = sel ? window.Polymarket.seriesFromGrid(o.history, sel.id) : [];
+    // 走势线用"当前选中档位"的颜色——这条线就是这一档
+    const selIdx = sel ? Math.max(0, outs.indexOf(sel)) : 0;
+    const selColor = C.PALETTE[selIdx % C.PALETTE.length];
     let trendBody, trendMeta = '';
     if (series.length >= 2) {
       const bin = (o.history && o.history.binMs) || 14400000;
@@ -166,7 +171,7 @@ const PMView = (() => {
         ${viz}
         <div class="pm-outs">${rows}${restRow}</div>
       </div>
-      <div class="pm-trend">
+      <div class="pm-trend" style="--pm-trend-c:${selColor}">
         <div class="pm-trend-hd">
           <span class="pm-trend-t">概率走势</span>
           <span class="pm-trend-cur">${esc(sel ? (sel.labelZh || sel.label) : '')}</span>

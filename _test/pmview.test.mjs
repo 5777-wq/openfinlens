@@ -124,6 +124,23 @@ await test('sectionsHTML：按分类分区，超过 6 个出折叠按钮', () =>
   assert.equal((open.match(/class="pm-card"/g) || []).length, 8, '展开后 8 张卡都在');
 });
 
+await test('cardHTML：概率条与走势线跟档位同色（图例↔扇区↔条↔线一个色）', () => {
+  const bin = PM.HIST_BIN_MS;
+  const from = 1792400000000 - 6 * bin;
+  const grid = { binMs: bin, from, count: 6, series: { 'pm:1': [800, 820, 840, 845, 845, 845] } };
+  const html = V.cardHTML(partitionEvent, META.central_bank, { history: grid, sel: { 'ev:1': 'pm:1' } });
+  const C = ctx.window.PMCharts;
+  // 第一档的色 = 调色板第 0 号
+  assert.match(html, new RegExp(`--pm-bar-c:${C.PALETTE[0]}`), '概率条应取档位色');
+  assert.match(html, new RegExp(`--pm-trend-c:${C.PALETTE[0]}`), '走势线应取当前档位色');
+  // 切到第二档，走势线必须换成第二档的颜色
+  const html2 = V.cardHTML(partitionEvent, META.central_bank, { history: grid, sel: { 'ev:1': 'pm:2' } });
+  assert.match(html2, new RegExp(`--pm-trend-c:${C.PALETTE[1]}`), '切换档位后走势线换色');
+  // 概率条不能借用主题强调色（Swiss 主题的强调色是红的，红/绿在本项目是涨跌语义）
+  assert.ok(!/--pm-bar-c:var\(--accent/.test(html), '概率条不得用主题强调色');
+  assert.ok(!/--pm-trend-c:var\(--accent/.test(html), '走势线不得用主题强调色');
+});
+
 await test('合规回归：渲染结果里不出现任何链接/交易入口', () => {
   const html = V.cardHTML(partitionEvent, META.central_bank, {}) + V.overviewHTML([partitionEvent]);
   assert.ok(!/https?:|slug|polymarket\.com|clob/i.test(html), '渲染结果里不允许出现链接或平台名');
