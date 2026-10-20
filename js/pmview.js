@@ -171,6 +171,7 @@ const PMView = (() => {
           <span class="num">24h 成交 $${vol(e.volume24hr)}</span>
           <span class="num">流动性 $${vol(e.liquidity)}</span>
           <span class="num">${e.endDate ? '截止 ' + fullDay(e.endDate) : '长期有效'}</span>
+          <button class="pm-share" data-pm-share="${esc(e.id)}" title="分享为图片" aria-label="分享为图片">分享</button>
         </div>
       </header>
       <div class="pm-card-bd">

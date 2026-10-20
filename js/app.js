@@ -22,6 +22,7 @@
     tab: 'all',
     view: 'market',
     prevView: 'market',
+    zone: 'overview',      // 一级 tab 下的第二层分区（概览/焦点/热力图/情绪/披露）
     quotes: new Map(),        // symbol → quote
     degraded: new Map(),      // symbol → 'backup' | 'cache'
     heatMode: 'cn',
@@ -127,6 +128,8 @@
     'lhbBox', 'lhbVia', 'evtToggle', 'chartEventCard',
     'seatDir', 'seatDirVia',
     'brkBox', 'brkVia', 'marketTitle', 'globalOverview', 'moodPanel',
+    // 二级分区导航（一级 tab 下的第二层）
+    'zoneBar',
     'aFundsPanel', 'usFundsPanel', 'hkFundsPanel', 'sbBox', 'sbVia',
     'cryptoMoodPanel', 'usMoodPanel', 'fundBox', 'fundVia', 'etfBox', 'etfVia',
     'actorBack', 'actorName', 'actorMeta', 'actorStats', 'actorStatsSub', 'actorTimeline',
@@ -3466,6 +3469,109 @@
     window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' });
   }
 
+  /* ==================== 二级分区（一级 tab 下的第二层）====================
+     原来 view-market 里十来个板块纵向平铺，滚三四屏才看完，信息熵过高。
+     现在把重内容收成分区：概览 / 焦点 / 热力图 / 情绪 / 披露。
+     判定逻辑放在 js/zones.js（纯函数，可离线单测），这里只负责把结论落到 DOM。
+
+     两条设计约束：
+     ① 分区按钮按当前 tab 实际有内容的分区动态生成；只剩一个分区时整条栏撤掉——
+        不为了"有导航"而造导航（那正是熵高的来源之一）。
+     ② 分区显隐用 class 而不是 hidden 属性：hidden 已经被 tab 维度占用了
+        （"这个市场有没有这一块"），分区是第二个维度，两者要能叠加。
+        因此凡是判断"是否在屏上"的地方一律走 isOn()。 */
+
+  const ZONE_DEFS = window.Zones.ZONE_DEFS;
+  const ZONE_HINTS = window.Zones.ZONE_HINTS;
+
+  /* 元素是否真的在屏上：tab 维度（hidden）与分区维度（zone-off）都要看。
+     只看 hidden 会在分区切换后误判——热力图切走时 hidden 仍是 false。 */
+  function isOn(node) {
+    return !!node && !node.hidden && !node.classList.contains('zone-off');
+  }
+
+  /* 当前 tab 下哪些分区有内容。判定只看 tab 维度的 hidden，不看 zone 维度，
+     否则会自锁（上一轮分区把元素藏起来，这一轮就以为它不存在了）。 */
+  function zoneAvailability() {
+    const nodes = [];
+    document.querySelectorAll('#view-market [data-zone]').forEach(n => {
+      nodes.push({ zone: n.getAttribute('data-zone'), hidden: n.hidden });
+    });
+    return window.Zones.availability(nodes);
+  }
+
+  function applyZone(key, animate) {
+    const view = $('view-market');
+    if (!view) return;
+    state.zone = key;
+    const nodes = view.querySelectorAll('[data-zone]');
+    let i = 0;
+    nodes.forEach(n => {
+      const on = n.getAttribute('data-zone') === key;
+      n.classList.toggle('zone-off', !on);
+      if (on) {
+        n.classList.remove('zone-in');
+        n.style.setProperty('--zi', String(i++));
+      }
+    });
+    view.classList.add('zone-active');
+    if (animate && !reduceMotion()) {
+      // 先摘掉旧类再强制重排，否则重播不了入场动画（类没变 = 动画不重启）
+      void view.offsetHeight;
+      nodes.forEach(n => { if (!n.classList.contains('zone-off')) n.classList.add('zone-in'); });
+    }
+    if (el.zoneBar) {
+      el.zoneBar.querySelectorAll('[data-zone-btn]').forEach(b => {
+        const on = b.getAttribute('data-zone-btn') === key;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', String(on));
+      });
+      const hint = el.zoneBar.querySelector('.zone-hint');
+      if (hint) hint.textContent = ZONE_HINTS[key] || '';
+    }
+    // 热力图 canvas 在 display:none 时尺寸为 0，切回来必须重画一次
+    if (key === 'heat') {
+      requestAnimationFrame(() => { if (state.heat) drawHeat(); });
+    }
+  }
+
+  /* 切 tab / 首次进入后重算分区。必须在 setTab 把各 section 的 hidden 设完之后调用。 */
+  function syncZones() {
+    const bar = el.zoneBar;
+    const view = $('view-market');
+    if (!bar || !view) return;
+    const avail = zoneAvailability();
+    const keys = window.Zones.keysOf(avail);
+    if (!window.Zones.shouldShowBar(keys)) {
+      // 只有一个分区（或零个）：撤掉整条栏，内容回到 tab 维度的原始显隐
+      bar.hidden = true;
+      bar.innerHTML = '';
+      bar.dataset.zones = '';
+      view.querySelectorAll('[data-zone]').forEach(n => {
+        n.classList.remove('zone-off');
+        n.classList.remove('zone-in');
+      });
+      view.classList.remove('zone-active');
+      state.zone = window.Zones.resolveZone(keys, state.zone);
+      return;
+    }
+    state.zone = window.Zones.resolveZone(keys, state.zone);
+    bar.hidden = false;
+    /* 分区集合没变就不要重建 innerHTML：重建会把按钮换掉，
+       那一刻正好点在按钮上的手会落到下层元素上（实测点到了指数行，URL 跳成 #symbol=...）。
+       重建只在分区集合真的变了时发生。 */
+    const sig = keys.join(',');
+    if (bar.dataset.zones !== sig) {
+      bar.dataset.zones = sig;
+      bar.innerHTML = keys.map(k => {
+        const d = ZONE_DEFS.find(x => x.key === k);
+        const on = k === state.zone;
+        return `<button class="zone-btn${on ? ' active' : ''}" data-zone-btn="${k}" role="tab" aria-selected="${on}">${d.label}</button>`;
+      }).join('') + '<span class="zone-hint"></span>';
+    }
+    applyZone(state.zone, false);
+  }
+
   /* ---- hash 路由（方法论：MarketAtlas 等仪表盘的深链/导航）----
      #tab=mood / #symbol=sh600519。浏览器后退/前进可用；file:// 下 pushState
      若被安全策略拒绝，退回 location.hash（原生进历史，靠 hashLock 防重入）。 */
@@ -3629,8 +3735,6 @@
     // 各市场的"情绪与宽度"只在各自的 tab 上出现（原本加密/美股宽度都塞在 A股 页里）
     if (el.cryptoMoodPanel) el.cryptoMoodPanel.hidden = tab !== 'crypto';
     if (el.usMoodPanel) el.usMoodPanel.hidden = tab !== 'us';
-    // 市场视图：热力图只在"全部/A股/加密"下有意义
-    const heatWasHidden = el.heatSection.hidden;
     // 热力图在 全部/A股/港股/美股/加密 下有意义（宏观 tab 是世行年度指标，不放热力图）
     el.heatSection.hidden = !['all', 'cn', 'hk', 'us', 'crypto'].includes(tab);
     // Movers 三榜：只对有全市场行情的市场 tab 显示（2026-09-17）
@@ -3657,9 +3761,13 @@
       renderMarketBrief();
       ensureSparks();
     }
+    // 分区重算：必须等各 section 的 hidden 全部定下来（renderHomeWatch 才会解开自选块），
+    // 否则可用分区会算错——比如把「概览」误判成这个市场没有内容
+    syncZones();
     // hidden→visible 时之前所有 drawHeat 都被可见性守卫跳过了，回视图必须补一次，
-    // 否则画布停留在旧尺寸/旧布局（黑屏或命中错位）
-    if (heatWasHidden && !el.heatSection.hidden) drawHeat();
+    // 否则画布停留在旧尺寸/旧布局（黑屏或命中错位）。
+    // 分区可见性由 applyZone 负责（切到热力图分区时补画），这里只管 tab 维度。
+    if (state.view === 'market' && isOn(el.heatSection) && !el.heatSection.hidden) drawHeat();
     // hash 深链：除非本次切换本身由"后退/前进"触发（push=false），否则写入历史。
     // 基金对比把自己的选择（标的/区间/口径）写进 hash，复制地址就是把这个对比分享出去。
     if (!opts || opts.push !== false) {
@@ -3934,7 +4042,7 @@
     schedule('quotes', quotesTick, refreshMs);
 
     schedule('heat', async () => {
-      if (state.view !== 'market' || el.heatSection.hidden) return;
+      if (state.view !== 'market' || !isOn(el.heatSection)) return;
       if (HEAT_LOADERS[state.heatMode]) await HEAT_LOADERS[state.heatMode]();
       const rows = state.heatItems[state.heatMode] || [];
       if (!state.heat) return;
@@ -4163,14 +4271,55 @@
   }
 
   function bindEvents() {
+    /* 折叠/展开：display:none 没法参与过渡，所以用一层 .fold-out 先淡出再真正收起；
+       展开时 .fold-out 一直挂着（内容已是 opacity 0），摘掉它才淡入。 */
+    const foldTimers = new WeakMap();
+    function setFold(sec, folded) {
+      const head = sec.querySelector(':scope > .section-head');
+      if (head) head.setAttribute('aria-expanded', String(!folded));
+      clearTimeout(foldTimers.get(sec));
+      if (reduceMotion()) {
+        sec.classList.toggle('folded', folded);
+        sec.classList.remove('fold-out');
+        return;
+      }
+      if (folded) {
+        sec.classList.add('fold-out');
+        foldTimers.set(sec, setTimeout(() => {
+          sec.classList.add('folded');
+          sec.classList.remove('fold-out');
+        }, 200));
+      } else {
+        sec.classList.remove('folded');
+        void sec.offsetHeight;      // 强制重排，让 opacity 从 0 起步而不是直接跳到 1
+        sec.classList.remove('fold-out');
+      }
+    }
+
     // 板块折叠：点标题收起/展开正文（聪明钱/情绪/热力图等长板块，按需收纳）
     document.addEventListener('click', (e) => {
+      // 二级分区切换
+      const zoneBtn = e.target.closest('[data-zone-btn]');
+      if (zoneBtn) {
+        const key = zoneBtn.getAttribute('data-zone-btn');
+        if (key && key !== state.zone) applyZone(key, true);
+        return;
+      }
       const head = e.target.closest('[data-fold] > .section-head');
       if (!head || e.target.closest('button, a, input, .pill, .ses-chip')) return;
       const sec = head.parentElement;
-      const folded = sec.classList.toggle('folded');
-      head.setAttribute('aria-expanded', String(!folded));
+      setFold(sec, !sec.classList.contains('folded'));
     });
+    // 市场预测卡片：分享为图片。
+    // 用捕获阶段监听：卡片本身有点击行为，冒泡阶段再拦就晚了。
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-pm-share]');
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (window.PMShare) window.PMShare.open(btn.getAttribute('data-pm-share'));
+    }, true);
+
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return;
       const head = e.target.closest && e.target.closest('[data-fold] > .section-head');
@@ -4613,7 +4762,7 @@
     let rz = 0;
     window.addEventListener('resize', () => {
       if (rz) return;
-      rz = requestAnimationFrame(() => { rz = 0; if (state.heat && !el.heatSection.hidden) drawHeat(); });
+      rz = requestAnimationFrame(() => { rz = 0; if (state.heat && isOn(el.heatSection)) drawHeat(); });
     });
   }
 
@@ -4642,6 +4791,17 @@
     el.cardWall.innerHTML = '<div class="section"><div class="card-grid">' +
       '<div class="sk sk-card"></div>'.repeat(8) + '</div></div>';
 
+    /* 分区栏与分享卡片都不依赖行情，必须排在 await fetchAllQuotes() 之前：
+       行情源不通时这个 await 会一直挂着，挂在它后面的初始化永远跑不到，
+       结果是"数据没来连分区都没有"——分层反倒成了数据加载的附属品。
+       同样地，分享卡片只需要事件数据，取不到时安静返回即可。 */
+    syncZones();
+    if (window.PMShare) {
+      window.PMShare.mount({
+        getEvent: (id) => (state.pmEvents || []).find(e => e.id === id) || null,
+      });
+    }
+
     // 首屏只等行情（47 标的，数百毫秒级）；全市场热力图（56 页并发）走后台加载——
     // 它曾把首屏阻塞 1-3 秒，是"打开变慢"的主因。到位后补画热力图并计算市场宽度。
     const heatBg = loadHeatCN().then(() => {
@@ -4659,6 +4819,8 @@
       renderMarketBrief();
       ensureSparks();
     }
+    // 数据到位后再算一次分区：此时自选块等才解开，可用分区可能变了
+    syncZones();
     renderStatus();
     drawHeat();
     void heatBg;

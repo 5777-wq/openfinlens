@@ -1989,3 +1989,62 @@ html[data-theme="memphis"] body::before {
   .fp-tr { grid-template-columns: 30px 1fr 80px 54px; font-size: 12px; }
   .fp-bar-row { grid-template-columns: 64px 1fr 74px; }
 }
+
+/* ============================================================
+   分区导航（一级 tab → 二级分区）与分层动效
+   ============================================================ */
+
+/* 分区栏贴在结论层（简报带）下面。它是"换内容"的开关，
+   视觉上刻意做轻——一条细分隔线 + 文字，不该跟数据抢注意力。 */
+.zone-bar { display: flex; align-items: center; gap: 2px; margin: 0 0 26px;
+  border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+.zone-bar::-webkit-scrollbar { display: none; }
+.zone-btn { position: relative; flex-shrink: 0; padding: 10px 14px 9px;
+  font-size: 12px; color: var(--text-tertiary); white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out); }
+.zone-btn::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: -1px; height: 1px;
+  background: var(--text); transform: scaleX(0); transform-origin: left;
+  transition: transform var(--dur-med) var(--ease-out); }
+.zone-btn:hover { color: var(--text-secondary); }
+.zone-btn.active { color: var(--text); }
+.zone-btn.active::after { transform: scaleX(1); }
+.zone-hint { margin-left: auto; padding-left: 16px; font-size: 11px; color: var(--text-faint);
+  white-space: nowrap; }
+
+/* 分区隐藏。与 tab 的 hidden 属性叠加：
+   hidden 管"这个市场有没有这一块"，zone-off 管"这一屏看哪一块"。 */
+.zone-off { display: none !important; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* 分区启用时，容器自己带动效入场，内层 .section 的滚动显现让位，
+     否则父级位移与子级位移会叠成 24px 的过冲，手感发飘。 */
+  .zone-active .rv { opacity: 1; transform: none; }
+  [data-zone].zone-in { animation: zoneIn .42s var(--ease-out) both;
+    animation-delay: calc(var(--zi, 0) * 70ms); }
+}
+@keyframes zoneIn { from { opacity: 0; transform: translateY(12px); } }
+
+/* 折叠/展开的过渡：display:none 没法参与过渡，
+   所以用一层 .fold-out 先淡出再真正收起，展开时反过来。 */
+@media (prefers-reduced-motion: no-preference) {
+  [data-fold] > :not(.section-head) { transition: opacity .2s var(--ease-out), transform .2s var(--ease-out); }
+  [data-fold].fold-out > :not(.section-head) { opacity: 0; transform: translateY(-4px); }
+}
+/* ---- 分享卡片：pm 卡片上的分享按钮 + 预览弹层 ---- */
+.pm-share { flex-shrink: 0; padding: 2px 8px; font-size: 11px; color: var(--text-tertiary);
+  border: 1px solid var(--border); border-radius: 3px; background: transparent; cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+.pm-share:hover { color: var(--text); border-color: var(--border-hover); }
+
+.modal-share { max-width: 460px; }
+.share-preview { margin: 18px 0 4px; display: flex; justify-content: center; }
+.share-preview img { max-width: 100%; max-height: 54vh; display: block;
+  border: 1px solid var(--border); border-radius: 4px; }
+.share-actions { display: flex; gap: 8px; margin-top: 20px; }
+.share-btn { flex: 1; padding: 9px 12px; font-size: 12px; color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: 3px; background: transparent; cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out); }
+.share-btn:hover { color: var(--text); border-color: var(--border-hover); }
+.share-btn.primary { color: var(--bg); background: var(--accent-signature); border-color: var(--accent-signature); }
+.share-btn.primary:hover { color: var(--bg); opacity: .88; }

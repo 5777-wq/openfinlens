@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
 <!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
      对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
-<link rel="stylesheet" href="css/style.css?v=20261020f">
+<link rel="stylesheet" href="css/style.css?v=20261020g">
 </head>
 <body data-updown="red">
 
@@ -103,8 +103,16 @@
       <div class="globe-grid" id="globeBar" aria-label="全球指数"><span class="gcell num">全球指数加载中…</span></div>
     </div>
 
+    <!-- ===== 分区导航：一级 tab → 二级分区 =====
+         原来 view-market 里十来个板块纵向平铺，滚三四屏才能看完，信息熵过高。
+         现在把"结论层"（简报带 + 关键指数 + 全球指数条）留在上面常驻，
+         下面的重内容收成分区：概览 / 焦点 / 热力图 / 情绪 / 披露。
+         分区按钮按当前 tab 实际有内容的分区动态生成（app.js 的 syncZones），
+         只有一个分区时整条栏隐藏——不为了"有导航"而造导航。 -->
+    <nav class="zone-bar" id="zoneBar" role="tablist" aria-label="市场分区切换" hidden></nav>
+
     <!-- ===== 我的自选（首屏下方独立板块：用户要求"先指数、再自选"）===== -->
-    <div class="section" id="watchSection" hidden>
+    <div class="section" id="watchSection" data-zone="overview" hidden>
       <div class="section-head">
         <h2 class="section-title">我的自选</h2>
         <span class="sec-line"></span>
@@ -114,12 +122,12 @@
       <div class="wgrid" id="watchGrid"></div>
     </div>
 
-    <div id="cardWall"></div>
+    <div id="cardWall" data-zone="overview"></div>
 
     <!-- ===== Movers 三榜（涨幅榜 / 跌幅榜 / 成交额榜）：TradingView 式"零配置预设"，
          数据复用热力图的全市场行（state.heatItems），不新增任何网络请求。
          只在 A股/港股/美股 tab 显示（全部/加密/宏观无全市场行）。 ===== -->
-    <div class="section" id="moversSection" hidden data-fold>
+    <div class="section" id="moversSection" data-zone="focus" hidden data-fold>
       <div class="section-head">
         <h2 class="section-title" id="moversTitle">市场焦点</h2>
         <span class="sec-line"></span>
@@ -128,7 +136,7 @@
       <div class="movers-grid" id="moversGrid"></div>
     </div>
 
-    <div class="section" id="heatSection" data-fold>
+    <div class="section" id="heatSection" data-zone="heat" data-fold>
       <div class="section-head">
         <h2 class="section-title">热力图</h2>
         <span class="section-sub" id="heatSub">—</span>
@@ -153,7 +161,7 @@
     </div>
 
     <!-- ========== 情绪与市场宽度（原独立「情绪」tab 并入 A股板块底部） ========== -->
-    <div class="section" id="moodPanel" hidden data-fold>
+    <div class="section" id="moodPanel" data-zone="sentiment" hidden data-fold>
       <div class="section-head">
         <h2 class="section-title">情绪与市场宽度</h2>
         <span class="section-sub" id="moodSub">—</span>
@@ -186,19 +194,19 @@
     </div>
 
     <!-- ===== 加密宽度：只在 加密 tab 显示（原挂在 A股 的"情绪与市场宽度"里，与 A股 无关）===== -->
-    <div id="cryptoMoodPanel" hidden style="margin-bottom:32px">
+    <div id="cryptoMoodPanel" data-zone="sentiment" hidden style="margin-bottom:32px">
       <div class="mood-crypto crypto-only" id="moodCrypto"></div>
     </div>
 
     <!-- ===== 美股宽度：只在 美股 tab 显示（同上）===== -->
-    <div id="usMoodPanel" hidden style="margin-bottom:32px">
+    <div id="usMoodPanel" data-zone="sentiment" hidden style="margin-bottom:32px">
       <div class="mood-crypto" id="moodUS"></div>
     </div>
 
     <!-- ===== A股披露类：席位动向 / 今日龙虎榜 / 基金持仓（原"聪明钱"tab，按市场归位）=====
          三块竖排会让这一屏越滚越长，所以用子页按钮切换（用户要求"别都堆在一起"）。
          按钮 data-fundssub="<key>" ↔ 内容 data-fundspane="<key>"，由 app.js 统一切换。 -->
-    <div id="aFundsPanel" hidden>
+    <div id="aFundsPanel" data-zone="disclosure" hidden>
       <div class="heat-toolbar" id="aFundsBar" role="tablist" aria-label="A股披露数据切换">
         <button class="pill active" data-fundssub="seat" role="tab" aria-selected="true">席位动向</button>
         <button class="pill" data-fundssub="lhb" role="tab" aria-selected="false">今日龙虎榜</button>
@@ -245,7 +253,7 @@
 
     <!-- ===== 美股披露类：机构 13F / 因子 ETF 持仓（原"聪明钱"tab，仅 美股 tab 显示）
          两块数据性质不同（季度 SEC 披露 vs 日更官方持仓），竖排堆一屏会乱——分子页 ===== -->
-    <div id="usFundsPanel" hidden>
+    <div id="usFundsPanel" data-zone="disclosure" hidden>
       <div class="heat-toolbar" id="usFundsBar" role="tablist" aria-label="美股披露数据切换">
         <button class="pill active" data-fundssub="13f" role="tab" aria-selected="true">机构 13F</button>
         <button class="pill" data-fundssub="etf" role="tab" aria-selected="false">因子 ETF 持仓</button>
@@ -282,7 +290,7 @@
     <!-- ===== 港股披露类：南向（港股通）持股，仅 港股 tab 显示 =====
          注：港股没有美股 13F 那种可按机构拆分的免费结构化披露——HKEX 权益披露只有 HTML 交互，
          CCASS 明细虽细但使用条款 2.3 明文禁止程序化访问。所以这一块是**通道合计**口径，如实标注。 -->
-    <div id="hkFundsPanel" hidden>
+    <div id="hkFundsPanel" data-zone="disclosure" hidden>
       <div class="section" data-fold>
         <div class="section-head">
           <h2 class="section-title">南向资金持股 · 港股通</h2>
@@ -664,6 +672,19 @@
   </div>
 </div>
 
+<!-- ========== 分享卡片预览层（市场预测单条信息 → 可分享图片） ========== -->
+<div class="modal-overlay share-overlay" id="shareOverlay" role="dialog" aria-modal="true" aria-label="分享为图片">
+  <div class="modal modal-share">
+    <h2>分享为图片</h2>
+    <div class="share-preview" id="sharePreview"></div>
+    <p class="setting-hint">图上的概率是公开预测市场的实时报价快照，不是预测，也不构成投资建议。</p>
+    <div class="share-actions">
+      <button class="share-btn" id="shareSave">保存图片</button>
+      <button class="share-btn primary" id="shareNative">系统分享</button>
+    </div>
+  </div>
+</div>
+
 <!-- ========== 到价提醒：创建弹层（从详情页「提醒」按钮进入） ========== -->
 <div class="modal-overlay" id="alertModal" role="dialog" aria-modal="true" aria-label="设置到价提醒">
   <div class="modal">
@@ -693,64 +714,70 @@
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script defer src="js/utils.js?v=20261020f"></script>
-<script defer src="js/store.js?v=20261020f"></script>
-<script defer src="js/proxy.js?v=20261020f"></script>
-<script defer src="js/data/universe.js?v=20261020f"></script>
-<script defer src="js/auniverse.js?v=20261020f"></script>
-<script defer src="js/data/industry-chains.js?v=20261020f"></script>
-<script defer src="js/data/explain.js?v=20261020f"></script>
-<script defer src="js/technical.js?v=20261020f"></script>
-<script defer src="js/flags.js?v=20261020f"></script>
-<script defer src="js/bus.js?v=20261020f"></script>
-<script defer src="js/events.js?v=20261020f"></script>
-<script defer src="js/polymarket.js?v=20261020f"></script>
-<script defer src="js/pmcharts.js?v=20261020f"></script>
-<script defer src="js/pmview.js?v=20261020f"></script>
-<script defer src="js/actors.js?v=20261020f"></script>
-<script defer src="js/sources/tencent.js?v=20261020f"></script>
-<script defer src="js/sources/sina.js?v=20261020f"></script>
-<script defer src="js/sources/eastmoney.js?v=20261020f"></script>
-<script defer src="js/sources/okx.js?v=20261020f"></script>
-<script defer src="js/sources/binance.js?v=20261020f"></script>
-<script defer src="js/sources/paprika.js?v=20261020f"></script>
-<script defer src="js/sources/fred.js?v=20261020f"></script>
-<script defer src="js/sources/news.js?v=20261020f"></script>
-<script defer src="js/sources/worldbank.js?v=20261020f"></script>
-<script defer src="js/sources/gdelt.js?v=20261020f"></script>
-<script defer src="js/sources/polymarket.js?v=20261020f"></script>
-<script defer src="js/sources/lhb.js?v=20261020f"></script>
-<script defer src="js/sources/southbound.js?v=20261020f"></script>
-<script defer src="js/sources/fundholds.js?v=20261020f"></script>
-<script defer src="js/sources/etf.js?v=20261020f"></script>
-<script defer src="js/sources/sec.js?v=20261020f"></script>
-<script defer src="js/sources/history.js?v=20261020f"></script>
-<script defer src="js/breadth.js?v=20261020f"></script>
-<script defer src="js/sessions.js?v=20261020f"></script>
-<script defer src="js/treemap.js?v=20261020f"></script>
-<script defer src="js/spark.js?v=20261020f"></script>
-<script defer src="js/charts.js?v=20261020f"></script>
-<script defer src="js/engine/types.js?v=20261020f"></script>
-<script defer src="js/engine/geo.js?v=20261020f"></script>
-<script defer src="js/engine/impact-engine.js?v=20261020f"></script>
+<script defer src="js/utils.js?v=20261020g"></script>
+<script defer src="js/store.js?v=20261020g"></script>
+<script defer src="js/proxy.js?v=20261020g"></script>
+<script defer src="js/data/universe.js?v=20261020g"></script>
+<script defer src="js/auniverse.js?v=20261020g"></script>
+<script defer src="js/data/industry-chains.js?v=20261020g"></script>
+<script defer src="js/data/explain.js?v=20261020g"></script>
+<script defer src="js/technical.js?v=20261020g"></script>
+<script defer src="js/flags.js?v=20261020g"></script>
+<script defer src="js/bus.js?v=20261020g"></script>
+<script defer src="js/events.js?v=20261020g"></script>
+<script defer src="js/polymarket.js?v=20261020g"></script>
+<script defer src="js/pmcharts.js?v=20261020g"></script>
+<script defer src="js/pmview.js?v=20261020g"></script>
+<script defer src="js/actors.js?v=20261020g"></script>
+<script defer src="js/sources/tencent.js?v=20261020g"></script>
+<script defer src="js/sources/sina.js?v=20261020g"></script>
+<script defer src="js/sources/eastmoney.js?v=20261020g"></script>
+<script defer src="js/sources/okx.js?v=20261020g"></script>
+<script defer src="js/sources/binance.js?v=20261020g"></script>
+<script defer src="js/sources/paprika.js?v=20261020g"></script>
+<script defer src="js/sources/fred.js?v=20261020g"></script>
+<script defer src="js/sources/news.js?v=20261020g"></script>
+<script defer src="js/sources/worldbank.js?v=20261020g"></script>
+<script defer src="js/sources/gdelt.js?v=20261020g"></script>
+<script defer src="js/sources/polymarket.js?v=20261020g"></script>
+<script defer src="js/sources/lhb.js?v=20261020g"></script>
+<script defer src="js/sources/southbound.js?v=20261020g"></script>
+<script defer src="js/sources/fundholds.js?v=20261020g"></script>
+<script defer src="js/sources/etf.js?v=20261020g"></script>
+<script defer src="js/sources/sec.js?v=20261020g"></script>
+<script defer src="js/sources/history.js?v=20261020g"></script>
+<script defer src="js/breadth.js?v=20261020g"></script>
+<script defer src="js/sessions.js?v=20261020g"></script>
+<script defer src="js/treemap.js?v=20261020g"></script>
+<script defer src="js/spark.js?v=20261020g"></script>
+<script defer src="js/charts.js?v=20261020g"></script>
+<script defer src="js/engine/types.js?v=20261020g"></script>
+<script defer src="js/engine/geo.js?v=20261020g"></script>
+<script defer src="js/engine/impact-engine.js?v=20261020g"></script>
 <!-- news-engine / event-engine / llm-provider 不在这里加载（2026-10-20 摘除）：
      生产代码零引用——事件页走的是 js/sources/gdelt.js → Events.normalize 这条路，
      聚类与 AI 闸门那两个模块只在 _test/engine.test.mjs 里用。
      三个文件留在仓库里给测试 require，浏览器不必为 400 行死代码付首屏带宽。 -->
-<script defer src="js/worldmap.js?v=20261020f"></script>
-<script defer src="js/compare.js?v=20261020f"></script>
-<script defer src="js/compareview.js?v=20261020f"></script>
-<script defer src="js/alerts.js?v=20261020f"></script>
+<script defer src="js/worldmap.js?v=20261020g"></script>
+<script defer src="js/compare.js?v=20261020g"></script>
+<script defer src="js/compareview.js?v=20261020g"></script>
+<script defer src="js/alerts.js?v=20261020g"></script>
 <!-- 宏观策略：纯计算（macrocalc）+ 视图（macroview） -->
-<script defer src="js/macrocalc.js?v=20261020f"></script>
-<script defer src="js/macroview.js?v=20261020f"></script>
+<script defer src="js/macrocalc.js?v=20261020g"></script>
+<script defer src="js/macroview.js?v=20261020g"></script>
 <!-- 持仓跟踪：纯计算（portfoliomath）+ 视图（portfolio） -->
-<script defer src="js/portfoliomath.js?v=20261020f"></script>
-<script defer src="js/portfolio.js?v=20261020f"></script>
+<script defer src="js/portfoliomath.js?v=20261020g"></script>
+<script defer src="js/portfolio.js?v=20261020g"></script>
 <!-- 基金画像：纯解析（fundparse）+ 视图（fundprofile） -->
-<script defer src="js/fundparse.js?v=20261020f"></script>
-<script defer src="js/fundprofile.js?v=20261020f"></script>
-<script defer src="js/fundquiz.js?v=20261020f"></script>
-<script defer src="js/app.js?v=20261020f"></script>
+<script defer src="js/fundparse.js?v=20261020g"></script>
+<script defer src="js/fundprofile.js?v=20261020g"></script>
+<script defer src="js/fundquiz.js?v=20261020g"></script>
+<!-- 市场预测：模型（polymarket）/ 图形（pmcharts）/ 视图（pmview）
+     分享卡片：二维码（qr，自实现零依赖）+ 卡片绘制与导出（pmshare） -->
+<script defer src="js/qr.js?v=20261020g"></script>
+<script defer src="js/pmshare.js?v=20261020g"></script>
+<!-- 二级分区：判定逻辑是纯函数（js/zones.js），app.js 只负责把结论落到 DOM -->
+<script defer src="js/zones.js?v=20261020g"></script>
+<script defer src="js/app.js?v=20261020g"></script>
 </body>
 </html>

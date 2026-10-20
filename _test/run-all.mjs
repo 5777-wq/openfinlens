@@ -22,6 +22,9 @@ const groups = [
   { file: 'portfoliomath.test.mjs', net: false }, // 持仓估值/多币种折算/快照合并（手算核对）
   { file: 'fundparse.test.mjs', net: false },  // 基金画像解析：pingzhongdata 值归一 + jjcc 重仓股表格
   { file: 'fundquiz.test.mjs', net: false },   // 投资风格测评：评分单调性 + 风险闸门（硬规则）+ 合规回归
+  { file: 'qr.test.mjs', net: false },         // 二维码编码器：标准表核对 + RS 剩余式 + 编码→解码往返
+  { file: 'zones.test.mjs', net: false },      // 二级分区判定：可用分区/导航条阈值/回落/自锁防护
+  { file: 'pmshare.test.mjs', net: false },    // 分享卡片：源码级合规回归（不外泄上游标识）+ 零网络请求
   { file: 'spark.test.mjs', net: false },   // 首屏图形层：振幅条位置/走势线坐标（纯函数，画歪了才算错）
   { file: 'insight.test.mjs', net: false },
   { file: 'evolve.test.mjs', net: false },  // 市场时段/情绪历史/请求去重（纯函数）
