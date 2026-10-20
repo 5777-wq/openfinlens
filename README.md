@@ -10,7 +10,7 @@
 
 [![license](https://img.shields.io/badge/license-MIT-000?style=flat-square)](LICENSE)
 [![release](https://img.shields.io/github/v/release/5777-wq/openfinlens?style=flat-square&label=release)](https://github.com/5777-wq/openfinlens/releases)
-![tests](https://img.shields.io/badge/tests-23%E7%BB%84%C2%B7%E7%A6%BB%E7%BA%BF213%E6%9D%A1-2ebd85?style=flat-square)
+![tests](https://img.shields.io/badge/tests-25%E7%BB%84%C2%B7%E7%A6%BB%E7%BA%BF229%E6%9D%A1-2ebd85?style=flat-square)
 
 <img src="assets/shot-overview.png" alt="OpenFinLens 首屏：全球市场" width="100%">
 
@@ -35,6 +35,16 @@ A股 5000+、港股约 2900、美股约 13800、加密 80 币种，全市场热�
 GDELT + 新浪 7x24 每 5 分钟采集一次，按类别落在自绘世界地图上，不依赖任何地图服务。事件和龙虎榜还会按日期画进 K 线：点一下，就能看到消息公布那天，价格发生了什么。
 
 <img src="assets/shot-worldmap.png" alt="全球事件地图" width="100%">
+
+### 市场预测：概率不是一个数字，是一条走势
+
+事件页的「市场预测」板块读公开预测市场的隐含概率（只读，不外链、不引导交易）。每个事件一张卡：
+
+- **档位分布环图**——只给档位互斥的事件（美联储几档、选举候选人这类，概率加总≈100%）。档位彼此独立的问句（"停火持续到 10 月 22 吗 / 24 吗"这种嵌套问法）只给概率条并标明"不可相加"：画成饼图等于暗示了并不存在的互斥关系。
+- **概率走势**——该档位近 7 天的隐含概率曲线，点档位行即可切换走势图跟的是哪一档；历史没到就写"积累中"，不画假线。
+- **类别分布总览**——一屏看完全部事件的类别构成。
+
+数字口径：环图按报价占比绘制，**图例里永远是市场真实报价**；各档位是独立盘口，报价合计偏离 100% 时会单独标出来。
 
 ### 其他模块
 
@@ -92,6 +102,7 @@ python -m http.server 8765   # → http://127.0.0.1:8765
 ├── sources/  每类数据一个适配器：主源 ──失败──▶ 备源 ──失败──▶ localStorage 缓存
 ├── app.js    轮询调度（setTimeout 链）→ 增量 patch DOM，不整墙重建
 ├── treemap/charts/technical/events/compare  纯函数计算层，全部可单测
+├── polymarket/pmcharts/pmview  预测市场：模型层 / 图形层 / 视图层，三层各自可单测
 └── worldmap + bus  地图 ↔ K线 ↔ 资金，事件总线联动
 ```
 

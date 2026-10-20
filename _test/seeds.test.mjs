@@ -141,32 +141,73 @@ await test('etf.json：因子 ETF 持仓——只含股票行、占净值降序�
   assert.ok(named >= all.length * 0.8, `中文名覆盖 ${named}/${all.length} 过低`);
 });
 
-await test('polymarket.json：只含概率行、概率合法、绝无 slug/URL（合规回归）', async () => {
+await test('polymarket.json：事件+档位结构、概率合法、绝无 slug/URL（合规回归）', async () => {
   const f = path.join(ROOT, 'data/events/polymarket.json');
   if (!existsSync(f)) { console.log('   （种子尚未生成，跳过）'); return; }
   const d = JSON.parse(readFileSync(f, 'utf8'));
-  assert.equal(Array.isArray(d.markets), true);
-  if (!d.markets.length) {
+  assert.equal(Array.isArray(d.events), true);
+  if (!d.events.length) {
     // 占位文件（采集还没跑过）必须没有 generatedAt，前端据此走"诚实空态"而非假数据
     assert.equal(d.generatedAt, null, '空产物不得伪造 generatedAt');
     return;
   }
   assert.equal(typeof d.generatedAt, 'string');
-  assert.ok(d.count === d.markets.length, 'count 字段与实际条数一致');
-  assert.ok(d.markets.length <= 60, '不超过 CAP');
-  for (const m of d.markets) {
-    assert.ok(typeof m.question === 'string' && m.question.length > 4);
-    assert.ok(m.probability >= 0 && m.probability <= 1, `概率越界 ${m.probability}`);
-    assert.ok(['central_bank', 'macro', 'trade', 'geopolitics', 'election', 'energy'].includes(m.category),
-      `类别越界 ${m.category}`);
-    // 中文标题：要么没有（翻译失败保留英文），要么是与原文不同的非空字符串
-    if (m.questionZh !== null && m.questionZh !== undefined) {
-      assert.ok(typeof m.questionZh === 'string' && m.questionZh.length > 1 && m.questionZh !== m.question,
-        `questionZh 非法: ${m.questionZh}`);
+  assert.ok(d.count === d.events.length, 'count 字段与实际条数一致');
+  assert.ok(d.events.length <= 30, '不超过 CAP');
+  const CATS = ['central_bank', 'macro', 'trade', 'geopolitics', 'election', 'energy'];
+  for (const e of d.events) {
+    assert.ok(typeof e.title === 'string' && e.title.length > 4, `事件标题异常: ${e.title}`);
+    assert.ok(CATS.includes(e.category), `类别越界 ${e.category}`);
+    assert.ok(typeof e.partition === 'boolean', 'partition 必须是布尔（决定能不能画环图）');
+    assert.ok(Array.isArray(e.outcomes) && e.outcomes.length > 0, '事件必须至少有一个档位');
+    for (const o of e.outcomes) {
+      assert.ok(typeof o.label === 'string' && o.label.length > 0, `档位名异常: ${o.label}`);
+      assert.ok(o.probability >= 0 && o.probability <= 1, `概率越界 ${o.probability}`);
+      assert.ok(typeof o.q === 'string' && !/\.\.\.|…/.test(o.q), `问句不完整: ${o.q}`);
+      // 中文标签：要么没有（翻译失败保留英文），要么是与原文不同的非空字符串
+      if (o.labelZh !== null && o.labelZh !== undefined) {
+        assert.ok(typeof o.labelZh === 'string' && o.labelZh.length > 0 && o.labelZh !== o.label,
+          `labelZh 非法: ${o.labelZh}`);
+      }
     }
-    // 合规铁律：行里不允许出现 slug / 链接 / 交易平台入口（前端想外链都没有字段）
-    assert.ok(!/slug|href|https?:/i.test(JSON.stringify(m)), '行里出现 slug/链接字段');
+    // 档位按概率降序（环图扇区顺序依赖它）
+    for (let i = 1; i < e.outcomes.length; i++) {
+      assert.ok(e.outcomes[i - 1].probability >= e.outcomes[i].probability, '档位应按概率降序');
+    }
+    // rest 聚合：概率质量不许凭空多出或少掉
+    assert.ok(e.rest && e.rest.probability >= 0 && e.rest.count >= 0, 'rest 聚合字段异常');
+    // 互斥事件的档位报价合计应接近 100%（环图成立的前提）
+    if (e.partition) {
+      const sum = e.outcomes.reduce((s, o) => s + o.probability, 0) + e.rest.probability;
+      assert.ok(sum > 0.5 && sum < 1.5, `互斥事件报价合计 ${sum.toFixed(3)} 偏离 100% 过多`);
+    }
+    // 合规铁律：产物里不允许出现 slug / 链接 / tokenId / 交易平台入口
+    assert.ok(!/slug|href|https?:|tokenid|clobtoken/i.test(JSON.stringify(e)), '事件里出现 slug/链接/交易标识');
   }
+});
+
+await test('polymarket-history.json：网格对齐、概率合法、绝无链接（合规回归）', async () => {
+  const f = path.join(ROOT, 'data/events/polymarket-history.json');
+  if (!existsSync(f)) { console.log('   （历史种子尚未生成，跳过）'); return; }
+  const d = JSON.parse(readFileSync(f, 'utf8'));
+  assert.equal(typeof d.generatedAt, 'string');
+  assert.ok(Number.isFinite(d.binMs) && d.binMs > 0, 'binMs 非法');
+  assert.ok(Number.isFinite(d.from) && d.from % d.binMs === 0, '网格起点必须对齐 bin');
+  assert.ok(Number.isFinite(d.count) && d.count > 0, 'count 非法');
+  assert.equal(typeof d.series, 'object');
+  const ids = Object.keys(d.series);
+  assert.ok(ids.length > 0, '历史序列为空');
+  for (const id of ids) {
+    assert.match(id, /^pm:\d+$/, `档位 id 形态异常: ${id}`);
+    const arr = d.series[id];
+    assert.equal(Array.isArray(arr), true);
+    assert.ok(arr.length <= d.count, '序列长度不得超过格数');
+    for (const v of arr) {
+      if (v === null) continue;                       // 缺测格 = null（不插值）
+      assert.ok(Number.isFinite(v) && v >= 0 && v <= 1000, `序列值非法: ${v}`);
+    }
+  }
+  assert.ok(!/slug|href|https?:|tokenid|clobtoken/i.test(JSON.stringify(d)), '历史里出现 slug/链接/交易标识');
 });
 
 setTimeout(() => {

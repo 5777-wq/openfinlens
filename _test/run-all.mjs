@@ -24,7 +24,9 @@ const groups = [
   { file: 'evolve.test.mjs', net: false },  // 市场时段/情绪历史/请求去重（纯函数）
   { file: 'technical.test.mjs', net: false }, // 技术面指标手算核对（纯函数）
   { file: 'events.test.mjs', net: false },  // 事件数据模型/聚类/时间语义/Bus（纯函数）
-  { file: 'polymarket.test.mjs', net: false }, // 预测市场概率模型：白名单/黑名单闸门/二元解析/清洗（纯函数）
+  { file: 'polymarket.test.mjs', net: false }, // 预测市场概率模型：标题闸门/互斥判定/档位聚合/清洗/历史网格（纯函数）
+  { file: 'pmcharts.test.mjs', net: false },   // 市场预测图形层：环图扇区角度/走势坐标（纯函数，画歪了才算错）
+  { file: 'pmview.test.mjs', net: false },     // 市场预测视图层：事件卡 HTML 结构/走势图跟选中的档位（纯渲染映射）
   { file: 'worldmap.test.mjs', net: false }, // 平面地图几何：跨180°unwrap/缩放聚类阈值（纯函数）
   { file: 'engine.test.mjs', net: false },  // 语义引擎：新闻标准化/去重/分类/聚类/AI闸门/影响边
   { file: 'actors.test.mjs', net: false },  // Actor/Activity 模型（席位聚合/合并/口径）

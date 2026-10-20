@@ -70,7 +70,9 @@
     eventsSub: Store.get('evMode', 'map'),     // 事件页子视图：map（平面地图）| news（实时快讯）| pm（市场预测）；存量 'globe' 由 setEventsSub 归一
     eventsType: 'all',         // 事件类型过滤（all / macro / central_bank / …）
     // 市场预测（Polymarket 隐含概率，只读展示）；pmExpand 记录各分类是否展开全部
-    pmMarkets: [], pmExpand: {}, pmVia: null, pmGenAt: null, pmStale: true, pmLoadedAt: 0,
+    // pmEvents 是"事件"数组（每个事件带若干档位），pmSel 记录每张卡片当前选中的档位（走势图跟谁）
+    pmEvents: [], pmExpand: {}, pmSel: {}, pmHistory: null,
+    pmVia: null, pmGenAt: null, pmStale: true, pmLoadedAt: 0,
     eventsSource: '',          // 数据源名（状态行合成用）
     mapStatusPts: null,        // 平面地图点数状态（onStatus 回调），与数据源状态行合并显示
     selEvent: null,            // 当前选中的全球事件
@@ -119,7 +121,7 @@
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
     'eventsSub', 'globeStatus', 'mapLegend',
     'evGlobePane', 'evNewsPane', 'evPmPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
-    'pmSub', 'pmList',
+    'pmSub', 'pmList', 'pmOverview',
     'mapLayers', 'countryDetail',
     'lhbBox', 'lhbVia', 'evtToggle', 'chartEventCard',
     'seatDir', 'seatDirVia',
@@ -2014,21 +2016,31 @@
   /* ==================== 市场预测（Polymarket 隐含概率，只读展示） ====================
      采集在 Actions（30 分钟/轮）产出静态 JSON，浏览器只读自己的文件（同 gdelt.js 架构）。
      合规口径：只展示"事件发生概率"；行数据无链接字段，UI 不外链、不引导交易；
-     概率是市场定价隐含值，副标题与页脚都注明"仅供参考，不构成预测或投资建议"。 */
+     概率是市场定价隐含值，副标题与页脚都注明"仅供参考，不构成预测或投资建议"。
+
+     图形层（2026-10-20）：每个事件一张卡——
+       · 环图：只给互斥事件（Polymarket negRisk，档位互不重叠、合计≈100%）。
+         独立问句型事件（"停火持续到10月22吗/24吗"这类嵌套问句）只给概率条——
+         画成环图等于暗示了并不存在的互斥关系，是范畴错误；
+       · 概率走势：该档位近 7 天的隐含概率序列（CLOB 公开只读历史，采集端回填）。
+         点档位行即可切换走势图跟的是哪个档位。历史缺失就显示空态，不画假线。 */
 
   async function loadPmMarkets() {
     const res = await window.PmSource.getMarkets();
-    state.pmMarkets = res.markets;
+    // 历史是可选件：拿不到只影响走势图，不能拖垮整个面板
+    const hist = await window.PmSource.getHistory().catch(() => ({ grid: null }));
+    state.pmEvents = res.events;
     state.pmVia = res.via;
     state.pmGenAt = res.generatedAt;
     state.pmStale = res.stale;
+    state.pmHistory = (hist && hist.grid) ? hist.grid : null;
     state.pmLoadedAt = Date.now();
     renderPmList();
   }
 
   function renderPmList() {
     if (!el.pmList) return;
-    const list = state.pmMarkets || [];
+    const list = state.pmEvents || [];
     if (el.pmSub) {
       if (!state.pmVia) {
         el.pmSub.textContent = '数据更新中，请稍候 · 概率仅为市场隐含参考';
@@ -2038,57 +2050,21 @@
         el.pmSub.textContent = `市场隐含概率（${viaTxt}${ageTxt}）· 仅供参考，不构成预测或投资建议`;
       }
     }
+    const V = window.PMView;
+    if (el.pmOverview) el.pmOverview.innerHTML = V.overviewHTML(list);
     if (!list.length) {
       el.pmList.innerHTML = state.pmVia
         ? '<div class="empty">暂无符合口径的预测市场数据（只保留可能影响市场的类别）</div>'
         : '<div class="empty">采集任务未运行或不可达 · 稍后自动恢复，绝不造假数据</div>';
       return;
     }
-
-    const META = window.Polymarket.CAT_META;
-    const FOLD_N = 6;   // 每类默认只露 6 条，其余折叠——长列表一眼望不到头最容易看疲劳
-    const qText = m => escapeHTML(m.questionZh || m.question);
-    const pctOf = m => Math.max(1, Math.min(100, Math.round(m.probability * 100)));
-    const chgTxt = m => {
-      const c = m.change24h;
-      if (c === null || c === undefined || isNaN(c) || c === 0) return '';
-      return `<span class="pm-chg num ${c > 0 ? 'up' : 'down'}" title="24 小时概率变化（百分点）">${c > 0 ? '▲' : '▼'} ${Math.abs(c).toFixed(1)}</span>`;
-    };
-    const tile = (m, meta) => `<div class="pm-tile" style="--cat-c:${meta.color || 'var(--border-hover)'}">
-        <div class="pm-tile-q" title="${escapeHTML(m.question)}">${qText(m)}</div>
-        <div class="pm-tile-row">
-          <div class="pm-bar"><i style="width:${pctOf(m)}%"></i></div>
-          <span class="pm-pct num">${pctOf(m)}%</span>
-          ${chgTxt(m)}
-        </div>
-        <div class="pm-meta">${m.endDate ? '截止 ' + new Date(m.endDate).toISOString().slice(0, 10) : '长期有效'}</div>
-      </div>`;
-
-    // 按分类分区；区序按"该类最热一条的 24h 成交"降序——最热的话题排最前
-    const cats = {};
-    list.forEach(m => { (cats[m.category] = cats[m.category] || []).push(m); });
-    const order = Object.keys(cats)
-      .sort((a, b) => Math.max(...cats[b].map(x => x.volume24hr || 0)) - Math.max(...cats[a].map(x => x.volume24hr || 0)));
-    const sections = order.map(cat => {
-      const meta = META[cat] || {};
-      const items = cats[cat];
-      const expanded = !!state.pmExpand[cat];
-      const shown = expanded ? items : items.slice(0, FOLD_N);
-      const fold = items.length > FOLD_N
-        ? `<button class="pill pm-fold" data-pmexpand="${cat}">${expanded ? '收起' : '展开其余 ' + (items.length - FOLD_N) + ' 条'}</button>`
-        : '';
-      return `<div class="pm-sec">
-        <div class="pm-sec-head" style="--cat-c:${meta.color || 'var(--border-hover)'}">
-          <i class="ev-dot" style="background:${meta.color || 'inherit'}"></i>
-          <span class="pm-sec-t">${meta.label || cat}</span>
-          <span class="pm-sec-en">${meta.en || ''}</span>
-          <b class="num pm-sec-n">${items.length}</b>
-        </div>
-        <div class="pm-grid">${shown.map(m => tile(m, meta)).join('')}</div>
-        ${fold}
-      </div>`;
-    }).join('');
-    el.pmList.innerHTML = sections;
+    // 渲染在 js/pmview.js（纯数据→HTML，可离线单测）；这里只做取数与交互状态
+    const groups = window.Polymarket.groupByCategory(list);
+    el.pmList.innerHTML = V.sectionsHTML(groups, {
+      history: state.pmHistory,
+      sel: state.pmSel,
+      expand: state.pmExpand,
+    });
   }
 
   function renderEventDetail(ev) {
@@ -4164,6 +4140,13 @@
       if (pmexpand) {
         const cat = pmexpand.dataset.pmexpand;
         state.pmExpand[cat] = !state.pmExpand[cat];   // 展开/收起切换（会话内记忆，不落盘）
+        renderPmList();
+        return;
+      }
+      // 点档位行 = 切换这张卡的概率走势图跟的是哪个档位
+      const pmout = e.target.closest('[data-pmout]');
+      if (pmout) {
+        state.pmSel[pmout.dataset.pmev] = pmout.dataset.pmout;
         renderPmList();
         return;
       }
