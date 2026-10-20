@@ -21,6 +21,7 @@ const groups = [
   { file: 'macrocalc.test.mjs', net: false },  // 宏观策略纯计算：曲线装配/利差bp换算/倒挂判定/金油比
   { file: 'portfoliomath.test.mjs', net: false }, // 持仓估值/多币种折算/快照合并（手算核对）
   { file: 'fundparse.test.mjs', net: false },  // 基金画像解析：pingzhongdata 值归一 + jjcc 重仓股表格
+  { file: 'fundquiz.test.mjs', net: false },   // 投资风格测评：评分单调性 + 风险闸门（硬规则）+ 合规回归
   { file: 'spark.test.mjs', net: false },   // 首屏图形层：振幅条位置/走势线坐标（纯函数，画歪了才算错）
   { file: 'insight.test.mjs', net: false },
   { file: 'evolve.test.mjs', net: false },  // 市场时段/情绪历史/请求去重（纯函数）

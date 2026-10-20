@@ -1215,14 +1215,114 @@ body.no-crypto .crypto-only { display: none !important; }
    第一版只有轨道 + 一个孤零零的点，界面没有任何说明，用户直接问"这个点是啥意思"
    （2026-09-16）→ 两端补上数值、整条带 title 提示。位置由 Spark.rangePos 算（夹紧 0..1）。 */
 .rbar { display: flex; align-items: center; gap: 6px; margin-top: 8px; cursor: help; }
-.rbar .rb-lo, .rbar .rb-hi { font-size: 9.5px; color: var(--text-faint); font-style: normal;
+.rbar .rb-lo, .rbar .rb-hi { font-size: 10px; color: var(--text-tertiary); font-style: normal;
   white-space: nowrap; flex: none; }
 .rbar .rb-track { position: relative; flex: 1; height: 3px; background: var(--border); border-radius: 2px; }
-.rbar .rb-track > b { position: absolute; top: -2.5px; width: 8px; height: 8px; margin-left: -4px;
-  border-radius: 50%; background: var(--accent-signature); }
+/* 标记点默认用 --up（由调用方按当日方向覆盖成涨红跌绿）；默认色也定成 --up，
+   免得任何漏传的地方退回主题强调色（Swiss 的红点看着像报错标记）。 */
+.rbar .rb-track > b { position: absolute; top: -2.5px; width: 7px; height: 7px; margin-left: -3.5px;
+  border-radius: 50%; background: var(--up); }
 @media (max-width: 860px) {
   .rbar .rb-lo, .rbar .rb-hi { display: none; }   /* 窄屏只留轨道，数值靠 title 提示 */
 }
+/* ==================== 投资风格测评（基金页第三子视图） ====================
+   语气：这是一份"偏好问卷"，不是推荐引擎。视觉上刻意保持克制——不画雷达图、
+   只有刻度条与可点的清单；风险提示比推荐本身更显眼。 */
+
+/* ---- 引导 ---- */
+.fq-intro { border: 1px solid var(--border); border-left: 3px solid var(--accent-signature);
+  background: var(--bg-card); border-radius: 6px; padding: 22px 24px; max-width: 780px; }
+.fq-intro-t { font-size: 13px; font-weight: 700; letter-spacing: .04em; color: var(--text); margin: 0 0 12px; }
+.fq-intro-p { font-size: 13px; line-height: 1.85; color: var(--text-secondary); margin: 0 0 14px; }
+.fq-intro-p b { color: var(--text); font-weight: 600; }
+.fq-intro-warn { font-size: 11.5px; line-height: 1.8; color: var(--text-tertiary);
+  border-top: 1px solid var(--border); padding-top: 12px; margin: 0 0 14px; }
+.fq-intro-warn b { color: var(--warn); }
+.fq-intro-go { font-size: 12px; color: var(--text-faint); margin: 0; font-family: var(--font-mono); }
+
+/* ---- 题目 ---- */
+.fq-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.fq-progress { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); }
+.fq-progress b { color: var(--text); font-weight: 600; }
+.fq-go { margin-left: auto; }
+.fq-go:disabled { opacity: .45; cursor: default; }
+.fq-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 10px; }
+.fq-q { border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card);
+  padding: 14px 16px 12px; margin: 0; min-width: 0; }
+.fq-q legend { font-size: 12.5px; font-weight: 600; color: var(--text); padding: 0 6px 0 0;
+  display: flex; align-items: baseline; gap: 9px; }
+.fq-num { display: inline-flex; align-items: center; justify-content: center;
+  width: 17px; height: 17px; border-radius: 50%; font-size: 10px; font-weight: 600;
+  color: var(--bg-card); background: var(--text-tertiary); font-family: var(--font-mono); flex: none; }
+.fq-hint { font-size: 11px; color: var(--text-faint); margin: 0 0 10px; line-height: 1.6; }
+.fq-opts { display: flex; flex-direction: column; gap: 5px; }
+.fq-opt { text-align: left; font: inherit; font-size: 12px; line-height: 1.5; cursor: pointer;
+  padding: 7px 11px; border: 1px solid var(--border); border-radius: 4px;
+  background: transparent; color: var(--text-secondary); transition: all var(--dur-fast) var(--ease-out); }
+.fq-opt:hover { border-color: var(--border-hover); color: var(--text); }
+.fq-opt.on { border-color: var(--accent-signature); color: var(--text);
+  background: rgba(var(--accent-rgb), .09); font-weight: 500; }
+.fq-opt:focus-visible { outline: 2px solid var(--accent-signature); outline-offset: 1px; }
+
+/* ---- 结果 ---- */
+.fq-verdict { border: 1px solid var(--border); border-left: 3px solid var(--accent-signature);
+  background: var(--bg-card); border-radius: 6px; padding: 18px 20px; margin-bottom: 12px; }
+.fq-verdict-t { font-size: 19px; font-weight: 700; color: var(--text); letter-spacing: -.01em; }
+.fq-verdict-t b { color: var(--accent-signature); }
+.fq-verdict-r { font-size: 11.5px; font-weight: 500; color: var(--text-tertiary);
+  margin-left: 12px; font-family: var(--font-mono); }
+.fq-verdict-p { font-size: 12.5px; line-height: 1.85; color: var(--text-secondary); margin: 10px 0 14px; }
+.fq-dims { display: flex; flex-wrap: wrap; gap: 8px 34px; }
+.fq-dim { display: flex; align-items: center; gap: 10px; }
+.fq-dim-k { font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--text-faint); font-family: var(--font-mono); }
+.fq-scale { display: inline-flex; gap: 3px; }
+.fq-scale i { width: 15px; height: 5px; border-radius: 1px; background: var(--border); display: block; }
+.fq-scale i.on { background: var(--accent-signature); }
+.fq-dim-v { font-size: 11.5px; color: var(--text-tertiary); }
+.fq-dim-note { font-size: 11px; color: var(--text-faint); margin: 12px 0 0; line-height: 1.7; }
+
+/* 风险提示：比推荐清单更显眼（这是这个模块的合规底座，不是脚注） */
+.fq-warn { border: 1px solid var(--border); border-left: 3px solid var(--warn);
+  background: var(--bg-elevated); border-radius: 6px; padding: 12px 16px; margin-bottom: 16px;
+  font-size: 11.5px; line-height: 1.9; color: var(--text-tertiary); }
+.fq-warn b { color: var(--text-secondary); }
+.fq-warn > b:first-child { color: var(--warn); margin-right: 8px; letter-spacing: .04em; }
+
+/* ---- 推荐清单 ---- */
+.fq-recs-hd { display: flex; align-items: center; gap: 12px; font-size: 12.5px; font-weight: 600;
+  color: var(--text); margin-bottom: 10px; }
+.fq-again { margin-left: auto; font-weight: 400; }
+.fq-tight { font-size: 11.5px; line-height: 1.8; color: var(--text-tertiary); margin: 0 0 10px;
+  border-left: 2px solid var(--border-hover); padding-left: 11px; }
+.fq-recs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 10px; }
+.fq-card { border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card);
+  padding: 13px 15px 12px; display: flex; flex-direction: column; gap: 7px; }
+.fq-card:hover { border-color: var(--border-hover); }
+/* 名称可能换行（"红利低波ETF华泰柏瑞"），给固定最小高度让下面的 chip 行在各卡之间对齐 */
+.fq-card-hd { display: flex; align-items: flex-start; gap: 9px; min-height: 38px; }
+.fq-card-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.fq-card-code { font-size: 11px; color: var(--text-faint); }
+.fq-card-meta { display: flex; gap: 6px; }
+.fq-chip { font-size: 10px; padding: 1px 7px; border-radius: 3px; color: var(--text-tertiary);
+  border: 1px solid var(--border); white-space: nowrap; }
+.fq-chip.fq-tier { font-family: var(--font-mono); }
+.fq-chip.fq-tier.t1, .fq-chip.fq-tier.t2 { color: var(--down); border-color: rgba(46,189,133,.35); }
+.fq-chip.fq-tier.t3 { color: var(--text-secondary); }
+.fq-chip.fq-tier.t4, .fq-chip.fq-tier.t5 { color: var(--up); border-color: rgba(255,92,92,.35); }
+.fq-why, .fq-risk { font-size: 11.5px; line-height: 1.7; margin: 0; color: var(--text-secondary); }
+/* 标签占固定宽度 → 正文换行后仍与首行对齐（悬挂缩进） */
+.fq-why b, .fq-risk b { display: inline-block; width: 5em; color: var(--text-faint); font-weight: 400;
+  margin-right: 0; font-size: 10.5px; letter-spacing: .06em; vertical-align: 1px; }
+.fq-risk { color: var(--text-tertiary); }
+.fq-open { align-self: flex-start; margin-top: auto; padding-top: 4px; font-size: 11px; }
+
+@media (max-width: 640px) {
+  .fq-grid, .fq-recs-grid { grid-template-columns: 1fr; }
+  .fq-verdict-t { font-size: 17px; }
+  .fq-verdict-r { display: block; margin-left: 0; margin-top: 6px; }
+}
+
 /* ---- 市场简报带（首屏的"答案"）----
    终端顶部仪表条（annunciator panel）的语言：左标签 / 中间连续分布条 / 右数字。
    条身是这条带子的签名：不是三段色块，是"市场实际的形状"——

@@ -37,8 +37,10 @@ const Spark = (() => {
     }));
   }
 
-  /* 把走势线描到 canvas 上。colours 由调用方传入（主题令牌在 charts.js/app.js 里取，保持单一来源）。 */
-  function draw(canvas, closes, { color = '#86868b', fill = '' } = {}) {
+  /* 把走势线描到 canvas 上。colours 由调用方传入（主题令牌在 charts.js/app.js 里取，保持单一来源）。
+     width 可调；fill 传空串则不画面积——迷你走势线用"线"不用"块"：
+     面积填充在并排的卡片里会连成一片色块墙（2026-10-20 用户反馈"很突兀"）。 */
+  function draw(canvas, closes, { color = '#86868b', fill = '', width = 1.5 } = {}) {
     if (!canvas || typeof canvas.getContext !== 'function') return false;
     const w = canvas.clientWidth || canvas.width;
     const h = canvas.clientHeight || canvas.height;
@@ -54,12 +56,14 @@ const Spark = (() => {
     if (!pts) return false;
     ctx.beginPath();
     pts.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = width;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.strokeStyle = color;
     ctx.stroke();
     if (fill) {
+      ctx.beginPath();
+      pts.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
       ctx.lineTo(pts[pts.length - 1].x, h);
       ctx.lineTo(pts[0].x, h);
       ctx.closePath();
@@ -76,7 +80,7 @@ const Spark = (() => {
   function rangeBarHTML(pos, opts = {}) {
     if (!isNum(pos)) return '';
     const pct = (Math.max(0, Math.min(1, pos)) * 100).toFixed(1);
-    const { low, high, digits = 2, label = '日内' } = opts;
+    const { low, high, digits = 2, label = '日内', color = '' } = opts;
     const fmtV = (v) => (isNum(v) ? v.toFixed(digits) : '');
     const hasEnds = isNum(low) && isNum(high);
     const title = hasEnds
@@ -85,8 +89,11 @@ const Spark = (() => {
     const ends = hasEnds
       ? `<i class="rb-lo num">${fmtV(low)}</i><i class="rb-hi num">${fmtV(high)}</i>`
       : '';
+    // 标记点用当日方向色（涨红跌绿），不用主题强调色：固定红点压在灰轨上，
+    // 在 Swiss 这类红色强调的皮肤里看着像报错标记（2026-10-20 用户反馈"很突兀"）。
+    const mark = color ? ` style="background:${color}"` : '';
     return `<span class="rbar" title="${title}" aria-label="${title}">${ends}` +
-      `<span class="rb-track"><b style="left:${pct}%"></b></span></span>`;
+      `<span class="rb-track"><b style="left:${pct}%"${mark}></b></span></span>`;
   }
 
   /* 迷你走势图的容器（canvas 由调用方在插入 DOM 后 draw——canvas 必须先有尺寸才能画） */

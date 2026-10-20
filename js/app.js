@@ -135,7 +135,7 @@
     'cmpChips', 'cmpChipsSub', 'cmpSub', 'cmpStart', 'cmpEnd', 'cmpQuick', 'cmpLog', 'cmpNormHint',
     'cmpChartBox', 'cmpChart', 'cmpLegend', 'cmpMetrics', 'cmpMetricsSub', 'cmpYearly', 'cmpCorr', 'cmpNote',
     // 基金页子视图（对比/画像）
-    'cmpComparePane', 'fundProfilePane',
+    'cmpComparePane', 'fundProfilePane', 'fundQuizPane',
     // 宏观策略面板 + 持仓跟踪页（新板块，视图模块自持 DOM，这里只交根节点）
     'macroStrategy', 'portRoot',
     // 到价提醒（AlertCenter 视图模块，alerts.js）
@@ -501,6 +501,11 @@
     return HERO_KEYS.slice(0, HERO_SLOTS);
   }
 
+  /* 区间条标记点用当日方向色（涨红跌绿），不用主题强调色。
+     固定红点压在灰轨上，在 Swiss 这类红色强调的皮肤里看着像报错标记
+     （2026-10-20 用户反馈"很突兀"）。 */
+  const dirColor = (q) => (q && typeof q.changePct === 'number' && q.changePct < 0) ? 'var(--down)' : 'var(--up)';
+
   function heroCellHTML(sym) {
     const q = findQuote(sym);
     const flag = window.Flags ? window.Flags.flag(heroFlagCode(sym, q && q.market)) : '';
@@ -518,7 +523,7 @@
       <div class="hero-value" data-price="${escapeHTML(sym)}">${fmt(q.price, digits)}</div>
       <div class="hero-chg ${cls}"><span data-hero-chg>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
       ${window.Spark ? window.Spark.sparkBoxHTML(sym) : ''}
-      <span data-hero-range>${window.Spark ? window.Spark.rangeBarHTML(pos, { low: q.low, high: q.high, digits }) : ''}</span>
+      <span data-hero-range>${window.Spark ? window.Spark.rangeBarHTML(pos, { low: q.low, high: q.high, digits, color: dirColor(q) }) : ''}</span>
     </div>`;
   }
 
@@ -554,7 +559,7 @@
       }
       // 当日振幅条的指示点跟着现价走（否则它停在开盘那一刻的位置）
       const r = cell.querySelector('[data-hero-range]');
-      if (r && window.Spark) r.innerHTML = window.Spark.rangeBarHTML(window.Spark.rangePos(q.price, q.low, q.high), { low: q.low, high: q.high, digits });
+      if (r && window.Spark) r.innerHTML = window.Spark.rangeBarHTML(window.Spark.rangePos(q.price, q.low, q.high), { low: q.low, high: q.high, digits, color: dirColor(q) });
     });
   }
 
@@ -615,7 +620,8 @@
       const rising = (q && typeof q.changePct === 'number') ? q.changePct >= 0
         : closes[closes.length - 1] >= closes[0];
       const color = rising ? up : down;
-      const ok = window.Spark.draw(cv, closes, { color, fill: color + '18' });
+      // 不画面积填充：迷你走势线并排时会连成一片色块墙（2026-10-20 用户反馈很突兀）
+      const ok = window.Spark.draw(cv, closes, { color, fill: '', width: 1.8 });
       cv.hidden = !ok;
       if (ok) cv.removeAttribute('hidden');
     });
@@ -679,7 +685,7 @@
       <div class="hero-value">${fmt(q.price, digits)}</div>
       <div class="hero-chg ${cls}"><span>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
       ${window.Spark ? window.Spark.sparkBoxHTML(sym) : ''}
-      ${window.Spark ? window.Spark.rangeBarHTML(pos, { low: q.low, high: q.high, digits }) : ''}
+      ${window.Spark ? window.Spark.rangeBarHTML(pos, { low: q.low, high: q.high, digits, color: dirColor(q) }) : ''}
     </div>`;
   }
 
@@ -3549,7 +3555,7 @@
      （对比模式的 hash 仍由 CompareView 维护，两套参数不互踩）。 */
   let cmpMode = 'compare';
   function setCmpMode(mode) {
-    cmpMode = mode === 'profile' ? 'profile' : 'compare';
+    cmpMode = mode === 'profile' ? 'profile' : mode === 'quiz' ? 'quiz' : 'compare';
     document.querySelectorAll('[data-cmpmode]').forEach(b => {
       const on = b.getAttribute('data-cmpmode') === cmpMode;
       b.classList.toggle('active', on);
@@ -3557,6 +3563,7 @@
     });
     if (el.cmpComparePane) el.cmpComparePane.hidden = cmpMode !== 'compare';
     if (el.fundProfilePane) el.fundProfilePane.hidden = cmpMode !== 'profile';
+    if (el.fundQuizPane) el.fundQuizPane.hidden = cmpMode !== 'quiz';
     // 从画像切回对比：进 tab 时对比的 onEnter 被跳过了，这里补上（内部自带加载去重）
     if (cmpMode === 'compare' && window.CompareView) window.CompareView.onEnter();
   }
@@ -4279,9 +4286,13 @@
       }
       const wsortBtn = e.target.closest('[data-wsort]');
       if (wsortBtn) { state.watchSort = wsortBtn.dataset.wsort; renderWatchlist(true); return; }
-      // 基金页子视图：对比 / 画像
+      // 基金页子视图：对比 / 画像 / 风格测评
       const cmpModeBtn = e.target.closest('[data-cmpmode]');
       if (cmpModeBtn) { setCmpMode(cmpModeBtn.getAttribute('data-cmpmode')); return; }
+      // 投资风格测评：选项 / 看结果 / 点开画像 / 重做（面板自持 DOM，事件走这里）
+      if (e.target.closest('[data-fq-o],[data-fq-go],[data-fq-open],[data-fq-again]')) {
+        if (window.FundQuiz) { window.FundQuiz.onClick(e); return; }
+      }
       // ---- 事件页：子面板切换 / 类型过滤 / 事件行 / 关联资产 / 聚合清单 / 详情卡 ----
       const evsub = e.target.closest('[data-evsub]');
       if (evsub) { setEventsSub(evsub.dataset.evsub); return; }
@@ -4680,6 +4691,17 @@
     if (window.FundProfile) {
       window.FundProfile.mount(el.fundProfilePane, {
         openDetail, marketOfSecid: window.EastmoneySource.marketOfSecid, tencentOfSecid,
+      });
+    }
+
+    // 投资风格测评子面板：6 道题 → 品类清单（纯逻辑，无网络）。
+    // 点推荐项直接进已有的基金画像面板看真实档案（档案/净值/排名/规模/持仓）。
+    if (window.FundQuiz) {
+      window.FundQuiz.mount(el.fundQuizPane, {
+        openFund: (code) => {
+          setCmpMode('profile');
+          if (window.FundProfile) window.FundProfile.open(code);
+        },
       });
     }
 

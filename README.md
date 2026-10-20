@@ -10,7 +10,7 @@
 
 [![license](https://img.shields.io/badge/license-MIT-000?style=flat-square)](LICENSE)
 [![release](https://img.shields.io/github/v/release/5777-wq/openfinlens?style=flat-square&label=release)](https://github.com/5777-wq/openfinlens/releases)
-![tests](https://img.shields.io/badge/tests-27%E7%BB%84%C2%B7%E7%A6%BB%E7%BA%BF265%E6%9D%A1-2ebd85?style=flat-square)
+![tests](https://img.shields.io/badge/tests-28%E7%BB%84%C2%B7%E7%A6%BB%E7%BA%BF276%E6%9D%A1-2ebd85?style=flat-square)
 
 <img src="assets/shot-overview.png" alt="OpenFinLens 首屏：全球市场" width="100%">
 
@@ -61,6 +61,7 @@ GDELT + 新浪 7x24 每 5 分钟采集一次，按类别落在自绘世界地图
 | 披露类资金 | A股龙虎榜与席位 90 天档案；美股 13F 持仓（伯克希尔、桥水、ARK、Pershing）；港股南向持股。只收录监管要求披露的数据，发言 ≠ 交易，口径分开。13F 的上期取不到时该机构标「环比不可用」而不是「全部新进」；A股基金持仓会标出披露完整度与「下一期仍在披露中」——季报只披露前十大重仓股，不标就会被读成「基金集体减仓」 |
 | 基金对比 | 最多 8 只标的后复权价归一化对比，收益、最大回撤、夏普、年度矩阵、相关性矩阵，历史最长回到 2006 年。拿不到含分红口径时明确标注「价格收益」，绝不糊弄 |
 | 基金画像 | 输入 6 位代码看单只基金：阶段收益与同类排名、净值走势、五维评价、规模与申赎、持有人结构、资产配置、重仓股（点行进 K 线）。天天基金公开披露，免密钥 |
+| 投资风格测评 | 6 道题测「能承受多少波动 + 更想要什么」，映射成一组公开可查的**品类清单**，点开即看真实回撤/排名/规模/持仓。**风险闸门是硬规则**：候选的波动档必须 ≤ 你的风险档，投资期限短时上限更低——保守用户绝不会看到行业主题基金。它不预测收益、不推荐买入、不构成投资建议 |
 | 持仓跟踪 | 本机记录数量与成本价，实时算市值 / 持仓盈亏 / 当日盈亏；美元、港币按离岸人民币实时交叉价折算成一条总资产曲线（每日一个快照，只存本机） |
 | 技术面与情绪 | RSI / MACD / KDJ / BOLL 按日 K 手算，附读法；各市场温度计、涨跌家数、七段分布。只算统计口径，不给买卖建议 |
 | 产业链与概念 | 10 条产业链、49 个环节、163 只成分股，环节强度实时计算；东财 500+ 概念板块榜一键跳转 |
@@ -138,7 +139,7 @@ push 到你的 GitHub 仓库 → Settings → Pages → `Deploy from a branch`�
 
 ```bash
 node _test/run-all.mjs            # 27 组（含实网组）
-node _test/run-all.mjs --offline  # 21 组 265 条，断网可跑，已挂 CI
+node _test/run-all.mjs --offline  # 22 组 276 条，断网可跑，已挂 CI
 ```
 
 技术指标有构造序列对账；降级链是逐条改坏主源实测的，不是纸面设计。预测市场的三层（数据模型 / 图形几何 / 视图渲染）各自可离线单测——扇区角度、走势坐标、档位归属、"互斥才给环图"这些约束都是断言出来的，不靠肉眼看图。
