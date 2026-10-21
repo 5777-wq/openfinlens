@@ -77,6 +77,15 @@ const AcademyGloss = (() => {
         label: '在白话金融里看「' + concept.name + '」的解释 ↗',
       };
     }
+    // 标的百科页：终端 universe 里的每一只，科普站都有同名的一页
+    //（有专文的带讲解，没专文的至少带真实的峰谷数据卡——不是空页）
+    if (inUniverse(symbol)) {
+      return {
+        href: BASE + '#/assets/' + encodeURIComponent(symbol),
+        kind: 'asset',
+        label: '在白话金融里看这一页 ↗',
+      };
+    }
     const q = String(name || '').trim();
     if (!q) return null;
     return {
@@ -86,7 +95,20 @@ const AcademyGloss = (() => {
     };
   }
 
-  return { BASE, TERM_BY_SYMBOL, CONCEPT_BY_SYMBOL, targetFor };
+  /** 终端 universe 里的 symbol 集合（终端能看的每一只，科普站都要有一页） */
+  let uniSet = null;
+  function inUniverse(symbol) {
+    if (!symbol) return false;
+    if (!uniSet) {
+      uniSet = new Set();
+      const push = (arr) => (arr || []).forEach((x) => uniSet.add(x.symbol));
+      push(window.TENCENT_UNIVERSE);
+      push(window.EM_UNIVERSE);
+    }
+    return uniSet.has(symbol);
+  }
+
+  return { BASE, TERM_BY_SYMBOL, CONCEPT_BY_SYMBOL, targetFor, inUniverse };
 })();
 
 window.AcademyGloss = AcademyGloss;

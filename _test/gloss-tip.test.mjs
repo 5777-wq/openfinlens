@@ -26,6 +26,8 @@ const ctx = vm.createContext({
 ctx.window = ctx;
 ctx.globalThis = ctx;
 vm.runInContext(readFileSync(path.join(ROOT, 'js/data/explain.js'), 'utf8'), ctx, { filename: 'explain.js' });
+// 载入终端的 universe（和真实页面同一份标的清单）
+vm.runInContext(readFileSync(path.join(ROOT, 'js/data/universe.js'), 'utf8'), ctx, { filename: 'universe.js' });
 vm.runInContext(readFileSync(path.join(ROOT, 'js/data/academy-gloss.js'), 'utf8'), ctx, { filename: 'academy-gloss.js' });
 const AG = ctx.AcademyGloss;
 const EX = ctx.Explain;
@@ -105,16 +107,33 @@ test('概念页用的概念名必须与科普站一致', () => {
   }
 });
 
-test('没有对应术语的标的 → 只能给搜索页，不给假入口', () => {
+test('终端 universe 里的每一只 → 科普站的标的页（不是搜索页）', () => {
   const t = AG.targetFor('sh600519', '贵州茅台');
+  assert.ok(t, '应当有链接');
+  assert.equal(t.kind, 'asset');
+  assert.equal(t.href, AG.BASE + '#/assets/sh600519');
+  assert.ok(t.label.includes('看这一页'), '文案不对：' + t.label);
+  // universe 里的每一只都要有页，不许退回搜索页
+  const uni = (global.window && global.window.TENCENT_UNIVERSE) || [];
+  if (uni.length) {
+    const missing = uni.filter((x) => {
+      const r = AG.targetFor(x.symbol, x.label);
+      return !r || r.kind === 'search';
+    });
+    assert.equal(missing.length, 0, '这些标的没有专属页面：' + missing.map((x) => x.symbol).join(' '));
+  }
+});
+
+test('不在 universe 里的标的 → 只能给搜索页，不给假入口', () => {
+  const t = AG.targetFor('xx999999', '某只没收录的票');
   assert.ok(t);
   assert.equal(t.kind, 'search');
-  assert.equal(t.href, AG.BASE + '#/search?q=' + encodeURIComponent('贵州茅台'));
-  assert.ok(t.label.includes('贵州茅台'), '链接文案要带上标的名：' + t.label);
+  assert.equal(t.href, AG.BASE + '#/search?q=' + encodeURIComponent('某只没收录的票'));
+  assert.ok(t.label.includes('某只没收录的票'), '链接文案要带上标的名：' + t.label);
 });
 
 test('没有名字 → 不给链接（不硬凑一个空搜索）', () => {
-  assert.equal(AG.targetFor('sh600519', ''), null);
+  assert.equal(AG.targetFor('xx999999', ''), null);
   assert.equal(AG.targetFor('', ''), null);
 });
 
