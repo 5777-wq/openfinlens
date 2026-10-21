@@ -28,8 +28,9 @@ const Store = {
   settings: {
     get() {
       // 默认主题 = 瑞士（白底红强调，用户 2026-10-18 指定）；老用户已存过设置的不受影响
+      // academy：白话金融的科普入口（悬停「这是什么」+ 顶栏链接 + 详情页链接）
       return Object.assign(
-        { updown: 'red', refresh: 10, showDegraded: true, theme: 'swiss' },
+        { updown: 'red', refresh: 10, showDegraded: true, theme: 'swiss', academy: true },
         Store.get('settings', {})
       );
     },

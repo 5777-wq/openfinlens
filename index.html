@@ -53,7 +53,7 @@
     <button class="tab" data-tab="compare" role="tab" aria-selected="false" aria-controls="view-compare">基金</button>
   </nav>
   <div class="topbar-actions">
-    <a class="topbar-link" href="https://5777-wq.github.io/openfin-academy/" target="_blank" rel="noopener"
+    <a class="topbar-link" id="academyLink" href="https://5777-wq.github.io/openfin-academy/" target="_blank" rel="noopener"
        title="白话金融 OpenFin Academy · 给小白和家庭的金融说明书">白话金融 ↗</a>
     <button id="alertBell" class="icon-btn" title="到价提醒" aria-haspopup="true" aria-expanded="false">提醒<span id="alertBadge" class="alert-badge num" hidden>0</span></button>
     <div id="alertPanel" class="alert-panel" hidden>
@@ -680,6 +680,13 @@
         <div class="setting-hint">数据来自备源 / 缓存时提示</div>
       </div>
       <button class="switch on" id="swDegraded" role="switch" aria-checked="true" aria-label="降级角标"></button>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">科普链接</div>
+        <div class="setting-hint">鼠标靠近标的时浮出「这是什么」· 可跳到白话金融读完整解释</div>
+      </div>
+      <button class="switch on" id="swAcademy" role="switch" aria-checked="true" aria-label="科普链接"></button>
     </div>
     <!-- 顶栏板块：顺序与显隐可自定义（用户 2026-10-20 要求）。
          规则与合法性判定在 js/tabscope.js（纯函数、可单测），

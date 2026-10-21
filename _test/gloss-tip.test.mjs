@@ -224,6 +224,27 @@ test('详情页必须给每个标的一个去科普站的入口', () => {
   assert.ok(/OpenFinMeta[\s\S]{0,400}of\(symbol\)/.test(app), 'app.js 没暴露 OpenFinMeta.of');
 });
 
+/* ---------------- 科普入口开关（设置里可关） ---------------- */
+
+test('设置里有科普入口的开关，且默认开', () => {
+  const store = readFileSync(path.join(ROOT, 'js/store.js'), 'utf8');
+  assert.ok(/academy:\s*true/.test(store), '设置默认值里没有 academy: true');
+  const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  assert.ok(html.includes('id="swAcademy"'), '设置面板里没有开关');
+  assert.ok(/aria-label="科普链接"/.test(html), '开关缺少无障碍标签');
+  assert.ok(html.includes('id="academyLink"'), '顶栏链接没有 id，没法关');
+});
+
+test('关掉科普：浮层不弹、顶栏链接与详情页链接一起消失', () => {
+  const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
+  assert.ok(app.includes('swAcademy'), 'app.js 没接这个开关');
+  assert.ok(/academyLink\.hidden = !acad/.test(app), '顶栏链接没跟着开关隐藏');
+  assert.ok(/detailGloss\.hidden = !acad/.test(app), '详情页链接没跟着开关隐藏');
+  const tip = readFileSync(path.join(ROOT, 'js/gloss-tip.js'), 'utf8');
+  assert.ok(/if \(!enabled\) return;/.test(tip), '浮层没检查开关');
+  assert.ok(/academyOn\(\)/.test(tip), '浮层没读设置');
+});
+
 /* ---------------- 双向跳转与回原位置 ---------------- */
 
 test('浮层链接必须带来源与标的（科普站那边要据此给"回原位置"的出口）', () => {

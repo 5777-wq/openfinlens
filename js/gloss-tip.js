@@ -14,7 +14,15 @@
   const ATTRS = ['data-symbol', 'data-mv', 'data-etfsym', 'data-fundsym', 'data-gidx', 'data-gloss'];
   const HIDE_DELAY = 240;
 
-  let tip = null, hideTimer = null, current = null;
+  let tip = null, hideTimer = null, current = null, enabled = true;
+
+  /** 设置里可以关掉科普入口（默认开） */
+  function academyOn() {
+    try {
+      const s = window.Store && window.Store.settings ? window.Store.settings.get() : null;
+      return s ? s.academy !== false : true;
+    } catch (e) { return true; }
+  }
 
   const esc = (s) => (window.U && window.U.escapeHTML
     ? window.U.escapeHTML(s)
@@ -152,8 +160,10 @@
 
   function init() {
     if (!canHover()) return;
+    enabled = academyOn();
 
     document.addEventListener('mouseover', (e) => {
+      if (!enabled) return;
       if (tip && tip.contains(e.target)) return;   // 浮层自己，别收
       const host = e.target.closest ? e.target.closest(SELECTOR) : null;
       if (!host) {
@@ -189,5 +199,11 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
-  window.GlossTip = { show, hide };
+  /** 设置里开关生效：关掉就收走浮层（顶栏链接与详情页链接由 app.js 同步） */
+  function apply(on) {
+    enabled = !!on;
+    if (!enabled) hide();
+  }
+
+  window.GlossTip = { show, hide, apply, academyOn };
 })();

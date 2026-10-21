@@ -124,7 +124,7 @@
     'boardStrip', 'boardVia', 'boardDrawer',
     'moodSub', 'moodScore', 'moodBand', 'moodFill', 'breadthGrid', 'distWrap', 'distSub', 'moodSpark', 'heroStrip', 'moodCrypto', 'moodUS',
     'searchInput', 'searchResults', 'settingsBtn', 'settingsModal', 'settingsClose',
-    'segUpdown', 'segRefresh', 'segTheme', 'swDegraded', 'sourceStatus', 'updatedLine', 'tabCfg',
+    'segUpdown', 'segRefresh', 'segTheme', 'swDegraded', 'swAcademy', 'academyLink', 'sourceStatus', 'updatedLine', 'tabCfg',
     'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats', 'detailGloss',
     'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle', 'intradaySeg',
     'maMenu', 'maLinesBox', 'maPaneBox', 'maAdd',
@@ -1810,12 +1810,13 @@
     el.detailCode.textContent = target.code || '';
     el.detailPrice.textContent = '--';
     el.detailChg.textContent = '--';
-    // 详情页顶栏：给一个去科普站看解释的入口（每个标的都有）
+    // 详情页顶栏：给一个去科普站看解释的入口（每个标的都有；设置里可关）
     if (el.detailGloss) {
       const gt = window.AcademyGloss
         ? window.AcademyGloss.targetFor(target.symbol, target.name || '')
         : null;
-      if (gt) {
+      const acadOn = window.Store.settings.get().academy !== false;
+      if (gt && acadOn) {
         el.detailGloss.href = gt.href + '?from=lens&sym=' + encodeURIComponent(target.symbol);
         el.detailGloss.textContent = gt.kind === 'search' ? '在白话金融里查 ↗' : '在白话金融里看解释 ↗';
         el.detailGloss.title = '去「白话金融 OpenFin Academy」把这个词讲清楚';
@@ -4181,6 +4182,16 @@
     el.segRefresh.querySelectorAll('button').forEach(b => b.classList.toggle('active', +b.dataset.refresh === s.refresh));
     el.swDegraded.classList.toggle('on', !!s.showDegraded);
     el.swDegraded.setAttribute('aria-checked', String(!!s.showDegraded));
+    // 科普入口（白话金融）：设置里可关——关掉后浮层、顶栏链接、详情页链接一起消失
+    const acad = s.academy !== false;
+    if (el.swAcademy) {
+      el.swAcademy.classList.toggle('on', acad);
+      el.swAcademy.setAttribute('aria-checked', String(acad));
+    }
+    if (el.academyLink) el.academyLink.hidden = !acad;
+    document.body.dataset.academy = acad ? 'on' : 'off';
+    if (window.GlossTip) window.GlossTip.apply(acad);
+    if (el.detailGloss) el.detailGloss.hidden = !acad;
     applyTheme(s.theme);
     // 红涨绿跌切换会改 --up-rgb/--down-rgb，价格闪烁的颜色缓存要失效
     invalidateFlashColors();
@@ -5178,6 +5189,14 @@
       if (state.view === 'market') renderCardWall(false);
       if (state.view === 'watch') renderWatchlist();
     });
+    // 科普入口开关：浮层、顶栏链接、详情页链接一起开关
+    if (el.swAcademy) {
+      el.swAcademy.addEventListener('click', () => {
+        const cur = window.Store.settings.get().academy !== false;
+        window.Store.settings.set({ academy: !cur });
+        applySettings();
+      });
+    }
 
     // 顶栏板块：显隐（复选框）与顺序（↑↓）
     if (el.tabCfg) {
