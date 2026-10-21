@@ -23,6 +23,11 @@ const AcademyGloss = (() => {
     'usDJI': 'dow-jones',              // 道琼斯
     'hkHSI': 'hsi',                    // 恒生指数
     'EM:100.N225': 'nikkei',           // 日经225
+    'EM:100.GDAXI': 'dax',             // 德国DAX
+    'EM:100.FTSE': 'ftse100',           // 英国富时100
+    'EM:100.FCHI': 'cac40',             // 法国CAC40
+    'EM:100.KS11': 'kospi',             // 韩国KOSPI
+    'EM:100.SENSEX': 'sensex',         // 印度SENSEX
     // ---- 商品与汇率 ----
     'EM:101.GC00Y': 'gold',            // COMEX 黄金
     'EM:102.CL00Y': 'crude-oil',       // NYMEX 原油
@@ -51,6 +56,11 @@ const AcademyGloss = (() => {
     'EM:171.JP10Y': { id: 'yield-curve', name: '收益率曲线' },
     // 美元兑港币：联系汇率这个制度最典型的一对
     'EM:119.USDHKD': { id: 'fx-regime', name: '汇率制度' },
+    // 外汇：科普站没有它们的月线序列，给「外汇」这个词条，不给半空的标的页
+    'EM:119.EURUSD': { id: 'fx', name: '外汇' },
+    'EM:119.GBPUSD': { id: 'fx', name: '外汇' },
+    'EM:119.USDJPY': { id: 'fx', name: '外汇' },
+    'EM:133.USDCNH': { id: 'fx', name: '外汇' },
     // 高股息标的：它们是"股息/分红"这个概念的代表
     'sh601398': { id: 'dividend', name: '股息 / 分红' },   // 工商银行
     'sh601288': { id: 'dividend', name: '股息 / 分红' },   // 农业银行
@@ -85,9 +95,13 @@ const AcademyGloss = (() => {
         label: '在白话金融里看「' + concept.name + '」的解释 ↗',
       };
     }
-    // 标的百科页：终端 universe 里的每一只，科普站都有同名的一页
-    //（有专文的带讲解，没专文的至少带真实的峰谷数据卡——不是空页）
-    if (inUniverse(symbol)) {
+    // 标的百科页：终端 universe 里的每一只，科普站都**尽量**有同名的一页——
+    // 但只给真的采到月线序列的那些（有专文的带讲解，没专文的至少带真实的
+    // 峰谷数据卡）。科普站没有数据的那几只，给的是半空页，那属于假入口，
+    // 不给：让它们落到概念页或搜索页去。
+    // 「真的有页」的清单由 _scripts/collect-academy-terms.mjs 从科普站同步
+    // （js/data/academy-assets.js），不在这里手抄——手抄的迟早对不上。
+    if (inUniverse(symbol) && hasAssetPage(symbol)) {
       return {
         href: BASE + '#/assets/' + encodeURIComponent(symbol),
         kind: 'asset',
@@ -116,7 +130,21 @@ const AcademyGloss = (() => {
     return uniSet.has(symbol);
   }
 
-  return { BASE, TERM_BY_SYMBOL, CONCEPT_BY_SYMBOL, targetFor, inUniverse };
+  /** 科普站有没有这一只的标的页（带真实月线数据卡的那张）
+      清单来自 js/data/academy-assets.js（自动同步，勿手抄） */
+  let assetSet = null;
+  function hasAssetPage(symbol) {
+    if (!symbol) return false;
+    if (!assetSet) {
+      assetSet = new Set();
+      const A = window.AcademyAssets;
+      if (A && A.symbols) A.symbols.forEach((s) => assetSet.add(s));
+    }
+    // 清单还没加载进来时**保守地不给**：宁可给搜索页，也不给半空页
+    return assetSet.size > 0 && assetSet.has(symbol);
+  }
+
+  return { BASE, TERM_BY_SYMBOL, CONCEPT_BY_SYMBOL, targetFor, inUniverse, hasAssetPage };
 })();
 
 window.AcademyGloss = AcademyGloss;

@@ -157,8 +157,23 @@ const GROUP_META = [
   { key: 'macro', label: '宏观利率' },
 ];
 
+/* 全球指数条（日/德/英/法/韩/印）——顶栏那一排卡片的标的清单。
+   它原先写在 app.js 里，但这份清单是**跨站共享的**：科普站要靠它判断
+   「终端能不能链到本站的哪一页」，所以放到 universe.js 里——
+   跟 TENCENT_UNIVERSE / EM_UNIVERSE 同一个地方，两边共用一份。
+   symbol 形态与 EM_UNIVERSE 里的商品/利率一致：EM:<secid>。 */
+const GLOBAL_INDEX = [
+  { symbol: 'EM:100.N225', secid: '100.N225', flag: 'jp', name: '日经225' },
+  { symbol: 'EM:100.GDAXI', secid: '100.GDAXI', flag: 'de', name: '德国DAX' },
+  { symbol: 'EM:100.FTSE', secid: '100.FTSE', flag: 'gb', name: '英国富时100' },
+  { symbol: 'EM:100.FCHI', secid: '100.FCHI', flag: 'fr', name: '法国CAC40' },
+  { symbol: 'EM:100.KS11', secid: '100.KS11', flag: 'kr', name: '韩国KOSPI' },
+  { symbol: 'EM:100.SENSEX', secid: '100.SENSEX', flag: 'in', name: '印度SENSEX' },
+];
+
 window.TENCENT_UNIVERSE = TENCENT_UNIVERSE;
 window.EM_UNIVERSE = EM_UNIVERSE;
+window.GLOBAL_INDEX = GLOBAL_INDEX;
 window.CRYPTO_FEATURED = CRYPTO_FEATURED;
 window.CRYPTO_UNIVERSE = CRYPTO_UNIVERSE;
 window.GROUP_META = GROUP_META;

@@ -28,6 +28,8 @@ ctx.globalThis = ctx;
 vm.runInContext(readFileSync(path.join(ROOT, 'js/data/explain.js'), 'utf8'), ctx, { filename: 'explain.js' });
 // 载入终端的 universe（和真实页面同一份标的清单）
 vm.runInContext(readFileSync(path.join(ROOT, 'js/data/universe.js'), 'utf8'), ctx, { filename: 'universe.js' });
+// 资产页清单：终端据此判断能不能给 #/assets/<symbol>（科普站没有数据卡的那几只不给）
+vm.runInContext(readFileSync(path.join(ROOT, 'js/data/academy-assets.js'), 'utf8'), ctx, { filename: 'academy-assets.js' });
 vm.runInContext(readFileSync(path.join(ROOT, 'js/data/academy-gloss.js'), 'utf8'), ctx, { filename: 'academy-gloss.js' });
 const AG = ctx.AcademyGloss;
 const EX = ctx.Explain;
@@ -109,7 +111,7 @@ test('概念页用的概念名必须与科普站一致', () => {
   }
 });
 
-test('终端 universe 里的每一只 → 科普站的标的页（不是搜索页）', () => {
+test('终端 universe 里的每一只 → 科普站都有对应的去处（不是搜索页）', () => {
   const t = AG.targetFor('sh600519', '贵州茅台');
   assert.ok(t, '应当有链接');
   assert.equal(t.kind, 'asset');
@@ -123,6 +125,38 @@ test('终端 universe 里的每一只 → 科普站的标的页（不是搜索�
       return !r || r.kind === 'search';
     });
     assert.equal(missing.length, 0, '这些标的没有专属页面：' + missing.map((x) => x.symbol).join(' '));
+  }
+});
+
+test('标的页只给科普站真的有数据卡的那几只（不给半空页 = 假入口）', () => {
+  const A = ctx.AcademyAssets;
+  assert.ok(A && Array.isArray(A.symbols) && A.symbols.length, '资产页清单没加载进来');
+  // 清单里的每一只，都该拿到标的页
+  for (const sym of A.symbols) {
+    const t = AG.targetFor(sym, '某名字');
+    assert.ok(t, sym + ' 应当有链接');
+    // 有精确/概念映射的优先给映射页，其余才是标的页——两种都算数，
+    // 但不能是搜索页
+    assert.notEqual(t.kind, 'search', sym + ' 退回了搜索页');
+  }
+  // 不在清单里的，绝不能给标的页
+  const uni = [...(ctx.TENCENT_UNIVERSE || []), ...(ctx.EM_UNIVERSE || [])];
+  const fake = uni.filter((x) => !A.symbols.includes(x.symbol));
+  const wrong = fake.filter((x) => {
+    const t = AG.targetFor(x.symbol, x.label);
+    return t && t.kind === 'asset';
+  });
+  assert.equal(wrong.length, 0,
+    '这些标的科普站没有数据卡，却给了标的页：' + wrong.map((x) => x.symbol + ' ' + x.label).join(' '));
+});
+
+test('外汇那几只给「外汇」概念页，不给没有数据的标的页', () => {
+  for (const sym of ['EM:119.EURUSD', 'EM:119.GBPUSD', 'EM:119.USDJPY', 'EM:133.USDCNH']) {
+    const t = AG.targetFor(sym, '某个货币对');
+    assert.ok(t, sym + ' 应当有链接');
+    assert.equal(t.kind, 'concept', sym + ' 应当走概念页');
+    assert.equal(t.href, AG.BASE + '#/term/fx');
+    assert.ok(t.label.includes('外汇'), sym + ' 的文案没写清是哪个概念：' + t.label);
   }
 });
 

@@ -203,7 +203,7 @@ jobs:
           # 采集成功却从不提交（上线数据全靠手动推的那一次），CI 侧更新会被静默丢掉
           # polymarket-history.json 是概率走势的数据源，polymarket-i18n.json 是翻译缓存
           # （没有缓存就是每轮重复请求翻译接口），两者缺一则对应功能退化
-          git add data/events/global-events.json data/events/polymarket.json data/events/polymarket-history.json data/events/polymarket-i18n.json data/actors data/academy-terms.json
+          git add data/events/global-events.json data/events/polymarket.json data/events/polymarket-history.json data/events/polymarket-i18n.json data/actors data/academy-terms.json js/data/academy-assets.js
           if git diff --cached --quiet; then
             echo "no changes"
           else

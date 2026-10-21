@@ -2169,15 +2169,12 @@
     }).join('');
   }
 
-  /* ==================== 全球指数 ticker（日/德/英/法/韩/印） ==================== */
-  const GLOBAL_IDX = [
-    { secid: '100.N225', flag: 'jp', name: '日经225' },
-    { secid: '100.GDAXI', flag: 'de', name: '德国DAX' },
-    { secid: '100.FTSE', flag: 'gb', name: '英国富时100' },
-    { secid: '100.FCHI', flag: 'fr', name: '法国CAC40' },
-    { secid: '100.KS11', flag: 'kr', name: '韩国KOSPI' },
-    { secid: '100.SENSEX', flag: 'in', name: '印度SENSEX' },
-  ];
+  /* ==================== 全球指数 ticker（日/德/英/法/韩/印） ====================
+     清单在 js/data/universe.js 里（GLOBAL_INDEX）——那边是跨站共享的标的清单，
+     科普站要靠它判断「终端能不能链到本站的哪一页」，所以不放本地。 */
+  const GLOBAL_IDX = (window.GLOBAL_INDEX || []).map((x) => ({
+    symbol: x.symbol, secid: x.secid, flag: x.flag, name: x.name,
+  }));
   async function loadGlobe() {
     const qs = await window.EastmoneySource.getQuotes(GLOBAL_IDX.map(x => x.secid));
     if (qs.length) {
