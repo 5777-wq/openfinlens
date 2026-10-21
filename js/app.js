@@ -4183,15 +4183,7 @@
     el.swDegraded.classList.toggle('on', !!s.showDegraded);
     el.swDegraded.setAttribute('aria-checked', String(!!s.showDegraded));
     // 科普入口（白话金融）：设置里可关——关掉后浮层、顶栏链接、详情页链接一起消失
-    const acad = s.academy !== false;
-    if (el.swAcademy) {
-      el.swAcademy.classList.toggle('on', acad);
-      el.swAcademy.setAttribute('aria-checked', String(acad));
-    }
-    if (el.academyLink) el.academyLink.hidden = !acad;
-    document.body.dataset.academy = acad ? 'on' : 'off';
-    if (window.GlossTip) window.GlossTip.apply(acad);
-    if (el.detailGloss) el.detailGloss.hidden = !acad;
+    if (window.AcademyGate) window.AcademyGate.apply(s.academy !== false);
     applyTheme(s.theme);
     // 红涨绿跌切换会改 --up-rgb/--down-rgb，价格闪烁的颜色缓存要失效
     invalidateFlashColors();
@@ -5192,9 +5184,8 @@
     // 科普入口开关：浮层、顶栏链接、详情页链接一起开关
     if (el.swAcademy) {
       el.swAcademy.addEventListener('click', () => {
-        const cur = window.Store.settings.get().academy !== false;
-        window.Store.settings.set({ academy: !cur });
-        applySettings();
+        if (window.AcademyGate) window.AcademyGate.toggle();
+        else applySettings();
       });
     }
 

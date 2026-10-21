@@ -236,10 +236,14 @@ test('设置里有科普入口的开关，且默认开', () => {
 });
 
 test('关掉科普：浮层不弹、顶栏链接与详情页链接一起消失', () => {
+  // 行为单测在 gloss-gate.test.mjs（带 DOM 桩，真跑一遍）
+  const gate = readFileSync(path.join(ROOT, 'js/academy-gate.js'), 'utf8');
+  assert.ok(/academyLink/.test(gate), '总开关里没有顶栏链接');
+  assert.ok(/detailGloss/.test(gate), '总开关里没有详情页链接');
+  assert.ok(/GlossTip\.apply/.test(gate), '总开关没通知浮层');
   const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
-  assert.ok(app.includes('swAcademy'), 'app.js 没接这个开关');
-  assert.ok(/academyLink\.hidden = !acad/.test(app), '顶栏链接没跟着开关隐藏');
-  assert.ok(/detailGloss\.hidden = !acad/.test(app), '详情页链接没跟着开关隐藏');
+  assert.ok(/AcademyGate\.apply/.test(app), 'app.js 没走总开关');
+  assert.ok(/AcademyGate\.toggle/.test(app), 'app.js 的开关没走总开关');
   const tip = readFileSync(path.join(ROOT, 'js/gloss-tip.js'), 'utf8');
   assert.ok(/if \(!enabled\) return;/.test(tip), '浮层没检查开关');
   assert.ok(/academyOn\(\)/.test(tip), '浮层没读设置');

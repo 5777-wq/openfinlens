@@ -19,6 +19,7 @@
   /** 设置里可以关掉科普入口（默认开） */
   function academyOn() {
     try {
+      if (window.AcademyGate) return window.AcademyGate.isOn();
       const s = window.Store && window.Store.settings ? window.Store.settings.get() : null;
       return s ? s.academy !== false : true;
     } catch (e) { return true; }
