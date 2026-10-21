@@ -154,6 +154,23 @@ const Explain = (() => {
     DOGE: '狗狗币：模因（Meme）文化代币，无上限增发，情绪驱动为主。',
   };
 
+  // 概念词的一句话（不是标的，是"这个东西是怎么运作的"）
+  // 终端里凡是这类概念都用 data-gloss="<id>" 标出来，悬停时给这句 + 科普站的完整解释
+  const CONCEPT_NOTES = {
+    momentum: '动量选股：按过去一段时间的涨幅给股票排名，挑涨得最好的那批买——买的是已经涨过的股票。',
+    'low-vol': '低波选股：挑价格波动最小的股票，目标是更平稳，而不是涨得更快。',
+    'factor-etf': '因子 ETF：按写死的规则选股、不靠基金经理拍脑袋的被动 ETF；规则本身就是一种观点。',
+    'pe-ratio': '市盈率：股价 ÷ 每股盈利。利润是分母，明年利润腰斩，PE 就翻倍。',
+    'turnover-rate': '换手率：一天成交的股数占流通股本的比例，衡量的是活跃度，不是涨跌。',
+    'dividend-yield': '股息率：一年分红 ÷ 股价。高股息率有时只是因为股价跌了。',
+    'industry-chain': '产业链：把一个行业按上下游拆开看，同一个热点的钱会在链条上换个位置流。',
+    rsi: 'RSI：0–100 的相对强弱指标。「70 超买、30 超卖」只是常用读法，不是规律。',
+    macd: 'MACD：快慢两条均线之差再平滑，用来看趋势差距在变大还是变小。',
+    'moving-average': '均线：最近 N 天收盘价的平均，是过去的平均，不是对未来的承诺。',
+    'yield-curve': '收益率曲线：不同期限的国债收益率连成一条线，看出市场对未来利率的预期。',
+    inversion: '收益率倒挂：短端收益率反而高过长端——市场在给"经济要出事"定价。',
+  };
+
   // symbol → { text, kind }
   function of(target) {
     if (!target) return null;
@@ -168,7 +185,7 @@ const Explain = (() => {
     return null;
   }
 
-  return { of, NOTES, MARKET_FALLBACK, CRYPTO_NOTES };
+  return { of, NOTES, MARKET_FALLBACK, CRYPTO_NOTES, CONCEPT_NOTES };
 })();
 
 window.Explain = Explain;

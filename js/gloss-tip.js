@@ -10,8 +10,8 @@
 (function () {
   'use strict';
 
-  const SELECTOR = '[data-symbol],[data-mv],[data-etfsym],[data-fundsym],[data-gidx]';
-  const ATTRS = ['data-symbol', 'data-mv', 'data-etfsym', 'data-fundsym', 'data-gidx'];
+  const SELECTOR = '[data-symbol],[data-mv],[data-etfsym],[data-fundsym],[data-gidx],[data-gloss]';
+  const ATTRS = ['data-symbol', 'data-mv', 'data-etfsym', 'data-fundsym', 'data-gidx', 'data-gloss'];
   const HIDE_DELAY = 240;
 
   let tip = null, hideTimer = null, current = null;
@@ -72,13 +72,28 @@
     let symbol = host.getAttribute(name) || '';
     // 全球指数卡片存的是 secid（100.N225），行情层的 symbol 是 'EM:100.N225'
     if (name === 'data-gidx') symbol = 'EM:' + symbol;
-    return { host, name, symbol };
+    return { host, name, symbol, isConcept: name === 'data-gloss' };
+  }
+
+  /** 概念标记（data-gloss）：解释来自 explain.js 的 CONCEPT_NOTES，链接直接进科普站术语页 */
+  function resolveConcept(id) {
+    const notes = window.Explain && window.Explain.CONCEPT_NOTES;
+    const text = notes && notes[id];
+    if (!text) return null;
+    const base = window.AcademyGloss ? window.AcademyGloss.BASE : '';
+    if (!base) return null;
+    return {
+      text,
+      href: base + '#/term/' + encodeURIComponent(id) + '?from=lens',
+      label: '在白话金融里看完整解释 ↗',
+    };
   }
 
   /** 解析出「一句话解释 + 去科普站的入口」 */
   function resolve(el) {
     const hit = pick(el);
     if (!hit || !hit.symbol) return null;
+    if (hit.isConcept) return resolveConcept(hit.symbol);
 
     const domName = hit.host.getAttribute('data-etfname')
       || hit.host.getAttribute('data-fundname') || '';
@@ -98,7 +113,11 @@
       : null;
     if (!target) return null;
 
-    return { text: ex.text, href: target.href, label: target.label };
+    // 带上来源与这只标的：科普站那边能给出"去看历史数据"和"回到 OpenFinLens"
+    const sep = target.href.indexOf('?') >= 0 ? '&' : '?';
+    const href = target.href + sep + 'from=lens&sym=' + encodeURIComponent(hit.symbol);
+
+    return { text: ex.text, href, label: target.label };
   }
 
   function show(el, x, y) {
@@ -154,6 +173,17 @@
     window.addEventListener('scroll', hide, true);
     window.addEventListener('blur', hide);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+    // 键盘：Tab 到带 data-gloss 的元素上也要给解释（只标了 data-gloss 的概念才提示）
+    document.addEventListener('focusin', (e) => {
+      const host = e.target && e.target.closest ? e.target.closest('[data-gloss]') : null;
+      if (!host) return;
+      const r = host.getBoundingClientRect();
+      if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+      current = host;
+      show(host, r.left + 10, r.bottom + 8);
+    });
+    document.addEventListener('focusout', () => { if (current) scheduleHide(); });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

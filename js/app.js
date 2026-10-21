@@ -100,6 +100,7 @@
     fundHolds: null, fundHoldsAt: 0, fundHoldsVia: null, fundHoldsCachedAt: 0, fundDir: 'add',
     // 美股 因子 ETF 持仓（Invesco 采集静态 JSON，日更）：etfSub = spmo | splv | both
     etf: null, etfAt: 0, etfVia: null, etfCachedAt: 0, etfSub: 'spmo',
+    pendingEtfScroll: false,      // 深链 #etf= 进来：数据到位后滚到因子 ETF 持仓块
     chartEventsOn: true,       // 详情页 K 线事件标记开关
     // Movers 三榜的行载荷（data-symbol → 全市场行）：行不在 universe 轮询全集里，
     // 点击进详情需要 secid/market 映射，渲染时顺手登记
@@ -124,7 +125,7 @@
     'moodSub', 'moodScore', 'moodBand', 'moodFill', 'breadthGrid', 'distWrap', 'distSub', 'moodSpark', 'heroStrip', 'moodCrypto', 'moodUS',
     'searchInput', 'searchResults', 'settingsBtn', 'settingsModal', 'settingsClose',
     'segUpdown', 'segRefresh', 'segTheme', 'swDegraded', 'sourceStatus', 'updatedLine', 'tabCfg',
-    'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats',
+    'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats', 'detailGloss',
     'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle', 'intradaySeg',
     'maMenu', 'maLinesBox', 'maPaneBox', 'maAdd',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
@@ -1763,7 +1764,9 @@
         <span class="ts-note">指标间互相矛盾是常态——它们量的是不同维度</span>
       </div>`;
 
-    const cards = an.signals.map(s => `<div class="tech-card">
+    // 技术面指标卡：挂上科普站的术语标记，悬停就能问「这是啥」
+    const TECH_GLOSS = { '均线': 'moving-average', 'MACD': 'macd', 'RSI': 'rsi' };
+    const cards = an.signals.map(s => `<div class="tech-card"${TECH_GLOSS[s.tag] ? ` data-gloss="${TECH_GLOSS[s.tag]}" tabindex="0"` : ''}>
         <div class="tc-head"><span class="tc-tag">${escapeHTML(s.tag)}</span><span class="tc-bias ${s.bias === 'up' ? 'up' : s.bias === 'down' ? 'down' : ''}">${s.bias === 'up' ? '偏多读法' : s.bias === 'down' ? '偏空读法' : '中性事实'}</span></div>
         <p class="tc-text">${escapeHTML(s.text)}</p>
       </div>`).join('');
@@ -1807,6 +1810,20 @@
     el.detailCode.textContent = target.code || '';
     el.detailPrice.textContent = '--';
     el.detailChg.textContent = '--';
+    // 详情页顶栏：给一个去科普站看解释的入口（每个标的都有）
+    if (el.detailGloss) {
+      const gt = window.AcademyGloss
+        ? window.AcademyGloss.targetFor(target.symbol, target.name || '')
+        : null;
+      if (gt) {
+        el.detailGloss.href = gt.href + '?from=lens&sym=' + encodeURIComponent(target.symbol);
+        el.detailGloss.textContent = gt.kind === 'search' ? '在白话金融里查 ↗' : '在白话金融里看解释 ↗';
+        el.detailGloss.title = '去「白话金融 OpenFin Academy」把这个词讲清楚';
+        el.detailGloss.hidden = false;
+      } else {
+        el.detailGloss.hidden = true;
+      }
+    }
     el.detailStats.innerHTML = '';
     document.title = (target.name || target.code || '详情') + ' · OpenFinLens';
     updateStar();
@@ -2892,6 +2909,14 @@
     }
     if (el.etfVia) el.etfVia.textContent = (state.etfVia === 'cache' ? '缓存 · ' + fmtTime(state.etfCachedAt) + ' · ' : '') + via + ' · 点击行进 K 线';
     el.etfBox.innerHTML = head + rowsHtml;
+    // 深链 #etf=spmo 进来的：滚到这一块（数据到位后才滚，否则滚了个空位置）
+    if (state.pendingEtfScroll) {
+      state.pendingEtfScroll = false;
+      requestAnimationFrame(() => {
+        const box = document.getElementById('etfBox');
+        if (box && box.scrollIntoView) box.scrollIntoView({ block: 'center' });
+      });
+    }
   }
 
   /* 披露面板的子页切换：按钮 data-fundssub="<key>" ↔ 内容 data-fundspane="<key>"。
@@ -3822,6 +3847,16 @@
       // 只有真在详情视图里且同一标的才跳过（避免"切走后后退死点"）
       if (state.view === 'detail' && state.detail && state.detail.symbol === t.symbol) return;
       openDetail(t, { push: false });
+      return;
+    }
+    const mEtf = h.match(/#etf=(spmo|splv|both)/);
+    if (mEtf) {
+      // 科普站那边「动量选股 / 低波选股 / 因子 ETF」的词条直接落到这块持仓
+      state.etfSub = mEtf[1];
+      state.pendingEtfScroll = true;
+      setTab('us');
+      const bar = document.getElementById('usFundsBar');
+      if (bar) switchFundsSub(bar, 'etf');
       return;
     }
     const mTab = h.match(/#tab=([a-z]+)/);

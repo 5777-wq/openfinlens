@@ -283,14 +283,14 @@
       <div data-fundspane="etf" hidden>
         <div class="section" data-fold>
           <div class="section-head">
-            <h2 class="section-title">因子 ETF 持仓</h2>
+            <h2 class="section-title" data-gloss="factor-etf" tabindex="0">因子 ETF 持仓</h2>
             <span class="sec-line"></span>
             <span class="section-sub" id="etfVia">—</span>
           </div>
           <div class="heat-toolbar" role="tablist" aria-label="因子 ETF 切换">
-            <button class="pill active" data-etfsub="spmo" role="tab" aria-selected="true">动量 SPMO</button>
-            <button class="pill" data-etfsub="splv" role="tab" aria-selected="false">低波 SPLV</button>
-            <button class="pill" data-etfsub="both" role="tab" aria-selected="false">双因子交集</button>
+            <button class="pill active" data-etfsub="spmo" data-gloss="momentum" role="tab" aria-selected="true">动量 SPMO</button>
+            <button class="pill" data-etfsub="splv" data-gloss="low-vol" role="tab" aria-selected="false">低波 SPLV</button>
+            <button class="pill" data-etfsub="both" data-gloss="factor-etf" role="tab" aria-selected="false">双因子交集</button>
           </div>
           <div id="etfBox"><div class="sk sk-row"></div></div>
           <p class="insight-disclaimer">规则化因子 ETF 的<strong>每日全量持仓</strong>（Invesco 官方发布）：动量 ETF 的持仓回答"趋势资金集中在哪"，低波 ETF 回答"防御资金在哪"，交集是<strong>同时被两类因子选中</strong>的股票。这是编制规则定期调仓（半年/季度）后的<strong>被动持仓</strong>，不是某位基金经理的主观判断。已剔除官方 feed 里的现金 / 货币基金 / 指数期货等非股票行；「占净值」合计不足 100% 是因为只列 Top 40（低波近乎等权，Top 40 只占约一半净值，这不是缺数据）。点击行进 K 线详情。历史事实陈述，不构成任何建议。</p>
@@ -322,6 +322,7 @@
       <span class="detail-code num" id="detailCode"></span>
       <span class="detail-price num" id="detailPrice">--</span>
       <span class="detail-chg num" id="detailChg">--</span>
+      <a class="detail-gloss" id="detailGloss" href="#" target="_blank" rel="noopener" hidden>在白话金融里看解释 ↗</a>
       <button class="star" id="detailStar" title="收藏" aria-label="收藏" aria-pressed="false">☆</button>
     </div>
     <div class="detail-stats num" id="detailStats"></div>
@@ -458,7 +459,7 @@
 
   <!-- ========== 产业链 ========== -->
   <section class="view tab-panel" id="view-chain" role="tabpanel" tabindex="-1" aria-label="chain">
-    <h1 class="page-title">产业链追踪</h1>
+    <h1 class="page-title" data-gloss="industry-chain" tabindex="0">产业链追踪</h1>
     <p class="page-sub" id="chainSub">环节强度 = 环节内成分股涨跌幅简单平均，点击环节展开成分股</p>
     <div class="board-wrap">
       <div class="board-head"><span class="board-title">今日热门概念</span><span class="board-via num" id="boardVia"></span></div>

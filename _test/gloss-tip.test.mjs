@@ -170,5 +170,54 @@ test('index.html 必须同时挂上科普站入口与浮层脚本', () => {
   assert.ok(!/姊妹站/.test(html), '顶栏不该再出现「姊妹站」这类关系称呼');
 });
 
+/* ---------------- 概念标记（data-gloss） ---------------- */
+
+test('概念词必须有一句话解释（没有解释就不该标成概念）', () => {
+  const notes = EX.CONCEPT_NOTES || {};
+  for (const id of ['momentum', 'low-vol', 'factor-etf', 'pe-ratio', 'turnover-rate',
+    'dividend-yield', 'industry-chain', 'rsi', 'macd', 'moving-average']) {
+    assert.ok(notes[id], '概念词缺解释：' + id);
+    assert.ok(String(notes[id]).length > 10, id + ' 的解释太短');
+  }
+});
+
+test('index.html 里的概念标记都必须能在 explain.js 找到解释', () => {
+  const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const marks = [...html.matchAll(/data-gloss="([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(marks.length >= 5, '概念标记太少：' + marks.length);
+  const notes = EX.CONCEPT_NOTES || {};
+  for (const id of marks) {
+    assert.ok(notes[id], '标记了却没解释：' + id);
+  }
+});
+
+test('因子 ETF 那一排必须标出动量与低波（用户问的就是"动量选股怎么选"）', () => {
+  const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  assert.ok(/data-etfsub="spmo"[^>]*data-gloss="momentum"/.test(html), 'SPMO 没标动量');
+  assert.ok(/data-etfsub="splv"[^>]*data-gloss="low-vol"/.test(html), 'SPLV 没标低波');
+});
+
+test('详情页必须给每个标的一个去科普站的入口', () => {
+  const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  assert.ok(html.includes('id="detailGloss"'), '详情页缺少科普站入口');
+  const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
+  assert.ok(app.includes('detailGloss'), 'app.js 没接详情页入口');
+  assert.ok(/OpenFinMeta[\s\S]{0,400}of\(symbol\)/.test(app), 'app.js 没暴露 OpenFinMeta.of');
+});
+
+/* ---------------- 双向跳转与回原位置 ---------------- */
+
+test('浮层链接必须带来源与标的（科普站那边要据此给"回原位置"的出口）', () => {
+  const src = readFileSync(path.join(ROOT, 'js/gloss-tip.js'), 'utf8');
+  assert.ok(src.includes('from=lens'), '链接没带来源标记');
+  assert.ok(src.includes('sym='), '链接没带标的');
+});
+
+test('终端必须支持 #etf= 深链（科普站的动量/低波词条要落到那一块）', () => {
+  const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
+  assert.ok(app.includes('#etf='), 'app.js 没处理 #etf= 深链');
+  assert.ok(app.includes('pendingEtfScroll'), 'app.js 没处理滚到因子 ETF 区块');
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

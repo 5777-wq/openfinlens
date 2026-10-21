@@ -2331,3 +2331,16 @@ html[data-theme] .seg-lg button.active {
 }
 .topbar-link:hover { color: var(--text); border-color: var(--border-hover); }
 @media (max-width: 860px) { .topbar-link { display: none; } }
+
+/* 详情页顶栏：去科普站看解释的入口（每个标的都有） */
+.detail-gloss {
+  font-size: 12px; color: var(--accent-signature); text-decoration: none;
+  border-bottom: 1px solid transparent; white-space: nowrap;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.detail-gloss:hover { border-bottom-color: currentColor; }
+.detail-gloss[hidden] { display: none; }
+
+/* 概念标记（data-gloss）：可聚焦，键盘用户也能拿到解释 */
+[data-gloss] { cursor: help; }
+[data-gloss]:focus-visible { outline: 2px solid var(--accent-signature); outline-offset: 2px; }
