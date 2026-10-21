@@ -5370,6 +5370,11 @@
       if (q) {
         return { symbol, market: q.market || q.group || '', name: q.name || '', code: q.code || symbol };
       }
+      // 全球指数卡片（日经/DAX/富时…）：存的是 'EM:100.N225' 形态，行情在 globeQuotes
+      if (symbol.indexOf('EM:') === 0) {
+        const g = state.globeQuotes && state.globeQuotes.get(symbol.slice(3));
+        if (g) return { symbol, market: 'index', name: g.name || '', code: g.code || '' };
+      }
       const mv = state.moversRows && state.moversRows.get(symbol);
       if (mv) {
         return { symbol, market: marketOfSecid(mv.secid), name: mv.name || '', code: mv.code || '' };

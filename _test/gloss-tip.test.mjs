@@ -36,7 +36,16 @@ const ACADEMY_TERM_IDS = [
   'risk-free-rate', 'discount-rate', 'yield-curve', 'inversion', 'inflation',
   'real-rate', 'liquidity', 'ltcm', 'leverage', 'dotcom-bubble', 'gold',
   'crude-oil', 'nasdaq', 'a-share', 'etf', 'dividend', 'risk-free',
+  'sse-index', 'szse-component', 'chinext', 'kechuang-50', 'sp500',
+  'dow-jones', 'hsi', 'nikkei', 'vix', 'silver', 'dollar-index',
 ];
+
+/* 概念页里用到的概念名（科普站那边的中文名）——改名了这里要跟着改 */
+const ACADEMY_TERM_NAMES = {
+  'risk-free-rate': '无风险利率',
+  'yield-curve': '收益率曲线',
+  'dividend': '股息 / 分红',
+};
 
 /* ---------------- 链接目标 ---------------- */
 
@@ -49,25 +58,57 @@ test('有对应术语的标的 → 精确的术语页', () => {
     ['EM:101.GC00Y', 'gold'],
     ['EM:102.CL00Y', 'crude-oil'],
     ['usIXIC', 'nasdaq'],
-    ['sh000001', 'a-share'],
-    ['sz399001', 'a-share'],
+    ['usINX', 'sp500'],
+    ['usDJI', 'dow-jones'],
+    ['hkHSI', 'hsi'],
+    ['EM:100.N225', 'nikkei'],
+    ['EM:100.UDI', 'dollar-index'],
+    ['EM:101.SI00Y', 'silver'],
     ['EM:171.US10Y', 'risk-free-rate'],
-    ['EM:171.CN10Y', 'risk-free-rate'],
-    ['EM:171.US2Y', 'yield-curve'],
-    ['sh601398', 'dividend'],
-    ['hk00941', 'dividend'],
   ];
   for (const [sym, id] of cases) {
     const t = AG.targetFor(sym, '某名字');
     assert.ok(t, sym + ' 应当有链接');
     assert.equal(t.href, AG.BASE + '#/term/' + id, sym + ' 链接不对');
+    assert.equal(t.kind, 'exact', sym + ' 不该是概念页');
     assert.ok(t.label.includes('看完整解释'), sym + ' 文案不对：' + t.label);
+  }
+});
+
+/* 这一条是回归钉子：科创50 点进去必须是科创50 自己的解释，
+   不能因为"都属于 A 股"就一律指到「A股」那个词。 */
+test('四个 A 股指数各有各的词，不许一律指到「A股」', () => {
+  const cases = [
+    ['sh000001', 'sse-index'],
+    ['sz399001', 'szse-component'],
+    ['sz399006', 'chinext'],
+    ['sh000688', 'kechuang-50'],
+  ];
+  for (const [sym, id] of cases) {
+    const t = AG.targetFor(sym, '某名字');
+    assert.equal(t.href, AG.BASE + '#/term/' + id, sym + ' 链接不对');
+    assert.ok(id !== 'a-share', sym + ' 不该指到 a-share');
+  }
+});
+
+test('概念页：链接文案必须写明点进去会看到哪个概念', () => {
+  const t = AG.targetFor('sh601398', '工商银行');
+  assert.equal(t.kind, 'concept');
+  assert.equal(t.href, AG.BASE + '#/term/dividend');
+  assert.ok(t.label.includes('股息 / 分红'), '文案没写清是哪个概念：' + t.label);
+});
+
+test('概念页用的概念名必须与科普站一致', () => {
+  for (const [sym, c] of Object.entries(AG.CONCEPT_BY_SYMBOL)) {
+    assert.ok(ACADEMY_TERM_IDS.includes(c.id), sym + ' 指向了不存在的术语：' + c.id);
+    assert.equal(ACADEMY_TERM_NAMES[c.id], c.name, sym + ' 的概念名对不上');
   }
 });
 
 test('没有对应术语的标的 → 只能给搜索页，不给假入口', () => {
   const t = AG.targetFor('sh600519', '贵州茅台');
   assert.ok(t);
+  assert.equal(t.kind, 'search');
   assert.equal(t.href, AG.BASE + '#/search?q=' + encodeURIComponent('贵州茅台'));
   assert.ok(t.label.includes('贵州茅台'), '链接文案要带上标的名：' + t.label);
 });
@@ -90,7 +131,7 @@ test('映射用到的术语 id 必须都在科普站术语库里', () => {
   }
 });
 
-test('每个映射的标的，本站 explain.js 也必须有一句话（否则链接比解释更具体 = 假入口）', () => {
+test('每个精确映射的标的，本站 explain.js 也必须有一句话（否则链接比解释更具体 = 假入口）', () => {
   for (const sym of Object.keys(AG.TERM_BY_SYMBOL)) {
     const ex = EX.of({ symbol: sym, market: '', name: '' });
     assert.ok(ex && ex.kind === 'specific',
@@ -98,8 +139,8 @@ test('每个映射的标的，本站 explain.js 也必须有一句话（否则�
   }
 });
 
-test('映射的标的不得重复指向同一个错误（表本身非空且格式合法）', () => {
-  const keys = Object.keys(AG.TERM_BY_SYMBOL);
+test('映射的标的形态必须合法（防止拼错 symbol 静默失效）', () => {
+  const keys = Object.keys(AG.TERM_BY_SYMBOL).concat(Object.keys(AG.CONCEPT_BY_SYMBOL));
   assert.ok(keys.length >= 20, '映射表太小：' + keys.length);
   for (const k of keys) {
     assert.match(k, /^(sh|sz|bj|hk|us|EM:)/, 'symbol 形态异常：' + k);

@@ -10,7 +10,8 @@
 (function () {
   'use strict';
 
-  const SELECTOR = '[data-symbol],[data-mv],[data-etfsym],[data-fundsym]';
+  const SELECTOR = '[data-symbol],[data-mv],[data-etfsym],[data-fundsym],[data-gidx]';
+  const ATTRS = ['data-symbol', 'data-mv', 'data-etfsym', 'data-fundsym', 'data-gidx'];
   const HIDE_DELAY = 240;
 
   let tip = null, hideTimer = null, current = null;
@@ -66,10 +67,12 @@
     if (!host) return null;
     // 行内的按钮（自选星标等）不触发，免得盖住它自己的提示
     if (el.closest('button[data-star]')) return null;
-    const name = ['data-symbol', 'data-mv', 'data-etfsym', 'data-fundsym']
-      .find((a) => host.hasAttribute(a));
+    const name = ATTRS.find((a) => host.hasAttribute(a));
     if (!name) return null;
-    return { host, name, symbol: host.getAttribute(name) || '' };
+    let symbol = host.getAttribute(name) || '';
+    // 全球指数卡片存的是 secid（100.N225），行情层的 symbol 是 'EM:100.N225'
+    if (name === 'data-gidx') symbol = 'EM:' + symbol;
+    return { host, name, symbol };
   }
 
   /** 解析出「一句话解释 + 去科普站的入口」 */
