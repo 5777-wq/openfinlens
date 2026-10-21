@@ -28,9 +28,16 @@
     : String(s == null ? '' : s).replace(/[&<>"']/g, (c) => (
       { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])));
 
+  /** 能不能出这个浮层：
+      鼠标设备（hover:hover）——悬停「?」即出；
+      触屏设备（pointer:coarse）——点「?」即出（tap 会带一次 mouseover）；
+      两样都没有（比如纯键盘）——不启用。 */
   function canHover() {
-    try { return !window.matchMedia || window.matchMedia('(hover: hover)').matches; }
-    catch (e) { return true; }
+    try {
+      if (!window.matchMedia) return true;
+      return window.matchMedia('(hover: hover)').matches
+        || window.matchMedia('(pointer: coarse)').matches;
+    } catch (e) { return true; }
   }
 
   function ensureTip() {

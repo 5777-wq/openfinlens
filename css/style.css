@@ -2376,3 +2376,40 @@ body[data-academy="off"] [data-gloss] { cursor: default; }
 .mv-nm-row .mv-nm { min-width: 0; }
 .hero-label .hl-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .hero-label .hl-nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ============================================================
+   手机上的「?」与解释浮层
+   ------------------------------------------------------------
+   1) 15px 的问号手指头点不准 —— 窄屏放大到 28px（≈ 手指可点）
+   2) 手机没有 hover —— 点「?」触发（tap 会带一次 mouseover）
+   3) 窄屏浮层不再跟着鼠标飘：改成从底部弹出的半屏卡片，
+      免得盖住下面几行行情，也好按里面的链接
+   ============================================================ */
+@media (max-width: 640px) {
+  /* 视觉还是一个小圆圈，但可点区域放大到 26px（手指头够得着） */
+  .ask {
+    position: relative; width: 26px; height: 26px;
+    font-size: 0; line-height: 0; border: 0; background: none; padding: 0;
+  }
+  .ask::before {
+    content: '?'; position: absolute; left: 5px; top: 5px;
+    width: 16px; height: 16px; border: 1px solid var(--border-hover);
+    border-radius: 50%; color: var(--text-tertiary);
+    font: 10px/15px var(--font-mono); text-align: center;
+  }
+  .ask:hover::before, .ask:focus-visible::before {
+    color: var(--accent-signature); border-color: var(--accent-signature);
+  }
+}
+
+@media (max-width: 640px) {
+  .gloss-tip {
+    left: 0 !important; right: 0; top: auto !important; bottom: 0 !important;
+    max-width: none; width: auto;
+    border-left: 0; border-right: 0; border-bottom: 0;
+    padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+    font-size: 13px;
+  }
+  .gloss-tip .gt-kind { margin-bottom: 6px; }
+  .gloss-tip .gt-link { margin-top: 12px; padding: 10px 14px; border: 1px solid var(--border-hover); }
+}
