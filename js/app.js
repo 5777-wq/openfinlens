@@ -3855,8 +3855,17 @@
       state.etfSub = mEtf[1];
       state.pendingEtfScroll = true;
       setTab('us');
+      applyZone('disclosure', false);            // 「披露」分区：13F / 因子 ETF 都在这儿
       const bar = document.getElementById('usFundsBar');
       if (bar) switchFundsSub(bar, 'etf');
+      // 滚到因子 ETF 持仓块：数据已到就立刻滚，晚到则由 renderEtf 接手
+      const scrollEtf = () => {
+        state.pendingEtfScroll = false;
+        const box = document.getElementById('etfBox');
+        if (box && box.scrollIntoView) box.scrollIntoView({ block: 'center' });
+      };
+      requestAnimationFrame(scrollEtf);
+      setTimeout(scrollEtf, 900);
       return;
     }
     const mTab = h.match(/#tab=([a-z]+)/);
