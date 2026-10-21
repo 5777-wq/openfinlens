@@ -4,7 +4,7 @@
    科普站只给采到了月线序列的标的做了数据卡，其余点过去是半空页，
    那种链接是假入口，不该给。 */
 window.AcademyAssets = {
- "generatedAt": "2026-10-21T13:48:00.599Z",
+ "generatedAt": "2026-10-21T21:16:49.778Z",
  "source": "https://5777-wq.github.io/openfin-academy/data/content/asset-ids.json",
  "count": 94,
  "symbols": [
