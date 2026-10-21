@@ -269,6 +269,22 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 /* ============================================================ 热力图 */
 .heat-toolbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
 
+/* ETF 面板里那条「看不懂这些基金」：一行安静的科普入口
+   —— 跟顶栏的「白话金融 ↗」同源，但贴着用户真正困惑的那块内容放。
+   样式刻意压低：它不是按钮，是一条说明 + 几个去处。 */
+.etf-gloss {
+  display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  margin-bottom: 12px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle, var(--border));
+  font-size: 12px;
+}
+.etf-gloss .eg-label { color: var(--text-tertiary); }
+.etf-gloss a { color: var(--text-secondary); text-decoration: none; white-space: nowrap; }
+.etf-gloss a:hover { color: var(--accent-signature); }
+@media (max-width: 640px) {
+  .etf-gloss { gap: 10px 12px; }
+}
+
 /* .pill —— 「文字型」切换标签（视图切换、周期切换、板块切换）
    为什么是文字而不是方块：这一类控件在同一行里往往有 4~8 个，
    每个都画成带边框的块，视觉噪音远大于信息量（用户反馈"太逼仄"）。
@@ -1191,6 +1207,9 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .sr-no { font-size: 10px; color: var(--text-faint); }
 .sr-name { font-size: 12.5px; font-weight: 500; min-width: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 席位行 / ETF 持仓行的名称格：名字整体可截断，问号留在截断线外面 */
+.srow .sr-name { display: flex; align-items: center; gap: 6px; }
+.srow .sr-nm-wrap { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sr-net, .sr-buy, .sr-sell { font-size: 12px; text-align: right;
   font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .sr-count { font-size: 10.5px; color: var(--text-tertiary); text-align: right;

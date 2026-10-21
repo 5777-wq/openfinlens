@@ -32,22 +32,24 @@ vm.runInContext(readFileSync(path.join(ROOT, 'js/data/academy-gloss.js'), 'utf8'
 const AG = ctx.AcademyGloss;
 const EX = ctx.Explain;
 
-/* 科普站（白话金融）术语库当前的 id 全集。
-   科普站增删术语时这里要同步——否则映射可能指向一个不存在的术语页。 */
-const ACADEMY_TERM_IDS = [
-  'risk-free-rate', 'discount-rate', 'yield-curve', 'inversion', 'inflation',
-  'real-rate', 'liquidity', 'ltcm', 'leverage', 'dotcom-bubble', 'gold',
-  'crude-oil', 'nasdaq', 'a-share', 'etf', 'dividend', 'risk-free',
-  'sse-index', 'szse-component', 'chinext', 'kechuang-50', 'sp500',
-  'dow-jones', 'hsi', 'nikkei', 'vix', 'silver', 'dollar-index',
-];
+/* 科普站（白话金融）术语库当前的 id 与中文名。
+   这份清单**不是手写的**——它由 _scripts/collect-academy-terms.mjs 从科普站同步过来
+   （data/academy-terms.json，采集流水线每天刷新）。以前这里是一份手抄的 39 条清单，
+   科普站术语一多就必然过期，测试直接红；更糟的是它一红，人就会去改测试而不是改映射。
+   现在：清单过期 = 映射真的指向了不存在的词条 = 确实该修。 */
+const MANIFEST = JSON.parse(readFileSync(path.join(ROOT, 'data/academy-terms.json'), 'utf8'));
+const ACADEMY_TERM_IDS = MANIFEST.ids;
+const ACADEMY_TERM_NAMES = MANIFEST.names;
 
-/* 概念页里用到的概念名（科普站那边的中文名）——改名了这里要跟着改 */
-const ACADEMY_TERM_NAMES = {
-  'risk-free-rate': '无风险利率',
-  'yield-curve': '收益率曲线',
-  'dividend': '股息 / 分红',
-};
+test('科普站术语清单是同步来的，不是手抄的（防止清单与科普站悄悄脱节）', () => {
+  assert.ok(MANIFEST.count >= 100, '术语清单只有 ' + MANIFEST.count + ' 条，科普站早不止这么多了');
+  assert.equal(MANIFEST.count, MANIFEST.ids.length, 'count 与 ids 长度对不上');
+  assert.ok(MANIFEST.source, '清单没记来源，出了事不知道该去哪对');
+  // 每个 id 都要有中文名——概念页的文案要拿它跟科普站对齐
+  for (const id of MANIFEST.ids) {
+    assert.ok(MANIFEST.names[id], id + ' 没有中文名');
+  }
+});
 
 /* ---------------- 链接目标 ---------------- */
 
@@ -208,6 +210,46 @@ test('index.html 里的概念标记都必须能在 explain.js 找到解释', () 
   for (const id of marks) {
     assert.ok(notes[id], '标记了却没解释：' + id);
   }
+});
+
+test('概念标记还必须是科普站真实存在的词（浮层里的链接不许扑空）', () => {
+  const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const marks = [...html.matchAll(/data-gloss="([^"]+)"/g)].map((m) => m[1]);
+  for (const id of new Set(marks)) {
+    assert.ok(ACADEMY_TERM_IDS.includes(id), '概念标记指向科普站没有的词：' + id);
+  }
+});
+
+test('ETF 面板的科普入口必须逐个指向真实存在的术语页（不许假链接）', () => {
+  const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const block = html.match(/<div class="etf-gloss" id="etfGloss">([\s\S]*?)<\/div>/);
+  assert.ok(block, 'ETF 面板里没有科普入口');
+  const hrefs = [...block[1].matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(hrefs.length >= 5, '科普入口太少了：' + hrefs.length);
+  for (const href of hrefs) {
+    assert.ok(href.startsWith(AG.BASE), '科普入口指到了别处：' + href);
+    const m = href.match(/#\/term\/([a-z0-9-]+)/);
+    if (m) {
+      assert.ok(ACADEMY_TERM_IDS.includes(m[1]), '科普入口指向不存在的术语：' + m[1]);
+    } else {
+      // 不是术语页，就得是速查表（带分类参数）
+      assert.ok(/#\/data\?cat=(data|fund|asset|macro|basic|micro|player|risk|tech)$/.test(href),
+        '科普入口指向了不认识的页面：' + href);
+    }
+  }
+});
+
+test('ETF 面板的科普入口必须跟着「科普链接」开关一起消失', () => {
+  const gate = readFileSync(path.join(ROOT, 'js/academy-gate.js'), 'utf8');
+  assert.ok(/etfGloss/.test(gate), '总开关没管 ETF 面板的科普入口');
+  const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  assert.ok(html.includes('id="etfGloss"'), 'ETF 面板的科普入口没有 id，没法关');
+});
+
+test('ETF 持仓行的成分股也要能问「这是什么」', () => {
+  const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
+  const row = app.match(/const rowHtml = \(x, i, cells, tag\)[\s\S]{0,300}?askBtn\(/);
+  assert.ok(row, 'ETF 持仓行没有「?」按钮');
 });
 
 test('因子 ETF 那一排必须标出动量与低波（用户问的就是"动量选股怎么选"）', () => {

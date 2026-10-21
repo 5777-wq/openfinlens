@@ -29,6 +29,10 @@
     const gl = document.getElementById('detailGloss');
     if (gl) gl.hidden = !v;
 
+    // ETF 面板里那条「看不懂这些基金」的科普入口，跟顶栏链接一起开关
+    const eg = document.getElementById('etfGloss');
+    if (eg) eg.hidden = !v;
+
     const sw = document.getElementById('swAcademy');
     if (sw) {
       sw.classList.toggle('on', v);

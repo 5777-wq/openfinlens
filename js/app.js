@@ -2880,10 +2880,12 @@
     // 交集视图三列都是百分比，单基金视图是 占净值% / 市值 / 股数，不能在行内按列号猜格式
     const rowHtml = (x, i, cells, tag) => {
       const nm = x.zh || x.ticker;
+      // 问号只挂在有 symbol 的行上（成分股），点它不触发行跳转
+      const ask = x.sym ? askBtn(x.sym, nm) : '';
       return `<div class="srow" ${x.sym ? `data-etfsym="${escapeHTML(x.sym)}"` : ''} data-etfname="${escapeHTML(nm)}"
           tabindex="0" role="button" aria-label="${escapeHTML(nm)} ${cells.join(' ')}">
         <span class="sr-no num">${String(i + 1).padStart(2, '0')}</span>
-        <span class="sr-name" title="${escapeHTML(x.zh || x.ticker)}">${escapeHTML(nm)}<span class="lr-code num">${escapeHTML(x.ticker || '')}</span></span>
+        <span class="sr-name" title="${escapeHTML(x.zh || x.ticker)}"><span class="sr-nm-wrap">${escapeHTML(nm)}<span class="lr-code num">${escapeHTML(x.ticker || '')}</span></span>${ask}</span>
         ${cells.map(c => `<span class="sr-net num">${c}</span>`).join('')}
         <span class="sr-count">${tag || ''}</span>
         <span class="sr-arrow">${x.sym ? '▸' : ''}</span>

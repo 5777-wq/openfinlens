@@ -180,6 +180,19 @@ jobs:
           bash "$RUNNER_TEMP/ofl-collect.sh" etf \
             data/actors/etf.json 1500 _scripts/collect-etf.mjs
 
+      - name: 同步科普站术语清单（6h 档）
+        # 终端把标的映射到科普站的术语页，映射里的 id 拼错或科普站删了词，
+        # 用户点进去只会看到「这个词还没有收录」——链接不会报错，只会静静扑空。
+        # 这里从**线上已部署**的科普站拉术语清单（部署完自动生效），落到
+        # data/academy-terms.json；终端的离线测试读它，映射指向不存在的词就会红。
+        # 拉不到就保留旧清单并退出 0（宁缺毋假，不因一次网络抖动覆盖成空）。
+        continue-on-error: true
+        env:
+          OFL_TIMEOUT: "120"
+        run: |
+          bash "$RUNNER_TEMP/ofl-collect.sh" academy-terms \
+            data/academy-terms.json 360 _scripts/collect-academy-terms.mjs
+
       - name: 提交已变化的数据（失败不牵连已成功的数据）
         # if: always()：哪怕某个采集步骤崩了，也要先把已经写盘的成功数据推上去
         if: always()
@@ -190,7 +203,7 @@ jobs:
           # 采集成功却从不提交（上线数据全靠手动推的那一次），CI 侧更新会被静默丢掉
           # polymarket-history.json 是概率走势的数据源，polymarket-i18n.json 是翻译缓存
           # （没有缓存就是每轮重复请求翻译接口），两者缺一则对应功能退化
-          git add data/events/global-events.json data/events/polymarket.json data/events/polymarket-history.json data/events/polymarket-i18n.json data/actors
+          git add data/events/global-events.json data/events/polymarket.json data/events/polymarket-history.json data/events/polymarket-i18n.json data/actors data/academy-terms.json
           if git diff --cached --quiet; then
             echo "no changes"
           else

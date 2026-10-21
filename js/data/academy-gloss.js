@@ -30,6 +30,10 @@ const AcademyGloss = (() => {
     'EM:100.UDI': 'dollar-index',      // 美元指数
     // ---- 利率 ----
     'EM:171.US10Y': 'risk-free-rate',  // 美债10年：无风险利率本人
+    // ---- 其余大宗商品：都是「大宗商品」这个词的代表 ----
+    'EM:101.HG00Y': 'commodity',        // COMEX铜
+    'EM:102.NG00Y': 'commodity',        // 天然气
+    'EM:103.ZC00Y': 'commodity',        // 玉米
   };
 
   // 概念页：symbol → { id, name }——这个符号只是这个概念的一个代表
@@ -43,6 +47,10 @@ const AcademyGloss = (() => {
     'EM:171.CN2Y': { id: 'yield-curve', name: '收益率曲线' },
     'EM:171.CN5Y': { id: 'yield-curve', name: '收益率曲线' },
     'EM:171.CN30Y': { id: 'yield-curve', name: '收益率曲线' },
+    'EM:171.DE10Y': { id: 'yield-curve', name: '收益率曲线' },
+    'EM:171.JP10Y': { id: 'yield-curve', name: '收益率曲线' },
+    // 美元兑港币：联系汇率这个制度最典型的一对
+    'EM:119.USDHKD': { id: 'fx-regime', name: '汇率制度' },
     // 高股息标的：它们是"股息/分红"这个概念的代表
     'sh601398': { id: 'dividend', name: '股息 / 分红' },   // 工商银行
     'sh601288': { id: 'dividend', name: '股息 / 分红' },   // 农业银行
