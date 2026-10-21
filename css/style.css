@@ -2294,3 +2294,40 @@ html[data-theme="memphis"] body::before {
 .seg-lg button.active,
 html[data-theme] .seg-lg button.active {
   background: rgba(var(--accent-rgb), 0.10); color: var(--accent-signature); }
+/* ============================================================
+   悬停「这是什么」浮层 + 科普站入口
+   ------------------------------------------------------------
+   终端是给"已经知道自己在看什么"的人用的；看不懂的那一层交回科普站。
+   浮层沿用站内既有 tooltip 的做法：直角边框、不投影到模糊、accent 色只用在标签上。
+   ============================================================ */
+.gloss-tip {
+  position: fixed; z-index: 320;
+  max-width: 330px; min-width: 190px;
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hover);
+  font-size: 12px; line-height: 1.7; color: var(--text-secondary);
+  box-shadow: 0 12px 32px -14px rgba(0, 0, 0, .6);
+}
+.gloss-tip .gt-kind {
+  display: block; margin-bottom: 5px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--accent-signature);
+}
+.gloss-tip .gt-text { display: block; color: var(--text-secondary); }
+.gloss-tip .gt-link {
+  display: inline-block; margin-top: 9px;
+  font-size: 11.5px; color: var(--accent-signature); text-decoration: none;
+  border-bottom: 1px solid transparent; transition: border-color var(--dur-fast);
+}
+.gloss-tip .gt-link:hover { border-bottom-color: currentColor; }
+
+/* 顶栏右侧：科普站入口（只给名字和链接） */
+.topbar-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border: 1px solid var(--border);
+  font-size: 12px; color: var(--text-secondary); text-decoration: none; white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.topbar-link:hover { color: var(--text); border-color: var(--border-hover); }
+@media (max-width: 860px) { .topbar-link { display: none; } }

@@ -33,7 +33,7 @@
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
 <!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
      对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
-<link rel="stylesheet" href="css/style.css?v=20261021a">
+<link rel="stylesheet" href="css/style.css?v=20261021b">
 </head>
 <body data-updown="red">
 
@@ -53,6 +53,8 @@
     <button class="tab" data-tab="compare" role="tab" aria-selected="false" aria-controls="view-compare">基金</button>
   </nav>
   <div class="topbar-actions">
+    <a class="topbar-link" href="https://5777-wq.github.io/openfin-academy/" target="_blank" rel="noopener"
+       title="白话金融 OpenFin Academy · 给小白和家庭的金融说明书">白话金融 ↗</a>
     <button id="alertBell" class="icon-btn" title="到价提醒" aria-haspopup="true" aria-expanded="false">提醒<span id="alertBadge" class="alert-badge num" hidden>0</span></button>
     <div id="alertPanel" class="alert-panel" hidden>
       <div class="al-head">
@@ -749,78 +751,80 @@
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script defer src="js/utils.js?v=20261021a"></script>
-<script defer src="js/store.js?v=20261021a"></script>
-<script defer src="js/proxy.js?v=20261021a"></script>
-<script defer src="js/data/universe.js?v=20261021a"></script>
-<script defer src="js/auniverse.js?v=20261021a"></script>
-<script defer src="js/data/industry-chains.js?v=20261021a"></script>
-<script defer src="js/data/explain.js?v=20261021a"></script>
-<script defer src="js/technical.js?v=20261021a"></script>
-<script defer src="js/flags.js?v=20261021a"></script>
-<script defer src="js/bus.js?v=20261021a"></script>
-<script defer src="js/events.js?v=20261021a"></script>
-<script defer src="js/polymarket.js?v=20261021a"></script>
-<script defer src="js/pmcharts.js?v=20261021a"></script>
-<script defer src="js/pmview.js?v=20261021a"></script>
-<script defer src="js/actors.js?v=20261021a"></script>
-<script defer src="js/sources/tencent.js?v=20261021a"></script>
-<script defer src="js/sources/sina.js?v=20261021a"></script>
-<script defer src="js/sources/eastmoney.js?v=20261021a"></script>
-<script defer src="js/sources/okx.js?v=20261021a"></script>
-<script defer src="js/sources/binance.js?v=20261021a"></script>
-<script defer src="js/sources/paprika.js?v=20261021a"></script>
-<script defer src="js/sources/fred.js?v=20261021a"></script>
-<script defer src="js/sources/news.js?v=20261021a"></script>
-<script defer src="js/sources/worldbank.js?v=20261021a"></script>
-<script defer src="js/sources/gdelt.js?v=20261021a"></script>
-<script defer src="js/sources/polymarket.js?v=20261021a"></script>
-<script defer src="js/sources/lhb.js?v=20261021a"></script>
-<script defer src="js/sources/southbound.js?v=20261021a"></script>
-<script defer src="js/sources/fundholds.js?v=20261021a"></script>
-<script defer src="js/sources/etf.js?v=20261021a"></script>
-<script defer src="js/sources/sec.js?v=20261021a"></script>
-<script defer src="js/sources/history.js?v=20261021a"></script>
-<script defer src="js/breadth.js?v=20261021a"></script>
-<script defer src="js/sessions.js?v=20261021a"></script>
-<script defer src="js/treemap.js?v=20261021a"></script>
-<script defer src="js/spark.js?v=20261021a"></script>
-<script defer src="js/charts.js?v=20261021a"></script>
-<script defer src="js/engine/types.js?v=20261021a"></script>
-<script defer src="js/engine/geo.js?v=20261021a"></script>
-<script defer src="js/engine/impact-engine.js?v=20261021a"></script>
+<script defer src="js/utils.js?v=20261021b"></script>
+<script defer src="js/store.js?v=20261021b"></script>
+<script defer src="js/proxy.js?v=20261021b"></script>
+<script defer src="js/data/universe.js?v=20261021b"></script>
+<script defer src="js/auniverse.js?v=20261021b"></script>
+<script defer src="js/data/industry-chains.js?v=20261021b"></script>
+<script defer src="js/data/explain.js?v=20261021b"></script>
+<script defer src="js/data/academy-gloss.js?v=20261021b"></script>
+<script defer src="js/technical.js?v=20261021b"></script>
+<script defer src="js/flags.js?v=20261021b"></script>
+<script defer src="js/bus.js?v=20261021b"></script>
+<script defer src="js/events.js?v=20261021b"></script>
+<script defer src="js/polymarket.js?v=20261021b"></script>
+<script defer src="js/pmcharts.js?v=20261021b"></script>
+<script defer src="js/pmview.js?v=20261021b"></script>
+<script defer src="js/actors.js?v=20261021b"></script>
+<script defer src="js/sources/tencent.js?v=20261021b"></script>
+<script defer src="js/sources/sina.js?v=20261021b"></script>
+<script defer src="js/sources/eastmoney.js?v=20261021b"></script>
+<script defer src="js/sources/okx.js?v=20261021b"></script>
+<script defer src="js/sources/binance.js?v=20261021b"></script>
+<script defer src="js/sources/paprika.js?v=20261021b"></script>
+<script defer src="js/sources/fred.js?v=20261021b"></script>
+<script defer src="js/sources/news.js?v=20261021b"></script>
+<script defer src="js/sources/worldbank.js?v=20261021b"></script>
+<script defer src="js/sources/gdelt.js?v=20261021b"></script>
+<script defer src="js/sources/polymarket.js?v=20261021b"></script>
+<script defer src="js/sources/lhb.js?v=20261021b"></script>
+<script defer src="js/sources/southbound.js?v=20261021b"></script>
+<script defer src="js/sources/fundholds.js?v=20261021b"></script>
+<script defer src="js/sources/etf.js?v=20261021b"></script>
+<script defer src="js/sources/sec.js?v=20261021b"></script>
+<script defer src="js/sources/history.js?v=20261021b"></script>
+<script defer src="js/breadth.js?v=20261021b"></script>
+<script defer src="js/sessions.js?v=20261021b"></script>
+<script defer src="js/treemap.js?v=20261021b"></script>
+<script defer src="js/spark.js?v=20261021b"></script>
+<script defer src="js/charts.js?v=20261021b"></script>
+<script defer src="js/engine/types.js?v=20261021b"></script>
+<script defer src="js/engine/geo.js?v=20261021b"></script>
+<script defer src="js/engine/impact-engine.js?v=20261021b"></script>
 <!-- news-engine / event-engine / llm-provider 不在这里加载（2026-10-20 摘除）：
      生产代码零引用——事件页走的是 js/sources/gdelt.js → Events.normalize 这条路，
      聚类与 AI 闸门那两个模块只在 _test/engine.test.mjs 里用。
      三个文件留在仓库里给测试 require，浏览器不必为 400 行死代码付首屏带宽。 -->
-<script defer src="js/worldmap.js?v=20261021a"></script>
-<script defer src="js/compare.js?v=20261021a"></script>
-<script defer src="js/compareview.js?v=20261021a"></script>
-<script defer src="js/alerts.js?v=20261021a"></script>
+<script defer src="js/worldmap.js?v=20261021b"></script>
+<script defer src="js/compare.js?v=20261021b"></script>
+<script defer src="js/compareview.js?v=20261021b"></script>
+<script defer src="js/alerts.js?v=20261021b"></script>
 <!-- 宏观策略：纯计算（macrocalc）+ 视图（macroview） -->
-<script defer src="js/macrocalc.js?v=20261021a"></script>
-<script defer src="js/macroview.js?v=20261021a"></script>
+<script defer src="js/macrocalc.js?v=20261021b"></script>
+<script defer src="js/macroview.js?v=20261021b"></script>
 <!-- 持仓跟踪：纯计算（portfoliomath）+ 视图（portfolio） -->
-<script defer src="js/portfoliomath.js?v=20261021a"></script>
-<script defer src="js/portfolio.js?v=20261021a"></script>
+<script defer src="js/portfoliomath.js?v=20261021b"></script>
+<script defer src="js/portfolio.js?v=20261021b"></script>
 <!-- 基金画像：纯解析（fundparse）+ 视图（fundprofile） -->
-<script defer src="js/fundparse.js?v=20261021a"></script>
-<script defer src="js/fundprofile.js?v=20261021a"></script>
-<script defer src="js/fundquiz.js?v=20261021a"></script>
+<script defer src="js/fundparse.js?v=20261021b"></script>
+<script defer src="js/fundprofile.js?v=20261021b"></script>
+<script defer src="js/fundquiz.js?v=20261021b"></script>
 <!-- 市场预测：模型（polymarket）/ 图形（pmcharts）/ 视图（pmview）
      分享卡片：二维码（qr，自实现零依赖）+ 卡片绘制与导出（pmshare） -->
-<script defer src="js/qr.js?v=20261021a"></script>
-<script defer src="js/pmshare.js?v=20261021a"></script>
+<script defer src="js/qr.js?v=20261021b"></script>
+<script defer src="js/pmshare.js?v=20261021b"></script>
 <!-- 二级分区：判定逻辑是纯函数（js/zones.js），app.js 只负责把结论落到 DOM -->
-<script defer src="js/zones.js?v=20261021a"></script>
+<script defer src="js/zones.js?v=20261021b"></script>
 <!-- 顶栏板块的顺序与显隐（js/tabscope.js，纯函数、可单测） -->
-<script defer src="js/tabscope.js?v=20261021a"></script>
+<script defer src="js/tabscope.js?v=20261021b"></script>
 <!-- 副图指标计算（js/panes.js，纯函数、可单测） -->
-<script defer src="js/panes.js?v=20261021a"></script>
+<script defer src="js/panes.js?v=20261021b"></script>
 <!-- 副图指标窗绘制（js/paneview.js，纯几何、可单测） -->
-<script defer src="js/paneview.js?v=20261021a"></script>
+<script defer src="js/paneview.js?v=20261021b"></script>
 <!-- 市场维度归属：市场只由一级 tab 表达，下层不再重复表达（js/marketscope.js） -->
-<script defer src="js/marketscope.js?v=20261021a"></script>
-<script defer src="js/app.js?v=20261021a"></script>
+<script defer src="js/marketscope.js?v=20261021b"></script>
+<script defer src="js/app.js?v=20261021b"></script>
+<script defer src="js/gloss-tip.js?v=20261021b"></script>
 </body>
 </html>

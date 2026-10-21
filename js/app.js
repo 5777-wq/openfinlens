@@ -5346,6 +5346,43 @@
     if (location.hash && location.hash !== '#') renderFromHash();
   }
 
+  // 「这是什么」悬停层要用的最小查询接口：只读元数据，不碰行情、不发请求
+  function marketOfSecid(secid) {
+    const s = String(secid || '');
+    if (/^(1|0)\./.test(s)) {
+      // A 股：这几个代码是指数，其余是个股
+      if (/^(1\.000001|0\.399001|0\.399006|1\.000688)$/.test(s)) return 'index';
+      return 'cn';
+    }
+    if (/^116\./.test(s)) return 'hk';
+    if (/^(105|106|107)\./.test(s)) return 'us';
+    if (/^100\./.test(s)) return 'index';
+    if (/^(101|102|103)\./.test(s)) return 'commodity';
+    if (/^171\./.test(s)) return 'macro';
+    if (/^119\./.test(s)) return 'fx';
+    return 'other';
+  }
+
+  window.OpenFinMeta = {
+    of(symbol) {
+      if (!symbol) return null;
+      const q = state.quotes.get(symbol);
+      if (q) {
+        return { symbol, market: q.market || q.group || '', name: q.name || '', code: q.code || symbol };
+      }
+      const mv = state.moversRows && state.moversRows.get(symbol);
+      if (mv) {
+        return { symbol, market: marketOfSecid(mv.secid), name: mv.name || '', code: mv.code || '' };
+      }
+      const m = LABELS.get(symbol);
+      if (m) {
+        return { symbol, market: m.market || m.group || '', name: m.name || m.label || '', code: m.code || symbol };
+      }
+      return null;
+    },
+    marketOfSecid,
+  };
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

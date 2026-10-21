@@ -25,6 +25,7 @@ const groups = [
   { file: 'qr.test.mjs', net: false },         // 二维码编码器：标准表核对 + RS 剩余式 + 编码→解码往返
   { file: 'zones.test.mjs', net: false },      // 二级分区判定：可用分区/导航条阈值/回落/自锁防护
   { file: 'marketscope.test.mjs', net: false }, // 市场维度归属：市场只由一级 tab 表达/切换器与标签互斥
+  { file: 'gloss-tip.test.mjs', net: false }, // 悬停「这是什么」：科普站链接映射的诚实性（假入口防护）
   { file: 'tabscope.test.mjs', net: false },   // 顶栏板块：顺序/显隐自定义 +「全部」固定首位 + 非法配置清理
   { file: 'panes.test.mjs', net: false },      // 副图指标计算：RSI/MACD 序列 + 口径与 technical.js 一致
   { file: 'paneview.test.mjs', net: false },   // 副图指标窗几何：坐标/断线/刻度/与主图横向对齐
