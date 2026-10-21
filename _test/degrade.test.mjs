@@ -129,11 +129,15 @@ function fakeEmClist(u) {
 }
 
 // 东财 K 线：{ data: { klines: ['日期,开,收,高,低,量', ...] } }
+// klt 为分钟级（5/15/30/60）时行首带时分（'2026-01-02 09:35'，分钟K的真实形态）
 function fakeEmKline(u) {
   const secid = u.searchParams.get('secid') || '';
+  const klt = Number(u.searchParams.get('klt') || 101);
   const klines = [];
   for (let i = 1; i <= 30; i++) {
-    klines.push(['2026-01-' + String(i).padStart(2, '0'), '100.00', '101.00', '102.00', '99.00', '1000'].join(','));
+    const day = '2026-01-' + String(i).padStart(2, '0');
+    const when = klt === 101 ? day : day + ' 09:' + String(30 + (i % 5) * 5).padStart(2, '0');
+    klines.push([when, '100.00', '101.00', '102.00', '99.00', '1000'].join(','));
   }
   return { rc: 0, data: { code: secid, name: 'STUB', klines } };
 }
@@ -238,6 +242,7 @@ function fakeResponse(absUrl) {
   if (h === 'qt.gtimg.cn' && p.startsWith('/q=')) return { text: fakeTencentQuotes(p) };
   if (h === 'web.ifzq.gtimg.cn' && p === '/appstock/app/fqkline/get') return { json: fakeTencentKline(u) };
   if (h === 'web.ifzq.gtimg.cn' && p === '/appstock/app/minute/query') return { json: fakeTencentMinute(u) };
+  if (h === 'web.ifzq.gtimg.cn' && p === '/appstock/app/usMinute/query') return { json: fakeTencentMinute(u) };
   if (h === 'ifzq.gtimg.cn' && p === '/appstock/app/kline/mkline') return { json: fakeTencentKline(u) };
   if (h === 'push2delay.eastmoney.com' && p === '/api/qt/ulist.np/get') return { json: fakeEmUlist(u) };
   if (h === 'push2delay.eastmoney.com' && p === '/api/qt/clist/get') return { json: fakeEmClist(u) };
@@ -679,6 +684,51 @@ if (!NET) {
       assert.ok(typeof k.time === 'string' && k.time.length === 10, 'K线时间格式异常');
     });
     console.log('   （东财K线备源返回 ' + backup.length + ' 根）');
+  });
+
+  /* ---------- 链 O：分钟级数据面（issue #1：分时切换看不到数据，2026-10-21 修复） ---------- */
+  await test('链O1：美股分时走 usMinute/query（根因：minute/query 对美股是 200 空壳）', async () => {
+    const { W } = makeEnv();
+    const rows = await W.TencentSource.getMinute('usAAPL');
+    assert.ok(rows.length >= 5, '应解析出分时点，实际 ' + rows.length);
+    assert.equal(rows[0].volume, 0, '首点差分无意义，应为 0');
+    assert.ok(rows[1].volume > 0, '第二点起是增量');
+    const d = new Date(rows[0].time * 1000);
+    assert.equal(d.getUTCFullYear(), 2026, '基准日取自 date 字段（伪 UTC 墙钟）');
+    assert.equal(d.getUTCHours(), 9, '时分按墙钟数字直取');
+  });
+
+  await test('链O2：A股/港股分时仍走 minute/query（不回归）', async () => {
+    const { W } = makeEnv();
+    for (const code of ['sh600519', 'hk00700']) {
+      const rows = await W.TencentSource.getMinute(code);
+      assert.ok(rows.length >= 5, code + ' 分时应正常');
+    }
+  });
+
+  await test('链O3：东财分钟K（港/美股唯一免费直连源）：墙钟 → 伪 UTC，OHLC 完整不接错位', async () => {
+    const { W } = makeEnv();
+    const rows = await W.EastmoneySource.getMinuteKline('116.00700', 'm5', 30);
+    assert.equal(rows.length, 30, '30 根都要解析出来');
+    const d = new Date(rows[0].time * 1000);
+    assert.equal(d.getUTCFullYear(), 2026);
+    assert.equal(d.getUTCHours(), 9, '时分按墙钟数字直取（09:3x）');
+    assert.ok(rows.every(k => k.open !== null && k.close !== null && k.high !== null && k.low !== null), 'OHLC 完整');
+    assert.ok(rows.every(k => k.high >= Math.max(k.open, k.close) && k.low <= Math.min(k.open, k.close)), 'high/low 字段位不能接错（调研报告的机械验证法）');
+  });
+
+  await test('链O4：parseMinuteTime 纯函数：缺时分的行返回 null（日格式混入分钟响应被剔）', async () => {
+    const { W } = makeEnv();
+    assert.equal(W.EastmoneySource.parseMinuteTime('2026-01-02 09:35'), Date.UTC(2026, 0, 2, 9, 35) / 1000);
+    assert.equal(W.EastmoneySource.parseMinuteTime('2026-01-02'), null, '只有日期没有时分 → 不可用');
+    assert.equal(W.EastmoneySource.parseMinuteTime(''), null);
+    assert.equal(W.EastmoneySource.parseMinuteTime(null), null);
+  });
+
+  await test('链O5：东财分钟K：周期白名单外 / 坏 secid → 空数组且不发请求', async () => {
+    const { W } = makeEnv();
+    assert.equal((await W.EastmoneySource.getMinuteKline('116.00700', 'm3')).length, 0, '未知周期');
+    assert.equal((await W.EastmoneySource.getMinuteKline('bad secid', 'm5')).length, 0, '坏 secid（SSRF 入口收敛）');
   });
 
   /* ---------- 链 J：龙虎榜 / 南向 挂 → 缓存兜底 → 诚实空态 ---------- */

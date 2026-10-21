@@ -136,6 +136,91 @@ await test('fmtTick：刻度文本好读（不留长小数）', () => {
   assert.ok(V.fmtTick(1234.56).length <= 5, '大数不应带小数');
 });
 
+/* ---------- affineX：平移/缩放后的坐标补全（2026-10-21 适配修复） ---------- */
+
+await test('affineX：稀疏可见点 → 全量映射（不可见点外推出画布外，不落回可见区）', () => {
+  const times = ['a', 'b', 'c', 'd', 'e'];
+  // 用户往右平移一格：a 不可见（timeToCoordinate 回 null），b..e 可见
+  const sparse = new Map([['b', 5], ['c', 15], ['d', 25], ['e', 35]]);
+  const m = V.affineX(times, sparse, 300);
+  assert.ok(m, '应返回完整映射');
+  assert.equal(m.get('b'), 5);
+  assert.equal(m.get('e'), 35);
+  assert.ok(m.get('a') < 0, '画布外的点应外推为负 x（被 canvas 裁掉），等分回退会把它摆进可见区成幽灵柱');
+});
+
+await test('affineX：缩放后间距变了照样线性（斜率取自可见点）', () => {
+  const times = ['a', 'b', 'c', 'd'];
+  const sparse = new Map([['b', 0], ['c', 50], ['d', 100]]);   // barSpacing 50（放大）
+  const m = V.affineX(times, sparse, 300);
+  assert.equal(m.get('a'), -50, '首点外推到画布左侧外');
+  assert.equal(m.get('d'), 100);
+});
+
+await test('affineX：可见点不足两个 / 斜率非正 / 超出绘图区 → null（调用方回退等分）', () => {
+  const times = ['a', 'b', 'c'];
+  assert.equal(V.affineX(times, new Map([['a', 5]]), 300), null, '单点无法拟合');
+  assert.equal(V.affineX(times, new Map([['a', 50], ['b', 40]]), 300), null, '斜率非正说明数据乱序');
+  assert.equal(V.affineX(times, new Map([['a', 200], ['b', 500]]), 300), null, '右缘超出绘图区 1.25 倍：换算基准不是绘图区');
+  assert.equal(V.affineX(times, null, 300), null, '没有稀疏点');
+});
+
+await test('affineX：右拖出空白边距（x1 < plotW）是合法视野，不该判失败', () => {
+  const times = ['a', 'b', 'c'];
+  const sparse = new Map([['a', 10], ['b', 20], ['c', 30]]);
+  const m = V.affineX(times, sparse, 300);
+  assert.ok(m, '右缘留白是真实视野，仿射依旧正确');
+});
+
+/* ---------- draw：标题 + 十字竖线（与主图联动） ---------- */
+
+function drawStub(capture) {
+  return {
+    clientWidth: 200, clientHeight: 40, width: 0, height: 0,
+    getContext: () => ({
+      setTransform() { }, clearRect() { }, beginPath() { }, closePath() { },
+      stroke() { }, fill() { }, fillRect() { }, arc() { }, save() { }, restore() { },
+      setLineDash() { },
+      moveTo(x, y) { (capture.moves = capture.moves || []).push({ x, y }); },
+      lineTo(x, y) { (capture.lines = capture.lines || []).push({ x, y }); },
+      set textAlign(v) { capture.align = v; }, get textAlign() { return capture.align; },
+      set textBaseline(v) { capture.baseline = v; }, get textBaseline() { return capture.baseline; },
+      fillText(t) { (capture.texts = capture.texts || []).push(String(t)); },
+    }),
+  };
+}
+
+await test('draw：标题画在左上（TradingView 副图的指标名）', () => {
+  const cap = {};
+  V.draw(drawStub(cap), { lines: [], bars: [] }, {
+    w: 200, axisRight: 40, domain: { min: 0, max: 1, ticks: [] }, title: 'RSI(14)',
+  });
+  assert.ok((cap.texts || []).some(t => /RSI\(14\)/.test(t)), '标题应被画出来');
+});
+
+await test('draw：crossX 画竖线，标题附光标处的当前值', () => {
+  const cap = {};
+  // 一条单点 RSI 线：x=50 处 value=63.4（layout 落位后进 draw）
+  const m = V.layout([{ name: 'RSI', color: '#f00', data: [{ time: 't1', value: 63.4 }] }],
+    ['t1'], { min: 0, max: 100 }, 160, 40, 4, new Map([['t1', 50]]));
+  V.draw(drawStub(cap), { lines: m.lines, bars: [] }, {
+    w: 200, axisRight: 40, domain: { min: 0, max: 100, ticks: [50] }, crossX: 50, title: 'RSI(14)',
+  });
+  assert.ok((cap.moves || []).some(p => p.x === 50.5 && p.y === 0), '十字竖线应落在 crossX（+0.5 半像素对齐）');
+  assert.ok((cap.texts || []).some(t => /RSI\(14\)\s+63\.4/.test(t)), '标题应带光标处读数');
+});
+
+await test('draw：crossX 离任何点都远时标题不带读数（不给假读数）', () => {
+  const cap = {};
+  const m = V.layout([{ name: 'RSI', color: '#f00', data: [{ time: 't1', value: 63.4 }] }],
+    ['t1'], { min: 0, max: 100 }, 160, 40, 4, new Map([['t1', 50]]));
+  V.draw(drawStub(cap), { lines: m.lines, bars: [] }, {
+    w: 200, axisRight: 40, domain: { min: 0, max: 100, ticks: [] }, crossX: 140, title: 'RSI(14)',
+  });
+  assert.ok((cap.texts || []).some(t => /^RSI\(14\)$/.test(t)), '远处只画指标名');
+  assert.ok((cap.texts || []).every(t => !/63\.4/.test(t)), '不该出现吸附假读数');
+});
+
 await test('draw：无数据/无 canvas 时不抛（调用方保持空白）', () => {
   assert.equal(V.draw(null, { lines: [], bars: [] }, {}), false);
   assert.equal(V.draw({}, { lines: [], bars: [] }, {}), false);
@@ -216,6 +301,30 @@ await test('charts.js：柱必须进 layout 的入参（否则"有刻度没柱�
   const call = src.slice(i, i + 600);
   assert.ok(/bars/.test(call), 'layout 的入参里必须带上 bars（成交量 / MACD 柱）');
   assert.ok(/bars:\s*model\.bars/.test(src), '绘制时必须用 model.bars（layout 落位后的柱）');
+});
+
+await test('charts.js：主图平移/缩放副图必须跟随（订阅 visible range）', () => {
+  // 回归（2026-10-21 适配复查）：副图只在 setData/切指标时重画，
+  // 拖动主图后副图停在旧视野，"逐像素对齐"第一次拖动就断了
+  const src = readFileSync(path.join(ROOT, 'js/charts.js'), 'utf8');
+  assert.ok(/subscribeVisibleLogicalRangeChange/.test(src), '必须订阅主图可见区变化');
+  assert.ok(/unsubscribeVisibleLogicalRangeChange/.test(src), 'remove() 时必须解绑');
+});
+
+await test('charts.js：setPane 参数变化也要重画（RSI 14→6 图不能不动）', () => {
+  // 回归（2026-10-21 适配复查）：只判 key 变化 → 改 RSI 周期/MACD 快慢线后副图不刷新
+  const src = readFileSync(path.join(ROOT, 'js/charts.js'), 'utf8');
+  const i = src.indexOf('function setPane(');
+  assert.ok(i > 0, '没找到 setPane');
+  const body = src.slice(i, i + 700);
+  assert.ok(/JSON\.stringify\(paneParams/.test(body), 'changed 判定必须包含 params 对比');
+});
+
+await test('charts.js：副图宽度监听用 ResizeObserver（布局变化不止 window.resize）', () => {
+  // 折叠面板展开/换肤侧栏等不改窗口尺寸的布局变化，window.resize 接不住
+  const src = readFileSync(path.join(ROOT, 'js/charts.js'), 'utf8');
+  assert.ok(/ResizeObserver/.test(src), '必须用 ResizeObserver 观察副图自身');
+  assert.ok(/disconnect/.test(src), 'remove() 时必须 disconnect');
 });
 
 await test('draw：刻度文案可用调用方指定的格式化（成交量显示亿/万）', () => {

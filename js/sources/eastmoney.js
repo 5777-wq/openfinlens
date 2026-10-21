@@ -212,6 +212,39 @@ const EastmoneySource = (() => {
     return [];
   }
 
+  /* 分钟级K线（klt=5/15/30/60）：push2his 直连实测可用（2026-10-21，A股/港股/美股三市场全通）。
+     与日K接口的两点差异：
+     - fqt 必须 0：分钟线带复权参数会把价格乘上复权因子（调研实测 fqt=2 时价格错位）；
+     - 时间是 "2026-10-13 11:45" 带时分的墙钟串（北京时间的交易所时刻），
+       按数字构造伪 UTC 秒（与腾讯 getMinuteKline 同法），不经本地时区换算。
+     depth：分钟线只回最近约 1 个月（A股约 32 个交易日、港股约 23、美股约 19），lmt 再大也拿不到更早。
+     港股/美股的分钟K当前只有这一条免费直连路（腾讯 mkline 仅 A股/A股指数，实测 param error）。 */
+  const MIN_KLT = { m5: 5, m15: 15, m30: 30, m60: 60 };
+  function parseMinuteTime(s) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/.exec(String(s || ''));
+    return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) / 1000 : null;
+  }
+  async function getMinuteKline(secid, period = 'm5', limit = 320) {
+    const klt = MIN_KLT[period];
+    if (!klt || !/^\d{1,3}\.[A-Za-z0-9._-]{1,14}$/.test(String(secid || ''))) return [];
+    try {
+      const url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=' + secid +
+        `&klt=${klt}&fqt=0&lmt=${Math.max(2, Math.round(limit))}&end=20500101` +
+        '&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58';
+      const j = await request(url);
+      const kl = j && j.data && j.data.klines;
+      if (!kl || !kl.length) return [];
+      return kl.map(row => {
+        const p = String(row).split(',');
+        return {
+          time: parseMinuteTime(p[0]),
+          open: num(p[1]), close: num(p[2]), high: num(p[3]), low: num(p[4]),
+          volume: num(p[5]) || 0,
+        };
+      }).filter(k => k.time !== null && k.open !== null && k.close !== null && k.high !== null && k.low !== null);
+    } catch { return []; }
+  }
+
   // 板块涨跌幅排行（2026-09 实测：免密钥、免 ut，push2delay 镜像承载，带 CORS）
   // kind: 'concept' 概念板块(t:3, ~500个) | 'industry' 行业板块(t:2, ~86个)
   // 榜单里混有"昨日连板/昨日打X板/题材股"等**技术分类**，不是真概念 → 名称黑名单过滤
@@ -269,8 +302,8 @@ const EastmoneySource = (() => {
     }
   }
 
-  return { getQuotes, getFullMarket, search, getKline, getBoardRank, getBoardStocks, marketOfSecid,
-    FS_A, FS_HK, FS_US };
+  return { getQuotes, getFullMarket, search, getKline, getMinuteKline, getBoardRank, getBoardStocks, marketOfSecid,
+    FS_A, FS_HK, FS_US, parseMinuteTime };
 })();
 
 window.EastmoneySource = EastmoneySource;

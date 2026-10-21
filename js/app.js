@@ -1778,14 +1778,17 @@
 
   /* ==================== 详情页 + K线 ==================== */
 
-  // 分钟级周期只对有数据源的市场开放（2026-09-17 实测：腾讯 mkline 仅 A股/A股指数；
-  // 加密走币安分钟K。港股/美股的该端点为空，按钮按市场隐藏）
+  // 分钟级周期按市场放行（2026-10-21 数据面更新，修 issue #1）：
+  // A股/A股指数走腾讯 mkline；港/美股走东财 push2his 分钟K（约 1 个月深度，需东财 secid）；
+  // 加密走币安分钟K。港美标的缺 secid 时诚实藏按钮，不亮着却白屏。
   const INTRADAY_PERIODS = ['m5', 'm15', 'm60'];
   function intradayAvailable(t) {
     if (!t) return false;
     if (t.market === 'crypto') return true;
     if (t.market === 'cn') return true;
-    return t.market === 'index' && /^(sh|sz|bj)/.test(t.symbol || '');
+    if (t.market === 'index') return /^(sh|sz|bj)/.test(t.symbol || '');
+    if (t.market === 'hk' || t.market === 'us') return !!t.secid;
+    return false;
   }
 
   async function openDetail(target, opts) {
@@ -1944,9 +1947,18 @@
   async function klineForRaw(t, period) {
     const sym = t.tencent || tencentOfSecid(t.secid);
     if (INTRADAY_PERIODS.includes(period)) {
-      // 分钟级K：腾讯 mkline 仅 A股/A股指数（openDetail 已按市场挡掉港美，加密走币安分支）
-      if (t.market === 'crypto' || !sym) return [];
-      return window.TencentSource.getMinuteKline(sym, period, 320);
+      // 分钟级K按市场分源（2026-10-21，修 issue #1 的"无法显示分时数据"）：
+      // A股/A股指数：腾讯 mkline（ACAO:*，320 根）→ 东财 push2his 兜底；
+      // 港/美股：东财 push2his 是唯一免费直连源（腾讯 mkline 对港美一律 param error，实测），
+      // 深度约 1 个月。加密在 loadDetailChart 已走币安分支，不会进到这里。
+      if (t.market === 'crypto') return [];
+      const isCN = t.market === 'cn' || (t.market === 'index' && /^(sh|sz|bj)/.test(t.symbol || ''));
+      if (isCN && sym) {
+        const rows = await window.TencentSource.getMinuteKline(sym, period, 320);
+        if (rows.length >= 2) return rows;
+      }
+      if (t.secid) return window.EastmoneySource.getMinuteKline(t.secid, period, 320);
+      return [];
     }
     if (sym) {
       const d = await window.TencentSource.getKline(sym, period);

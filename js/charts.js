@@ -103,37 +103,79 @@ const Charts = (() => {
     let paneKey = 'vol';
     let paneParams = {};
 
-    // 副图的纵向留白：主图占上 0~0.72，副图占 0.75~1.0。
-    const PANE_MARGINS = {
-      vol: { top: 0.80, bottom: 0.00 },
-      rsi: { top: 0.76, bottom: 0.04 },
-      macd: { top: 0.74, bottom: 0.04 },
-    };
-
     /* 主图 → 副图的横坐标换算：直接问主图要每个时间点的 x（像素）。
        为什么不用「按序号等分」：主图 fitContent 之后首尾两根 bar 各留半个
        bar 间距，等分会让副图整体偏移半格 —— 副图上的 10-20 会落在主图的
        10-19 旁边，差 6~7px，肉眼看不出来但读数全对不上。
        等分还画不出「中间休市」的缺口（休市日被当成连续的一天连成假线）。
-       换算不可用 / 坐标空间对不上时返回 null，调用方回退等分。 */
+       ⚠ 平移/缩放后 timeToCoordinate 只回**可见区**的点（不可见的返回 null），
+       对不可见点回退等分会把画布外的点摆进可见区（幽灵柱）。补全逻辑
+       （可见点仿射拟合 x = a·i + b 再外推到全部下标）在 paneview.affineX，
+       纯函数、有单测。换算不可用时返回 null，调用方回退等分。 */
     function mainChartX(times, plotW) {
       try {
         const ts = chart.timeScale && chart.timeScale();
         if (!ts || typeof ts.timeToCoordinate !== 'function') return null;
-        const m = new Map();
-        let maxX = -Infinity;
+        const sparse = new Map();       // 可见点：time → x
         times.forEach(t => {
           const x = ts.timeToCoordinate(t);
           if (x === null || x === undefined || !isFinite(x)) return;
-          m.set(t, x);
-          if (x > maxX) maxX = x;
+          sparse.set(t, x);
         });
-        if (m.size < 2) return null;
-        // 坐标空间校验：主图价格轴在右，绘图区右缘 ≈ plotW。
-        // 明显超出说明换算基准不是绘图区，宁可回退等分也不能画歪。
-        if (maxX > plotW * 1.05 || maxX < plotW * 0.5) return null;
-        return m;
+        return window.PaneView.affineX(times, sparse, plotW);
       } catch (e) { return null; }
+    }
+
+    /* 副图重画的统一入口（帧合并）：setData / 副图切换 / 主图平移缩放 /
+       十字光标移动都走这里，一帧内多次触发只画一次。
+       等“下一帧”的原因见 setData 内注释（fitContent 的新坐标下一帧才落地）。
+       ⚠ 不能只押 requestAnimationFrame：部分 WebView / 隐藏视图里 rAF 长期不触发
+       （本仓库 animateScore 记过同一坑：数值正确性依赖 rAF 就会永远停在旧值），
+       实测内嵌浏览器里主图已画、副图却整块空白。40ms（约两帧）兜底补画。 */
+    let paneRaf = 0;
+    function runPaneRender() {
+      if (!paneRaf) return;           // 另一条路径已经画过，别画两遍
+      paneRaf = 0;
+      if (lastKlines.length) renderPane(lastKlines, themeColors());
+    }
+    function schedulePaneRender() {
+      if (paneRaf) return;
+      paneRaf = requestAnimationFrame(runPaneRender);
+      setTimeout(() => {
+        if (!paneRaf) return;
+        cancelAnimationFrame(paneRaf);
+        runPaneRender();
+      }, 40);
+    }
+
+    /* 十字光标联动状态（TradingView 的整图十字线：主图与副图同 x 一起亮）：
+       mainCrossX = 主图 crosshair 时间落在副图上的 x；paneHoverX = 鼠标直接在副图上时的 x。
+       lastXMap = renderPane 最近一次用的 time→x 映射，副图 hover 反查时间用。 */
+    let mainCrossX = null;
+    let paneHoverX = null;
+    let lastXMap = null;
+
+    function setPaneCross(time) {
+      let x = null;
+      if (time !== null && time !== undefined && lastXMap) {
+        const v = lastXMap.get(time);
+        if (v !== undefined && isFinite(v)) x = v;
+      }
+      if (x === mainCrossX) return;   // 没动就不重画
+      mainCrossX = x;
+      schedulePaneRender();
+    }
+
+    /* 副图标题（TradingView 每个副图左上角都有指标名 + 当前值） */
+    function paneTitle() {
+      if (paneKey === 'rsi') return 'RSI(' + (paneParams.n || 14) + ')';
+      if (paneKey === 'macd') {
+        const d = window.Panes && window.Panes.paneDef('macd');
+        const def = (k) => ((d && d.params || []).find(x => x.key === k) || {}).def;
+        return 'MACD(' + [paneParams.fast || def('fast') || 12,
+          paneParams.slow || def('slow') || 26, paneParams.signal || def('signal') || 9].join(',') + ')';
+      }
+      return '成交量';
     }
 
     /* 按当前副图类型重画。数据来自 js/panes.js（纯计算、可单测），
@@ -193,6 +235,7 @@ const Charts = (() => {
       const h = paneCanvas.clientHeight || PANE_H;
       // 横坐标：向主图要真实像素位置（逐像素对齐 + 休市缺口）
       const xMap = mainChartX(times, plotW);
+      lastXMap = xMap;                 // 副图 hover 反查时间 / 主图十字竖线都用它
       // 缺交易日断线的判定步长 = 主图当前的 bar 间距（像素）
       let step = 0;
       try {
@@ -224,19 +267,62 @@ const Charts = (() => {
         fmtTick: paneKey === 'vol'
           ? (v) => (window.U && window.U.fmtVol ? window.U.fmtVol(v) : String(v))
           : null,
+        // 标题里的当前值：成交量也走「亿/万」，指标值两位小数
+        fmtValue: paneKey === 'vol'
+          ? (v) => (window.U && window.U.fmtVol ? window.U.fmtVol(v) : String(v))
+          : null,
+        // 副图标题（指标名）+ 十字光标竖线（与主图联动，谁在上面用谁的 x）
+        title: paneTitle(),
+        crossX: paneHoverX !== null ? paneHoverX : mainCrossX,
         pad: 6,
       });
     }
 
-    /* 外部设置：{ key, params } —— key 是副图类型，params 是该指标自己的参数 */
+    /* 外部设置：{ key, params } —— key 是副图类型，params 是该指标自己的参数。
+       ⚠ 参数变化（RSI 14→6）也要重画：只判 key 的话，改参数后图不动，
+       菜单上的数字与副图曲线就对不上了（2026-10-21 复查适配时发现）。 */
     function setPane(v) {
       const p = v || {};
       const key = window.Panes && window.Panes.paneDef(p.key) ? p.key : 'vol';
-      const changed = key !== paneKey;
+      const changed = key !== paneKey || JSON.stringify(paneParams || {}) !== JSON.stringify(p.params || {});
       paneKey = key;
       paneParams = p.params || {};
-      if (changed && lastKlines.length) renderPane(lastKlines, themeColors());
+      if (changed && lastKlines.length) schedulePaneRender();
     }
+
+    /* 主图平移/缩放 → 副图跟着重画：否则副图停在上一次的视野里，
+       "逐像素对齐"在第一次拖动后就断了（2026-10-21 复查适配时发现）。
+       fitContent/setData 也会触发 range change，与 setData 的一帧延迟
+       合并到同一个 rAF，不会重复画。 */
+    const onRangeChange = () => schedulePaneRender();
+    try { chart.timeScale().subscribeVisibleLogicalRangeChange(onRangeChange); }
+    catch (e) { /* 老版本没有该订阅：退化为不跟随（拖动后仍可切周期/指标触发重画） */ }
+
+    /* 副图鼠标：hover 时副图画竖线，并把主图十字线吸附到对应 bar
+       （setCrosshairPosition，图例同步读数）；离开时清掉。
+       最近点超过 30px 就不联动——空白区硬吸附会给出假读数。 */
+    paneCanvas.addEventListener('mousemove', (e) => {
+      const x = e && isFinite(e.offsetX) ? e.offsetX : null;
+      paneHoverX = x;
+      if (x !== null && lastXMap) {
+        let best = null, bestD = Infinity;
+        lastXMap.forEach((px, t) => {
+          const d = Math.abs(px - x);
+          if (d < bestD) { bestD = d; best = t; }
+        });
+        if (best !== null && bestD <= 30) {
+          const bar = lastKlines.find(k => k.time === best);
+          try { chart.setCrosshairPosition(bar ? bar.close : 0, best, candle); }
+          catch (err) { /* 老版本没有 setCrosshairPosition：只画副图竖线 */ }
+        }
+      }
+      schedulePaneRender();
+    });
+    paneCanvas.addEventListener('mouseleave', () => {
+      paneHoverX = null;
+      try { chart.clearCrosshairPosition(); } catch (err) { /* ignore */ }
+      schedulePaneRender();
+    });
 
 
     /* ---------- 主图叠加指标（TradingView 模型：可任意增删） ----------
@@ -307,8 +393,6 @@ const Charts = (() => {
     }
 
     let lastKlines = [];
-    // 副图重画的帧句柄（等主图落位后画，见 setData 里的说明）
-    let paneRaf = 0;
     // 每条均线的完整序列（renderMA 时缓存一份），十字光标读数按时间下标取值
     let maData = [];
     // 展开后的槽位元信息（槽位 → {name, type, n}）：图例要按槽位显示，
@@ -413,6 +497,8 @@ const Charts = (() => {
     if (typeof chart.subscribeCrosshairMove === 'function') {
       chart.subscribeCrosshairMove((param) => {
         if (!lastKlines.length) return;
+        // 副图竖线跟主图十字线同 x（联动的一侧；另一侧是副图 hover → setCrosshairPosition）
+        setPaneCross(param && param.time !== undefined && param.time !== null ? param.time : null);
         if (!param || param.time === undefined || param.time === null) { paintLegend(null); return; }
         const key = tKey(param.time);
         const idx = lastKlines.findIndex(k => tKey(k.time) === key);
@@ -435,12 +521,9 @@ const Charts = (() => {
       // 但 fitContent 的新 bar 间距是**下一帧**才落地的：
       // 同步去问 timeToCoordinate，拿到的还是默认间距（6px）算出来的旧坐标，
       // 首点会跑到画布外（实测 x0=-1018），副图整块错位。
-      // 所以副图等一帧再画（差一帧 16ms，肉眼无感，换来的是逐像素对齐）。
-      if (paneRaf) cancelAnimationFrame(paneRaf);
-      paneRaf = requestAnimationFrame(() => {
-        paneRaf = 0;
-        if (lastKlines.length) renderPane(lastKlines, themeColors());
-      });
+      // 所以副图等一帧再画（schedulePaneRender：rAF 合并 + WebView 不触发 rAF 的兜底；
+      // range change 订阅触发的重画也合并到同一帧，差一帧 16ms 肉眼无感）。
+      schedulePaneRender();
       renderMA();
       paintLegend(lastKlines.length - 1);
     }
@@ -507,20 +590,37 @@ const Charts = (() => {
       renderMA();
     }
 
-    /* 副图是自绘 canvas：窗口变宽变窄时 CSS 只拉伸位图，不会重画，
-       拖一下窗口副图就和主图对不上了。监听 resize 重画一次。
+    /* 副图是自绘 canvas：布局宽度变化时 CSS 只拉伸位图，不会重画，
+       拖一下就和主图对不上了。监听重画一次。
        lightweight-charts 自己有 autoSize，主图不用管。
-       这里要等**两帧**：窗口尺寸变化 → ResizeObserver → 主图重算 → 主图重绘，
-       中间隔着一次 rAF；只等一帧拿到的是主图重算之前的旧坐标。 */
+       监听源用 ResizeObserver 观察副图自身（宽度 100% 跟着容器走）：
+       窗口缩放、折叠面板展开、换肤侧栏这类**不改 window 尺寸**的布局变化
+       也能触发（只挂 window.resize 会漏掉它们，2026-10-21 复查适配时发现）；
+       老 WebView 没有 ResizeObserver 时退回 window.resize。
+       要等**两帧**：尺寸变化 → ResizeObserver → 主图重算 → 主图重绘，
+       中间隔着一次 rAF；只等一帧拿到的是主图重算之前的旧坐标。
+       同样不押 rAF（见 schedulePaneRender 的注释）：80ms 兜底补画。 */
     let resizeRaf = 0;
+    function runResizeRender() {
+      if (!resizeRaf) return;
+      resizeRaf = 0;
+      if (lastKlines.length) renderPane(lastKlines, themeColors());
+    }
     function onResize() {
       if (resizeRaf) return;
       resizeRaf = requestAnimationFrame(() => {
-        resizeRaf = requestAnimationFrame(() => {
-          resizeRaf = 0;
-          if (lastKlines.length) renderPane(lastKlines, themeColors());
-        });
+        resizeRaf = requestAnimationFrame(runResizeRender);
       });
+      setTimeout(() => {
+        if (!resizeRaf) return;
+        cancelAnimationFrame(resizeRaf);
+        runResizeRender();
+      }, 80);
+    }
+    let paneRO = null;
+    if (typeof ResizeObserver === 'function') {
+      paneRO = new ResizeObserver(onResize);
+      paneRO.observe(paneCanvas);   // observe 首次回调只会多画一次幂等帧，无害
     }
     if (typeof window !== 'undefined' && window.addEventListener) {
       window.addEventListener('resize', onResize);
@@ -531,6 +631,10 @@ const Charts = (() => {
       // 副图 canvas 挂在主图容器外面，销毁时必须一起摘掉，
       // 否则切标的/切周期会留下一堆空副图（每次 createKline 都新建一个）。
       remove() {
+        // 订阅/观察器先摘再销毁图表：chart.remove() 之后某些版本的内部对象已不可解绑
+        try { chart.timeScale().unsubscribeVisibleLogicalRangeChange(onRangeChange); }
+        catch { /* chart 已销毁或老版本：忽略 */ }
+        if (paneRO) { try { paneRO.disconnect(); } catch { /* ignore */ } paneRO = null; }
         try { chart.remove(); } catch { /* ignore */ }
         try { if (paneCanvas && paneCanvas.parentNode) paneCanvas.parentNode.removeChild(paneCanvas); }
         catch { /* ignore */ }
@@ -541,6 +645,11 @@ const Charts = (() => {
         if (resizeRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(resizeRaf);
         if (paneRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(paneRaf);
         paneRaf = 0;
+        // 十字线状态复位：下一次 createKline 是全新的闭包，不复位也不会串——
+        // 显式置空只是让"销毁后仍被 rAF 持有"的窗口期读到一致的空态
+        mainCrossX = null;
+        paneHoverX = null;
+        lastXMap = null;
       },
     };
   }

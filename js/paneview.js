@@ -59,6 +59,40 @@
     return out;
   }
 
+  /* 稀疏可见点 → 全量 time→x 映射（主图平移/缩放后的坐标补全）。
+     背景：lightweight-charts 的 timeToCoordinate 对**可见区外**的时间返回 null。
+     平移/缩放后只剩稀疏的可见点，直接对不可见点回退等分，会把画布外的点
+     摆进可见区（幽灵柱/假线）。而它的 bar 定位本质是「下标 → 像素」的线性映射，
+     所以用可见点的 (下标, x) 拟合 x = a·i + b，再外推到全部下标：
+     不可见的点得到画布外的 x，被 canvas 自然裁掉，横向对齐不断。
+     sparse: Map(time -> x)，times 的子集（≥2 个才能拟合）。
+     校验失败（点不足 / 斜率非正 / 最右可见点超出绘图区 1.25 倍——换算基准
+     明显不是绘图区）返回 null，调用方回退等分。 */
+  function affineX(times, sparse, plotW) {
+    const t = (times || []).filter(x => x != null);
+    if (!sparse || typeof sparse.get !== 'function') return null;
+    const idxOf = new Map();            // time -> 下标（times 唯一，K线时间不重复）
+    t.forEach((tv, i) => idxOf.set(tv, i));
+    const seen = [];
+    sparse.forEach((x, tv) => {
+      const i = idxOf.get(tv);
+      if (i !== undefined && isNum(x)) seen.push([i, x]);
+    });
+    if (seen.length < 2) return null;
+    seen.sort((p, q) => p[0] - q[0]);   // 按下标升序，首尾即两端
+    const i0 = seen[0][0], x0 = seen[0][1];
+    const i1 = seen[seen.length - 1][0], x1 = seen[seen.length - 1][1];
+    const a = (x1 - x0) / (i1 - i0);
+    // 坐标空间校验：主图价格轴在右，可见区最右点应贴近绘图区右缘。
+    // 只设 generous 上界——用户往右拖出空白边距时 x1 会小于 plotW，
+    // 那是真实视野（仿射依旧正确），不能误判成"换算基准错了"。
+    if (!(a > 0) || x1 > plotW * 1.25) return null;
+    const b = x0 - a * i0;
+    const m = new Map();
+    t.forEach((tv, i) => m.set(tv, a * i + b));
+    return m;
+  }
+
   /* 把「时间 → 值」的序列摆到画布上：按 x 比例把时间映射到宽度。
      times: 全部时间点的有序数组（用来定 x）；series: [{ name, color, data:[{time,value}] }]。
      xMap: 可选，{ time -> x 像素 }。调用方（charts.js）会把它从**主图**的
@@ -66,8 +100,7 @@
            （主图 fitContent 后首尾 bar 各留半格），而且等分画不出
            「中间休市」的缺口，休市日会被连成一条假连续线。
            传了 xMap 就优先用它，取不到的那几个时间点才回退等分。
-     返回 { lines: [{ name, color, pts }], bars: [...] } */
-  function layout(series, times, domain, w, h, pad, xMap) {
+     返回 { lines: [{ name, color, pts }], bars: [...] } */  function layout(series, times, domain, w, h, pad, xMap) {
     const t = (times || []).filter(x => x != null);
     if (!t.length) return { lines: [], bars: [] };
     const n = t.length;
@@ -204,6 +237,43 @@
         ctx.stroke();
       }
     }
+    // 十字光标竖线（与主图联动：光标在主图或副图上，两块同 x 一起亮）
+    if (isNum(o.crossX) && o.crossX >= 0 && o.crossX <= plotW) {
+      ctx.strokeStyle = o.crossColor || 'rgba(134,134,139,0.5)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(Math.round(o.crossX) + 0.5, 0);
+      ctx.lineTo(Math.round(o.crossX) + 0.5, h);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    // 标题（TradingView 副图左上角的指标名）：光标附近有数据点时附当前值
+    if (o.title) {
+      let label = String(o.title);
+      if (isNum(o.crossX)) {
+        let best = null, bestD = Infinity;
+        const scan = (pts) => {
+          for (const p of (pts || [])) {
+            const d = Math.abs(p.x - o.crossX);
+            if (d < bestD) { bestD = d; best = p; }
+          }
+        };
+        (model.lines || []).forEach(l => scan(l.pts));       // 线优先（RSI/MACD 读线值）
+        if (!best) (model.bars || []).forEach(b => scan(b.pts));   // 成交量读柱值
+        if (best && bestD <= 10) {
+          label += '  ' + (typeof o.fmtValue === 'function'
+            ? o.fmtValue(best.value)
+            : (isNum(best.value) ? String(+best.value.toFixed(2)) : '--'));
+        }
+      }
+      ctx.font = '10px ' + (o.font || 'ui-monospace, monospace');
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = o.textColor || '#8a8a92';
+      ctx.fillText(label, 4, 3);
+      ctx.textBaseline = 'middle';   // 还原：刻度绘制用的是 middle
+    }
     return true;
   }
 
@@ -218,5 +288,5 @@
     return v.toFixed(2);
   }
 
-  global.PaneView = { axis, points, layout, segments, draw, fmtTick };
+  global.PaneView = { axis, points, layout, affineX, segments, draw, fmtTick };
 })(typeof window !== 'undefined' ? window : globalThis);

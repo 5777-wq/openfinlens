@@ -102,13 +102,19 @@ const TencentSource = (() => {
     }
   }
 
-  // 分时（A股/港股/美股均可）：web.ifzq.gtimg.cn minute/query
+  // 分时：A股/港股走 web.ifzq.gtimg.cn minute/query；美股必须换 usMinute/query
+  // （2026-10-21 实测复现 issue #1：minute/query 对美股返回 200 + 空壳
+  //  {"data":{"usAAPL":{"data":{"data":[" 0"],"date":""}}}}，不报错、极易误判成
+  //  "腾讯不支持美股分时"。usMinute/query 裸代码即可（usAAPL 不用带 .OQ 后缀），
+  //  行格式同为 "HHMM 价 累计量"，date 字段正常（美股闭市时给上一交易日）。
+  //  港股 minute/query 逐分钟实测正常（含 4 列累计额，多余列忽略即可）。）
   async function getMinute(symbol) {
     // 符号白名单：仅放行交易所标准格式（sh600000 / hk00700 / usAAPL 等），
     // 拼接 URL 前收敛注入面（扫描器标记的 SSRF 入口在此闭合）
     if (!/^[a-z]{2}[0-9a-z.]{1,12}$/i.test(String(symbol))) return [];
+    const isUs = /^us/i.test(String(symbol));
     try {
-      const u = new URL('https://web.ifzq.gtimg.cn/appstock/app/minute/query');
+      const u = new URL('https://web.ifzq.gtimg.cn/appstock/app/' + (isUs ? 'usMinute' : 'minute') + '/query');
       u.searchParams.set('code', String(symbol));   // URL 对象组装：参数值不再进入地址字符串拼接
       const j = await request(u.href);
       const node = j && j.data && j.data[symbol];
