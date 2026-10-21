@@ -405,6 +405,12 @@
     return g.label;
   }
 
+  /* ==================== 行情行上的「?」 ====================
+     解释只在鼠标停在「?」上时浮出——整行悬停会挡住内容，也会跟行的点击打架。 */
+  function askBtn(symbol, name) {
+    return `<button class="ask" data-ask="${escapeHTML(symbol)}" aria-label="这是什么：${escapeHTML(name || symbol)}">?</button>`;
+  }
+
   // 行式行情表（去 AI 卡片墙的核心动作）：hairline 行 + 右对齐 mono 数字
   function rowHTML(q, animate = true, idx = 0) {
     const starred = watchSet.has(q.symbol);
@@ -425,7 +431,7 @@
         tabindex="0" role="button" aria-label="${escapeHTML(q.name)} 详情"
         style="animation-delay:${delay}ms">
         <div class="qr-name-wrap" style="min-width:0">
-          <div class="qr-name">${logoImg(q, 'qlogo')}${showDeg ? '<span class="qc-flag" title="' + escapeHTML(degTitle) + '">' + (deg === 'cache' ? '缓存' : '备源') + '</span>' : ''}${escapeHTML(q.name)}</div>
+          <div class="qr-name"><span class="qr-nm">${logoImg(q, 'qlogo')}${showDeg ? '<span class="qc-flag" title="' + escapeHTML(degTitle) + '">' + (deg === 'cache' ? '缓存' : '备源') + '</span>' : ''}${escapeHTML(q.name)}</span>${askBtn(q.symbol, q.name)}</div>
           <div class="qr-code">${escapeHTML(q.code || q.symbol)}</div>
         </div>
         <span class="qr-price num" data-price="${escapeHTML(q.symbol)}">${price}</span>
@@ -522,7 +528,7 @@
     const flag = window.Flags ? window.Flags.flag(heroFlagCode(sym, q && q.market)) : '';
     const label = (q && q.name) || HERO_LABEL[sym] || sym;
     if (!q) {
-      return `<div class="hero-cell" data-symbol="${escapeHTML(sym)}"><div class="hero-label"><span>${flag}${escapeHTML(label)}</span></div>
+      return `<div class="hero-cell" data-symbol="${escapeHTML(sym)}"><div class="hero-label"><span class="hl-row"><span class="hl-nm">${flag}${escapeHTML(label)}</span>${askBtn(sym, label)}</span></div>
         <div class="hero-value">——</div><div class="hero-chg">等待数据</div></div>`;
     }
     const digits = U.priceDigits(q.price);
@@ -530,7 +536,7 @@
     const code = sym.startsWith('EM:') ? '' : escapeHTML(q.code || sym);
     const pos = window.Spark ? window.Spark.rangePos(q.price, q.low, q.high) : null;
     return `<div class="hero-cell" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(q.name)} 详情">
-      <div class="hero-label"><span>${flag}${logoImg(q, 'hero-logo-img')}${escapeHTML(q.name)}</span><span>${code}</span></div>
+      <div class="hero-label"><span class="hl-row"><span class="hl-nm">${flag}${logoImg(q, 'hero-logo-img')}${escapeHTML(q.name)}</span>${askBtn(sym, q.name)}</span><span>${code}</span></div>
       <div class="hero-value" data-price="${escapeHTML(sym)}">${fmt(q.price, digits)}</div>
       <div class="hero-chg ${cls}"><span data-hero-chg>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
       ${window.Spark ? window.Spark.sparkBoxHTML(sym) : ''}
@@ -744,7 +750,7 @@
     const code = escapeHTML((q && q.code) || (sym.startsWith('EM:') ? sym.slice(3).split('.')[1] : sym.replace(/^(sh|sz|bj|hk|us)/i, '')));
     if (!q || q.price === null) {
       return `<div class="wcard" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(name)} 详情">
-        <div class="hero-label"><span>${flag}${escapeHTML(name)}</span><span>${code}</span></div>
+        <div class="hero-label"><span class="hl-row"><span class="hl-nm">${flag}${escapeHTML(name)}</span>${askBtn(sym, name)}</span><span>${code}</span></div>
         <div class="hero-value">——</div><div class="hero-chg">等待数据</div>
         ${window.Spark ? window.Spark.sparkBoxHTML(sym) : ''}</div>`;
     }
@@ -752,7 +758,7 @@
     const cls = pctClass(q.changePct);
     const pos = window.Spark ? window.Spark.rangePos(q.price, q.low, q.high) : null;
     return `<div class="wcard" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(name)} 详情">
-      <div class="hero-label"><span>${flag}${escapeHTML(name)}</span><span>${code}</span></div>
+      <div class="hero-label"><span class="hl-row"><span class="hl-nm">${flag}${escapeHTML(name)}</span>${askBtn(sym, name)}</span><span>${code}</span></div>
       <div class="hero-value">${fmt(q.price, digits)}</div>
       <div class="hero-chg ${cls}"><span>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
       ${window.Spark ? window.Spark.sparkBoxHTML(sym) : ''}
@@ -919,7 +925,7 @@
       const metricTxt = metric === 'amount' ? fmtVol(r.amount || 0) : fmtPct(r.changePct);
       return `<button class="mv-row" data-mv="${escapeHTML(sym)}" title="${escapeHTML(r.name)}（${escapeHTML(r.code)}）">
         <span class="mv-rank num">${i + 1}</span>
-        <span class="mv-name"><span class="mv-nm">${escapeHTML(r.name)}</span><span class="mv-code num">${escapeHTML(r.code)}</span></span>
+        <span class="mv-name"><span class="mv-nm-row"><span class="mv-nm">${escapeHTML(r.name)}</span>${askBtn(sym, r.name)}</span><span class="mv-code num">${escapeHTML(r.code)}</span></span>
         <span class="mv-price num">${fmt(r.price, U.priceDigits(r.price))}</span>
         <span class="mv-metric num ${cls}">${metricTxt}</span>
       </button>`;
@@ -4646,6 +4652,9 @@
 
     // 卡片：点击进详情 / 星标收藏（事件委托，覆盖卡片墙+自选+产业链）
     document.addEventListener('click', (e) => {
+      // 「?」只负责浮出解释，不触发行进入详情
+      const ask = e.target.closest('.ask');
+      if (ask) { e.stopPropagation(); return; }
       const star = e.target.closest('[data-star]');
       if (star) {
         e.stopPropagation();
@@ -4869,8 +4878,8 @@
     // 键盘可达：卡片/环节 Enter 触发
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return;
-      // 焦点在卡片内星标上时走按钮原生激活，否则会被下面的卡片 click 劫持成"进详情"
-      if (e.target.closest('[data-star]')) return;
+      // 焦点在卡片内星标/问号上时走按钮原生激活，否则会被下面的卡片 click 劫持成"进详情"
+      if (e.target.closest('[data-star]') || e.target.closest('.ask')) return;
       const node = e.target.closest('.qrow, .hero-cell, .quote-card, .link-node, .crow');
       if (!node) return;
       e.preventDefault();

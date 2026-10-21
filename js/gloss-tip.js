@@ -10,8 +10,6 @@
 (function () {
   'use strict';
 
-  const SELECTOR = '[data-symbol],[data-mv],[data-etfsym],[data-fundsym],[data-gidx],[data-gloss]';
-  const ATTRS = ['data-symbol', 'data-mv', 'data-etfsym', 'data-fundsym', 'data-gidx', 'data-gloss'];
   const HIDE_DELAY = 240;
 
   let tip = null, hideTimer = null, current = null, enabled = true;
@@ -69,19 +67,22 @@
     return '';
   }
 
-  /** 找到最近的那个带标识的元素 */
+  /** 找到最近的那个带标识的元素
+      · data-ask  = 行情行上的「?」（symbol）——解释只在它上面浮出
+      · data-gloss = 概念标记（术语 id）——标题/指标卡上悬停即出 */
   function pick(el) {
     if (!el || !el.closest) return null;
-    const host = el.closest(SELECTOR);
-    if (!host) return null;
-    // 行内的按钮（自选星标等）不触发，免得盖住它自己的提示
-    if (el.closest('button[data-star]')) return null;
-    const name = ATTRS.find((a) => host.hasAttribute(a));
-    if (!name) return null;
-    let symbol = host.getAttribute(name) || '';
-    // 全球指数卡片存的是 secid（100.N225），行情层的 symbol 是 'EM:100.N225'
-    if (name === 'data-gidx') symbol = 'EM:' + symbol;
-    return { host, name, symbol, isConcept: name === 'data-gloss' };
+    const ask = el.closest('[data-ask]');
+    if (ask) {
+      const sym = ask.getAttribute('data-ask') || '';
+      return sym ? { host: ask, symbol: sym, isConcept: false } : null;
+    }
+    const gl = el.closest('[data-gloss]');
+    if (gl) {
+      const id = gl.getAttribute('data-gloss') || '';
+      return id ? { host: gl, symbol: id, isConcept: true } : null;
+    }
+    return null;
   }
 
   /** 概念标记（data-gloss）：解释来自 explain.js 的 CONCEPT_NOTES，链接直接进科普站术语页 */
@@ -166,15 +167,15 @@
     document.addEventListener('mouseover', (e) => {
       if (!enabled) return;
       if (tip && tip.contains(e.target)) return;   // 浮层自己，别收
-      const host = e.target.closest ? e.target.closest(SELECTOR) : null;
-      if (!host) {
+      const hit = pick(e.target);
+      if (!hit) {
         if (current) scheduleHide();
         return;
       }
-      if (host === current) return;                 // 同一个目标不重画
+      if (hit.host === current) return;            // 同一个目标不重画
       if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-      current = host;
-      if (!show(host, e.clientX, e.clientY)) {
+      current = hit.host;
+      if (!show(hit.host, e.clientX, e.clientY)) {
         current = null;
         hide();
       }
@@ -185,14 +186,14 @@
     window.addEventListener('blur', hide);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
 
-    // 键盘：Tab 到带 data-gloss 的元素上也要给解释（只标了 data-gloss 的概念才提示）
+    // 键盘：Tab 到「?」或概念标记上也要给解释
     document.addEventListener('focusin', (e) => {
-      const host = e.target && e.target.closest ? e.target.closest('[data-gloss]') : null;
-      if (!host) return;
-      const r = host.getBoundingClientRect();
+      const hit = pick(e.target);
+      if (!hit) return;
+      const r = hit.host.getBoundingClientRect();
       if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-      current = host;
-      show(host, r.left + 10, r.bottom + 8);
+      current = hit.host;
+      show(hit.host, r.left + 10, r.bottom + 8);
     });
     document.addEventListener('focusout', () => { if (current) scheduleHide(); });
   }

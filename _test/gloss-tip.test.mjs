@@ -249,6 +249,37 @@ test('关掉科普：浮层不弹、顶栏链接与详情页链接一起消失',
   assert.ok(/academyOn\(\)/.test(tip), '浮层没读设置');
 });
 
+/* ---------------- 问号按钮：解释只在它上面浮出 ---------------- */
+
+test('每个标的旁边都要有「?」按钮', () => {
+  const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
+  assert.ok(/function askBtn\(/.test(app), '没有 askBtn 帮手函数');
+  assert.ok(/class="ask" data-ask=/.test(app), '「?」按钮没有 data-ask');
+  // 四种行都要有：行情行 / 涨跌榜 / 首屏大卡 / 自选卡
+  const qrow = app.match(/<div class="qr-name">[\s\S]{0,400}?<\/div>/);
+  assert.ok(qrow && qrow[0].includes('askBtn('), '行情行没有「?」');
+  const mv = app.match(/<span class="mv-name">[\s\S]{0,300}?<\/span><\/span>/);
+  assert.ok(mv && mv[0].includes('askBtn('), '涨跌榜没有「?」');
+  const hero = app.match(/<div class="hero-label">[\s\S]{0,300}?<\/div>/);
+  assert.ok(hero && hero[0].includes('askBtn('), '首屏大卡没有「?」');
+});
+
+test('解释只在「?」上浮出，不再整行悬停都弹', () => {
+  const tip = readFileSync(path.join(ROOT, 'js/gloss-tip.js'), 'utf8');
+  assert.ok(/closest\('\[data-ask\]'\)/.test(tip), '浮层没认 data-ask');
+  assert.ok(!/closest\(SELECTOR\)/.test(tip), '还在整行悬停触发');
+  assert.ok(!/data-symbol\]\[data-mv\]/.test(tip), '还绑着整行的标识');
+});
+
+test('点「?」不能触发行进入详情', () => {
+  const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
+  assert.ok(/const ask = e\.target\.closest\('\.ask'\);[\s\S]{0,120}?stopPropagation\(\)/.test(app),
+    '「?」的点击没有拦住');
+  // 键盘同理：Tab 到「?」按回车不该进详情
+  assert.ok(/closest\('\[data-star\]'\) \|\| e\.target\.closest\('\.ask'\)/.test(app),
+    '键盘路径没拦住「?」');
+});
+
 /* ---------------- 双向跳转与回原位置 ---------------- */
 
 test('浮层链接必须带来源与标的（科普站那边要据此给"回原位置"的出口）', () => {

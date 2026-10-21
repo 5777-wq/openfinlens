@@ -2350,3 +2350,29 @@ html[data-theme] .seg-lg button.active {
 
 /* 科普入口关掉时，概念标记不再暗示"可悬停" */
 body[data-academy="off"] [data-gloss] { cursor: default; }
+
+/* ============================================================
+   行情行上的「?」
+   ------------------------------------------------------------
+   解释只在鼠标停在这个问号上时浮出：整行悬停会挡住旁边的数字，
+   也会跟"点行进详情"抢点击。问号小、明确、键盘也够得着。
+   ============================================================ */
+.ask {
+  flex: none; width: 15px; height: 15px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); border-radius: 50%;
+  background: none; color: var(--text-faint);
+  font-family: var(--font-mono); font-size: 9.5px; line-height: 1;
+  cursor: help; transition: color var(--dur-fast), border-color var(--dur-fast);
+}
+.ask:hover { color: var(--accent-signature); border-color: var(--accent-signature); }
+.ask:focus-visible { outline: none; color: var(--accent-signature); border-color: var(--accent-signature);
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent-signature); }
+
+/* 名称行：名字可截断，问号不被截掉 */
+.qr-name { display: flex; align-items: center; gap: 6px; }
+.qr-name .qr-nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mv-nm-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.mv-nm-row .mv-nm { min-width: 0; }
+.hero-label .hl-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.hero-label .hl-nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
