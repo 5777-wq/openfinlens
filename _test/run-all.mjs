@@ -16,6 +16,7 @@ const offlineOnly = process.argv.includes('--offline');
 const groups = [
   { file: 'tokens.test.mjs', net: false },  // 设计令牌一致性/均线色距/发布卫生（读真实源文件）
   { file: 'logic.test.mjs', net: false },
+  { file: 'utils.test.mjs', net: false },      // 格式化器边界：空串/纯空白/NaN/±Infinity 一律算缺失（不许显示 0.00）
   { file: 'compare.test.mjs', net: false },  // 基金对比纯计算：归一/年化/回撤/年度收益/相关性（手算核对）
   { file: 'compareview.test.mjs', net: false }, // 基金对比视图层：深链解析/渲染/重试通道（DOM 打桩，无浏览器）
   { file: 'macrocalc.test.mjs', net: false },  // 宏观策略纯计算：曲线装配/利差bp换算/倒挂判定/金油比
@@ -49,6 +50,7 @@ const groups = [
   { file: 'detail.test.mjs', net: true },
   // 降级链拆两组：离线组（静态 JSON 源 + 缓存 + 诚实空态，零外网）进 CI；
   // 实网组打真实第三方接口，只在本地/手动跑。同一个文件用 --net 切换。
+  { file: 'sources.test.mjs', net: false },  // 源适配器的边界契约：币安空数组/龙虎榜回退工作日/南向请求额度
   { file: 'degrade.test.mjs', net: false },
   { file: 'degrade.test.mjs', net: true, args: ['--net'] },
   { file: 'boards.test.mjs', net: true },   // 今日热门概念：榜单/成分股接口 + 链条匹配

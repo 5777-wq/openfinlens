@@ -31,6 +31,12 @@ const AcademyGloss = (() => {
     // ---- 商品与汇率 ----
     'EM:101.GC00Y': 'gold',            // COMEX 黄金
     'EM:102.CL00Y': 'crude-oil',       // NYMEX 原油
+    // ---- 加密：科普站只收了比特币与以太坊这两个词条 ----
+    // 加密标的不在 TENCENT_UNIVERSE / EM_UNIVERSE 里，inUniverse 判不到，
+    // 以前全都落到「去科普站搜这个币名」的搜索页——而本站搜不到「币安币」，
+    // 点过去必然是「没有找到」。这里给有词条的两个精确页，其余不给链接。
+    'BTCUSDT': 'btc',
+    'ETHUSDT': 'eth',
     'EM:101.SI00Y': 'silver',          // COMEX 白银
     'EM:100.UDI': 'dollar-index',      // 美元指数
     // ---- 利率 ----
@@ -108,13 +114,36 @@ const AcademyGloss = (() => {
         label: '在白话金融里看这一页 ↗',
       };
     }
+    // 搜索页兜底：**只有科普站真能搜到这个词时才给**。
+    // 之前无条件给，于是像「谷歌-A」「强生」这类本站根本没有的词，
+    // 点过去就是一条「没有找到」的死路——比不给链接更糟。
     const q = String(name || '').trim();
     if (!q) return null;
+    if (!searchableOnAcademy(q)) return null;
     return {
       href: BASE + '#/search?q=' + encodeURIComponent(q),
       kind: 'search',
       label: '在白话金融里查「' + q + '」↗',
     };
+  }
+
+  /** 科普站真能搜到这个词吗？（清单由 collect-academy-terms.mjs 从科普站同步）
+      清单没加载进来时保守地不给——宁可没有入口，也不要一条死路。 */
+  let searchSet = null;
+  function searchableOnAcademy(name) {
+    if (!searchSet) {
+      searchSet = new Set();
+      const A = window.AcademyAssets;
+      if (A && A.searchable) A.searchable.forEach((s) => searchSet.add(String(s).trim()));
+    }
+    if (!searchSet.size) return false;
+    const q = String(name).trim();
+    if (searchSet.has(q)) return true;
+    // 别名形态也认（「标普 500」vs「标普500」这类）
+    for (const s of searchSet) {
+      if (s.replace(/\s+/g, '') === q.replace(/\s+/g, '')) return true;
+    }
+    return false;
   }
 
   /** 终端 universe 里的 symbol 集合（终端能看的每一只，科普站都要有一页） */

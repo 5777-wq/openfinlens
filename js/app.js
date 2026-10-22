@@ -18,13 +18,30 @@
      不要在业务代码里再写字面量 rgba(…)：改色时它一定会漂。 */
   const ACCENT_RGB = (getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb') || '').trim() || '232,163,61';
 
+  /* 默认指标配置：主图 3 条（MA5 / MA20 / EMA26）+ 副图成交量。
+     主图条数不固定（可增删，上限 8）；副图三选一（成交量 / RSI / MACD）。
+     存量配置（只有 lines、没有 pane）也会被补上默认副图。
+     ⚠ 必须定义在 state 之前：state.detailMACfg 拿它当初值。
+     之前这个常量写在 init() 里、赋值在 await fetchAllQuotes() 之后，
+     于是「首屏还在加载时按后退 / 点搜索建议」这条路径上 detailMACfg 仍是 null，
+     详情页 K 线会在 setData 之前抛 TypeError——图表空白、事件标记与提醒线都不画，
+     而且异常被 Promise.allSettled 吞掉，页面上一点提示都没有。 */
+  const MA_CFG_DEFAULT = {
+    lines: [
+      { type: 'ma', n: 5, on: true },
+      { type: 'ma', n: 20, on: true },
+      { type: 'ema', n: 26, on: true },
+    ],
+    pane: { key: 'vol', params: {} },
+  };
+
   const state = {
     tab: 'all',
     view: 'market',
     prevView: 'market',
     zone: 'overview',      // 一级 tab 下的第二层分区（概览/焦点/热力图/情绪/披露）
     quotes: new Map(),        // symbol → quote
-    degraded: new Map(),      // symbol → 'backup' | 'cache'
+    degraded: new Map(),      // symbol → 'backup' | 'cache' | 'stale'（本轮没取到新数据，显示的是上一轮的值）
     heatMode: 'cn',
     heatSize: 'cap',
     heatBandsOff: {},       // 图例关掉的涨跌幅区间（key → true），关掉的块不进渲染
@@ -58,7 +75,7 @@
     chartGen: 0,              // 图表请求代号（防慢响应覆盖新图）
     searchGen: 0,             // 搜索请求代号（同理，防旧关键词结果覆盖新输入）
     detailPeriod: 'day',       // 用户要求：默认打开日K
-    detailMACfg: null,         // 均线配置 {ma5,ma10,ma20,ma60,ema12,ema26}，init 时从 localStorage 读
+    detailMACfg: MA_CFG_DEFAULT,  // 均线配置 {lines, pane}；init 时再用 localStorage 里的覆盖
     chart: null,
     chartKind: null,
     searchSel: -1,
@@ -231,6 +248,7 @@
   }
 
   function mergeQuotes(list, { via }) {
+    let n = 0;
     list.forEach(q => {
       const meta = LABELS.get(q.symbol);
       if (meta && meta.group) q.group = meta.group;
@@ -240,7 +258,11 @@
       Cache.set('q:' + q.symbol, q);
       if (via === 'primary') state.degraded.delete(q.symbol);
       else state.degraded.set(q.symbol, via);
+      n++;
     });
+    // 本次合并进去的条数。缓存兜底不算——它不是新鲜数据，
+    // 「最后更新」只能按真正取到的条数来推。
+    return n;
   }
 
   // 缓存兜底：把还没有数据的 symbol 用缓存补上，并打 cache 角标
@@ -256,31 +278,34 @@
   }
 
   async function fetchStocks() {
+    let fresh = 0;
     let list = await window.TencentSource.getQuotes(TENCENT_SYMS);
     if (list.length) {
-      mergeQuotes(list, { via: 'primary' });
+      fresh += mergeQuotes(list, { via: 'primary' });
       const missing = TENCENT_SYMS.filter(s => !list.some(q => q.symbol === s));
-      if (missing.length) await fetchStocksBackup(missing);
+      if (missing.length) fresh += await fetchStocksBackup(missing);
     } else {
-      await fetchStocksBackup(TENCENT_SYMS);
+      fresh += await fetchStocksBackup(TENCENT_SYMS);
     }
     fillFromCache(TENCENT_SYMS);
+    return fresh;
   }
 
   async function fetchStocksBackup(symbols) {
     const map = new Map();
     symbols.forEach(s => { const id = toSecid(s); if (id) map.set(id, s); });
-    if (!map.size) return;
+    if (!map.size) return 0;
     const backup = await window.EastmoneySource.getQuotes(Array.from(map.keys()));
-    if (!backup.length) return;
+    if (!backup.length) return 0;
     // 把东财结果映射回统一 symbol
     const remapped = backup.map(q => Object.assign({}, q, { symbol: map.get(q.secid) || q.symbol }));
-    mergeQuotes(remapped, { via: 'backup' });
+    return mergeQuotes(remapped, { via: 'backup' });
   }
 
   async function fetchEmGroups() {
+    let fresh = 0;
     const list = await window.EastmoneySource.getQuotes(EM_SECIDS);
-    if (list.length) mergeQuotes(list, { via: 'primary' });
+    if (list.length) fresh += mergeQuotes(list, { via: 'primary' });
     else {
       // 备源：新浪（需代理）。新浪的 symbol 空间（fx_susdcny/hf_GC…）与 EM 卡片完全不同，
       // 必须重映射到统一 symbol，否则会生成内容重复的"孤儿卡"且 EM 卡片永远只能靠缓存
@@ -292,13 +317,14 @@
       const remapped = sina
         .map(q => SINA_TO_EM[q.symbol] ? Object.assign({}, q, { symbol: SINA_TO_EM[q.symbol] }) : null)
         .filter(Boolean);
-      if (remapped.length) mergeQuotes(remapped, { via: 'backup' });
+      if (remapped.length) fresh += mergeQuotes(remapped, { via: 'backup' });
     }
     fillFromCache(window.EM_UNIVERSE.map(x => x.symbol));
+    return fresh;
   }
 
   async function fetchCrypto() {
-    if (!CRYPTO_ON) return;   // 合规开关关闭：不轮询币安/OKX
+    if (!CRYPTO_ON) return 0;   // 合规开关关闭：不轮询币安/OKX
     const want = window.CRYPTO_FEATURED;
     let list = await window.BinanceSource.getQuotes(want);
     let via = 'primary';
@@ -306,8 +332,10 @@
       list = await window.OkxSource.getQuotes(want);
       via = 'backup';
     }
-    if (list.length) mergeQuotes(list, { via });
+    let fresh = 0;
+    if (list.length) fresh += mergeQuotes(list, { via });
     fillFromCache(want);
+    return fresh;
   }
 
   // 自选与持仓里不在轮询全集（TENCENT_SYMS / EM_SECIDS / CRYPTO_FEATURED）内的标的：
@@ -333,8 +361,12 @@
       if (!q) return;
       m.set(q.symbol, q);
       Cache.set('q:' + q.symbol, q);   // 顺手进缓存，下次打开自选页有兜底
+      // 拿到实时的就别再挂着「缓存」角标——角标说缓存、价格却是实时的，
+      // 这种自相矛盾比没角标更让人不信任。
+      state.degraded.delete(q.symbol);
     });
     state.watchQuotes = m;
+    return m.size;
   }
 
   // in-flight 去重：调度器 tick 与 visibilitychange 回前台可能重叠触发，合并为一轮
@@ -342,9 +374,18 @@
   function fetchAllQuotes() {
     if (_faq) return _faq;
     _faq = (async () => {
-      await Promise.all([fetchStocks(), fetchEmGroups(), fetchCrypto(), fetchWatchQuotes()]);
-      // 全部失败时不动 lastUpdate——"最后更新"不能说谎
-      if (state.quotes.size) state.lastUpdate = Date.now();
+      const counts = await Promise.all([fetchStocks(), fetchEmGroups(), fetchCrypto(), fetchWatchQuotes()]);
+      const fresh = counts.reduce((a, b) => a + (b || 0), 0);
+      if (fresh > 0) {
+        state.lastUpdate = Date.now();
+      } else {
+        // 一条新鲜数据都没拿到：墙上还挂着上一轮的价格。
+        // 不打降级角标的话，用户看到的是一个和实价无异的旧价——串旧数据比空更糟。
+        // 标成 stale，让行内角标和状态栏都说实话。
+        state.quotes.forEach((_q, sym) => {
+          if (!state.degraded.has(sym)) state.degraded.set(sym, 'stale');
+        });
+      }
     })().finally(() => { _faq = null; });
     return _faq;
   }
@@ -424,14 +465,17 @@
     const pctTxt = fmtPct(q.changePct);
     const degTitle = deg === 'cache'
       ? '数据来自缓存 · ' + fmtTime(q.cachedAt || q.updatedAt)
-      : '数据来自备用源';
+      : deg === 'stale'
+        ? '本轮没取到新数据，显示的是上一轮的值'
+        : '数据来自备用源';
+    const degText = deg === 'cache' ? '缓存' : deg === 'stale' ? '旧值' : '备源';
     const amt = q.amount ? fmtVol(q.amount) : '--';   // 成交额缺失显示 --，不用成交量顶替（量纲不同）
     const delay = (!animate || reduceMotion()) ? 0 : Math.min(idx, 12) * 60;
     return `<div class="qrow${animate && !reduceMotion() ? ' stagger-in' : ''}" data-symbol="${escapeHTML(q.symbol)}"
         tabindex="0" role="button" aria-label="${escapeHTML(q.name)} 详情"
         style="animation-delay:${delay}ms">
         <div class="qr-name-wrap" style="min-width:0">
-          <div class="qr-name"><span class="qr-nm">${logoImg(q, 'qlogo')}${showDeg ? '<span class="qc-flag" title="' + escapeHTML(degTitle) + '">' + (deg === 'cache' ? '缓存' : '备源') + '</span>' : ''}${escapeHTML(q.name)}</span>${askBtn(q.symbol, q.name)}</div>
+          <div class="qr-name"><span class="qr-nm">${logoImg(q, 'qlogo')}${showDeg ? '<span class="qc-flag" title="' + escapeHTML(degTitle) + '">' + degText + '</span>' : ''}${escapeHTML(q.name)}</span>${askBtn(q.symbol, q.name)}</div>
           <div class="qr-code">${escapeHTML(q.code || q.symbol)}</div>
         </div>
         <span class="qr-price num" data-price="${escapeHTML(q.symbol)}">${price}</span>
@@ -1002,7 +1046,11 @@
       const txt = fmt(q.price, digits);
       if (priceNode && priceNode.textContent !== txt) {
         const oldNum = parseFloat(priceNode.textContent.replace(/,/g, ''));
-        if (!isNaN(oldNum)) flashPrice(priceNode, q.price >= oldNum ? 'up' : 'down');
+        // 取不到价时（txt === '--'）不要闪涨跌色：null >= oldNum 为假，
+        // 会被判成「跌了」闪红，可实际上只是这一轮没取到数据。
+        if (!isNaN(oldNum) && typeof q.price === 'number') {
+          flashPrice(priceNode, q.price >= oldNum ? 'up' : 'down');
+        }
         priceNode.textContent = txt;
       }
       const cls = pctClass(q.changePct);
@@ -1937,7 +1985,11 @@
     if (!state.chart) { el.chartBox.classList.add('off'); return; }
     // 副图指标（成交量 / RSI / MACD）：**先设副图再 setData**——
     // setData 内部会按当前副图重画，顺序反了会用上一次的副图类型。
-    if (state.chart && state.chart.setPane) state.chart.setPane(state.detailMACfg.pane);
+    // 兜底：detailMACfg 任何时候都不能是 null——它是 null 时下面这行会抛
+    // TypeError，抛点在 setData 之前，于是图表建好却没数据：用户看到一块空白画布，
+    // 而且异常被 Promise.allSettled 吞掉，页面上一点提示都没有。
+    const maCfg = state.detailMACfg || MA_CFG_DEFAULT;
+    if (state.chart && state.chart.setPane) state.chart.setPane(maCfg.pane);
     if (kind === 'trend') {
       // prevClose 优先用卡片/缓存里同步可得的报价，避免与 refreshDetailQuote 的竞态
       // （四路并行时 quote 常常未到，null 会让 charts 把收跌日整条染成涨色）
@@ -1947,7 +1999,7 @@
       state.chart.setData(data, prev);
     } else {
       state.chart.setData(data);
-      state.chart.setMAVisible(state.detailMACfg.lines);
+      state.chart.setMAVisible(maCfg.lines);
     }
     // 事件标记层：全球事件 + 龙虎榜按 symbol 落位（分时为 no-op）
     applyDetailEvents();
@@ -2627,6 +2679,8 @@
   async function loadLhb() {
     const res = await window.LhbSource.getLhb();
     state.lhb = res;
+    state.lhbVia = res.via;          // 'em' = 东财实时拉到，'cache' = 用的本地缓存
+    state.lhbCachedAt = res.at;
     state.lhbAt = Date.now();
     renderLhb();
     applyDetailEvents();   // A 股详情页可能因此补上"龙虎榜"标记
@@ -2653,8 +2707,14 @@
       return;
     }
     // 条数写死在文案里会跟着取数上限漂（曾写"前 60"而实际已是 73 行）——用真实行数
+    // 来源必须说清楚：走缓存时不能还写着「东财数据中心」——那是把几小时前的快照
+    // 标成实时数据。东财有 IP 级封禁前禁，被封时正是这种情况。
+    // 口径与基金持仓 / 因子 ETF / 13F 那几块保持一致。
+    const lhbSrc = res.via === 'cache'
+      ? '缓存 · ' + fmtTime(state.lhbCachedAt) + ' · '
+      : res.via === 'em' ? '东财数据中心 · ' : '';
     if (el.lhbVia) el.lhbVia.textContent =
-      res.tradeDate + ' 披露 · 东财数据中心 · 按净买额降序 ' + res.rows.length + ' 只 · 点击行进K线';
+      res.tradeDate + ' 披露 · ' + lhbSrc + '按净买额降序 ' + res.rows.length + ' 只 · 点击行进K线';
     el.lhbBox.innerHTML = `<div class="lrow-head" aria-hidden="true">
         <span>#</span><span>股票 / 代码</span><span>涨跌幅</span><span>龙虎榜净买</span><span>榜上成交</span><span title="上榜后第一个交易日的涨跌幅，T+1 收盘后才由数据源补齐；最新披露日必然为空">次日</span><span title="上榜后第 5 个交易日的涨跌幅，T+5 收盘后才有值；最新约 5 个披露日都会是空">5日</span><span>上榜原因</span>
       </div>` + res.rows.map((r, i) => `<div class="lrow" data-lhb="${escapeHTML(r.symbol)}" tabindex="0" role="button"
@@ -2720,12 +2780,16 @@
       const { date, rows } = await window.SouthboundSource.latest();
       if (rows.length) {
         state.southbound = rows; state.southboundDate = date; state.southboundAt = Date.now();
+        state.southboundVia = 'live';
         Cache.set('sb', { date, rows });
         return;
       }
     } catch (e) { /* 落到缓存 */ }
     const c = Cache.raw('sb');
-    if (c && c.val) { state.southbound = c.val.rows; state.southboundDate = c.val.date; }
+    if (c && c.val) {
+      state.southbound = c.val.rows; state.southboundDate = c.val.date;
+      state.southboundVia = 'cache'; state.southboundCachedAt = c.at;
+    }
   }
 
   function renderSouthbound() {
@@ -2744,8 +2808,12 @@
       }))
       .filter(x => x.chgValue !== null)
       .sort((a, b) => Math.abs(b.chgValue) - Math.abs(a.chgValue));
+    // 来源要说清楚：走缓存时不能还当成实时数据标（口径与龙虎榜 / 13F / ETF 几块一致）
+    const sbSrc = state.southboundVia === 'cache'
+      ? '缓存 · ' + fmtTime(state.southboundCachedAt) + ' · '
+      : '';
     if (el.sbVia) el.sbVia.textContent =
-      state.southboundDate + ' 持仓 · 共 ' + list.length + ' 只 · 按当日持仓市值变动 Top 30 · 点击进 K 线';
+      state.southboundDate + ' 持仓 · ' + sbSrc + '共 ' + list.length + ' 只 · 按当日持仓市值变动 Top 30 · 点击进 K 线';
     el.sbBox.innerHTML = `<div class="srow-head" aria-hidden="true">
         <span>#</span><span>股票 / 代码</span><span>南向持股比</span><span>持股市值</span><span>当日增减</span><span>参与券商</span><span></span>
       </div>` + ranked.slice(0, 30).map((x, i) => {
@@ -2879,8 +2947,13 @@
       const nm = x.zh || x.ticker;
       // 问号只挂在有 symbol 的行上（成分股），点它不触发行跳转
       const ask = x.sym ? askBtn(x.sym, nm) : '';
+      // aria-label 要带字段名：光把数字拼进去，读屏会念成
+      // 「苹果 9.78% 2148828244.50 6329391」，分不清哪个是占净值、哪个是市值。
+      const aria = state.etfSub === 'both'
+        ? [nm, '同时被动量与低波选中', '合计占净值 ' + cells[2]]
+        : [nm, '占净值 ' + cells[0], '持仓市值 ' + cells[1], '持股 ' + cells[2]];
       return `<div class="srow" ${x.sym ? `data-etfsym="${escapeHTML(x.sym)}"` : ''} data-etfname="${escapeHTML(nm)}"
-          tabindex="0" role="button" aria-label="${escapeHTML(nm)} ${cells.join(' ')}">
+          tabindex="0" role="button" aria-label="${escapeHTML(aria.join('，'))}">
         <span class="sr-no num">${String(i + 1).padStart(2, '0')}</span>
         <span class="sr-name" title="${escapeHTML(x.zh || x.ticker)}"><span class="sr-nm-wrap">${escapeHTML(nm)}<span class="lr-code num">${escapeHTML(x.ticker || '')}</span></span>${ask}</span>
         ${cells.map(c => `<span class="sr-net num">${c}</span>`).join('')}
@@ -2995,6 +3068,16 @@
     const gen = ++state.actorGen;
     state.actor = { id };
     const code = String(id).replace(/^seat:/, '');
+    // 席位代码会拼进东财的 filter 表达式（`OPERATEDEPT_CODE="..."`），
+    // 所以这里必须做白名单校验——URL 参数是可控的，不校验就等于把上游查询条件
+    // 交给别人写。同仓库的板块 / 分钟 K 线入口都有同样的白名单约定，这里也得有。
+    if (!/^\d{4,10}$/.test(code)) {
+      el.actorName.textContent = '席位参数不合法';
+      el.actorMeta.innerHTML = '';
+      el.actorStats.innerHTML = '';
+      el.actorTimeline.innerHTML = '<div class="empty">席位代码格式不对（应为 4—10 位数字）</div>';
+      return;
+    }
     // 首屏：先给目录里已知的基本信息，历史明细异步补
     const known = (state.actors || []).find(a => a.id === id);
     el.actorName.textContent = known ? known.name : '席位 ' + code;
@@ -3450,7 +3533,7 @@
     }
     state.boardStocks = stocks;
     el.boardDrawer.innerHTML = `<div class="bd-head">${b ? escapeHTML(b.name) + ' · ' : ''}领涨成分股<span class="bd-hint">点击进详情</span></div>` +
-      stocks.map(s => `<button class="bs-row" data-symbol="EM:${s.secid}">
+      stocks.map(s => `<button class="bs-row" data-symbol="EM:${escapeHTML(s.secid)}">
           <span class="bs-name">${escapeHTML(s.name)}</span>
           <span class="bs-code num">${escapeHTML(s.code)}</span>
           <span class="bs-pct num ${pctClass(s.changePct)}">${fmtPct(s.changePct)}</span>
@@ -3865,7 +3948,14 @@
       const bar = document.getElementById('usFundsBar');
       if (bar) switchFundsSub(bar, 'etf');
       // 滚到因子 ETF 持仓块：数据已到就立刻滚，晚到则由 renderEtf 接手
+      // 900ms 后那次补滚必须让位给用户：深链进来后读者往往已经在往上翻，
+      // 无条件再滚一次会把他硬拽回来（实测：落在 13F 那块的人被拽走）。
+      let userScrolled = false;
+      const onScroll = () => { userScrolled = true; };
+      window.addEventListener('scroll', onScroll, { once: true, passive: true });
       const scrollEtf = () => {
+        window.removeEventListener('scroll', onScroll);
+        if (userScrolled) return;      // 用户自己动过了，就别抢
         state.pendingEtfScroll = false;
         const box = document.getElementById('etfBox');
         if (box && box.scrollIntoView) box.scrollIntoView({ block: 'center' });
@@ -3902,9 +3992,13 @@
     }
     const mActor = h.match(/#actor=([^&]+)/);
     if (mActor) {
-      if (state.view === 'actor' && state.actor && state.actor.id === decodeURIComponent(mActor[1])) return;
+      // h 在 renderFromHash 开头已经 decodeURIComponent 过了，这里**不能再解一次**：
+      // 再解一次会把手抄的畸形序列（如 %zz）变成未捕获的 URIError，
+      // 冲出 hashchange 处理器——导航静默失败，页面停在旧内容。
+      const actorId = mActor[1];
+      if (state.view === 'actor' && state.actor && state.actor.id === actorId) return;
       if (state.view === 'detail') { disposeChart(); state.detail = null; }
-      openActor(decodeURIComponent(mActor[1]), { push: false });
+      openActor(actorId, { push: false });
       return;
     }
     if (!h || h === '#') {
@@ -3945,7 +4039,8 @@
       setCmpMode('profile');
       // 深链参数只允许 5~6 位纯数字基金代码：这里就用捕获组收口，
       // open() 内部还有同一形态的二次校验（fundprofile 同口径）
-      const codeM = mP ? decodeURIComponent(mP[1]).trim().match(/^(\d{5,6})$/) : null;
+      // h 已经解码过，这里不再解第二次（畸形 % 序列会抛未捕获的 URIError）
+      const codeM = mP ? mP[1].trim().match(/^(\d{5,6})$/) : null;
       if (codeM && window.FundProfile) window.FundProfile.open(codeM[1]);
     } else setCmpMode('compare');
   }
@@ -4218,6 +4313,20 @@
     }, 500);
   }
 
+  /* 任何一个弹层/下拉正开着吗？
+     Esc 的语义是「关掉最上面那层」，所以只要还有一层没关，Esc 就不该继续往下退。
+     之前只把 settingsModal 与 searchResults 列进守卫，漏了到价提醒弹层与分享弹层——
+     结果在提醒弹层里按 Esc，弹层关了、整个详情页也跟着退回列表，K 线上下文全丢。 */
+  function anyModalOpen() {
+    const share = document.getElementById('shareOverlay');
+    return !!(
+      (el.settingsModal && el.settingsModal.classList.contains('active'))
+      || (el.alertModal && el.alertModal.classList.contains('active'))
+      || (el.searchResults && el.searchResults.classList.contains('active'))
+      || (share && !share.hidden)
+    );
+  }
+
   function applyTheme(t) {
     if (!THEMES.includes(t)) t = 'swiss';   // 非法存量值回落到默认主题（与 store.js 默认一致）
     if (el.segTheme) {
@@ -4415,7 +4524,13 @@
   // 浏览器后退/前进 → 按 hash 恢复视图；编程式改 hash（pushState 不可用的回退）时跳过一次
   function onHashNav() {
     if (state.hashLock) { state.hashLock = false; return; }
-    renderFromHash();
+    // 整体兜底：hash 是用户可控的（手抄、分享、旧链接），任何一处解析出意外
+    // 都不该把 hashchange 处理器打断——那会让导航静默失败、页面停在旧内容。
+    try {
+      renderFromHash();
+    } catch (e) {
+      console.error('[hash] 解析失败', e);
+    }
   }
   // 监听器注册放在 init 内：IIFE 顶层注册曾早于 el 填充，窗口期内的 hashchange
   // 会带着未初始化的 el 走进 openDetail（偶发 TypeError，详情页整条变空）
@@ -4507,11 +4622,14 @@
       el.sourceStatus.classList.toggle('warn', bad.length > 0);
     } catch { /* 状态行显示不出来不影响内容 */ }
     const degCount = state.degraded.size;
+    let staleCount = 0;
+    state.degraded.forEach((v) => { if (v === 'stale') staleCount++; });
     const quoteAt = latestQuoteAt();
     const fetchAt = state.lastUpdate;
     el.updatedLine.textContent = '行情 ' + (quoteAt ? fmtNewsTime(quoteAt) : '--') +
       ' · 抓取 ' + (fetchAt ? fmtTime(fetchAt) : '--') +
-      (degCount ? ` · ${degCount} 个标的使用备源/缓存` : '');
+      (degCount ? ` · ${degCount} 个标的使用备源/缓存` : '') +
+      (staleCount ? ` · ${staleCount} 个标的是上一轮的值` : '');
     el.marketSub.textContent = marketSubFor(state.tab);
   }
 
@@ -4874,13 +4992,20 @@
       if (!e.target.closest('.search-wrap')) hideSearch();
     });
 
-    // 键盘可达：卡片/环节 Enter 触发
+    // 键盘可达：卡片/环节/行 Enter 触发
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return;
       // 焦点在卡片内星标/问号上时走按钮原生激活，否则会被下面的卡片 click 劫持成"进详情"
       if (e.target.closest('[data-star]') || e.target.closest('.ask')) return;
-      const node = e.target.closest('.qrow, .hero-cell, .quote-card, .link-node, .crow');
+      // 找最近的 role="button" 容器，让它走**和鼠标完全一样**的那条事件委托路径。
+      // 之前这里写死了一份类名清单（只覆盖 5 类行），结果自选卡（.wcard）、因子 ETF
+      // 持仓行（.srow）、龙虎榜行（.lrow）、板块行（.brow）等十几种行只能鼠标点，
+      // 键盘用户 Tab 到了按回车没反应。改成按 role 找，新增行类型不必再同步清单。
+      const node = e.target.closest('[role="button"]');
       if (!node) return;
+      // 焦点在行内的原生控件上（星标/问号之外的按钮、链接、输入框）时，
+      // 让那个控件自己处理，不要把整行也点一遍
+      if (e.target !== node && e.target.closest('button, a, input, select, textarea')) return;
       e.preventDefault();
       node.click();
     });
@@ -4907,8 +5032,7 @@
         el.searchInput.select();
         return;
       }
-      if ((state.view === 'detail' || state.view === 'actor') && (e.key === 'Backspace' || (e.key === 'Escape' &&
-          !el.settingsModal.classList.contains('active') && !el.searchResults.classList.contains('active')))) {
+      if ((state.view === 'detail' || state.view === 'actor') && (e.key === 'Backspace' || (e.key === 'Escape' && !anyModalOpen()))) {
         e.preventDefault();
         (state.view === 'detail' ? el.detailBack : el.actorBack).click();
       }
@@ -5386,17 +5510,8 @@
     schedule('selftest', async () => { renderSelfTest(); }, 15000);
 
     // 深链还原：带 #tab= / #symbol= 打开时直达对应视图（此时数据调度已起，详情会自行拉数）
-    // 默认指标配置：主图 3 条（MA5 / MA20 / EMA26）+ 副图成交量。
-    // 主图条数不固定（可增删，上限 8）；副图三选一（成交量 / RSI / MACD）。
-    // 存量配置（只有 lines、没有 pane）也会被补上默认副图。
-    const MA_CFG_DEFAULT = {
-      lines: [
-        { type: 'ma', n: 5, on: true },
-        { type: 'ma', n: 20, on: true },
-        { type: 'ema', n: 26, on: true },
-      ],
-      pane: { key: 'vol', params: {} },
-    };
+    // 默认指标配置 MA_CFG_DEFAULT 定义在模块作用域（state 之前）——
+    // 它同时是 state.detailMACfg 的初值，init 里只负责用 localStorage 的存量配置覆盖它。
     const storedCfg = window.Store.get('maCfg', null);
     state.detailMACfg = (storedCfg && Array.isArray(storedCfg.lines) && storedCfg.lines.length)
       ? {

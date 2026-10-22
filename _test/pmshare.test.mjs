@@ -102,5 +102,114 @@ await test('分享卡片：环图中心显示最大档位概率，图注说明"�
   assert.match(src, /不可相加/, '独立问句事件缺少"概率不可加总"的口径');
 });
 
+/* ---------------- 弹层：键盘关不掉（2026-10-22 修） ----------------
+   原来的分享弹层：整页没有关闭按钮、打开后不接焦点、Esc 也没人管——
+   键盘用户进去以后只能靠鼠标点背景才能出来。 */
+
+const HTML = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+
+await test('分享弹层必须有关闭按钮（原来整页都没有 shareClose，绑定从来没生效）', () => {
+  assert.ok(/id="shareClose"/.test(HTML), 'index.html 里没有 shareClose 按钮');
+  assert.match(src, /getElementById\('shareClose'\)/, 'pmshare.js 没有去绑这个按钮');
+  assert.match(src, /addEventListener\('keydown'/, 'pmshare.js 没有自己监听 keydown（Esc 关不掉）');
+});
+
+/* 行为单测：真的把 pmshare.js 跑起来，模拟一次"打开 → Esc → 关闭 → 焦点归还" */
+function bootShare() {
+  const mk = (id) => ({
+    id, hidden: true, disabled: false, focused: false,
+    style: {}, innerHTML: '', children: [],
+    classList: {
+      _s: new Set(),
+      add(c) { this._s.add(c); }, remove(c) { this._s.delete(c); }, contains(c) { return this._s.has(c); },
+    },
+    attrs: {}, listeners: {},
+    setAttribute(k, v) { this.attrs[k] = String(v); },
+    getAttribute(k) { return this.attrs[k] ?? null; },
+    addEventListener(t, fn) { (this.listeners[t] = this.listeners[t] || []).push(fn); },
+    appendChild(c) { this.children.push(c); return c; },
+    focus() { this.focused = true; ctx.document.activeElement = this; },
+    contains(el) { return this.children.includes(el); },
+    querySelectorAll() { return []; },
+  });
+  // 画布桩：drawCard 会画一整张卡，方法多到写不完——用 Proxy 兜住
+  const ctx2d = new Proxy({}, {
+    get(t, k) {
+      if (k === 'measureText') return () => ({ width: 10 });
+      if (k === 'createLinearGradient' || k === 'createRadialGradient') return () => ({ addColorStop() { } });
+      if (k === 'getImageData') return () => ({ data: [] });
+      if (k === 'canvas') return t.canvas;
+      return () => { };
+    },
+    set() { return true; },
+  });
+  const els = {
+    shareOverlay: mk('shareOverlay'), sharePreview: mk('sharePreview'),
+    shareSave: mk('shareSave'), shareNative: mk('shareNative'), shareClose: mk('shareClose'),
+    trigger: mk('trigger'),
+  };
+  const docHandlers = {};
+  const raw = {
+    console, Math, Date, Number, String, Array, Object, isNaN, parseInt, RegExp, JSON, Uint8Array, TextEncoder,
+    setTimeout, clearTimeout,
+    getComputedStyle: () => ({ getPropertyValue: () => '' }),
+    document: {
+      body: {
+        classList: { _s: new Set(), add(c) { this._s.add(c); }, remove(c) { this._s.delete(c); }, contains(c) { return this._s.has(c); } },
+      },
+      activeElement: null,
+      getElementById: (id) => els[id] || null,
+      createElement: (tag) => {
+        if (tag === 'canvas') {
+          const cv = mk('canvas');
+          cv.toDataURL = () => 'data:image/png;base64,';
+          cv.getContext = () => ctx2d;
+          return cv;
+        }
+        return mk(tag);
+      },
+      addEventListener: (t, fn) => { (docHandlers[t] = docHandlers[t] || []).push(fn); },
+    },
+    requestAnimationFrame: (f) => f(),
+  };
+  const ctx = vm.createContext(raw);
+  ctx.window = ctx; ctx.globalThis = ctx;
+  vm.runInContext(src, ctx, { filename: 'js/pmshare.js' });
+  const fire = (type, e) => (docHandlers[type] || []).forEach(fn => fn(e));
+  const open = (active) => {
+    const S = ctx.window.PMShare;
+    S.mount({ getEvent: () => ({ id: 'e1', title: '测试事件', category: 'politics', outcomes: [{ label: '是', probability: 0.6 }, { label: '否', probability: 0.4 }] }) });
+    if (active) ctx.document.activeElement = active;
+    const ok = S.open('e1');
+    assert.equal(ok, true, '分享弹层没能打开');
+    return S;
+  };
+  return { ctx, els, fire, open };
+}
+
+await test('分享弹层：Esc 能关（pmshare.js 自己监听，不依赖 app.js）', () => {
+  const { els, fire, open } = bootShare();
+  open();
+  assert.equal(els.shareOverlay.hidden, false, '弹层没有显示出来');
+  fire('keydown', { key: 'Escape', preventDefault() { } });
+  assert.equal(els.shareOverlay.classList.contains('active'), false, 'Esc 没有关掉弹层');
+});
+
+await test('分享弹层：关闭按钮真的能关', () => {
+  const { els, open } = bootShare();
+  open();
+  assert.equal(els.shareOverlay.hidden, false);
+  (els.shareClose.listeners.click || []).forEach(fn => fn({}));
+  assert.equal(els.shareOverlay.classList.contains('active'), false, '关闭按钮没有关掉弹层');
+});
+
+await test('分享弹层：打开时焦点进弹层，关掉后焦点还给触发它的那一个', () => {
+  const { ctx, els, open } = bootShare();
+  const S = open(els.trigger);
+  assert.equal(els.shareSave.focused, true, '焦点没有进弹层');
+  S.hide();
+  assert.equal(els.trigger.focused, true, '焦点没有还给触发它的那一个');
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

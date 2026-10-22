@@ -57,22 +57,31 @@ const debounce = (fn, ms) => {
   return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
 };
 
-const num = (v) => {
-  if (v === null || v === undefined || v === '' || v === '-') return null;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
+// 缺失值判定：null / undefined / 空串 / 纯空白 / NaN / ±Infinity 一律算"没有数据"。
+// 空串以前会被 isNaN 放过去（Number('') === 0），于是一个没填的格子会显示成 "0.00"——
+// 那是在编数字。Infinity 同理（JSON.parse('1e400') 就能得到它）。
+const isMissing = (v) => {
+  if (v === null || v === undefined) return true;
+  if (typeof v === 'string' && v.trim() === '') return true;
+  return !Number.isFinite(Number(v));
 };
-const fmt = (n, d = 2) => (n === null || n === undefined || isNaN(n)) ? '--' : Number(n).toFixed(d);
-const fmtPct = n => (n === null || n === undefined || isNaN(n)) ? '--' : (n > 0 ? '+' : '') + Number(n).toFixed(2) + '%';
-const fmtChg = (n, d = 2) => (n === null || n === undefined || isNaN(n)) ? '--' : (n > 0 ? '+' : '') + Number(n).toFixed(d);
+const num = (v) => {
+  if (v === null || v === undefined || v === '-') return null;
+  if (typeof v === 'string' && v.trim() === '') return null;   // 纯空白 = 没填
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;   // Infinity / -Infinity 同样算缺失
+};
+const fmt = (n, d = 2) => isMissing(n) ? '--' : Number(n).toFixed(d);
+const fmtPct = n => isMissing(n) ? '--' : (n > 0 ? '+' : '') + Number(n).toFixed(2) + '%';
+const fmtChg = (n, d = 2) => isMissing(n) ? '--' : (n > 0 ? '+' : '') + Number(n).toFixed(d);
 const fmtVol = n => {
-  if (n === null || n === undefined || isNaN(n)) return '--';
+  if (isMissing(n)) return '--';
   return n >= 1e8 ? (n / 1e8).toFixed(2) + '亿' : n >= 1e4 ? (n / 1e4).toFixed(0) + '万' : String(Math.round(n));
 };
 // 价格小数位：加密/外汇小价格要多位
 const priceDigits = (p) => {
-  if (p === null || p === undefined || isNaN(p)) return 2;
-  const a = Math.abs(p);
+  if (isMissing(p)) return 2;
+  const a = Math.abs(Number(p));
   if (a >= 1000) return 2;
   if (a >= 1) return 2;   // A股 7.28 显示 7.28（去尾零）；外汇第 4 位由市场分支（fx→4）负责
   if (a >= 0.01) return 4;
@@ -162,6 +171,6 @@ const Cache = {
 
 window.U = {
   fetchJSONP, request, throttle, debounce,
-  num, fmt, fmtPct, fmtChg, fmtVol, fmtPrice, priceDigits, fmtTime, fmtAgo,
+  num, fmt, fmtPct, fmtChg, fmtVol, fmtPrice, priceDigits, fmtTime, fmtAgo, isMissing,
   escapeHTML, Cache, toChartTime, fmtDay,
 };

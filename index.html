@@ -89,7 +89,7 @@
 <main class="main" id="main">
 
   <!-- ========== 市场总览 ========== -->
-  <section class="view active tab-panel" id="view-market" role="tabpanel" tabindex="-1" aria-label="market">
+  <section class="view active tab-panel" id="view-market" role="tabpanel" tabindex="-1" aria-label="全球市场">
     <div class="page-head">
       <h1 class="page-title" id="marketTitle">全球市场</h1>
       <p class="page-sub" id="marketSub">加载中…</p>
@@ -299,8 +299,11 @@
             <a href="https://5777-wq.github.io/openfin-academy/#/term/low-vol" target="_blank" rel="noopener">低波策略 ↗</a>
             <a href="https://5777-wq.github.io/openfin-academy/#/term/qqq" target="_blank" rel="noopener">纳指100 QQQ ↗</a>
             <a href="https://5777-wq.github.io/openfin-academy/#/term/spy" target="_blank" rel="noopener">标普500 SPY ↗</a>
-            <a href="https://5777-wq.github.io/openfin-academy/#/term/options" target="_blank" rel="noopener">期权 ↗</a>
             <a href="https://5777-wq.github.io/openfin-academy/#/data?cat=fund" target="_blank" rel="noopener">全部基金与策略 →</a>
+            <!-- 期权单列一行：它不是基金，混在基金那一组里读起来像「期权属于基金策略」 -->
+            <span class="eg-label eg-break">期权（终端没有这个功能，科普站讲得全）</span>
+            <a href="https://5777-wq.github.io/openfin-academy/#/term/options" target="_blank" rel="noopener">期权是什么 ↗</a>
+            <a href="https://5777-wq.github.io/openfin-academy/#/data?cat=option" target="_blank" rel="noopener">20 条期权与经典策略 →</a>
           </div>
           <div id="etfBox"><div class="sk sk-row"></div></div>
           <p class="insight-disclaimer">规则化因子 ETF 的<strong>每日全量持仓</strong>（Invesco 官方发布）：动量 ETF 的持仓回答"趋势资金集中在哪"，低波 ETF 回答"防御资金在哪"，交集是<strong>同时被两类因子选中</strong>的股票。这是编制规则定期调仓（半年/季度）后的<strong>被动持仓</strong>，不是某位基金经理的主观判断。已剔除官方 feed 里的现金 / 货币基金 / 指数期货等非股票行；「占净值」合计不足 100% 是因为只列 Top 40（低波近乎等权，Top 40 只占约一半净值，这不是缺数据）。点击行进 K 线详情。历史事实陈述，不构成任何建议。</p>
@@ -325,7 +328,7 @@
   </section>
 
   <!-- ========== 详情 ========== -->
-  <section class="view tab-panel" id="view-detail" role="tabpanel" tabindex="-1" aria-label="detail">
+  <section class="view tab-panel" id="view-detail" role="tabpanel" tabindex="-1" aria-label="标的详情">
     <div class="detail-head">
       <button class="back-btn" id="detailBack">← 返回</button>
       <span class="detail-name" id="detailName">—</span>
@@ -373,7 +376,7 @@
   </section>
 
   <!-- ========== 全球事件（3D 地球 + 事件流 + 快讯） ========== -->
-  <section class="view tab-panel" id="view-events" role="tabpanel" tabindex="-1" aria-label="events">
+  <section class="view tab-panel" id="view-events" role="tabpanel" tabindex="-1" aria-label="全球事件">
     <h1 class="page-title">全球事件</h1>
     <p class="page-sub" id="eventsSub">事件 → 宏观/地缘新闻 → 影响资产 → K线反应，四层联动</p>
     <!-- 子视图切换用分段控件（.seg）：它是"去哪个视图"的导航，
@@ -439,7 +442,7 @@
   </section>
 
   <!-- ========== 席位档案（Actor Profile，hash #actor= 深链） ========== -->
-  <section class="view tab-panel" id="view-actor" role="tabpanel" tabindex="-1" aria-label="actor">
+  <section class="view tab-panel" id="view-actor" role="tabpanel" tabindex="-1" aria-label="席位档案">
     <div class="detail-head">
       <button class="back-btn" id="actorBack">← 返回</button>
       <span class="detail-name" id="actorName">—</span>
@@ -468,7 +471,7 @@
   </section>
 
   <!-- ========== 产业链 ========== -->
-  <section class="view tab-panel" id="view-chain" role="tabpanel" tabindex="-1" aria-label="chain">
+  <section class="view tab-panel" id="view-chain" role="tabpanel" tabindex="-1" aria-label="产业链追踪">
     <h1 class="page-title" data-gloss="industry-chain" tabindex="0">产业链追踪</h1>
     <p class="page-sub" id="chainSub">环节强度 = 环节内成分股涨跌幅简单平均，点击环节展开成分股</p>
     <div class="board-wrap">
@@ -480,21 +483,21 @@
   </section>
 
   <!-- ========== 自选 ========== -->
-  <section class="view tab-panel" id="view-watch" role="tabpanel" tabindex="-1" aria-label="watch">
+  <section class="view tab-panel" id="view-watch" role="tabpanel" tabindex="-1" aria-label="我的自选">
     <h1 class="page-title">我的自选</h1>
     <p class="page-sub">跨市场收藏，保存在本机浏览器</p>
     <div id="watchWall"></div>
   </section>
 
   <!-- ========== 持仓跟踪（本机记账 + 实时盈亏；视图模块 portfolio.js 自持内部 DOM） ========== -->
-  <section class="view tab-panel" id="view-portfolio" role="tabpanel" tabindex="-1" aria-label="portfolio">
+  <section class="view tab-panel" id="view-portfolio" role="tabpanel" tabindex="-1" aria-label="持仓跟踪">
     <h1 class="page-title">持仓跟踪</h1>
     <p class="page-sub">记录数量与成本价，行情到位后实时算市值与盈亏 · 数据只存本机浏览器，不上传</p>
     <div id="portRoot"></div>
   </section>
 
   <!-- ========== 基金（对比 + 画像两个子面板） ========== -->
-  <section class="view tab-panel" id="view-compare" role="tabpanel" tabindex="-1" aria-label="compare">
+  <section class="view tab-panel" id="view-compare" role="tabpanel" tabindex="-1" aria-label="基金对比">
     <div class="page-head">
       <h1 class="page-title">基金</h1>
       <p class="page-sub" id="cmpSub">多标的归一化对比 + 单基金画像（档案 / 净值 / 排名 / 规模 / 持有人 / 重仓股）</p>
@@ -736,6 +739,7 @@
     <div class="share-actions">
       <button class="share-btn" id="shareSave">保存图片</button>
       <button class="share-btn primary" id="shareNative">系统分享</button>
+      <button class="share-btn" id="shareClose">关闭</button>
     </div>
   </div>
 </div>

@@ -83,16 +83,21 @@ function assetsFromLocal(dir) {
 
 /** 写成运行时可读的静态 JS（终端不直连科普站，只读本地静态文件） */
 function writeAssetsJS(a) {
-  const body = `/* academy-assets.js —— 哪些终端标的在「白话金融」真的有标的页
+  const body = `/* academy-assets.js —— 科普站能接住哪些标的
    ⚠ 自动生成，勿手改。来源：_scripts/collect-academy-terms.mjs（从科普站同步）。
-   用途：终端据此决定能不能给 #/assets/<symbol> 的链接——
-   科普站只给采到了月线序列的标的做了数据卡，其余点过去是半空页，
-   那种链接是假入口，不该给。 */
+   用途：
+     · symbols —— 哪些终端标的在科普站**真的有标的页**（带真实月线数据卡）。
+       终端据此决定能不能给 #/assets/<symbol> 的链接：不在表里的点过去是半空页，
+       那种链接是假入口，不该给。
+     · searchable —— 科普站真能搜到的词（词条名 + 标的页标题）。
+       终端据此决定要不要给「去科普站里搜这个词」的入口：
+       给一个搜不到词的搜索链接，等于给用户一条必然扑空的路。 */
 window.AcademyAssets = ${JSON.stringify({
     generatedAt: a.generatedAt || '',
     source: a.source || LIVE_ASSETS,
     count: (a.symbols || []).length,
     symbols: a.symbols || [],
+    searchable: a.searchable || [],
   }, null, 1)};
 `;
   let old = null;

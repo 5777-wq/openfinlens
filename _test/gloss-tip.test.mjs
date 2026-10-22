@@ -160,12 +160,19 @@ test('外汇那几只给「外汇」概念页，不给没有数据的标的页',
   }
 });
 
-test('不在 universe 里的标的 → 只能给搜索页，不给假入口', () => {
-  const t = AG.targetFor('xx999999', '某只没收录的票');
-  assert.ok(t);
+test('科普站搜不到的词就不给链接（不给「必然扑空」的搜索页）', () => {
+  // 科普站真能搜到的词 → 给搜索页
+  const t = AG.targetFor('xx999999', '宁德时代');
+  assert.ok(t, '应当有链接');
   assert.equal(t.kind, 'search');
-  assert.equal(t.href, AG.BASE + '#/search?q=' + encodeURIComponent('某只没收录的票'));
-  assert.ok(t.label.includes('某只没收录的票'), '链接文案要带上标的名：' + t.label);
+  assert.equal(t.href, AG.BASE + '#/search?q=' + encodeURIComponent('宁德时代'));
+  assert.ok(t.label.includes('宁德时代'), '链接文案要带上标的名：' + t.label);
+
+  // 科普站根本没有的词 → **不给链接**。
+  // 以前无条件给，于是「谷歌-A」「强生」这类点过去必然是「没有找到」——
+  // 宁可没有入口，也不要一条死路。
+  const dead = AG.targetFor('usGOOGL', '谷歌-A');
+  assert.equal(dead, null, '科普站搜不到的词却给了搜索链接：' + (dead && dead.href));
 });
 
 test('没有名字 → 不给链接（不硬凑一个空搜索）', () => {
@@ -174,9 +181,9 @@ test('没有名字 → 不给链接（不硬凑一个空搜索）', () => {
 });
 
 test('只有名字、没查到 symbol → 也能给出搜索入口', () => {
-  const t = AG.targetFor('', '宁德时代');
+  const t = AG.targetFor('', '贵州茅台');
   assert.ok(t);
-  assert.equal(t.href, AG.BASE + '#/search?q=' + encodeURIComponent('宁德时代'));
+  assert.equal(t.href, AG.BASE + '#/search?q=' + encodeURIComponent('贵州茅台'));
 });
 
 test('映射用到的术语 id 必须都在科普站术语库里', () => {
@@ -188,7 +195,10 @@ test('映射用到的术语 id 必须都在科普站术语库里', () => {
 
 test('每个精确映射的标的，本站 explain.js 也必须有一句话（否则链接比解释更具体 = 假入口）', () => {
   for (const sym of Object.keys(AG.TERM_BY_SYMBOL)) {
-    const ex = EX.of({ symbol: sym, market: '', name: '' });
+    // 加密标的的一句话解释放在 CRYPTO_NOTES 里，要带上市场与代码才查得到
+    const ex = /USDT$/.test(sym)
+      ? EX.of({ symbol: sym, market: 'crypto', code: sym, name: sym })
+      : EX.of({ symbol: sym, market: '', name: '' });
     assert.ok(ex && ex.kind === 'specific',
       sym + ' 在 explain.js 里没有精确解释，映射却指向了具体术语页');
   }
@@ -198,7 +208,8 @@ test('映射的标的形态必须合法（防止拼错 symbol 静默失效）', 
   const keys = Object.keys(AG.TERM_BY_SYMBOL).concat(Object.keys(AG.CONCEPT_BY_SYMBOL));
   assert.ok(keys.length >= 20, '映射表太小：' + keys.length);
   for (const k of keys) {
-    assert.match(k, /^(sh|sz|bj|hk|us|EM:)/, 'symbol 形态异常：' + k);
+    // 加密标的的 symbol 形态是 <BASE>USDT（与 CRYPTO_UNIVERSE 一致）
+    assert.match(k, /^(sh|sz|bj|hk|us|EM:|[A-Z0-9]+USDT$)/, 'symbol 形态异常：' + k);
   }
 });
 
@@ -267,7 +278,7 @@ test('ETF 面板的科普入口必须逐个指向真实存在的术语页（不�
       assert.ok(ACADEMY_TERM_IDS.includes(m[1]), '科普入口指向不存在的术语：' + m[1]);
     } else {
       // 不是术语页，就得是速查表（带分类参数）
-      assert.ok(/#\/data\?cat=(data|fund|asset|macro|basic|micro|player|risk|tech)$/.test(href),
+      assert.ok(/#\/data\?cat=(data|fund|asset|macro|basic|micro|player|risk|tech|option)$/.test(href),
         '科普入口指向了不认识的页面：' + href);
     }
   }
@@ -368,6 +379,179 @@ test('终端必须支持 #etf= 深链（科普站的动量/低波词条要落到
   const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
   assert.ok(app.includes('#etf='), 'app.js 没处理 #etf= 深链');
   assert.ok(app.includes('pendingEtfScroll'), 'app.js 没处理滚到因子 ETF 区块');
+});
+
+/* ---------------- 因子 ETF 持仓行：名字要从**祖先行**上取 ----------------
+   2026-10-22 修的真实缺陷：「?」按钮自己身上没有 data-etfname（名字挂在外层 .srow 上），
+   而 getAttribute 不查祖先 → domName 恒为空 → OpenFinMeta 又查不到（行情里没有这 70 只）
+   → meta.name 为空 → 整个浮层出不来。77 只成分股里 70 只的「?」当时完全没反应。 */
+
+const ETF_JSON = JSON.parse(readFileSync(path.join(ROOT, 'data/actors/etf.json'), 'utf8'));
+
+/* 最小 DOM 桩：只需要 closest / getAttribute / createElement / 事件 */
+function makeNode(attrs = {}, parent = null) {
+  const node = {
+    attrs: Object.assign({}, attrs),
+    parent: parent || null,
+    children: [],
+    style: {},
+    className: '',
+    _html: '',
+    listeners: {},
+    setAttribute(k, v) { this.attrs[k] = String(v); },
+    getAttribute(k) { return Object.prototype.hasOwnProperty.call(this.attrs, k) ? this.attrs[k] : null; },
+    addEventListener(t, fn) { (this.listeners[t] = this.listeners[t] || []).push(fn); },
+    appendChild(c) { this.children.push(c); c.parent = this; return c; },
+    contains(el) { let n = el; while (n) { if (n === this) return true; n = n.parent; } return false; },
+    getBoundingClientRect() { return { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }; },
+    focus() { this.focused = true; },
+    closest(sel) {
+      const parts = String(sel).split(',').map(s => s.trim());
+      let n = this;
+      while (n) {
+        for (const p of parts) {
+          const m = /^\[([^\]=]+)\]$/.exec(p);
+          if (m && n.getAttribute(m[1]) !== null) return n;
+        }
+        n = n.parent;
+      }
+      return null;
+    },
+  };
+  Object.defineProperty(node, 'innerHTML', {
+    get() { return this._html; },
+    set(v) { this._html = String(v); },
+  });
+  return node;
+}
+
+/* 装上 DOM 桩并加载真的 gloss-tip.js（行情全空 = 离线场景，正是当初出问题的那一档）。
+   科普站去处（AcademyGloss.targetFor）在这里换成桩：这一组要验的是**名字解析**，
+   不是科普站那边有没有这一页（那是 academy-gloss.js 的事，它的数据每天都在变）。 */
+function bootTip(metaOf, targetFor) {
+  const created = [];
+  const handlers = {};
+  const body = makeNode();
+  ctx.document = {
+    readyState: 'complete',      // 让 init() 真的跑起来（悬停入口就注册在那儿）
+    body,
+    createElement: () => { const n = makeNode(); created.push(n); return n; },
+    addEventListener: (t, fn) => { (handlers[t] = handlers[t] || []).push(fn); },
+    getElementById: () => null,
+  };
+  ctx.addEventListener = () => { };
+  ctx.innerWidth = 1280;
+  ctx.innerHeight = 800;
+  ctx.OpenFinMeta = { of: metaOf || (() => null) };   // 离线：行情里查不到这 70 只
+  if (targetFor) ctx.AcademyGloss = Object.assign({}, ctx.AcademyGloss, { targetFor });
+  vm.runInContext(readFileSync(path.join(ROOT, 'js/gloss-tip.js'), 'utf8'), ctx, { filename: 'gloss-tip.js' });
+  return { created, handlers };
+}
+
+/* 科普站去处的桩：把"传进来的名字"原样带回链接里，好看清解析到的是哪个名字 */
+const echoTarget = (sym, name) => ({
+  href: 'https://5777-wq.github.io/openfin-academy/#/search?q=' + encodeURIComponent(name || ''),
+  kind: 'search',
+  label: '在白话金融里查「' + (name || '') + '」↗',
+});
+
+/* 造一行 ETF 持仓行（.srow 上挂名字，行里放「?」），悬停它的「?」 */
+function hoverAsk(sym, name, opts) {
+  const o = opts || {};
+  const { created, handlers } = bootTip(o.metaOf, o.noLink ? (() => null) : echoTarget);
+  const row = makeNode({ 'data-etfname': name });
+  const wrap = makeNode({ class: 'sr-name' }, row);
+  const ask = makeNode({ class: 'ask', 'data-ask': sym }, wrap);
+  row.appendChild(wrap);
+  (handlers.mouseover || []).forEach(fn => fn({ target: ask, clientX: 20, clientY: 20 }));
+  const tip = created[created.length - 1];
+  return tip && tip._html ? tip : null;
+}
+
+test('因子 ETF 持仓行：77 只成分股的「?」都能出浮层（名字取自祖代行）', () => {
+  const rows = [];
+  (ETF_JSON.funds || []).forEach(f => (f.holdings || []).forEach(h => {
+    if (h.sym) rows.push({ sym: h.sym, name: h.zh || h.ticker });
+  }));
+  const distinct = new Map(rows.map(r => [r.sym, r]));
+  assert.equal(distinct.size, 77, '成分股数量对不上（现在 ' + distinct.size + ' 只）');
+  const bad = [];
+  for (const [sym, r] of distinct) {
+    const tip = hoverAsk(sym, r.name);
+    if (!tip) { bad.push(sym + '(无浮层)'); continue; }
+  }
+  assert.equal(bad.length, 0, '这些成分股的「?」没有浮层：' + bad.join(' '));
+});
+
+test('因子 ETF 持仓行：双因子交集视图的 21 只同样要能出浮层', () => {
+  const rows = (ETF_JSON.overlap && ETF_JSON.overlap.rows) || [];
+  assert.equal(rows.length, 21, '交集视图的行数变了（现在 ' + rows.length + ' 行）');
+  const bad = [];
+  for (const r of rows) {
+    if (!r.sym) continue;
+    const tip = hoverAsk(r.sym, r.zh || r.ticker);
+    if (!tip) bad.push(r.sym);
+  }
+  assert.equal(bad.length, 0, '交集视图里这些行的「?」没有浮层：' + bad.join(' '));
+});
+
+test('因子 ETF 持仓行：用**真的**科普站数据，77 只成分股也要全部出浮层', () => {
+  // 这一条不桩掉科普站：科普站那边给不给链接是它的事（不给就不给，不给死路），
+  // 但「这是什么」是本站的静态知识——浮层必须出得来。
+  const rows = [];
+  (ETF_JSON.funds || []).forEach(f => (f.holdings || []).forEach(h => {
+    if (h.sym) rows.push({ sym: h.sym, name: h.zh || h.ticker });
+  }));
+  const distinct = new Map(rows.map(r => [r.sym, r]));
+  assert.equal(distinct.size, 77, '成分股数量对不上（现在 ' + distinct.size + ' 只）');
+  const bad = [];
+  for (const [sym, r] of distinct) {
+    const { created, handlers } = bootTip();      // 真 AcademyGloss
+    const row = makeNode({ 'data-etfname': r.name });
+    const wrap = makeNode({ class: 'sr-name' }, row);
+    const ask = makeNode({ class: 'ask', 'data-ask': sym }, wrap);
+    row.appendChild(wrap);
+    (handlers.mouseover || []).forEach(fn => fn({ target: ask, clientX: 20, clientY: 20 }));
+    const tip = created[created.length - 1];
+    if (!tip || !tip._html) bad.push(sym);
+  }
+  assert.equal(bad.length, 0, '这些成分股的「?」没有浮层：' + bad.join(' '));
+});
+
+test('浮层里的名字来自行上的 data-etfname（不在 universe 里的标的会拿它去科普站搜）', () => {
+  const tip = hoverAsk('usADI', '亚德诺');
+  assert.ok(tip, '没有浮层');
+  assert.ok(tip.innerHTML.includes('亚德诺'),
+    '浮层里没有用到行上的名字：' + tip.innerHTML.slice(0, 200));
+  assert.ok(tip.innerHTML.includes('在白话金融里查'), '没有给出科普站入口：' + tip.innerHTML.slice(0, 200));
+});
+
+test('名字优先用行情（data-ask 对应的 symbol 在行情表里的名字），行上的名字只是兜底', () => {
+  const tip = hoverAsk('usADI', '行上的名字', {
+    metaOf: (sym) => ({ symbol: sym, market: 'us', name: '行情里的名字', code: '' }),
+  });
+  assert.ok(tip && tip.innerHTML.includes('行情里的名字'),
+    '没有优先用行情里的名字：' + (tip ? tip.innerHTML.slice(0, 200) : '(无浮层)'));
+  assert.ok(!tip.innerHTML.includes('行上的名字'), '不该用行上的名字盖住行情里的名字');
+});
+
+test('科普站没有可信去处时：解释照给，只是不带链接（不给死链，也不让「?」没反应）', () => {
+  const tip = hoverAsk('usADI', '亚德诺', { noLink: true });
+  assert.ok(tip, '没有浮层——解释是本站的静态知识，不该因为科普站没这一页就没了');
+  assert.ok(tip.innerHTML.includes('gt-text'), '浮层里没有解释：' + tip.innerHTML.slice(0, 200));
+  assert.ok(!tip.innerHTML.includes('gt-link'), '没有可信去处时不该给链接：' + tip.innerHTML.slice(0, 200));
+});
+
+test('基金持股变动行的 data-fundname 同样能被取到（祖先查找覆盖两种行）', () => {
+  const { created, handlers } = bootTip(null, echoTarget);
+  const row = makeNode({ 'data-fundname': '贵州茅台' });
+  const wrap = makeNode({ class: 'sr-name' }, row);
+  const ask = makeNode({ class: 'ask', 'data-ask': 'usADI' }, wrap);
+  row.appendChild(wrap);
+  (handlers.mouseover || []).forEach(fn => fn({ target: ask, clientX: 20, clientY: 20 }));
+  const tip = created[created.length - 1];
+  assert.ok(tip && tip.innerHTML.includes('贵州茅台'),
+    '没取到 data-fundname：' + (tip ? tip.innerHTML.slice(0, 200) : '(无浮层)'));
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -255,5 +255,87 @@ test('0 圆角通配不得压掉语义圆点（事件类型色点必须是圆）
   });
 });
 
+/* ---------------- 浅色皮肤下的可读性守卫 ----------------
+   "看不见"是一类不会报错的回归：5% 白叠在白底上等于什么都没发生，
+   键盘选中的那一行直接在 5 套浅色皮肤里消失。这里把它变成可断言的数字。 */
+
+const THEMES = [':root', 'swiss', 'paper', 'bauhaus', 'clay', 'memphis', 'aurora', 'oled'];
+function themeBlock(name) {
+  const re = name === ':root'
+    ? /:root\s*\{([\s\S]*?)\n\}/
+    : new RegExp('html\\[data-theme="' + name + '"\\]\\s*\\{([\\s\\S]*?)\\n\\}');
+  const m = CSS.match(re);
+  assert.ok(m, '找不到 ' + name + ' 的主题块');
+  return m[1];
+}
+function themeVar(name, block) {
+  const m = new RegExp('--' + name + '\\s*:\\s*([^;]+);').exec(block);
+  return m ? m[1].trim() : null;
+}
+const srgb2linRel = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+const relLum = ([r, g, b]) => 0.2126 * srgb2linRel(r) + 0.7152 * srgb2linRel(g) + 0.0722 * srgb2linRel(b);
+const contrast = (a, b) => {
+  const l1 = relLum(a), l2 = relLum(b);
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+};
+
+test('8 套皮肤都定义了选中/悬停要用到的令牌（--accent-rgb / --bg-hover）', () => {
+  THEMES.forEach(t => {
+    const b = themeBlock(t);
+    assert.ok(themeVar('accent-rgb', b), t + ' 缺 --accent-rgb');
+    assert.ok(themeVar('bg-hover', b), t + ' 缺 --bg-hover');
+    assert.ok(themeVar('bg-elevated', b), t + ' 缺 --bg-elevated');
+  });
+});
+
+test('搜索下拉的悬停/选中行不许再写死白色透明层（5% 白叠白底 = 看不见）', () => {
+  const rules = CSS.match(/\.sr-item[^{]*\{[^}]*\}/g) || [];
+  const joined = rules.join('\n');
+  assert.ok(rules.length >= 2, '没扫到 .sr-item 的规则（选择器可能失效）');
+  assert.ok(!/rgba\(255,\s*255,\s*255/.test(joined),
+    '还在用写死的白色透明层：' + joined.replace(/\s+/g, ' '));
+  assert.ok(/var\(--accent-rgb\)/.test(joined), '选中/悬停行没有用主题强调色');
+});
+
+test('搜索下拉选中行在 8 套皮肤下都看得见（与面板底色有可辨的色差）', () => {
+  THEMES.forEach(t => {
+    const b = themeBlock(t);
+    const bg = themeVar('bg-elevated', b);
+    const rgb = themeVar('accent-rgb', b).split(',').map(s => parseInt(s, 10));
+    assert.ok(/^#[0-9a-f]{6}$/i.test(bg), t + ' 的 --bg-elevated 不是 hex：' + bg);
+    const base = [1, 3, 5].map(i => parseInt(bg.substr(i, 2), 16));
+    const alpha = 0.20;   // .sr-item.sel 的蒙版浓度
+    const over = base.map((c, i) => c + (rgb[i] - c) * alpha);
+    const ratio = contrast(over, base);
+    assert.ok(ratio >= 1.15,
+      t + ' 皮肤的选中行与面板底色色差只有 ' + ratio.toFixed(2) + ':1（看得见才算数）');
+  });
+});
+
+test('「?」按钮桌面端可点区 ≥24×24，字色用 --text-tertiary（浅色皮肤下 --text-faint 太淡）', () => {
+  const m = CSS.match(/\n\.ask \{([\s\S]*?)\n\}/);
+  assert.ok(m, '找不到桌面端的 .ask 规则');
+  const block = m[1];
+  assert.ok(/position:\s*relative/.test(block), '没有定位基准，外扩的可点区放不下');
+  assert.ok(/var\(--text-tertiary\)/.test(block), '问号字色还是 --text-faint（浅色皮肤下几乎看不见）');
+  const after = CSS.match(/\.ask::after \{([^}]*)\}/);
+  assert.ok(after, '没有外扩的可点区（.ask::after）');
+  const w = /width:\s*(\d+(?:\.\d+)?)px/.exec(after[1]);
+  const h = /height:\s*(\d+(?:\.\d+)?)px/.exec(after[1]);
+  assert.ok(w && h, '可点区没有写明宽高');
+  assert.ok(parseFloat(w[1]) >= 24 && parseFloat(h[1]) >= 24,
+    `可点区只有 ${w[1]}×${h[1]}px（要 ≥24×24）`);
+});
+
+test('窄屏的「?」仍要保持 26×26（那段是手指头能点到的尺寸，别改坏）', () => {
+  const re = /@media \(max-width: 640px\) \{([\s\S]*?)\n\}/g;
+  let m, narrow = null;
+  while ((m = re.exec(CSS))) { if (/\.ask \{/.test(m[1])) { narrow = m[1]; break; } }
+  assert.ok(narrow, '窄屏媒体查询里没有 .ask 规则');
+  const rule = narrow.match(/\.ask \{([\s\S]*?)\}/);
+  assert.ok(rule, '窄屏里没有 .ask 规则');
+  assert.ok(/width:\s*26px/.test(rule[1]) && /height:\s*26px/.test(rule[1]), '窄屏的可点区不是 26×26');
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

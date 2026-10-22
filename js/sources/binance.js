@@ -52,6 +52,10 @@ const BinanceSource = (() => {
   }
 
   async function getQuotes(symbols) {
+    // 传空数组 = "我一只也不要"，不是"给我全市场"：回退只对没传参数（undefined/null）生效。
+    // 以前空数组会落进 fallback，把整个加密市场（1.9MB）拉回来——调用方今天都挡住了，
+    // 但这是个会咬人的契约：哪天有人写 getQuotes(过滤后的空列表)，就悄悄变成全市场请求。
+    if (Array.isArray(symbols) && symbols.length === 0) return [];
     const list = (symbols && symbols.length) ? symbols : window.CRYPTO_UNIVERSE || [];
     if (!list.length) return [];
     const syms = list.map(s => s.toUpperCase().replace('-', ''));

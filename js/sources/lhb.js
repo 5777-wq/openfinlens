@@ -54,23 +54,33 @@ const LhbSource = (() => {
     }).filter(r => r.netAmt !== null);
   }
 
-  /* 取"最近一个有数据的披露日"。节假日/清仓日返回空表就往前找（最多 6 天）。
+  /* 取"最近一个有数据的披露日"。节假日/清仓日返回空表就往前找（最多 6 个工作日）。
      降级链兑现：成功时落 Cache（localStorage 持久化，前缀见 utils.Cache._persist），
      全部失败时回缓存兜底——东财 datacenter 有 IP 级封禁前科，一次失败不该把
      几分钟前刚渲染好的榜单清成空表、刷新页面后也不该无兜底。 */
   async function getLhb() {
     const tried = new Set();
+    // 一次退一个**工作日**（不是"往前挪 i 天"）：latestLhbDate 只会给"最近的那个工作日"，
+    // 而它内部同时受"周末"与"上海 17:00 才披露"两条规则约束——只把 now 往前挪一天，
+    // 相邻两次会算到同一天上，6 次机会实际只覆盖 4 个工作日（周三这种日子直接被跳过）。
+    // 所以按它返回的日期回退：把游标落到"上一个工作日的 17:00（上海）"，再问一次。
+    let cursor = Date.now();
     for (let i = 0; i < 6; i++) {
-      const date = window.Events.latestLhbDate(Date.now() - i * 86400000);
-      if (!date || tried.has(date)) continue;
-      tried.add(date);
-      let rows = [];
-      try { rows = await fetchDate(date); } catch { /* 当日失败继续往前找 */ }
-      if (rows.length) {
-        window.SourceState.ok('lhb');
-        window.U.Cache.set('lhb', { rows, tradeDate: date });
-        return { rows, tradeDate: date, via: 'em', at: Date.now() };
+      const date = window.Events.latestLhbDate(cursor);
+      if (!date) break;
+      if (!tried.has(date)) {
+        tried.add(date);
+        let rows = [];
+        try { rows = await fetchDate(date); } catch { /* 当日失败继续往前找 */ }
+        if (rows.length) {
+          window.SourceState.ok('lhb');
+          window.U.Cache.set('lhb', { rows, tradeDate: date });
+          return { rows, tradeDate: date, via: 'em', at: Date.now() };
+        }
       }
+      const t = Date.parse(date + 'T00:00:00Z');
+      if (!Number.isFinite(t)) break;
+      cursor = t - 86400000 + 9 * 3600000;   // 上一个工作日的 17:00（上海 = UTC+8）
     }
     const cached = window.U.Cache.raw('lhb');
     if (cached && cached.val && cached.val.rows && cached.val.rows.length) {

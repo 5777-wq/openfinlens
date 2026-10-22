@@ -81,15 +81,19 @@ const SouthboundSource = (() => {
      全部更早的披露日，刷新页面后（内存缓存已清）南向面板直接空掉。 */
   async function latest(days = 8) {
     const base = Date.now();
-    let tried = 0;
-    for (let i = 0; i <= days; i++) {
+    // 次数上限：只数**真发出去的请求**（周末不占额度）——
+    // 原来那个 tried 计数器写在请求之后、又在循环末尾，永远轮不到它先触发，等于没有上限。
+    let tries = 0;
+    // 日历回退扫得比请求额度长：节假日期间工作日少，扫满 8 个日历天往往只试得到 5~6 个工作日。
+    for (let i = 0; i < days + 10; i++) {
       const ms = base - i * 86400000;
       if (isWeekend(ms)) continue;          // 周末必然无数据，不发无谓请求
+      if (tries >= days) break;             // 请求额度用完就收手
+      tries++;
       const date = dayStr(ms);
       let rows = [];
       try { rows = await fetchDay(date); } catch { /* 当日失败继续往前找 */ }
       if (rows.length) return { date, rows };
-      if (++tried > days) break;
     }
     return { date: null, rows: [] };
   }

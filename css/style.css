@@ -146,7 +146,11 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .search-results.active { opacity: 1; visibility: visible; transform: translateY(0); }
 .sr-item { display: flex; align-items: baseline; gap: 10px; padding: 8px 10px; cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out); }
-.sr-item:hover, .sr-item.sel { background: rgba(255,255,255,0.05); }
+/* 搜索下拉的悬停/选中行：原来写死 5% 白，叠在白底面板上等于什么都没发生——
+   5 套浅色皮肤（swiss/paper/bauhaus/clay/memphis）里键盘选中的那一行直接消失。
+   改用主题强调色的浅色蒙版：8 套皮肤下都看得见（深色皮肤上是微亮的色晕，浅色皮肤上是能辨出的淡色底）。 */
+.sr-item:hover { background: rgba(var(--accent-rgb), .10); }
+.sr-item.sel { background: rgba(var(--accent-rgb), .20); box-shadow: inset 2px 0 0 var(--accent-signature); }
 .sr-name { font-size: 12px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sr-code { font-size: 11px; color: var(--text-tertiary); }
 .sr-mkt { font-size: 10px; color: var(--text-faint); letter-spacing: 0.06em; }
@@ -279,6 +283,9 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
   font-size: 12px;
 }
 .etf-gloss .eg-label { color: var(--text-tertiary); }
+.etf-gloss .eg-label { color: var(--text-tertiary); }
+/* 第二组（期权）另起一行：它是另一个主题，挤在基金那组后面会读成「期权属于基金策略」 */
+.etf-gloss .eg-label.eg-break { flex: 0 0 100%; margin-top: 6px; }
 .etf-gloss a { color: var(--text-secondary); text-decoration: none; white-space: nowrap; }
 .etf-gloss a:hover { color: var(--accent-signature); }
 @media (max-width: 640px) {
@@ -2377,13 +2384,18 @@ body[data-academy="off"] [data-gloss] { cursor: default; }
    也会跟"点行进详情"抢点击。问号小、明确、键盘也够得着。
    ============================================================ */
 .ask {
+  position: relative;            /* 给下面那块"扩大的可点区"做定位基准 */
   flex: none; width: 15px; height: 15px; padding: 0;
   display: inline-flex; align-items: center; justify-content: center;
   border: 1px solid var(--border); border-radius: 50%;
-  background: none; color: var(--text-faint);
+  background: none; color: var(--text-tertiary);   /* --text-faint 在浅色皮肤上对比度只有约 2.1:1 */
   font-family: var(--font-mono); font-size: 9.5px; line-height: 1;
   cursor: help; transition: color var(--dur-fast), border-color var(--dur-fast);
 }
+/* 可点区撑到 24×24：这个问号是**唯一**的解释入口（整行悬停是刻意不做的），
+   15px 在桌面端要精确命中才点得到。视觉圆圈不变（还是那个 15px 的圈），
+   只是命中区向左、上下各扩一截——扩到左边是因为右边是数字列，不能盖住。 */
+.ask::after { content: ''; position: absolute; left: -9px; top: -4.5px; width: 24px; height: 24px; }
 .ask:hover { color: var(--accent-signature); border-color: var(--accent-signature); }
 .ask:focus-visible { outline: none; color: var(--accent-signature); border-color: var(--accent-signature);
   box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent-signature); }
@@ -2410,6 +2422,8 @@ body[data-academy="off"] [data-gloss] { cursor: default; }
     position: relative; width: 26px; height: 26px;
     font-size: 0; line-height: 0; border: 0; background: none; padding: 0;
   }
+  /* 窄屏的可点区就是按钮本身（26×26），把桌面上那块外扩的透明块收回来 */
+  .ask::after { left: 0; top: 0; width: 26px; height: 26px; }
   .ask::before {
     content: '?'; position: absolute; left: 5px; top: 5px;
     width: 16px; height: 16px; border: 1px solid var(--border-hover);

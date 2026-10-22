@@ -112,12 +112,18 @@
     if (!hit || !hit.symbol) return null;
     if (hit.isConcept) return resolveConcept(hit.symbol);
 
-    const domName = hit.host.getAttribute('data-etfname')
-      || hit.host.getAttribute('data-fundname') || '';
+    /* 名字挂在**祖先行**上，不在「?」按钮自己身上：
+       因子 ETF 持仓行是 <div class="srow" data-etfname="苹果">…<button class="ask" data-ask="usAAPL">?</button></div>，
+       基金持股变动行用的是 data-fundname。getAttribute 只看自己、不查祖先，
+       只在按钮上取，domName 恒为空 → OpenFinMeta 又查不到 → 整个浮层出不来
+       （2026-10-22 修：77 只成分股里 70 只的「?」当时完全没反应）。 */
+    const row = hit.host.closest ? hit.host.closest('[data-etfname],[data-fundname]') : null;
+    const domName = (row && (row.getAttribute('data-etfname') || row.getAttribute('data-fundname'))) || '';
 
+    // 名字优先用行情（data-ask 对应的 symbol 在行情表里的名字），行情里没有再退到行上的名字
     let meta = window.OpenFinMeta ? window.OpenFinMeta.of(hit.symbol) : null;
     if (!meta) {
-      meta = { symbol: hit.symbol, market: marketByPrefix(hit.symbol), name: domName, code: '' };
+      meta = { symbol: hit.symbol, market: marketByPrefix(hit.symbol), name: '', code: '' };
     }
     if (!meta.name) meta.name = domName;
     if (!meta.name) return null;
@@ -128,7 +134,10 @@
     const target = window.AcademyGloss
       ? window.AcademyGloss.targetFor(hit.symbol, meta.name)
       : null;
-    if (!target) return null;
+    /* 没有可信的科普站去处时（那边会拒给"搜不到的词"，免得给一条必然扑空的死路），
+       解释照给，只是不带链接——「这是什么」是本站的静态知识，与科普站有没有这一页无关；
+       反过来，链接没有就不给，不硬凑一条死路。 */
+    if (!target) return { text: ex.text, href: '', label: '' };
 
     // 带上来源与这只标的：科普站那边能给出"去看历史数据"和"回到 OpenFinLens"
     const sep = target.href.indexOf('?') >= 0 ? '&' : '?';
@@ -143,7 +152,7 @@
     const t = ensureTip();
     t.innerHTML = `<span class="gt-kind">这是什么</span>`
       + `<span class="gt-text">${esc(info.text)}</span>`
-      + `<a class="gt-link" href="${esc(info.href)}" target="_blank" rel="noopener">${esc(info.label)}</a>`;
+      + (info.href ? `<a class="gt-link" href="${esc(info.href)}" target="_blank" rel="noopener">${esc(info.label)}</a>` : '');
     t.style.display = 'block';
 
     // 贴着鼠标放，靠边时翻到另一侧
