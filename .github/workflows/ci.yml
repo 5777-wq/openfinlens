@@ -43,10 +43,12 @@ jobs:
               "data/actors/etf.json":            3 * 86400e3,  // 3 天（collect 阈值 25h）
               // 这三个之前没进体检范围，于是它们悄悄过期也没人知道：
               // 术语清单过期 → 终端的科普站链接大面积扑空；
-              // 概率走势与翻译缓存过期 → 对应面板退化但没有任何提示。
+              // 概率走势过期 → 对应面板退化但没有任何提示。
+              // polymarket-i18n.json 是**翻译缓存**（原问题 → 中文），是个扁平映射、
+              // 压根没有 generatedAt，所以不进来——它过期不致命，
+              // 漏掉的词条只会退回原文。
               "data/academy-terms.json":         12 * 3600e3,  // 12h（collect 阈值 360min）
               "data/events/polymarket-history.json": 24 * 3600e3, // 24h（随 polymarket 一起采）
-              "data/events/polymarket-i18n.json":    24 * 3600e3, // 24h（翻译缓存）
             };
             let bad = 0;
             for (const [f, lim] of Object.entries(LIMITS)) {
