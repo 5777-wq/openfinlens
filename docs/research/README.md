@@ -375,6 +375,8 @@ https://api.nasdaq.com/api/quote/AAPL/historical?fromdate=2026-01-01&todate=2026
 - `js/sources/eastmoney.js`：新增 `getMinuteKline`（klt=5/15/30/60、fqt=0、伪 UTC 时间）；
 - `js/app.js`：m5/m15/m60 按钮对港/美股放开（需东财 secid），分钟 K 降级链 A股「腾讯→东财」、港美「东财单源」。
 
+**同目录其他报告**：期权板块可行性调研见 `options-sources.md`（2026-10-22 实测：中金所 IO/MO/HO 纯直连可上、美股走 CBOE+Worker、加密 OKX/Deribit 直连；⚠ 东财 clist 对期权市场位 m:10/12/221 一律拒连）。
+
 ---
 
 ## 7. 复现方式
