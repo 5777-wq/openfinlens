@@ -45,6 +45,7 @@
     tip = document.createElement('div');
     tip.className = 'gloss-tip';
     tip.setAttribute('role', 'tooltip');
+    tip.id = 'glossTip';
     tip.style.display = 'none';
     document.body.appendChild(tip);
     // 鼠标移进浮层时不要马上收走——里面的链接要能点
@@ -151,9 +152,17 @@
     if (!info) return false;
     const t = ensureTip();
     t.innerHTML = `<span class="gt-kind">这是什么</span>`
-      + `<span class="gt-text">${esc(info.text)}</span>`
+      + `<span class="gt-text" id="glossTipText">${esc(info.text)}</span>`
       + (info.href ? `<a class="gt-link" href="${esc(info.href)}" target="_blank" rel="noopener">${esc(info.label)}</a>` : '');
     t.style.display = 'block';
+
+    /* 关联触发器与浮层：原来只设了 role=tooltip，没给触发器写 aria-describedby，
+       读屏用户在「?」上聚焦时听不到这段解释。 */
+    if (el && el.setAttribute && el.getAttribute) {
+      const prev = el.getAttribute('aria-describedby');
+      if (!prev) el.setAttribute('aria-describedby', 'glossTipText');
+      else if (prev.split(/\s+/).indexOf('glossTipText') < 0) el.setAttribute('aria-describedby', prev + ' glossTipText');
+    }
 
     // 贴着鼠标放，靠边时翻到另一侧
     const r = t.getBoundingClientRect();
@@ -165,8 +174,21 @@
     return true;
   }
 
-  function hide() {
+  function hide(force) {
     if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    if (!force) {
+      // 焦点已经进到浮层里（键盘用户按了 Enter）就先别收，否则链接会被抽走
+      const act = document.activeElement;
+      if (tip && act && tip.contains && tip.contains(act)) return;
+    }
+    if (current && current.removeAttribute) {
+      const prev = current.getAttribute('aria-describedby');
+      if (prev) {
+        const rest = prev.split(/\s+/).filter(x => x && x !== 'glossTipText');
+        if (rest.length) current.setAttribute('aria-describedby', rest.join(' '));
+        else current.removeAttribute('aria-describedby');
+      }
+    }
     if (tip) tip.style.display = 'none';
     current = null;
   }
@@ -198,11 +220,19 @@
     }, { passive: true });
 
     // 页面滚动了，浮层的位置就过期了
-    window.addEventListener('scroll', hide, true);
-    window.addEventListener('blur', hide);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+    window.addEventListener('scroll', () => hide(true), true);
+    window.addEventListener('blur', () => hide(true));
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const act = document.activeElement;
+      const inTip = !!(tip && act && tip.contains && tip.contains(act));
+      const back = current;
+      hide(true);
+      // 焦点在浮层里被收走了：还给触发器，别让键盘用户掉在空处
+      if (inTip && back && back.focus) { try { back.focus(); } catch (err) { /* 忽略 */ } }
+    });
 
-    // 键盘：Tab 到「?」或概念标记上也要给解释
+    /* 键盘：Tab 到「?」或概念标记上也要给解释 */
     document.addEventListener('focusin', (e) => {
       const hit = pick(e.target);
       if (!hit) return;
@@ -211,7 +241,28 @@
       current = hit.host;
       show(hit.host, r.left + 10, r.bottom + 8);
     });
-    document.addEventListener('focusout', () => { if (current) scheduleHide(); });
+    document.addEventListener('focusout', (e) => {
+      // 焦点移进浮层（键盘用户按了 Enter 去看科普链接）时别收
+      if (tip && e.relatedTarget && tip.contains && tip.contains(e.relatedTarget)) return;
+      if (current) scheduleHide();
+    });
+
+    /* 键盘拿得到浮层里的链接。
+       浮层挂在 body 末尾，Tab 序在最后——从「?」按钮 Tab 过去要穿过整页，
+       键盘用户根本够不到那条科普链接。所以焦点在触发器上按 Enter 时，
+       把焦点直接送进浮层里的链接；Esc 再退回触发器。 */
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      if (!current || !tip) return;
+      // 只有焦点真的在触发器上时才送进浮层：current 在鼠标悬停时也会被设上
+      const act = document.activeElement;
+      if (!act || (act !== current && !(current.contains && current.contains(act)))) return;
+      const link = tip.querySelector && tip.querySelector('.gt-link');
+      if (!link) return;
+      e.preventDefault();
+      e.stopPropagation();
+      link.focus();
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

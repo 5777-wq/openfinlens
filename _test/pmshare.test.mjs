@@ -111,7 +111,11 @@ const HTML = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 await test('分享弹层必须有关闭按钮（原来整页都没有 shareClose，绑定从来没生效）', () => {
   assert.ok(/id="shareClose"/.test(HTML), 'index.html 里没有 shareClose 按钮');
   assert.match(src, /getElementById\('shareClose'\)/, 'pmshare.js 没有去绑这个按钮');
-  assert.match(src, /addEventListener\('keydown'/, 'pmshare.js 没有自己监听 keydown（Esc 关不掉）');
+  // Esc 与 Tab 焦点锁现在走公共的 FocusTrap（js/focus-trap.js）——
+  // 设置弹层、到价提醒弹层、分享弹层共用同一套「进焦点 / Tab 循环 / 退出还焦点」。
+  assert.match(src, /FocusTrap/, 'pmshare.js 没有接公共焦点陷阱（Esc 关不掉 / Tab 会跑出弹层）');
+  const trapSrc = readFileSync(path.join(ROOT, 'js/focus-trap.js'), 'utf8');
+  assert.match(trapSrc, /addEventListener\('keydown'/, '公共焦点陷阱没有监听 keydown');
 });
 
 /* 行为单测：真的把 pmshare.js 跑起来，模拟一次"打开 → Esc → 关闭 → 焦点归还" */
@@ -174,6 +178,8 @@ function bootShare() {
   };
   const ctx = vm.createContext(raw);
   ctx.window = ctx; ctx.globalThis = ctx;
+  // 公共焦点陷阱要先加载：pmshare.js 的 Esc/Tab 锁现在走它
+  vm.runInContext(readFileSync(path.join(ROOT, 'js/focus-trap.js'), 'utf8'), ctx, { filename: 'js/focus-trap.js' });
   vm.runInContext(src, ctx, { filename: 'js/pmshare.js' });
   const fire = (type, e) => (docHandlers[type] || []).forEach(fn => fn(e));
   const open = (active) => {

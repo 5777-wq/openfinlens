@@ -46,6 +46,7 @@
     heatSize: 'cap',
     heatBandsOff: {},       // 图例关掉的涨跌幅区间（key → true），关掉的块不进渲染
     heatTopMode: 'top',    // A股热力图范围：top=市值 Top500（默认）| all=全市场
+    heatTable: false,      // 热力图的表格视图（canvas 的可读替代，给读屏/纯键盘用户）
     // 每个市场的全量行：hk/us 同时供"热力图"与"市场宽度"共用（us 原本就为宽度而抓）
     heatItems: { cn: [], hk: [], us: [], crypto: [] },
     // 按视图分开记录来源状态：单槽位会被后加载的源覆盖，导致来源标注张冠李戴
@@ -134,9 +135,10 @@
     // 吸顶跑马条 + Movers 三榜（2026-09-17）
     'tape', 'moversSection', 'moversGrid', 'moversTitle', 'moversSub',
     // 首屏下方的「我的自选」块与全球涨跌概览条
-    'watchSection', 'watchGrid', 'watchSub', 'watchMore', 'marketBrief',
+    'watchSection', 'watchGrid', 'watchSub', 'watchMore', 'marketBrief', 'marketBriefLive',
     'heatCanvas', 'heatTip', 'heatWrap', 'heatSection', 'heatSub', 'heatSizeToggle', 'heatTopToggle',
     'heatReset', 'heatZoom', 'heatHint', 'heatLegend', 'heatMktSwitch', 'heatMktTag',
+    'heatTable', 'heatTableToggle', 'heatCursorLive',
     'newsList', 'newsSub', 'chainList',
     'boardStrip', 'boardVia', 'boardDrawer',
     'moodSub', 'moodScore', 'moodBand', 'moodFill', 'breadthGrid', 'distWrap', 'distSub', 'moodSpark', 'heroStrip', 'moodCrypto', 'moodUS',
@@ -161,6 +163,7 @@
     // 基金对比：视图模块自己持有这些节点的引用（app.js 只负责在 init 时把节点交出去）
     'cmpBar', 'cmpInput', 'cmpResults', 'cmpAdd', 'cmpStatus', 'cmpRetry', 'cmpPresets',
     'cmpChips', 'cmpChipsSub', 'cmpSub', 'cmpStart', 'cmpEnd', 'cmpQuick', 'cmpLog', 'cmpNormHint',
+    'cmpModeBar',
     'cmpChartBox', 'cmpChart', 'cmpLegend', 'cmpMetrics', 'cmpMetricsSub', 'cmpYearly', 'cmpCorr', 'cmpNote',
     // 基金页子视图（对比/画像）
     'cmpComparePane', 'fundProfilePane', 'fundQuizPane',
@@ -172,6 +175,20 @@
     'alertCancel', 'alertSave', 'alertDetailBtn'];
 
   const pctClass = (p) => (p === null || p === undefined || isNaN(p)) ? 'flat' : (p > 0 ? 'up' : p < 0 ? 'down' : 'flat');
+
+  /* 增量更新用的小工具：值没变就不碰 DOM。
+     读屏用户对"同一块内容被整段重写"特别敏感（live 区域会整段重播），
+     所以频繁刷新的地方一律走"比对后再改"。 */
+  const setText = (node, txt) => { if (node && node.textContent !== txt) node.textContent = txt; };
+  const setAttr = (node, name, val) => { if (node && node.getAttribute(name) !== val) node.setAttribute(name, val); };
+  const setStyle = (node, prop, val) => { if (node && node.style[prop] !== val) node.style[prop] = val; };
+  // 只换涨跌方向类，保留元素自己的语义类（lead 之类）
+  const setDirClass = (node, cls) => {
+    if (!node || !cls) return;
+    if (node.classList.contains(cls)) return;
+    node.classList.remove('up', 'down', 'flat');
+    node.classList.add(cls);
+  };
   // 缓存 matchMedia 结果：渲染期每张卡片查 2 次，整墙渲染就是上百次 matchMedia 调用
   const _rmMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
   let _rmVal = _rmMQ.matches;
@@ -452,6 +469,25 @@
     return `<button class="ask" data-ask="${escapeHTML(symbol)}" aria-label="这是什么：${escapeHTML(name || symbol)}">?</button>`;
   }
 
+  /* ==================== 行情卡片的可访问名 ====================
+     role="button" 的可访问名由 aria-label 决定，所以卡片上只写"名称 详情"的话，
+     读屏用户走完卡片墙一个数字都听不到（价格、涨跌幅全被抹掉了）。
+     统一做法：aria-label 用真实字段拼全——名称 + 现价 + 涨跌 + 涨跌幅 + 详情。
+     · 方向不靠颜色单独承担：涨跌幅文案自带 +/- 号（fmtPct），颜色只是第二重提示；
+     · 取不到价就把那一项整个省掉，不写 NaN/undefined，也不写"现价 --"这种噪音；
+     · 增量刷新（patchCards / patchHero）要同步改 aria-label，
+       否则读屏用户听到的还是上一轮的旧价。 */
+  function quoteAriaLabel(name, q, digits) {
+    const parts = [name];
+    if (q) {
+      if (!U.isMissing(q.price)) parts.push('现价 ' + fmt(q.price, digits));
+      if (!U.isMissing(q.change)) parts.push('涨跌 ' + fmtChg(q.change, digits));
+      if (!U.isMissing(q.changePct)) parts.push('涨跌幅 ' + fmtPct(q.changePct));
+    }
+    parts.push('详情');
+    return parts.join('，');
+  }
+
   // 行式行情表（去 AI 卡片墙的核心动作）：hairline 行 + 右对齐 mono 数字
   function rowHTML(q, animate = true, idx = 0) {
     const starred = watchSet.has(q.symbol);
@@ -472,7 +508,7 @@
     const amt = q.amount ? fmtVol(q.amount) : '--';   // 成交额缺失显示 --，不用成交量顶替（量纲不同）
     const delay = (!animate || reduceMotion()) ? 0 : Math.min(idx, 12) * 60;
     return `<div class="qrow${animate && !reduceMotion() ? ' stagger-in' : ''}" data-symbol="${escapeHTML(q.symbol)}"
-        tabindex="0" role="button" aria-label="${escapeHTML(q.name)} 详情"
+        tabindex="0" role="button" aria-label="${escapeHTML(quoteAriaLabel(q.name, q, digits))}"
         style="animation-delay:${delay}ms">
         <div class="qr-name-wrap" style="min-width:0">
           <div class="qr-name"><span class="qr-nm">${logoImg(q, 'qlogo')}${showDeg ? '<span class="qc-flag" title="' + escapeHTML(degTitle) + '">' + degText + '</span>' : ''}${escapeHTML(q.name)}</span>${askBtn(q.symbol, q.name)}</div>
@@ -579,7 +615,7 @@
     const cls = pctClass(q.changePct);
     const code = sym.startsWith('EM:') ? '' : escapeHTML(q.code || sym);
     const pos = window.Spark ? window.Spark.rangePos(q.price, q.low, q.high) : null;
-    return `<div class="hero-cell" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(q.name)} 详情">
+    return `<div class="hero-cell" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(quoteAriaLabel(q.name, q, digits))}">
       <div class="hero-label"><span class="hl-row"><span class="hl-nm">${flag}${logoImg(q, 'hero-logo-img')}${escapeHTML(q.name)}</span>${askBtn(sym, q.name)}</span><span>${code}</span></div>
       <div class="hero-value" data-price="${escapeHTML(sym)}">${fmt(q.price, digits)}</div>
       <div class="hero-chg ${cls}"><span data-hero-chg>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
@@ -614,6 +650,9 @@
       const v = cell.querySelector('.hero-value');
       const txt = fmt(q.price, digits);
       if (v && v.textContent !== txt) v.textContent = txt;
+      // 可访问名跟着数字走（hero 卡是增量更新的）
+      const aria = quoteAriaLabel(q.name || sym, q, digits);
+      if (cell.getAttribute('aria-label') !== aria) cell.setAttribute('aria-label', aria);
       const c = cell.querySelector('[data-hero-chg]');
       const cls = pctClass(q.changePct);
       const cTxt = `${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}`;
@@ -793,7 +832,7 @@
     const flag = window.Flags ? window.Flags.flag(heroFlagCode(sym, mkt)) : '';
     const code = escapeHTML((q && q.code) || (sym.startsWith('EM:') ? sym.slice(3).split('.')[1] : sym.replace(/^(sh|sz|bj|hk|us)/i, '')));
     if (!q || q.price === null) {
-      return `<div class="wcard" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(name)} 详情">
+      return `<div class="wcard" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(quoteAriaLabel(name, null, 2))}">
         <div class="hero-label"><span class="hl-row"><span class="hl-nm">${flag}${escapeHTML(name)}</span>${askBtn(sym, name)}</span><span>${code}</span></div>
         <div class="hero-value">——</div><div class="hero-chg">等待数据</div>
         ${window.Spark ? window.Spark.sparkBoxHTML(sym) : ''}</div>`;
@@ -801,7 +840,7 @@
     const digits = U.priceDigits(q.price);
     const cls = pctClass(q.changePct);
     const pos = window.Spark ? window.Spark.rangePos(q.price, q.low, q.high) : null;
-    return `<div class="wcard" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(name)} 详情">
+    return `<div class="wcard" data-symbol="${escapeHTML(sym)}" tabindex="0" role="button" aria-label="${escapeHTML(quoteAriaLabel(name, q, digits))}">
       <div class="hero-label"><span class="hl-row"><span class="hl-nm">${flag}${escapeHTML(name)}</span>${askBtn(sym, name)}</span><span>${code}</span></div>
       <div class="hero-value">${fmt(q.price, digits)}</div>
       <div class="hero-chg ${cls}"><span>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
@@ -831,14 +870,9 @@
      旧版是一条 180px 的小概览条夹在指数卡中间，信息量小、位置也深；
      现在提到首屏最顶，一眼回答"现在市场怎么样"。 */
   function renderMarketBrief() {
-    if (!el.marketBrief) return;
+    const box = el.marketBrief;
+    if (!box) return;
     const rows = [];
-    const bar = (up, flat, down, total, label) => {
-      const pc = (n) => (n / total * 100).toFixed(2);
-      return `<span class="brief-bar" role="img" aria-label="${label}">
-        <i class="b-up" style="width:${pc(up)}%"></i><i class="b-flat" style="width:${pc(flat)}%"></i><i class="b-down" style="width:${pc(down)}%"></i>
-      </span>`;
-    };
 
     const qs = heroKeys().map(findQuote).concat(state.globeQuotes ? [...state.globeQuotes.values()] : []);
     const valid = qs.filter(q => q && typeof q.changePct === 'number' && !isNaN(q.changePct));
@@ -847,23 +881,59 @@
       const flat = valid.filter(q => q.changePct === 0).length;
       const down = valid.length - up - flat;
       const avg = valid.reduce((s, q) => s + q.changePct, 0) / valid.length;
-      rows.push(`<div class="brief-row">
-        <span class="brief-k">全球指数<i class="brief-c num">${valid.length}</i></span>
-        ${bar(up, flat, down, valid.length, up + ' 涨 / ' + flat + ' 平 / ' + down + ' 跌')}
-        <span class="brief-v num"><b class="up">${up}</b> 涨 · <b class="down">${down}</b> 跌${flat ? ' · <b class="flat">' + flat + '</b> 平' : ''} · 均值 <b class="lead ${pctClass(avg)}">${fmtPct(avg)}</b></span>
-      </div>`);
+      rows.push({ kind: 'global', label: '全球指数', total: valid.length, up, flat, down,
+        tail: '均值', tailVal: fmtPct(avg), tailCls: pctClass(avg) });
     }
 
     const b = state.breadth;
     if (b && b.total) {
-      rows.push(`<div class="brief-row">
-        <span class="brief-k">A股全市场<i class="brief-c num">${b.total}</i></span>
-        ${bar(b.up, b.flat, b.down, b.total, b.up + ' 涨 / ' + b.flat + ' 平 / ' + b.down + ' 跌')}
-        <span class="brief-v num"><b class="up">${b.up}</b> 涨 · <b class="down">${b.down}</b> 跌${b.flat ? ' · <b class="flat">' + b.flat + '</b> 平' : ''} · 情绪 <b class="lead">${b.score === null || b.score === undefined ? '--' : b.score.toFixed(1)}</b></span>
-      </div>`);
+      rows.push({ kind: 'cn', label: 'A股全市场', total: b.total, up: b.up, flat: b.flat, down: b.down,
+        tail: '情绪', tailVal: (b.score === null || b.score === undefined) ? '--' : b.score.toFixed(1), tailCls: 'flat' });
     }
 
-    el.marketBrief.innerHTML = rows.join('');
+    /* 骨架只建一次，之后逐个文本节点比对更新。
+       原来每次都 innerHTML 整块替换，而这整块住在 aria-live 区域里：
+       读屏用户每 10 秒（刷新间隔调到 5s 更勤）被整段朗读打断一次，几段话还会互相截断。
+       现在 live 区域缩到只剩"情绪分"一个数字（这块里真正会变的结论），
+       其余数字是普通文本节点——值没变就不碰 DOM，读屏不会被打扰。 */
+    const sig = rows.map(r => r.kind).join(',');
+    if (box.dataset.briefSig !== sig) {
+      box.dataset.briefSig = sig;
+      box.innerHTML = rows.map(r => `<div class="brief-row" data-brief="${r.kind}">
+        <span class="brief-k">${r.label}<i class="brief-c num"></i></span>
+        <span class="brief-bar" role="img" aria-label="">
+          <i class="b-up"></i><i class="b-flat"></i><i class="b-down"></i>
+        </span>
+        <span class="brief-v num"><b class="up"></b> 涨 · <b class="down"></b> 跌<span class="brief-flat"> · <b class="flat"></b> 平</span> · <span class="brief-tail"></span> <b class="lead"></b></span>
+      </div>`).join('');
+    }
+
+    rows.forEach(r => {
+      const node = box.querySelector('[data-brief="' + r.kind + '"]');
+      if (!node) return;
+      const total = r.total || 1;
+      setText(node.querySelector('.brief-c'), String(r.total));
+      setStyle(node.querySelector('.b-up'), 'width', (r.up / total * 100).toFixed(2) + '%');
+      setStyle(node.querySelector('.b-flat'), 'width', (r.flat / total * 100).toFixed(2) + '%');
+      setStyle(node.querySelector('.b-down'), 'width', (r.down / total * 100).toFixed(2) + '%');
+      setAttr(node.querySelector('.brief-bar'), 'aria-label', `${r.up} 涨 / ${r.flat} 平 / ${r.down} 跌`);
+      setText(node.querySelector('.brief-v b.up'), String(r.up));
+      setText(node.querySelector('.brief-v b.down'), String(r.down));
+      const flatWrap = node.querySelector('.brief-flat');
+      if (flatWrap) flatWrap.hidden = !r.flat;
+      setText(node.querySelector('.brief-v b.flat'), String(r.flat));
+      setText(node.querySelector('.brief-tail'), r.tail);
+      const lead = node.querySelector('.brief-v b.lead');
+      setText(lead, r.tailVal);
+      setDirClass(lead, r.tailCls);
+    });
+
+    // live 区域只播情绪分：其它数字变了不该打断读屏用户正在听的内容
+    if (el.marketBriefLive) {
+      const mood = rows.find(r => r.kind === 'cn');
+      const txt = mood ? `市场情绪 ${mood.tailVal}` : '';
+      setText(el.marketBriefLive, txt);
+    }
   }
 
   /* ==================== 吸顶指数跑马条（2026-09-17） ====================
@@ -881,7 +951,7 @@
   function renderTape() {
     if (!el.tape) return;
     el.tape.innerHTML = TAPE_KEYS.map(sym =>
-      `<button class="tape-cell" data-symbol="${escapeHTML(sym)}" aria-label="${escapeHTML(tapeLabel(sym))} 详情">
+      `<button class="tape-cell" data-symbol="${escapeHTML(sym)}" aria-label="${escapeHTML(tapeLabel(sym))}">
         <span class="tp-name">${escapeHTML(tapeLabel(sym))}</span>
         <span class="tp-price num" data-tape-price="${escapeHTML(sym)}">--</span>
         <span class="tp-pct num flat" data-tape-pct="${escapeHTML(sym)}">--</span>
@@ -911,6 +981,12 @@
         pc.textContent = pct;
         pc.classList.remove('up', 'down', 'flat');
         pc.classList.add(cls);
+      }
+      // 可访问名跟着数字走（跑马条是 button，aria-label 会盖掉内容里的数字）
+      const cell = el.tape.querySelector('[data-symbol="' + sym + '"]');
+      if (cell) {
+        const aria = quoteAriaLabel(tapeLabel(sym), q, digits);
+        if (cell.getAttribute('aria-label') !== aria) cell.setAttribute('aria-label', aria);
       }
     });
   }
@@ -966,13 +1042,27 @@
       const sym = 'EM:' + r.secid;
       state.moversRows.set(sym, r);
       const cls = pctClass(r.changePct);
+      const digits = U.priceDigits(r.price);
       const metricTxt = metric === 'amount' ? fmtVol(r.amount || 0) : fmtPct(r.changePct);
-      return `<button class="mv-row" data-mv="${escapeHTML(sym)}" title="${escapeHTML(r.name)}（${escapeHTML(r.code)}）">
+      /* 外层原来用 <button>，里面又塞了一个「?」按钮——嵌套 button 会被 HTML 解析器
+         提前闭合，结果整行只剩"序号 + 名称"，价格/涨跌幅全丢，读屏也听不到。
+         改成和站内其它行情行一样的 div[role=button]：名字用真实字段拼全，
+         键盘激活走 app.js 那条 [role=button] 委托（与鼠标同一条路径）。 */
+      const aria = [
+        r.name,
+        U.isMissing(r.price) ? null : '现价 ' + fmt(r.price, digits),
+        metric === 'amount'
+          ? (r.amount ? '成交额 ' + fmtVol(r.amount) : null)
+          : (U.isMissing(r.changePct) ? null : '涨跌幅 ' + fmtPct(r.changePct)),
+        '详情',
+      ].filter(Boolean).join('，');
+      return `<div class="mv-row" data-mv="${escapeHTML(sym)}" role="button" tabindex="0"
+        aria-label="${escapeHTML(aria)}" title="${escapeHTML(r.name)}（${escapeHTML(r.code)}）">
         <span class="mv-rank num">${i + 1}</span>
         <span class="mv-name"><span class="mv-nm-row"><span class="mv-nm">${escapeHTML(r.name)}</span>${askBtn(sym, r.name)}</span><span class="mv-code num">${escapeHTML(r.code)}</span></span>
-        <span class="mv-price num">${fmt(r.price, U.priceDigits(r.price))}</span>
+        <span class="mv-price num">${fmt(r.price, digits)}</span>
         <span class="mv-metric num ${cls}">${metricTxt}</span>
-      </button>`;
+      </div>`;
     }).join('');
     return `<div class="mv-col"><div class="mv-col-head"><b>${label}</b></div>${rows}</div>`;
   }
@@ -1042,6 +1132,10 @@
       if (!q) return;
       const isFxMacro = q.market === 'macro' || q.market === 'fx';
       const digits = isFxMacro ? 4 : U.priceDigits(q.price);
+      // 可访问名跟着数字走：卡片是增量更新的，不同步改 aria-label 的话，
+      // 读屏用户听到的还是上一轮的旧价。
+      const aria = quoteAriaLabel(q.name || sym, q, digits);
+      if (row.getAttribute('aria-label') !== aria) row.setAttribute('aria-label', aria);
       const priceNode = row.querySelector('.qr-price');
       const txt = fmt(q.price, digits);
       if (priceNode && priceNode.textContent !== txt) {
@@ -1182,8 +1276,19 @@
   }
 
   let heatCNPending = null;   // 在飞去重：schedule('heat') 与 scheduleMood 都会触发，56 页全市场抓取不该并发双跑
+  // A 股全市场是 56 页、5300 多行，一次全量抓取不是小事。
+  // 之前每 30 秒就重跑一遍 —— 折合每小时 6,720 个请求，是这个站最贵的一笔开销。
+  // 港股那边早就有 5 分钟的 TTL（ensureHKRows），这里照抄同一套口径：
+  // 5 分钟内复用上一轮的全市场数据，超时才重新抓。
+  const HEAT_CN_TTL = 300000;
   function loadHeatCN() {
     if (heatCNPending) return heatCNPending;
+    // 5 分钟内已经抓过：直接复用，并标明这是「几分钟前的数据」而不是「主源直连」
+    if (state.heatItems.cn && state.heatItems.cn.length &&
+        Date.now() - (state.heatFetchedAt || 0) < HEAT_CN_TTL) {
+      state.heatVia.cn = 'recent';
+      return Promise.resolve(state.heatItems.cn);
+    }
     heatCNPending = doLoadHeatCN().finally(() => { heatCNPending = null; });
     return heatCNPending;
   }
@@ -1326,6 +1431,16 @@
         el.heatZoom.textContent = v.zoom.toFixed(1);
         el.heatHint.classList.add('faded');
       },
+      // 键盘游标播报：只念当前格（名称 + 方向 + 涨跌幅）。
+      // 方向写进文字（上涨/下跌），不靠颜色单独承担。
+      onCursorChange: (item) => {
+        if (!el.heatCursorLive) return;
+        if (!item) { el.heatCursorLive.textContent = ''; return; }
+        const pct = item.pct;
+        const known = typeof pct === 'number' && !isNaN(pct);
+        const dir = !known ? '涨跌幅未知' : pct > 0 ? '上涨' : pct < 0 ? '下跌' : '持平';
+        el.heatCursorLive.textContent = `${item.name}，${dir} ${known ? fmtPct(pct) : '--'}`;
+      },
     });
     bindHeatHover();
     return state.heat;
@@ -1342,6 +1457,60 @@
     const sk = document.getElementById('heatSk');
     if (sk) sk.remove();                     // 首次出图后摘掉骨架
     renderHeatSub();
+    if (state.heatTable) renderHeatTable();  // 表格视图跟着重画（同一批行）
+  }
+
+  /* ==================== 热力图的表格视图 ====================
+     canvas 对读屏和纯键盘用户等于不存在，而全市场涨跌分布是本站核心视图。
+     这份表格和热力图同源（同一批 state.heatItems 行），零新增网络请求。
+     名字是可点的按钮：点进去就是那个标的的 K 线详情（不做假入口）。 */
+  function heatTableLists() {
+    const rows = (state.heatItems[state.heatMode] || []).filter(r =>
+      r && r.name && typeof r.changePct === 'number' && !isNaN(r.changePct));
+    const byPct = rows.slice().sort((a, b) => b.changePct - a.changePct);
+    return { up: byPct.slice(0, 20), down: byPct.slice(-20).reverse(), total: rows.length };
+  }
+
+  function heatTableHTML(list, caption) {
+    if (!list.length) return '<p class="empty-hint">等待全市场行情…</p>';
+    return `<table class="heat-grid">
+      <caption>${escapeHTML(caption)}</caption>
+      <thead><tr><th scope="col">名称</th><th scope="col">代码</th><th scope="col">现价</th><th scope="col">涨跌幅</th></tr></thead>
+      <tbody>${list.map(r => `<tr>
+        <th scope="row"><button type="button" class="ht-link" data-ht-sym="${escapeHTML(r.secid ? 'EM:' + r.secid : (r.code || ''))}"
+          data-ht-name="${escapeHTML(r.name)}" data-ht-code="${escapeHTML(r.code || '')}"
+          data-ht-sec="${escapeHTML(r.secid || '')}">${escapeHTML(r.name)}</button></th>
+        <td class="num">${escapeHTML(r.code || '')}</td>
+        <td class="num">${fmt(r.price, U.priceDigits(r.price))}</td>
+        <td class="num ${pctClass(r.changePct)}">${fmtPct(r.changePct)}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  }
+
+  function renderHeatTable() {
+    if (!el.heatTable) return;
+    const { up, down, total } = heatTableLists();
+    const title = window.MarketScope ? window.MarketScope.marketTitle(state.heatMode) : state.heatMode;
+    el.heatTable.innerHTML = `<div class="heat-table-head">${escapeHTML(title)} · 全市场 ${total} 只 ·
+      下面是最涨与最跌各 20 只（与图形同源，零新增请求）</div>`
+      + `<div class="heat-table-cols">${heatTableHTML(up, '涨幅 Top 20')}${heatTableHTML(down, '跌幅 Top 20')}</div>`;
+  }
+
+  function applyHeatTableView() {
+    const on = !!state.heatTable;
+    if (el.heatTableToggle) {
+      el.heatTableToggle.setAttribute('aria-pressed', String(on));
+      el.heatTableToggle.textContent = on ? '图形视图' : '表格视图';
+    }
+    if (el.heatWrap) el.heatWrap.hidden = on;
+    if (el.heatTable) {
+      el.heatTable.hidden = !on;
+      if (on) renderHeatTable();
+    }
+    if (!on && el.heatCanvas) {
+      // 画布刚从 hidden 里出来，尺寸是 0：补一次重画，否则回到图形视图是一片空白
+      requestAnimationFrame(() => { if (state.heat) drawHeat(); });
+    }
   }
 
   function renderHeatSub() {
@@ -1350,7 +1519,9 @@
     const via = state.heatVia[state.heatMode];
     const viaTxt = via === 'cache'
       ? '缓存 · ' + fmtTime(state.heatCachedAt[state.heatMode])
-      : via === 'backup' ? '备用源' : via ? '主源直连' : '等待数据';
+      : via === 'backup' ? '备用源'
+      : via === 'recent' ? '主源 · ' + fmtAgo(state.heatFetchedAt)   // 5 分钟内复用，不假装是刚刚抓的
+      : via ? '主源直连' : '等待数据';
     const rangeTxt = state.heatMode === 'cn'
       // "全市场"指全市场个股：指数是成分股的加权聚合，不是成分股（口径见 js/auniverse.js）
       ? (state.heatTopMode === 'top' ? ' · 市值 Top 500（宽度统计仍用全量个股）' : ' · 全市场个股（不含指数）')
@@ -1676,7 +1847,9 @@
     // 情绪页数据来自 A 股全市场（cn），读 cn 槽位，不被加密热力图的加载状态污染
     const cnVia = state.heatVia.cn;
     const viaTxt = cnVia === 'cache' ? '缓存 · ' + fmtTime(state.heatCachedAt.cn)
-      : cnVia === 'backup' ? '备用源' : '东方财富全市场';
+      : cnVia === 'backup' ? '备用源'
+      : cnVia === 'recent' ? '主源 · ' + fmtAgo(state.heatFetchedAt)
+      : '东方财富全市场';
     el.moodSub.textContent = `${b.total} 只 A 股 · ${viaTxt} · 每 ${window.Store.settings.get().refresh}s 刷新`;
 
     // 温度计（"上涨占比"与情绪指数同口径：up/(up+down)，剔除平盘，避免同屏两个口径）
@@ -1864,6 +2037,12 @@
     el.detailCode.textContent = target.code || '';
     el.detailPrice.textContent = '--';
     el.detailChg.textContent = '--';
+    /* 焦点移到详情面板：原来进详情页焦点还留在列表那行，
+       读屏用户不知道"换了一个页面"（面板本来就带 tabindex="-1"，就是等着接焦点）。 */
+    const detailPanel = $('view-detail');
+    if (detailPanel && detailPanel.focus) {
+      try { detailPanel.focus({ preventScroll: true }); } catch (e) { detailPanel.focus(); }
+    }
     // 详情页顶栏：给一个去科普站看解释的入口（每个标的都有；设置里可关）
     if (el.detailGloss) {
       const gt = window.AcademyGloss
@@ -2189,7 +2368,12 @@
   async function loadVoices() {
     const gen = ++state.voicesGen;
     el.voicesList.innerHTML = '<div class="sk sk-row"></div>'.repeat(4);
-    const pool = await window.NewsSource.getNewsPool(60);
+    // 喊单页要的新闻池和快讯页是**同一组接口**（新浪财经 + 东财财经要闻）。
+    // 原来两处各打一轮：一分钟里同一组接口被请求两次，外部源的压力和我们的延迟都白翻倍。
+    // 快讯那边刚取过、还新鲜，就直接用它的结果；没有或太旧了才自己再拉一轮。
+    const fresh = state.news && state.news.length &&
+      Date.now() - (state.newsLoadedAt || 0) < 55000;
+    const pool = fresh ? state.news : await window.NewsSource.getNewsPool(60);
     if (gen !== state.voicesGen) return;
     state.voices = pool.filter(it => window.NewsSource.matchVoices(it).length);
     state.voicesAt = Date.now();
@@ -2249,7 +2433,7 @@
       // 详情页的 klineForRaw 会自动按「腾讯 → 东财」降级取日K；
       // 两边都取不到时详情页整块收起（不留空壳），不编假线。
       return `<div class="gcard" data-gidx="${escapeHTML(x.secid)}" tabindex="0" role="button"
-        aria-label="${escapeHTML(x.name)} 详情" title="点击看 ${escapeHTML(x.name)} 走势">
+        aria-label="${escapeHTML(quoteAriaLabel(x.name, q, digits))}" title="点击看 ${escapeHTML(x.name)} 走势">
         <div class="hero-label"><span>${window.Flags.flag(x.flag)}${escapeHTML(x.name)}</span></div>
         <div class="hero-value">${fmt(q.price, digits)}</div>
         <div class="hero-chg ${cls}"><span>${fmtChg(q.change, digits)}  ${fmtPct(q.changePct)}</span></div>
@@ -3064,6 +3248,11 @@
     state.prevView = state.view === 'actor' ? state.prevView : state.tab;
     state.view = 'actor';
     setView('actor');
+    // 焦点移到档案面板（同详情页：新页面要有落点，读屏才知道换页了）
+    const actorPanel = $('view-actor');
+    if (actorPanel && actorPanel.focus) {
+      try { actorPanel.focus({ preventScroll: true }); } catch (e) { actorPanel.focus(); }
+    }
     if (!opts || opts.push !== false) navigate('#actor=' + encodeURIComponent(id));
     const gen = ++state.actorGen;
     state.actor = { id };
@@ -3773,6 +3962,7 @@
       setTab('all', { animate: false });
     }
     renderTabCfgUI();
+    syncRovingTab(nav);   // 板块被隐藏/重排后，roving tabindex 要重新对一次
   }
 
   /* 设置弹层里的顶栏板块配置列表 */
@@ -3857,6 +4047,7 @@
       });
       const hint = el.zoneBar.querySelector('.zone-hint');
       if (hint) hint.textContent = ZONE_HINTS[key] || '';
+      syncRovingTab(el.zoneBar);   // 分区栏也是 tablist：roving tabindex 要跟着选中项走
     }
     // 热力图 canvas 在 display:none 时尺寸为 0，切回来必须重画一次
     if (key === 'heat') {
@@ -4029,6 +4220,7 @@
     if (el.cmpComparePane) el.cmpComparePane.hidden = cmpMode !== 'compare';
     if (el.fundProfilePane) el.fundProfilePane.hidden = cmpMode !== 'profile';
     if (el.fundQuizPane) el.fundQuizPane.hidden = cmpMode !== 'quiz';
+    syncRovingTab(el.cmpModeBar);
     // 从画像切回对比：进 tab 时对比的 onEnter 被跳过了，这里补上（内部自带加载去重）
     if (cmpMode === 'compare' && window.CompareView) window.CompareView.onEnter();
   }
@@ -4043,6 +4235,63 @@
       const codeM = mP ? mP[1].trim().match(/^(\d{5,6})$/) : null;
       if (codeM && window.FundProfile) window.FundProfile.open(codeM[1]);
     } else setCmpMode('compare');
+  }
+
+  /* ==================== 一级 tab（ARIA tabs）====================
+     原来 10 个 tab 全在 Tab 序里，键盘用户要连按 10 次 Tab 才到得到内容，
+     而且全站没有方向键——ARIA tabs 的约定是 ←→ 切换 + 同一时刻只有一个 tab 在 Tab 序里。
+     roving tabindex：选中的那个 tabindex=0，其余 -1（方向键在 tablist 内移动）。 */
+
+  // tablist 里真正可见的 tab（隐藏的板块不参与方向键，也不占 Tab 位）
+  function isVisibleEl(el) {
+    if (!el) return false;
+    // getClientRects 对 display:none 的元素返回空列表，比 offsetParent 稳
+    if (typeof el.getClientRects === 'function') return el.getClientRects().length > 0;
+    return el.offsetParent !== null;
+  }
+  function visibleTabsOf(list) {
+    if (!list || !list.querySelectorAll) return [];
+    return Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'))
+      .filter(t => isVisibleEl(t));
+  }
+
+  // 同步一个 tablist 的 roving tabindex：选中的 0，其余 -1
+  function syncRovingTab(list) {
+    const tabs = visibleTabsOf(list);
+    if (!tabs.length) return;
+    const sel = tabs.find(t => t.getAttribute('aria-selected') === 'true');
+    const keep = sel || tabs[0];
+    tabs.forEach(t => { if (t.getAttribute('tabindex') !== (t === keep ? '0' : '-1')) t.setAttribute('tabindex', t === keep ? '0' : '-1'); });
+  }
+
+  // 全站所有 tablist 都同步一次（动态生成的分区栏/披露子栏要跟着更新）
+  function syncAllRovingTabs() {
+    document.querySelectorAll('[role="tablist"]').forEach(syncRovingTab);
+  }
+
+  /* 方向键在 tablist 内移动并激活。
+     委托在 document 上：分区栏、披露子栏这些 tablist 是运行时生成的，
+     每生成一个就重新绑一遍太容易漏。 */
+  function onTablistKeydown(e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End') return;
+    const tab = e.target.closest && e.target.closest('[role="tab"]');
+    if (!tab) return;
+    const list = tab.closest('[role="tablist"]');
+    if (!list) return;
+    const tabs = visibleTabsOf(list);
+    const i = tabs.indexOf(tab);
+    if (i < 0) return;
+    e.preventDefault();
+    let next = i;
+    if (e.key === 'ArrowLeft') next = (i - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'ArrowRight') next = (i + 1) % tabs.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = tabs.length - 1;
+    const t = tabs[next];
+    if (!t) return;
+    try { t.focus({ preventScroll: true }); } catch (err) { t.focus(); }
+    t.click();   // 自动激活：ARIA tabs 的标准行为
+    syncRovingTab(list);   // 激活后 roving tabindex 跟着换（各子栏只切 class/aria-selected）
   }
 
   function setTab(tab, opts) {
@@ -4068,15 +4317,28 @@
       const on = b.dataset.tab === tab;
       b.classList.toggle('active', on);
       b.setAttribute('aria-selected', String(on));   // 屏幕阅读器需要知道当前选中项
+      b.setAttribute('tabindex', on ? '0' : '-1');    // roving tabindex：同一时刻只占一个 Tab 位
     });
     // 移动端 10 个 tab 横向滚动，程序化切换后把激活项滚回视野内
     const activeBtn = el.tabs.querySelector('.tab.active');
+    const view = VIEW_OF_TAB[tab] || 'market';
+    /* 面板名跟着当前 tab 走：六个市场 tab 共用 #view-market，
+       面板原来写死 aria-label="全球市场"，切到 A股 后读屏还在念"全球市场"。 */
+    const panel = $('view-' + view);
+    if (panel && activeBtn && activeBtn.id) panel.setAttribute('aria-labelledby', activeBtn.id);
     if (activeBtn && activeBtn.scrollIntoView) {
       try { activeBtn.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduceMotion() ? 'auto' : 'smooth' }); }
       catch { /* 旧浏览器不支持 options 形参 */ }
     }
-    const view = VIEW_OF_TAB[tab] || 'market';
+    /* 焦点跟着切换走：读屏用户按数字键切板块时，焦点原来还留在 body，
+       没有任何"已切换"的提示。焦点落到激活的 tab 上，读屏会念出 tab 名 + 面板名。 */
+    if (opts && opts.focus && activeBtn && activeBtn.focus) {
+      try { activeBtn.focus({ preventScroll: true }); } catch (e) { activeBtn.focus(); }
+    }
     setView(view);
+    // 视图切完再对一次 roving tabindex：新露出来的面板里那些 tablist
+    // （基金页子视图等）在隐藏时是同步不到可见 tab 的
+    syncAllRovingTabs();
     // 标的计数跟随 tab：renderStatus 平时只在轮询 tick 里跑，不补这次的话
     // 切板块后"47 个标的"要等下一个刷新周期才变
     renderStatus();
@@ -4221,8 +4483,8 @@
     // 换视图重置视口：否则从 ×6 的 A股视图切到加密，进来是一个陌生的放大视图
     if (state.heat) state.heat.resetView();
     if (!state.heatItems[mode].length) {
-      HEAT_LOADERS[mode]().then(drawHeat);
-    } else drawHeat();
+      HEAT_LOADERS[mode]().then(() => { drawHeat(); if (state.heatTable) renderHeatTable(); });
+    } else { drawHeat(); if (state.heatTable) renderHeatTable(); }
   }
 
   /* ==================== 搜索 ==================== */
@@ -4241,24 +4503,32 @@
     state.searchKw = kw;   // 结果与关键词对上号（Enter 判断用）
     state.searchItems = list;
     state.searchSel = -1;
-    el.searchInput.setAttribute('aria-expanded', 'true');
     if (!list.length) {
       el.searchResults.innerHTML = '<div class="sr-empty">没有匹配的标的</div>';
       el.searchResults.classList.add('active');
+      // 没有候选就是"没展开"：aria-expanded 写 true 会让读屏以为下面还有东西
+      el.searchInput.setAttribute('aria-expanded', 'false');
+      el.searchInput.removeAttribute('aria-activedescendant');
       return;
     }
-    el.searchResults.innerHTML = list.map((x, i) => `<div class="sr-item" data-idx="${i}" role="option">
+    // 每个候选要有唯一 id：↑↓ 移动时靠 aria-activedescendant 指到当前那一项，
+    // 读屏才会念出"当前选中的是哪一条"（原来只有一个 .sel 的 class，读屏完全无感知）。
+    el.searchResults.innerHTML = list.map((x, i) => `<div class="sr-item" id="sr-opt-${i}" data-idx="${i}"
+      role="option" aria-selected="false">
         <span class="sr-name">${escapeHTML(x.name)}</span>
         <span class="sr-code num">${escapeHTML(x.code)}</span>
         <span class="sr-mkt">${escapeHTML(x.marketName || '')}</span>
       </div>`).join('');
     el.searchResults.classList.add('active');
+    el.searchInput.setAttribute('aria-expanded', 'true');
+    el.searchInput.removeAttribute('aria-activedescendant');
   }
   const doSearch = debounce(runSearch, 250);
 
   function hideSearch() {
     el.searchResults.classList.remove('active');
     el.searchInput.setAttribute('aria-expanded', 'false');
+    el.searchInput.removeAttribute('aria-activedescendant');
     state.searchSel = -1;
   }
 
@@ -4275,11 +4545,24 @@
 
   /* ==================== 设置 ==================== */
 
+  /* 分段控件的选中态：光有 CSS 类不够——读屏用户完全不知道当前是哪一档。
+     .active 之外再写一份 aria-pressed，两边同步（三个分段控件：皮肤/涨跌配色/刷新间隔）。 */
+  function syncSegPressed(seg, isOn) {
+    if (!seg) return;
+    seg.querySelectorAll('button').forEach(b => {
+      const on = !!isOn(b);
+      b.classList.toggle('active', on);
+      // 随机换肤是一次性动作（不是"当前是哪一档"的状态），不给 aria-pressed
+      if (b.dataset.theme === 'random') return;
+      b.setAttribute('aria-pressed', String(on));
+    });
+  }
+
   function applySettings() {
     const s = window.Store.settings.get();
     document.body.dataset.updown = s.updown === 'green' ? 'green' : 'red';
-    el.segUpdown.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.updown === s.updown));
-    el.segRefresh.querySelectorAll('button').forEach(b => b.classList.toggle('active', +b.dataset.refresh === s.refresh));
+    syncSegPressed(el.segUpdown, b => b.dataset.updown === s.updown);
+    syncSegPressed(el.segRefresh, b => +b.dataset.refresh === s.refresh);
     el.swDegraded.classList.toggle('on', !!s.showDegraded);
     el.swDegraded.setAttribute('aria-checked', String(!!s.showDegraded));
     // 科普入口（白话金融）：设置里可关——关掉后浮层、顶栏链接、详情页链接一起消失
@@ -4330,10 +4613,8 @@
   function applyTheme(t) {
     if (!THEMES.includes(t)) t = 'swiss';   // 非法存量值回落到默认主题（与 store.js 默认一致）
     if (el.segTheme) {
-      el.segTheme.querySelectorAll('button').forEach(b => {
-        // 随机按钮只有 hover/focus 态，不进 active（它是一次性动作，不是皮肤身份）
-        b.classList.toggle('active', b.dataset.theme === t);
-      });
+      // 随机按钮只有 hover/focus 态，不进 active（它是一次性动作，不是皮肤身份）
+      syncSegPressed(el.segTheme, b => b.dataset.theme === t);
     }
     const root = document.documentElement;
     if (root.dataset.theme === t) { syncThemeChrome(t); return; }
@@ -4390,19 +4671,23 @@
     if (state.tab === 'cn') renderMood();   // 情绪小节在 A股板块内，色带跟随红绿模式
   }
 
-  let modalLastFocus = null;
+  let settingsTrap = null;
   function openModal() {
-    modalLastFocus = document.activeElement;
     el.settingsModal.classList.add('active');
     document.body.classList.add('modal-open');
-    el.settingsClose.focus();
+    /* 焦点陷阱走公共实现（js/focus-trap.js）：进焦点 / Tab 循环 / 退出还焦点。
+       候选里带 <summary>——设置弹层里的「数据源自检」是 <details>，
+       原来的选择器漏了它，那个折叠块永远拿不到焦点（键盘用户打不开）。 */
+    settingsTrap = window.FocusTrap.open(el.settingsModal, {
+      initialFocus: el.settingsClose,
+      onEscape: closeModal,
+    });
   }
   function closeModal() {
     if (!el.settingsModal.classList.contains('active')) return;
     el.settingsModal.classList.remove('active');
     document.body.classList.remove('modal-open');
-    if (modalLastFocus && modalLastFocus.focus) modalLastFocus.focus();   // 焦点归还触发点
-    modalLastFocus = null;
+    if (settingsTrap) { settingsTrap.close(); settingsTrap = null; }
   }
 
   /* ==================== 调度器（setTimeout 链 + 隐藏暂停） ==================== */
@@ -4456,6 +4741,7 @@
         // 新股上市/停牌等结构性变化：全量重排，否则新增标的永远进不了图
         drawHeat();
       }
+      if (state.heatTable) renderHeatTable();   // 表格视图跟着刷新（同一批行）
     }, 30000);
 
     // 市场宽度：跟随设置的刷新间隔，复用热力图已抓到的全市场数据（不额外发请求）
@@ -4763,6 +5049,8 @@
       const b = e.target.closest('.tab');
       if (b) setTab(b.dataset.tab);
     });
+    // ARIA tabs 的方向键：←→ 切换、Home/End 跳首尾（委托在 document 上，动态生成的 tablist 也一样生效）
+    document.addEventListener('keydown', onTablistKeydown);
 
     // 首屏「我的自选」块右上角的「全部自选 →」：去自选页（排序/管理都在那儿）
     if (el.watchMore) el.watchMore.addEventListener('click', () => setTab('watch'));
@@ -5023,7 +5311,7 @@
           .filter(b => b.offsetParent !== null)
           .map(b => b.dataset.tab);
         const tab = order[+e.key === 0 ? 9 : +e.key - 1];
-        if (tab) { setTab(tab); e.preventDefault(); }
+        if (tab) { setTab(tab, { focus: true }); e.preventDefault(); }
         return;
       }
       if (e.key === '/') {
@@ -5063,6 +5351,31 @@
       el.heatTopToggle.textContent = state.heatTopMode === 'top' ? '范围：市值 Top 500' : '范围：全市场';
       drawHeat();
     });
+
+    // 表格视图：canvas 的可读替代（读屏/纯键盘用户拿不到图里的数字）
+    if (el.heatTableToggle) {
+      el.heatTableToggle.addEventListener('click', () => {
+        state.heatTable = !state.heatTable;
+        applyHeatTableView();
+      });
+    }
+    if (el.heatTable) {
+      el.heatTable.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-ht-sym]');
+        if (!b) return;
+        const name = b.getAttribute('data-ht-name');
+        const code = b.getAttribute('data-ht-code');
+        const secid = b.getAttribute('data-ht-sec');
+        if (state.heatMode === 'crypto') {
+          openDetail({ symbol: code, name, code, market: 'crypto', binance: code });
+          return;
+        }
+        openDetail({
+          symbol: b.getAttribute('data-ht-sym'), name, code,
+          market: marketFromSecid(secid) || 'cn', secid, tencent: tencentOfSecid(secid),
+        });
+      });
+    }
 
     el.heatReset.addEventListener('click', () => {
       if (state.heat) state.heat.resetView();
@@ -5259,28 +5572,38 @@
         return;
       } else if (e.key === 'Escape') {
         hideSearch();
+        // Esc 只关最上面那层：别让 document 上那个 Esc 分支顺手把铃铛下拉也关了
+        e.stopPropagation();
         return;
       } else return;
-      el.searchResults.querySelectorAll('.sr-item').forEach((x, i) => x.classList.toggle('sel', i === state.searchSel));
+      // 视觉选中态（.sel）保留，同时把选中状态写进 ARIA：
+      // aria-activedescendant 指向当前项（焦点始终在输入框里），
+      // aria-selected 标在选项上——读屏用户这才知道 ↑↓ 走到哪一条、回车会打开哪一个。
+      el.searchResults.querySelectorAll('.sr-item').forEach((x, i) => {
+        const on = i === state.searchSel;
+        x.classList.toggle('sel', on);
+        x.setAttribute('aria-selected', String(on));
+      });
+      if (state.searchSel >= 0) el.searchInput.setAttribute('aria-activedescendant', 'sr-opt-' + state.searchSel);
+      else el.searchInput.removeAttribute('aria-activedescendant');
     });
 
     // 设置
     el.settingsBtn.addEventListener('click', openModal);
     el.settingsClose.addEventListener('click', closeModal);
     el.settingsModal.addEventListener('click', (e) => { if (e.target === el.settingsModal) closeModal(); });
-    // Esc：优先关搜索下拉，其次关弹层（避免一次 Esc 把两个都关掉）
+    // Esc：只关最上面那一层。
+    // 顺序：分享弹层 / 到价提醒弹层（各自有焦点陷阱，在捕获阶段就把 Esc 收走了）
+    //      → 搜索下拉 → 铃铛下拉 → 设置弹层。
+    // 之前这里只管设置弹层，铃铛下拉只能靠"点外面"关，键盘用户没辙。
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Tab' && el.settingsModal.classList.contains('active')) {
-        // 焦点陷阱：Tab/Shift+Tab 在弹层内循环
-        const f = el.settingsModal.querySelectorAll('button, [href], input, select, textarea');
-        if (!f.length) return;
-        const first = f[0], last = f[f.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      if (e.key !== 'Escape') return;
+      if (el.alertModal && el.alertModal.classList.contains('active')) return;   // alerts.js 自己的陷阱处理
+      if (el.searchResults.classList.contains('active')) { hideSearch(); return; }
+      if (el.alertPanel && !el.alertPanel.hidden) {
+        if (window.AlertCenter && window.AlertCenter.closePanel) window.AlertCenter.closePanel();
         return;
       }
-      if (e.key !== 'Escape') return;
-      if (el.searchResults.classList.contains('active')) { hideSearch(); return; }
       closeModal();
     });
     el.segUpdown.addEventListener('click', (e) => {
@@ -5367,6 +5690,8 @@
     // 顶栏板块按用户配置重排/隐藏：必须在 renderFromHash 之前——
     // 否则深链指向一个被隐藏的板块时，hash 解析完才发现那个 tab 根本不在顶栏里。
     applyTabCfg();
+    // 全站 tablist 的 roving tabindex：同一时刻每个 tablist 里只有一个 tab 在 Tab 序里
+    syncAllRovingTabs();
     initReveal();
     bindEvents();
     renderStatus();
@@ -5374,7 +5699,7 @@
     //（否则触屏用户可能永远找不到复位）；坐标仍由 onViewportChange 维护
     const touchLike = window.matchMedia('(pointer: coarse), (hover: none)').matches;
     if (el.heatHint && touchLike) {
-      el.heatHint.textContent = '单指拖动 · 双指缩放 · 长按查看 · 点「复位」回初始视图';
+      el.heatHint.textContent = '单指拖动 · 双指缩放 · 长按查看 · 点「复位」回初始视图 · 也可切「表格视图」';
     }
     if (el.heatReset && touchLike) el.heatReset.hidden = false;
 

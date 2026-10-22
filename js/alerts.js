@@ -12,6 +12,7 @@ const AlertCenter = (() => {
   let priceLines = [];
   let _toastTimer = null;
   let _toastNode = null;
+  let _trap = null;  // 弹层的焦点陷阱（js/focus-trap.js：进焦点 / Tab 循环 / 退出还焦点）
 
   const esc = (s) => window.U ? window.U.escapeHTML(String(s ?? '')) : String(s ?? '');
 
@@ -161,12 +162,19 @@ const AlertCenter = (() => {
     if (els.note) els.note.value = '';
     els.modal.classList.add('active');
     document.body.classList.add('modal-open');
-    if (els.price) els.price.focus();
+    /* 焦点陷阱走公共实现（js/focus-trap.js，与设置弹层/分享弹层同一套）：
+       原来这个弹层完全没有陷阱，Tab 会跑进背景的 K 线页；
+       关掉后焦点掉到 body，键盘用户直接迷路。
+       现在：焦点进「触发价」输入框，Tab 在弹层内循环，关掉后焦点还给「提醒」按钮。 */
+    if (window.FocusTrap) {
+      _trap = window.FocusTrap.open(els.modal, { initialFocus: els.price, onEscape: closeCreate });
+    } else if (els.price) els.price.focus();
   }
 
   function closeCreate() {
     if (els.modal) els.modal.classList.remove('active');
     document.body.classList.remove('modal-open');
+    if (_trap) { _trap.close(); _trap = null; }   // 关闭时把焦点还给触发点
   }
 
   function save() {
@@ -187,6 +195,20 @@ const AlertCenter = (() => {
 
   /* ---------- 事件绑定 ---------- */
 
+  /* 收起铃铛下拉：默认把焦点还给铃铛（键盘用户按 Esc 之后不至于迷路）。
+     鼠标点外面收起时不要抢焦点——用户已经点到别处了。
+     app.js 的 Esc 分支会调它——Esc 只关最上面那一层。 */
+  function closePanel(opts) {
+    if (!els.panel || els.panel.hidden) return;
+    els.panel.hidden = true;
+    if (els.bell) {
+      els.bell.setAttribute('aria-expanded', 'false');
+      if ((!opts || opts.focus !== false) && els.bell.focus) {
+        try { els.bell.focus(); } catch (err) { /* 忽略 */ }
+      }
+    }
+  }
+
   function bind() {
     if (els.bell) {
       els.bell.addEventListener('click', (e) => {
@@ -194,15 +216,22 @@ const AlertCenter = (() => {
         const show = els.panel.hidden;
         els.panel.hidden = !show;
         els.bell.setAttribute('aria-expanded', String(show));
-        if (show) renderPanel();
+        if (show) {
+          renderPanel();
+          // 下拉是个 role=dialog：打开后焦点要进去（键盘用户否则还留在铃铛上，
+          // 不知道面板已经开了）；面板里没有可聚焦元素时落在面板本身。
+          const list = (window.FocusTrap && window.FocusTrap.focusables)
+            ? window.FocusTrap.focusables(els.panel) : [];
+          const first = list[0] || els.panel;
+          if (first && first.focus) { try { first.focus(); } catch (err) { /* 忽略 */ } }
+        }
       });
     }
     // 点面板外收起
     document.addEventListener('click', (e) => {
       if (!els.panel || els.panel.hidden) return;
       if (e.target.closest && (e.target.closest('#alertPanel') || e.target.closest('#alertBell'))) return;
-      els.panel.hidden = true;
-      if (els.bell) els.bell.setAttribute('aria-expanded', 'false');
+      closePanel({ focus: false });   // 鼠标点外面：不抢焦点
     });
     if (els.list) {
       els.list.addEventListener('click', (e) => {
@@ -240,7 +269,9 @@ const AlertCenter = (() => {
       els.modal.addEventListener('click', (e) => { if (e.target === els.modal) closeCreate(); });
     }
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && els.modal && els.modal.classList.contains('active')) closeCreate();
+      if (e.key !== 'Escape') return;
+      // 弹层的 Esc 由焦点陷阱接管（捕获阶段就收走了），这里只是没有陷阱时的兜底
+      if (els.modal && els.modal.classList.contains('active') && !_trap) closeCreate();
     });
   }
 
@@ -251,7 +282,7 @@ const AlertCenter = (() => {
     renderPanel();
   }
 
-  return { mount, check, attachChart, applyChartLines, openCreate, closeCreate, toast };
+  return { mount, check, attachChart, applyChartLines, openCreate, closeCreate, closePanel, toast, isPanelOpen: () => !!(els.panel && !els.panel.hidden) };
 })();
 
 window.AlertCenter = AlertCenter;

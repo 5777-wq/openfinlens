@@ -433,7 +433,7 @@
   /* ==================== 弹层 ==================== */
 
   let overlay = null, preview = null, current = null, deps = {};
-  let lastFocus = null;      // 打开前谁点的：关掉之后要把焦点还回去
+  let trap = null;          // 弹层的焦点陷阱（js/focus-trap.js，与设置/提醒弹层同一套）
 
   function ensureOverlay() {
     if (overlay) return overlay;
@@ -453,16 +453,7 @@
       });
     }
     overlay.addEventListener('click', (e) => { if (e.target === overlay) hide(); });
-    // Esc / Tab 焦点锁：绑定一次就够（ensureOverlay 只会走到这里一次）
-    document.addEventListener('keydown', onKeydown, true);
     return overlay;
-  }
-
-  /* 弹层里能聚焦的东西（Tab 焦点不许跑出弹层） */
-  function focusables() {
-    if (!overlay || !overlay.querySelectorAll) return [];
-    const list = overlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    return Array.prototype.slice.call(list || []).filter(el => el && !el.disabled);
   }
 
   function show(canvas) {
@@ -475,15 +466,20 @@
       img.alt = '市场预测分享卡片';
       preview.appendChild(img);
     }
-    // 记住是谁打开的：关掉之后焦点回到那儿，键盘用户不丢位置
-    const act = document.activeElement;
-    lastFocus = (act && act !== document.body && act.focus) ? act : null;
     overlay.hidden = false;
     requestAnimationFrame(() => overlay.classList.add('active'));
     document.body.classList.add('modal-open');
-    // 焦点进弹层（先给「保存图片」，没有就给第一个能聚焦的）
-    const first = document.getElementById('shareSave') || focusables()[0];
-    if (first && first.focus) { try { first.focus(); } catch (e) { } }
+    /* 焦点锁走公共实现（js/focus-trap.js）：进焦点 / Tab 循环 / 退出还焦点。
+       Esc 由陷阱在捕获阶段收走并 stopPropagation——下层的设置弹层不会跟着关。 */
+    if (window.FocusTrap) {
+      trap = window.FocusTrap.open(overlay, {
+        initialFocus: document.getElementById('shareSave'),
+        onEscape: hide,
+      });
+    } else {
+      const first = document.getElementById('shareSave');
+      if (first && first.focus) { try { first.focus(); } catch (e) { } }
+    }
   }
 
   function hide() {
@@ -492,26 +488,13 @@
     document.body.classList.remove('modal-open');
     setTimeout(() => { if (overlay) overlay.hidden = true; }, 240);
     current = null;
-    // 焦点还给触发它的那一个
-    if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) { } }
-    lastFocus = null;
+    // 焦点还给触发它的那一个（陷阱负责）
+    if (trap) { trap.close(); trap = null; }
   }
 
-  /* Esc 关闭 + Tab 焦点锁在弹层里。
-     自己监听而不改 app.js：那边的 Esc 分支只管设置弹层，文件别人在改。
-     用捕获阶段，免得被页面里别的监听器先吃掉。 */
-  function onKeydown(e) {
-    if (!overlay || overlay.hidden) return;
-    if (e.key === 'Escape') { hide(); return; }
-    if (e.key !== 'Tab') return;
-    const f = focusables();
-    if (!f.length) return;
-    const first = f[0], last = f[f.length - 1];
-    const act = document.activeElement;
-    const inside = act && overlay.contains && overlay.contains(act);
-    if (e.shiftKey && (!inside || act === first)) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && (!inside || act === last)) { e.preventDefault(); first.focus(); }
-  }
+  /* Esc 关闭 + Tab 焦点锁现在由公共的 FocusTrap 负责（js/focus-trap.js）：
+     捕获阶段收走 Esc 并 stopPropagation，下层的设置弹层不会跟着关；
+     Tab 在弹层内循环，关掉后焦点还给打开它的那一个。 */
 
   /* 打开某条事件的分享卡片。
      deps: { getEvent(id) → 事件对象 }（事件数据在 app.js 的 state 里，视图模块拿不到） */

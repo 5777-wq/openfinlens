@@ -193,9 +193,23 @@ jobs:
           bash "$RUNNER_TEMP/ofl-collect.sh" academy-terms \
             data/academy-terms.json 360 _scripts/collect-academy-terms.mjs
 
+      - name: 提交前的数据契约闸门
+        id: gate
+        # 闸门必须挡在 push 前面。
+        # 数据提交带 [skip ci]，push 触发的 CI 直接跳过，于是「某个来源静默挂了、
+        # 产物少一大块」这种问题只能等某个人手动推代码才暴露——而坏数据已经上线好几天。
+        # 采集脚本自己也会失败（保留旧数据），但「成功写盘」不等于「写出来的是对的」：
+        # 新浪要 Referer、本机常被掐，某次新浪挂而 GDELT 正常 → 产物里 80 条中文快讯
+        # 整段消失，脚本 exit 0，页面照旧显示，只是少了一大块。
+        # 所以这里再跑一遍离线契约测试，不通过就不提交（宁缺毋假，不要发残次品）。
+        continue-on-error: true
+        run: |
+          node _test/run-all.mjs --offline
+
       - name: 提交已变化的数据（失败不牵连已成功的数据）
-        # if: always()：哪怕某个采集步骤崩了，也要先把已经写盘的成功数据推上去
-        if: always()
+        # if: always()：哪怕某个采集步骤崩了，也要先把已经写盘的成功数据推上去。
+        # 但闸门红的时候不提交——契约没过的东西不能上线。
+        if: always() && steps.gate.outcome != 'failure'
         run: |
           git config user.name "openfinlens-bot"
           git config user.email "actions@users.noreply.github.com"
@@ -221,7 +235,7 @@ jobs:
                 esac
               done < "$STATUS_FILE"
             fi
-            MSG="data: refresh${OK}${BAD} [skip ci]"
+            MSG="data: refresh${OK}${BAD}"
             BODY=""
             if [ -n "$SKIPPED" ]; then BODY="skipped(age not reached): ${SKIPPED# }"; fi
             if [ -n "$BADNAMES" ]; then

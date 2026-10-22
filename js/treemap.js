@@ -169,12 +169,13 @@ const Treemap = (() => {
 
   // ---------- 渲染 + 视口 ----------
   // items: [{ name, code, value(面积权重), pct, price, payload }]
-  function create(canvas, { onClick, onViewportChange, iconFor } = {}) {
+  function create(canvas, { onClick, onViewportChange, onCursorChange, iconFor } = {}) {
     const ctx = canvas.getContext('2d', { alpha: false });
     let layout = [];
     let data = [];
     let dpr = 1;
     let hoverIdx = -1;
+    let cursorIdx = -1;   // 键盘游标所在格（读屏用户靠它定位，鼠标用户靠 hover）
     let rafId = 0;
     const view = { zoom: 1, ox: 0, oy: 0 };   // 偏移为"布局坐标原点"，向右下为正
     let dragged = false;
@@ -208,6 +209,7 @@ const Treemap = (() => {
     function setData(items) {
       data = items.map(it => Object.assign({}, it, { value: Math.max(it.value || 0, 0.0001) }));
       hoverIdx = -1;      // 重排后 layout 已变，旧 hover 会把白框画在别的票上
+      cursorIdx = -1;     // 同理：键盘游标也不能留在旧位置
       preloadIcons();
       relayout();
     }
@@ -308,6 +310,15 @@ const Treemap = (() => {
           ctx.lineWidth = 1.5;
           ctx.strokeRect(sx + 0.75, sy + 0.75, w - 1.5, h - 1.5);
         }
+        // 键盘游标：双线环（外白内黑），任何底色上都看得见
+        if (i === cursorIdx) {
+          ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(sx + 1.5, sy + 1.5, w - 3, h - 3);
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(sx + 1.5, sy + 1.5, w - 3, h - 3);
+        }
 
         /* ---- 文字（TradingView 风格）：居中 + 字号随块面连续自适应，三级降级 ----
            两行（名称+涨幅）→ 一行（名称）→ 仅涨幅数字；块面小于 13px 才退为纯色块。
@@ -402,6 +413,72 @@ const Treemap = (() => {
       hoverIdx = i;
       draw();
     }
+
+    /* ---- 键盘游标（2026-10-22 无障碍修）----
+       canvas 对读屏和纯键盘用户等于不存在：全市场涨跌分布是本站核心视图，
+       盲人和键盘用户却完全拿不到。现在 canvas 可聚焦，方向键在块之间移动，
+       当前块由 app.js 用 aria-live 播报（名称 + 涨跌幅 + 方向）。 */
+    function setCursor(i) {
+      const next = (i >= 0 && i < layout.length) ? i : -1;
+      if (next === cursorIdx) return cursorIdx;
+      cursorIdx = next;
+      draw();
+      if (onCursorChange) {
+        const cell = cursorIdx >= 0 ? layout[cursorIdx] : null;
+        onCursorChange(cell ? cell.item : null, cursorIdx);
+      }
+      return cursorIdx;
+    }
+
+    /* 空间导航：找指定方向上"最近"的块。
+       横向移动优先同行（偏离方向惩罚更大），纵向移动优先同列。 */
+    function moveCursor(dx, dy) {
+      if (!layout.length) return -1;
+      if (cursorIdx < 0) return setCursor(0);
+      const cur = layout[cursorIdx];
+      const curCx = cur.x + cur.w / 2, curCy = cur.y + cur.h / 2;
+      let best = -1, bestScore = Infinity;
+      for (let i = 0; i < layout.length; i++) {
+        if (i === cursorIdx) continue;
+        const c = layout[i];
+        const ccx = c.x + c.w / 2, ccy = c.y + c.h / 2;
+        const ddx = ccx - curCx, ddy = ccy - curCy;
+        if (dx > 0 && ddx <= 0) continue;
+        if (dx < 0 && ddx >= 0) continue;
+        if (dy > 0 && ddy <= 0) continue;
+        if (dy < 0 && ddy >= 0) continue;
+        const along = dx ? Math.abs(ddx) : Math.abs(ddy);
+        const across = dx ? Math.abs(ddy) : Math.abs(ddx);
+        const score = along + across * 2;
+        if (score < bestScore) { bestScore = score; best = i; }
+      }
+      if (best < 0) return cursorIdx;   // 那个方向没有块了：留在原地
+      return setCursor(best);
+    }
+
+    // 键盘缩放：以画布中心为锚（鼠标是光标位置，键盘没有光标）
+    function zoomBy(factor) {
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width < 2 || rect.height < 2) return;
+      zoomAt(rect.width / 2, rect.height / 2, factor);
+    }
+
+    /* canvas 的键盘操作：←→↑↓ 移动游标、+/- 缩放、Home 复位、回车进详情 */
+    canvas.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const k = e.key;
+      if (k === 'ArrowRight') { e.preventDefault(); moveCursor(1, 0); }
+      else if (k === 'ArrowLeft') { e.preventDefault(); moveCursor(-1, 0); }
+      else if (k === 'ArrowDown') { e.preventDefault(); moveCursor(0, 1); }
+      else if (k === 'ArrowUp') { e.preventDefault(); moveCursor(0, -1); }
+      else if (k === '+' || k === '=') { e.preventDefault(); zoomBy(1.35); }
+      else if (k === '-' || k === '_') { e.preventDefault(); zoomBy(1 / 1.35); }
+      else if (k === 'Home') { e.preventDefault(); resetView(); setCursor(0); }
+      else if (k === 'Enter' || k === ' ') {
+        e.preventDefault();
+        if (cursorIdx >= 0 && onClick) onClick(layout[cursorIdx].item);
+      }
+    });
 
     /* ---- 交互：滚轮缩放 / 拖拽平移 / 右键复位 / 触屏单指拖 + 双指捏合 ---- */
     canvas.addEventListener('wheel', (e) => {
@@ -520,6 +597,10 @@ const Treemap = (() => {
     return {
       setData, updatePct, resize, draw, hitTest, setHover,
       resetView, zoomAt,
+      // 键盘游标：←→↑↓ 移动、Home 复位、+/- 缩放（app.js 用 onCursorChange 播报）
+      setCursor, moveCursor, zoomBy,
+      get cursorIndex() { return cursorIdx; },
+      get cursorItem() { return cursorIdx >= 0 ? layout[cursorIdx].item : null; },
       get zoomLevel() { return view.zoom; },
       get isDragged() { return dragged; },
       cellAt(i) { return layout[i]; },

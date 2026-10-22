@@ -337,5 +337,165 @@ test('窄屏的「?」仍要保持 26×26（那段是手指头能点到的尺寸
   assert.ok(/width:\s*26px/.test(rule[1]) && /height:\s*26px/.test(rule[1]), '窄屏的可点区不是 26×26');
 });
 
+/* ============================================================
+   可访问性守卫（2026-10-22）
+   ------------------------------------------------------------
+   上面那些是"看起来对不对"，这一组是"看不见的回归"：
+   涨跌文字对比度、焦点环宽度、焦点环被关掉——三者都不会报错，
+   只在页面上表现为低视力用户看不清涨跌、键盘用户不知道焦点在哪。
+   全部按 WCAG 相对亮度公式实算（不做目测），逐皮肤给数字。
+   ============================================================ */
+
+const CSS_NC = CSS.replace(/\/\*[\s\S]*?\*\//g, '');   // 去掉注释再扫规则
+
+// 某个主题的令牌；主题没定义就回落 :root（深色皮肤共用根令牌）
+function themeVarOrRoot(name, theme) {
+  const v = themeVar(name, themeBlock(theme));
+  if (v) return v;
+  return themeVar(name, themeBlock(':root'));
+}
+
+test('8 套皮肤下涨/跌**文字色**对各自底色都 ≥4.5:1（AA 正文）', () => {
+  // 浅色 5 套（paper/swiss/bauhaus/clay/memphis）原来直接用亮色
+  // #ff5c5c / #2ebd85，实测只有 2.22~3.03:1 —— AA 正文要 4.5:1。
+  // 现在每套浅色皮肤各自覆写 --text-rise / --text-fall（文字专用色），
+  // 色块/图形仍然是原来的亮色 --up / --down。
+  THEMES.forEach(t => {
+    const rise = themeVarOrRoot('text-rise', t);
+    const fall = themeVarOrRoot('text-fall', t);
+    assert.ok(/^#[0-9a-f]{6}$/i.test(rise), t + ' 的 --text-rise 不是 #rrggbb：' + rise);
+    assert.ok(/^#[0-9a-f]{6}$/i.test(fall), t + ' 的 --text-fall 不是 #rrggbb：' + fall);
+    const b = themeBlock(t);
+    ['bg', 'bg-elevated', 'bg-card'].forEach(surface => {
+      const bgHex = themeVar(surface, b);
+      assert.ok(/^#[0-9a-f]{6}$/i.test(bgHex), t + ' 的 --' + surface + ' 不是 hex：' + bgHex);
+      const bg = hex2rgb(bgHex);
+      const up = contrast(hex2rgb(rise), bg);
+      const down = contrast(hex2rgb(fall), bg);
+      assert.ok(up >= 4.5, `${t} 的涨字色 ${rise} 对 --${surface}(${bgHex}) 只有 ${up.toFixed(2)}:1`);
+      assert.ok(down >= 4.5, `${t} 的跌字色 ${fall} 对 --${surface}(${bgHex}) 只有 ${down.toFixed(2)}:1`);
+    });
+  });
+});
+
+test('涨跌文字走 --up-text/--down-text，色块仍走亮色 --up/--down', () => {
+  const up = CSS.match(/^\.up\s*\{([^}]*)\}/m);
+  assert.ok(up, '找不到 .up 规则');
+  assert.ok(/var\(--up-text\)/.test(up[1]), '.up 文字没有走 --up-text：' + up[1]);
+  const down = CSS.match(/^\.down\s*\{([^}]*)\}/m);
+  assert.ok(down, '找不到 .down 规则');
+  assert.ok(/var\(--down-text\)/.test(down[1]), '.down 文字没有走 --down-text：' + down[1]);
+  // 分布条/热力图色块是图形，不是文字：必须还是亮色，否则热力图整体变暗
+  const bar = CSS.match(/\.brief-bar\s*>\s*\.b-up\s*\{([^}]*)\}/);
+  assert.ok(bar && /var\(--up\)/.test(bar[1]), '分布条的色块不该换成文字色');
+});
+
+test('全局焦点环宽度 ≥2px（WCAG 2.2 SC 2.4.11）', () => {
+  const m = CSS_NC.match(/^:focus-visible\s*\{([^}]*)\}/m);
+  assert.ok(m, '找不到全局 :focus-visible 规则');
+  const w = /outline:\s*(\d+(?:\.\d+)?)px/.exec(m[1]);
+  assert.ok(w, '全局 :focus-visible 的 outline 没写像素宽度：' + m[1].replace(/\s+/g, ' '));
+  assert.ok(parseFloat(w[1]) >= 2, `全局焦点环只有 ${w[1]}px（SC 2.4.11 要求 ≥2px）`);
+});
+
+test('.bchip:focus-visible 的焦点环不能是 none（产业链概念条）', () => {
+  const m = CSS_NC.match(/\.bchip:focus-visible\s*\{([^}]*)\}/);
+  assert.ok(m, '找不到 .bchip:focus-visible 规则');
+  assert.ok(!/outline:\s*none/.test(m[1]),
+    '.bchip 的焦点环被关掉了（合成到浅色皮肤白底只有 1.00:1）：' + m[1].replace(/\s+/g, ' '));
+  const w = /outline:\s*(\d+(?:\.\d+)?)px/.exec(m[1]);
+  assert.ok(w && parseFloat(w[1]) >= 2, '.bchip 的焦点环宽度不足 2px：' + m[1].replace(/\s+/g, ' '));
+});
+
+test('不许用 :focus{outline:none} 把焦点环整个关掉', () => {
+  // :focus 的特异性高于全局的 :focus-visible，写了 outline:none 焦点环就没了。
+  // 到价提醒弹层的「触发价」输入框原来就是这样——键盘用户看不到自己在哪一格。
+  const rules = CSS_NC.match(/[^{}]+\{[^{}]*\}/g) || [];
+  const bad = rules.filter(r => {
+    const i = r.indexOf('{');
+    const sel = r.slice(0, i);
+    const body = r.slice(i);
+    return /:focus(?![-\w])/.test(sel) && /outline:\s*none/.test(body);
+  });
+  assert.equal(bad.length, 0, '这些规则把焦点指示关掉了：' +
+    bad.map(s => s.replace(/\s+/g, ' ')).join(' | '));
+});
+
+test('折叠标题的焦点环要用焦点环专用色（原来的 --border-hover 合成到白底只有 1.90:1）', () => {
+  const m = CSS_NC.match(/\[data-fold\][^{]*\.section-head:focus-visible\s*\{([^}]*)\}/);
+  assert.ok(m, '找不到折叠标题的焦点环规则');
+  assert.ok(/var\(--focus-ring\)/.test(m[1]), '折叠标题的焦点环没有用 --focus-ring：' + m[1]);
+});
+
+test('焦点环颜色在 8 套皮肤下都对底色 ≥3:1（WCAG 1.4.11 非文本对比）', () => {
+  // clay 的主强调橙压自己的底色只有 2.78:1、memphis 的粉只有 2.86:1，
+  // 所以这两套皮肤把焦点环换成同色系深一档的 --focus-ring。
+  THEMES.forEach(t => {
+    let ring = themeVarOrRoot('focus-ring', t);
+    if (ring === 'var(--accent-signature)') ring = themeVarOrRoot('accent-signature', t);
+    assert.ok(/^#[0-9a-f]{6}$/i.test(ring), t + ' 的 --focus-ring 不是 hex：' + ring);
+    const b = themeBlock(t);
+    ['bg', 'bg-elevated'].forEach(surface => {
+      const bg = hex2rgb(themeVar(surface, b));
+      const r = contrast(hex2rgb(ring), bg);
+      assert.ok(r >= 3, `${t} 的焦点环 ${ring} 对 --${surface} 只有 ${r.toFixed(2)}:1（要 ≥3:1）`);
+    });
+  });
+});
+
+test('三个分段控件的按钮都有 aria-pressed（选中态不能只活在 CSS 类里）', () => {
+  ['segTheme', 'segUpdown', 'segRefresh'].forEach(id => {
+    const m = HTML.match(new RegExp('id="' + id + '"[\\s\\S]*?</div>'));
+    assert.ok(m, 'index.html 里找不到 ' + id);
+    const buttons = m[0].match(/<button[^>]*>/g) || [];
+    assert.ok(buttons.length >= 2, id + ' 里没有按钮');
+    buttons.filter(b => !/data-theme="random"/.test(b)).forEach(b => {
+      assert.ok(/aria-pressed=/.test(b), id + ' 里的按钮缺 aria-pressed：' + b);
+    });
+  });
+});
+
+test('搜索框要是 combobox（searchbox 角色不支持 aria-expanded / aria-autocomplete）', () => {
+  const m = HTML.match(/<input[^>]*id="searchInput"[^>]*>/);
+  assert.ok(m, '找不到搜索输入框');
+  assert.ok(/role="combobox"/.test(m[0]), '搜索框缺 role="combobox"');
+  assert.ok(/aria-autocomplete="list"/.test(m[0]), '搜索框缺 aria-autocomplete="list"');
+  assert.ok(/aria-controls="searchResults"/.test(m[0]), '搜索框缺 aria-controls');
+  assert.ok(/aria-activedescendant/.test(m[0]), '搜索框缺 aria-activedescendant');
+});
+
+test('热力图画布要可聚焦（tabindex="0"）+ 有表格视图兜底', () => {
+  const m = HTML.match(/<canvas[^>]*id="heatCanvas"[^>]*>/);
+  assert.ok(m, '找不到热力图画布');
+  assert.ok(/tabindex="0"/.test(m[0]), '热力图画布不可聚焦，键盘用户拿不到全市场涨跌分布');
+  assert.ok(/id="heatTable"/.test(HTML), '没有热力图表格视图（读屏用户的等价入口）');
+  assert.ok(/id="heatCursorLive"/.test(HTML), '没有热力图游标播报区');
+});
+
+test('三个弹层都接了公共焦点陷阱（js/focus-trap.js）', () => {
+  const trap = readFileSync(path.join(ROOT, 'js/focus-trap.js'), 'utf8');
+  assert.ok(/summary/.test(trap),
+    '焦点陷阱的候选里必须有 <summary>——设置弹层的「数据源自检」是 <details>，漏了它永远拿不到焦点');
+  ['js/app.js', 'js/alerts.js', 'js/pmshare.js'].forEach(f => {
+    const src = readFileSync(path.join(ROOT, f), 'utf8');
+    assert.ok(/FocusTrap/.test(src), f + ' 没有接公共焦点陷阱（Tab 会跑出弹层 / 关掉后焦点丢失）');
+  });
+  assert.ok(/js\/focus-trap\.js\?v=/.test(HTML), 'index.html 里没有加载 js/focus-trap.js');
+});
+
+test('一级 tab 是 roving tabindex（同一时刻只占一个 Tab 位）', () => {
+  const m = HTML.match(/<nav[^>]*id="tabs"[\s\S]*?<\/nav>/);
+  assert.ok(m, '找不到顶栏 tablist');
+  const tabs = m[0].match(/<button[^>]*role="tab"[^>]*>/g) || [];
+  assert.ok(tabs.length >= 10, '顶栏 tab 数量异常');
+  const zero = tabs.filter(t => /tabindex="0"/.test(t)).length;
+  const minus = tabs.filter(t => /tabindex="-1"/.test(t)).length;
+  assert.equal(zero, 1, `有 ${zero} 个 tab 在 Tab 序里（roving tabindex 只允许 1 个）`);
+  assert.equal(minus, tabs.length - 1, '其余 tab 应当是 tabindex="-1"');
+  // 每个 tab 都要有 id：面板用 aria-labelledby 指向当前那个 tab
+  tabs.forEach(t => assert.ok(/\sid="tab-/.test(t), 'tab 缺 id（面板名会一直停在"全球市场"）：' + t));
+  assert.ok(/id="view-market"[^>]*aria-labelledby="tab-all"/.test(HTML), '市场面板没有用 aria-labelledby 指向当前 tab');
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

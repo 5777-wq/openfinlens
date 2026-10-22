@@ -137,19 +137,44 @@ const Cache = {
   // heat:us（美股全市场 ≈1.38 万行）持久化会同步字符串化 ~1.5MB 卡主线程、
   // 逼近 localStorage 5MB 配额（超了以后每次写入都静默失败），只留内存缓存；
   // heat:hk（~2900 行）与 lhb（日频 ~80 行）量级安全，照常持久化兜底。
+  // heat:cn（A 股全市场 ≈5300 行）本来也在持久化名单里，字符串化约 913KB，
+  // 而它每 30 秒就被重写一次 —— 光这一条就是每 30 秒往磁盘塞 913KB。
+  // 它和 heat:us 是同一个量级问题，按同样的理由移出持久化（内存缓存照样有）。
   // events:/sb/brk/etf/fundholds/wbmacro 是各降级链的「静态 JSON → 缓存」最后一环
   // （gdelt/polymarket/南向/13F/ETF持股/世界银行，最大单 key ~80KB），刷新后仍可用；
   // crypto:cap 是加密流通市值富化（~250 条 [symbol,市值]，~10KB），旧市值仍比成交额代理诚实
-  _persist: ['q:', 'heat:cn', 'heat:crypto', 'heat:hk', 'lhb', 'news', 'report:',
+  _persist: ['q:', 'heat:crypto', 'heat:hk', 'lhb', 'news', 'report:',
              'events:', 'sb', 'brk', 'etf', 'fundholds', 'wbmacro', 'crypto:cap'],
   _canPersist(key) { return this._persist.some(p => key.startsWith(p)); },
+
+  // 落盘攒批：**只对行情缓存（q:）攒批**。
+  // 一次行情刷新会写上百个 q:<symbol>，每个都同步 setItem 一次 =
+  // 上百次同步磁盘写，主线程直接卡一下。行情缓存是「有更好、没有也能跑」的兜底，
+  // 攒 250ms 再统一刷出去，不影响任何降级链。
+  // 其余 key（events:/sb/brk/etf/fundholds/wbmacro/heat:hk/…）是各降级链的最后一环，
+  // 必须**写完就落盘**——否则「刷新页面后仍然可用」这条承诺就破了。
+  _pending: new Map(),
+  _flushTimer: null,
+  _queue(key, entry) {
+    this._pending.set(key, entry);
+    if (this._flushTimer) return;
+    this._flushTimer = setTimeout(() => {
+      this._flushTimer = null;
+      const pending = this._pending;
+      this._pending = new Map();
+      for (const [k, e] of pending) {
+        try { localStorage.setItem('gfd_cache_' + k, JSON.stringify(e)); }
+        catch { /* 超配额时退化为纯内存缓存 */ }
+      }
+    }, 250);
+  },
   set(key, val) {
     const e = { val, at: Date.now() };
     this._m.set(key, e);
-    if (this._canPersist(key)) {
-      try { localStorage.setItem('gfd_cache_' + key, JSON.stringify(e)); }
-      catch { /* 超配额时退化为纯内存缓存 */ }
-    }
+    if (!this._canPersist(key)) return;
+    if (key.startsWith('q:')) { this._queue(key, e); return; }
+    try { localStorage.setItem('gfd_cache_' + key, JSON.stringify(e)); }
+    catch { /* 超配额时退化为纯内存缓存 */ }
   },
   get(key, maxAge) {
     const e = this._m.get(key);
