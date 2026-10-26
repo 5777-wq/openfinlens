@@ -8,7 +8,7 @@
        终端据此决定要不要给「去科普站里搜这个词」的入口：
        给一个搜不到词的搜索链接，等于给用户一条必然扑空的路。 */
 window.AcademyAssets = {
- "generatedAt": "2026-10-24T20:19:54.017Z",
+ "generatedAt": "2026-10-25T20:29:45.726Z",
  "source": "https://5777-wq.github.io/openfin-academy/data/content/asset-ids.json",
  "count": 114,
  "symbols": [
