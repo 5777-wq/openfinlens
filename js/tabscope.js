@@ -7,10 +7,11 @@
  * 校验、去重、兜底都在这里，才能单测；
  * app.js 只负责把结果落到 DOM 上。
  *
- * 三条硬约束（不满足就回落默认，不给用户半残的界面）：
+ * 硬约束（不满足就回落默认，不给用户半残的界面）：
  *   ① 「全部」永远可见且排第一：它是总览入口，藏了或往后排会让人找不到回来的路。
  *   ② 加密板块受合规开关控制：开关关掉时它连设置项里都不该出现。
- *   ③ 至少留两个可见板块：只留一个时顶栏退化成单按钮，导航就没意义了。 */
+ *   ③ 期权板块同样受合规开关控制（双开关体系里的第二把锁）。
+ *   ④ 至少留两个可见板块：只留一个时顶栏退化成单按钮，导航就没意义了。 */
 
 (function (global) {
   'use strict';
@@ -23,6 +24,7 @@
     { key: 'us', label: '美股' },
     { key: 'crypto', label: '加密', cryptoOnly: true },
     { key: 'fxmacro', label: '宏观' },
+    { key: 'option', label: '期权', optionsOnly: true },
     { key: 'events', label: '事件' },
     { key: 'chain', label: '产业链' },
     { key: 'watch', label: '自选' },
@@ -37,7 +39,8 @@
 
   /* 规范化一份用户配置 → { order: [...], hidden: [...] }
    * cfg: { order?: string[], hidden?: string[] }
-   * cryptoOk: 合规开关（关掉时加密不在可用集合里）
+   * cryptoOk: 加密合规开关（关掉时加密不在可用集合里）
+   * optionsOk: 期权合规开关（缺省 = 开，全部既有两参调用行为不变；关掉时期权不在可用集合里）
    *
    * 兜底规则：
    *   · 未知 key 丢掉（配置可能来自旧版本）
@@ -45,9 +48,10 @@
    *   · 「全部」强制置顶且不可隐藏
    *   · 隐藏后可见数不足 2 → 撤销隐藏（只留一个板块的顶栏没有导航意义）
    */
-  function normalize(cfg, cryptoOk) {
+  function normalize(cfg, cryptoOk, optionsOk) {
     const c = cfg || {};
-    const usable = new Set(TAB_DEFS.filter(d => !d.cryptoOnly || cryptoOk).map(d => d.key));
+    const optOk = optionsOk !== false;
+    const usable = new Set(TAB_DEFS.filter(d => (!d.cryptoOnly || cryptoOk) && (!d.optionsOnly || optOk)).map(d => d.key));
 
     // 顺序：先取用户顺序里合法且可用的，再补上没出现过的（按默认顺序追加）
     const seen = new Set();
@@ -75,8 +79,8 @@
   }
 
   /* 应用配置 → 实际要渲染的板块列表（已排序、已过滤） */
-  function visibleTabs(cfg, cryptoOk) {
-    const n = normalize(cfg, cryptoOk);
+  function visibleTabs(cfg, cryptoOk, optionsOk) {
+    const n = normalize(cfg, cryptoOk, optionsOk);
     return n.order.filter(k => n.hidden.indexOf(k) < 0);
   }
 
@@ -94,8 +98,8 @@
 
   /* 切换某板块的显隐，返回新的 hidden 集合。
    * 「全部」不可隐藏；隐藏到只剩一个可见时拒绝（返回原集合）。 */
-  function toggleHidden(cfg, key, cryptoOk) {
-    const n = normalize(cfg, cryptoOk);
+  function toggleHidden(cfg, key, cryptoOk, optionsOk) {
+    const n = normalize(cfg, cryptoOk, optionsOk);
     if (key === 'all' || !n.order.includes(key)) return n.hidden;
     const hidden = new Set(n.hidden);
     if (hidden.has(key)) {

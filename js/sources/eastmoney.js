@@ -89,7 +89,7 @@ const EastmoneySource = (() => {
 
   async function getFullMarketInner({ maxCount = 6000, concurrency = 12, fs = FS_A } = {}) {
     const mkUrl = (pn) => `${HOST}/api/qt/clist/get?pn=${pn}&pz=100&po=1&np=1&fltt=2&invt=2&fid=f3` +
-      `&fs=${fs}&fields=f2,f3,f4,f5,f6,f12,f13,f14,f20`;   // f5 成交量(手) f6 成交额(元)：市场宽度要用
+      `&fs=${fs}&fields=f2,f3,f4,f5,f6,f12,f13,f14,f20,f100`;   // f5 成交量(手) f6 成交额(元)：市场宽度要用；f100 行业（美股热力图板块分组，'-' 视为缺失）
     try {
       const first = await request(mkUrl(1));
       const data = first && first.data;
@@ -120,6 +120,7 @@ const EastmoneySource = (() => {
           price: num(d.f2), changePct: num(d.f3), change: num(d.f4),
           volume: num(d.f5), amount: num(d.f6),
           marketCap: num(d.f20),
+          industry: (d.f100 && d.f100 !== '-') ? String(d.f100) : '',   // 行业（东财口径，中文名）：缺失空串，分组层归「其他」
         }))
         .filter(x => {
           if (!x.code || x.changePct === null || seen.has(x.code)) return false;

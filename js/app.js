@@ -46,6 +46,8 @@
     heatSize: 'cap',
     heatBandsOff: {},       // 图例关掉的涨跌幅区间（key → true），关掉的块不进渲染
     heatTopMode: 'top',    // A股热力图范围：top=市值 Top500（默认）| all=全市场
+    heatUsIndex: 'all',    // 美股热力图成分筛选：all=市值Top500 | sp500 | dj30 | ndx100（js/data/us-indexes.js）
+    heatUsQuotedAt: 0,     // 美股轻量报价最近一跳时间（loadHeatUS 写；美东闭市时段不刷）
     heatTable: false,      // 热力图的表格视图（canvas 的可读替代，给读屏/纯键盘用户）
     // 每个市场的全量行：hk/us 同时供"热力图"与"市场宽度"共用（us 原本就为宽度而抓）
     heatItems: { cn: [], hk: [], us: [], crypto: [] },
@@ -124,6 +126,10 @@
     // 点击进详情需要 secid/market 映射，渲染时顺手登记
     moversRows: new Map(),
     lastUpdate: null,
+    // 期权 T 型报价（受 OPTIONS_ON 合规开关管辖）：optGen=请求代号（同 chartGen/searchGen 惯例，
+    // 慢响应不得覆盖新选择）；optSig=整表渲染签名（增量守卫）；optMonths 只对中金所有值（monthsOf 纯函数）
+    optKind: 'IO', optMonth: null, optMonths: [], optChain: null, optChainAt: 0,
+    optGen: 0, optSig: '', optFail: false,
     timers: {},
     scheduleGen: {},          // 每条轮询链的代号：schedule 重入后旧链醒来自动停转（防双链并行轮询）
     stopped: false,
@@ -138,7 +144,7 @@
     'watchSection', 'watchGrid', 'watchSub', 'watchMore', 'marketBrief', 'marketBriefLive',
     'heatCanvas', 'heatTip', 'heatWrap', 'heatSection', 'heatSub', 'heatSizeToggle', 'heatTopToggle',
     'heatReset', 'heatZoom', 'heatHint', 'heatLegend', 'heatMktSwitch', 'heatMktTag',
-    'heatTable', 'heatTableToggle', 'heatCursorLive',
+    'heatTable', 'heatTableToggle', 'heatCursorLive', 'heatIdxSwitch', 'heatFull',
     'newsList', 'newsSub', 'chainList',
     'boardStrip', 'boardVia', 'boardDrawer',
     'moodSub', 'moodScore', 'moodBand', 'moodFill', 'breadthGrid', 'distWrap', 'distSub', 'moodSpark', 'heroStrip', 'moodCrypto', 'moodUS',
@@ -172,7 +178,9 @@
     // 到价提醒（AlertCenter 视图模块，alerts.js）
     'alertBell', 'alertPanel', 'alertBadge', 'alertPerm', 'alertList', 'alertHint',
     'alertModal', 'alertModalTarget', 'alertDir', 'alertPrice', 'alertNote',
-    'alertCancel', 'alertSave', 'alertDetailBtn'];
+    'alertCancel', 'alertSave', 'alertDetailBtn',
+    // 期权 T 型报价（view-option 内；受 OPTIONS_ON 合规开关管辖）
+    'optKindBar', 'optMonthBar', 'optUnder', 'optVia', 'optTable', 'optPcr'];
 
   const pctClass = (p) => (p === null || p === undefined || isNaN(p)) ? 'flat' : (p > 0 ? 'up' : p < 0 ? 'down' : 'flat');
 
@@ -208,6 +216,20 @@
     } catch { return true; }
   })();
   if (!CRYPTO_ON) document.body.classList.add('no-crypto');
+
+  /* ---- 期权内容内部开关（照抄上面 CRYPTO_ON 的模式）----
+     默认开。联调/合规场景：URL 带 ?options=off 关闭（写入本机记住），?options=on 重新打开，
+     或直接 localStorage['ofl:options']='off'。关闭后期权 tab/设置项/T型报价零入口，
+     其余板块不受影响；界面上不出现任何开关入口。加密期权另受 CRYPTO_ON 双重管辖。 */
+  const OPTIONS_ON = (() => {
+    try {
+      const q = location.search || '';
+      if (/[?&]options=off/.test(q)) localStorage.setItem('ofl:options', 'off');
+      if (/[?&]options=on/.test(q)) localStorage.removeItem('ofl:options');
+      return localStorage.getItem('ofl:options') !== 'off';
+    } catch { return true; }
+  })();
+  if (!OPTIONS_ON) document.body.classList.add('no-options');
 
   // 自选 symbol 集合：渲染一批卡片前取一次，避免每卡 has() → JSON.parse(localStorage)
   let watchSet = new Set();
@@ -1258,6 +1280,17 @@
     });
   }
 
+  /* 美股指数成分筛选（标普500/道指30/纳指100，清单见 js/data/us-indexes.js）。
+     只影响"画出来的块"——宽度/情绪统计与 Movers 三榜仍用全量行，口径互不串。
+     选定指数后不再做 Top 500 切片：三只指数成分本身 ≤503，块块有字。 */
+  function usIndexActive() {
+    return state.heatMode === 'us' && state.heatUsIndex !== 'all';
+  }
+  function applyHeatUsIndex(rows) {
+    if (!usIndexActive() || !window.US_INDEXES) return rows;
+    return window.US_INDEXES.filter(rows, state.heatUsIndex);
+  }
+
   /* 图例：8 个离散区间，既是色阶说明也是筛选器。
      点一下关掉该区间（块消失），再点恢复。区间是固定的（不随数据变），
      否则点图例时边界会跳，用户点不准想要的那一段。 */
@@ -1382,22 +1415,24 @@
      加密只有 80 个币，不切片。切片只影响"画出来的块"，宽度/情绪统计始终用全量数据。 */
   const HEAT_RANGE_MODES = { cn: true };
   // 各市场的取数入口（函数声明已提升，这里只是把它们收成一张表，避免 switchHeat 里堆三元）
-  const HEAT_LOADERS = { cn: loadHeatCN, crypto: loadHeatCrypto, hk: ensureHKRows, us: ensureUSRows };
+  const HEAT_LOADERS = { cn: loadHeatCN, crypto: loadHeatCrypto, hk: ensureHKRows, us: loadHeatUS };
 
   /* 画出来的块数：调度器每 30 秒只为"数量有没有变"问一次。
      原来走 heatItemsForRender()，里头把 5500 行按市值排序一遍再 slice——
      为了拿一个数字付出 ~65k 次比较 + 5500 元素拷贝 + 500 次对象分配。
      数量规则和 heatItemsForRender 完全一致，只是不用排序。 */
   function heatRenderCount() {
-    const rows = applyBandFilter(state.heatItems[state.heatMode] || []);
-    const sliceTop = state.heatMode !== 'crypto' &&
+    let rows = applyBandFilter(state.heatItems[state.heatMode] || []);
+    rows = applyHeatUsIndex(rows);
+    const sliceTop = state.heatMode !== 'crypto' && !usIndexActive() &&
       (HEAT_RANGE_MODES[state.heatMode] ? state.heatTopMode !== 'all' : true);
     return (sliceTop && rows.length > 500) ? 500 : rows.length;
   }
 
   function heatItemsForRender() {
     let rows = applyBandFilter(state.heatItems[state.heatMode] || []);
-    const sliceTop = state.heatMode !== 'crypto' &&
+    rows = applyHeatUsIndex(rows);
+    const sliceTop = state.heatMode !== 'crypto' && !usIndexActive() &&
       (HEAT_RANGE_MODES[state.heatMode] ? state.heatTopMode !== 'all' : true);
     if (sliceTop && rows.length > 500) {
       rows = rows.slice().sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0)).slice(0, 500);
@@ -1405,6 +1440,8 @@
     return rows.map(r => ({
       name: r.name, code: r.code, pct: r.changePct, price: r.price,
       value: heatValue(r), payload: r,
+      // 美股板块分组：行业来自东财 f100（中文），缺失归「其他」；其余市场无 group=平铺
+      group: state.heatMode === 'us' ? (r.industry || '其他') : undefined,
     }));
   }
 
@@ -1525,8 +1562,12 @@
     const rangeTxt = state.heatMode === 'cn'
       // "全市场"指全市场个股：指数是成分股的加权聚合，不是成分股（口径见 js/auniverse.js）
       ? (state.heatTopMode === 'top' ? ' · 市值 Top 500（宽度统计仍用全量个股）' : ' · 全市场个股（不含指数）')
-      : (state.heatMode === 'hk' || state.heatMode === 'us')
-        ? ' · 市值 Top 500（全市场共 ' + n + ' 只）' : '';
+      : state.heatMode === 'us'
+        ? (usIndexActive()
+            ? ' · ' + (window.US_INDEXES ? window.US_INDEXES.LABELS[state.heatUsIndex] : '') +
+              '成分 ' + applyHeatUsIndex(rows).length + ' 只（全市场共 ' + n + ' 只）'
+            : ' · 市值 Top 500（全市场共 ' + n + ' 只）')
+        : (state.heatMode === 'hk' ? ' · 市值 Top 500（全市场共 ' + n + ' 只）' : '');
     // 加密热力图面积口径跟着实际数据走：真实市值富化覆盖 ≥80% 才标「市值」，否则如实写「24h成交额」
     const cryptoCapReal = state.heatMode === 'crypto'
       && (state.heatItems.crypto || []).filter(r => r.capReal).length / Math.max(1, (state.heatItems.crypto || []).length) >= 0.8;
@@ -1756,12 +1797,63 @@
     });
     if (rows.length) {
       state.heatItems.us = rows; state.heatVia.us = 'primary';
+      state.heatUsQuotedAt = Date.now();   // 全市场刚抓完就是最新的：本轮跳过轻量报价，省 ~9 个批量请求
       Cache.set('heat:us', rows);
     } else {
       const cc = Cache.raw('heat:us');
       if (cc) { state.heatItems.us = cc.val; state.heatVia.us = 'cache'; state.heatCachedAt.us = cc.at; }
     }
     return state.heatItems.us;
+  }
+
+  /* ---- 美股热力图的"实时换色"（2026-10-29）----
+     全市场 139 页只在首拉/缓存过期时做（ensureUSRows，5 分钟会话缓存）；
+     之后每跳调度（30s）只对"当前画出来的块"批量拉报价（ulist 一次 60 个 secid），
+     把涨跌幅刷进同一批行——调度器随后的 updatePct 只换色不重排，与 A股 同一语义。
+     美东 04:00~20:00（盘前→盘后）之外闭市，刷了数字也不动，直接省掉这几十个请求。 */
+  const _etFmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', minute: 'numeric', hourCycle: 'h23',
+  });
+  function usQuoteWindowOpen(now) {
+    try {
+      const p = {};
+      for (const part of _etFmt.formatToParts(now || new Date())) p[part.type] = part.value;
+      if (p.weekday === 'Sat' || p.weekday === 'Sun') return false;
+      const h = +p.hour;
+      return h >= 4 && h < 20;   // 盘前 04:00 → 盘后 20:00（美东，含夏令时自动换算）
+    } catch { return true; }     // 时区库异常：宁可多刷，不能不刷
+  }
+
+  async function refreshUSHeatQuotes() {
+    const rows = state.heatItems.us || [];
+    if (!rows.length || !window.EastmoneySource) return;
+    if (Date.now() - (state.heatUsQuotedAt || 0) < 45000) return;   // 调度 30s 一跳，45s 节流防重入
+    state.heatUsQuotedAt = Date.now();   // 先落时间戳再请求：失败也节流，别让 30s 一跳把限流打实
+    if (!usQuoteWindowOpen()) return;
+    let sub = applyBandFilter(rows);
+    sub = applyHeatUsIndex(sub);
+    if (!usIndexActive()) {
+      sub = sub.slice().sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0)).slice(0, 500);
+    }
+    const secids = sub.map(r => r.secid).filter(Boolean);
+    const bySecid = {};
+    rows.forEach(r => { if (r.secid) bySecid[r.secid] = r; });
+    for (let i = 0; i < secids.length; i += 60) {
+      const quotes = await window.EastmoneySource.getQuotes(secids.slice(i, i + 60));
+      quotes.forEach(q => {
+        const row = bySecid[q.secid];
+        if (!row || q.price === null || q.price === undefined) return;
+        if (q.changePct !== null && q.changePct !== undefined) row.changePct = q.changePct;
+        row.price = q.price;
+        if (q.change !== null && q.change !== undefined) row.change = q.change;
+        if (q.prevClose !== null && q.prevClose !== undefined) row.prevClose = q.prevClose;
+      });
+    }
+  }
+
+  async function loadHeatUS() {
+    await ensureUSRows();
+    await refreshUSHeatQuotes();
   }
 
   function renderMoodUS(rows) {
@@ -3914,6 +4006,7 @@
 
   const VIEW_OF_TAB = {
     all: 'market', cn: 'market', hk: 'market', us: 'market', crypto: 'market', fxmacro: 'market',
+    option: 'option',   // 期权：独立视图（T 型报价），#tab=option 深链经 /#tab=([a-z]+)/ 命中
     events: 'events', chain: 'chain', watch: 'watch',
     compare: 'compare',   // 基金：独立视图（对比 + 画像两个子面板）
     portfolio: 'portfolio',   // 持仓跟踪：本机记账 + 实时盈亏
@@ -3945,7 +4038,7 @@
   function applyTabCfg() {
     const nav = el.tabs;
     if (!nav || !window.TabScope) return;
-    const keys = window.TabScope.visibleTabs(tabCfg(), CRYPTO_ON);
+    const keys = window.TabScope.visibleTabs(tabCfg(), CRYPTO_ON, OPTIONS_ON);
     // 按 DOM 现有顺序建索引，重排时只移动真实存在的按钮
     const nodes = Array.from(nav.querySelectorAll('.tab'));
     const byTab = {};
@@ -3970,7 +4063,7 @@
     const box = el.tabCfg;
     if (!box || !window.TabScope) return;
     const cfg = tabCfg();
-    const n = window.TabScope.normalize(cfg, CRYPTO_ON);
+    const n = window.TabScope.normalize(cfg, CRYPTO_ON, OPTIONS_ON);
     const hidden = n.hidden;
     box.innerHTML = n.order.map((k, i) => {
       const isAll = k === 'all';
@@ -4049,9 +4142,11 @@
       if (hint) hint.textContent = ZONE_HINTS[key] || '';
       syncRovingTab(el.zoneBar);   // 分区栏也是 tablist：roving tabindex 要跟着选中项走
     }
-    // 热力图 canvas 在 display:none 时尺寸为 0，切回来必须重画一次
+    // 热力图 canvas 在 display:none 时尺寸为 0，切回来必须重画一次。
+    // 不查 state.heat：直进市场 tab 再切热力图分区时实例还没建过，
+    // 这里一跳守卫会把首画永远挡掉（守卫本意只是防隐藏时白画，drawHeat 自己会查可见性）
     if (key === 'heat') {
-      requestAnimationFrame(() => { if (state.heat) drawHeat(); });
+      requestAnimationFrame(() => drawHeat());
     }
   }
 
@@ -4302,6 +4397,7 @@
       tab = TAB_ALIAS[tab];
     }
     if (tab === 'crypto' && !CRYPTO_ON) tab = 'all';   // 合规开关：加密深链/快捷键归位「全部」
+    if (tab === 'option' && !OPTIONS_ON) tab = 'all';   // 合规开关：期权深链/快捷键归位「全部」（照抄加密）
     const animate = !opts || opts.animate !== false;   // 返回详情/改设置时不重播入场动画
     // 重复点击同一 tab：短路，避免整墙重建 + stagger 重播 + 焦点丢失
     if (tab === state.tab && state.view === (VIEW_OF_TAB[tab] || 'market')) return;
@@ -4464,6 +4560,198 @@
       // 定时器只在 chain 视图内轮询，所以每次进入都主动补一轮，避免展示过期行情
       loadChainQuotes().then(() => patchChains());
     }
+    if (tab === 'option' && OPTIONS_ON) {
+      if (isCryptoUly(state.optKind) && !CRYPTO_ON) state.optKind = 'IO';  // 双开关兜底（照抄加密归位）
+      renderOptControls();               // 纯 DOM：kind 高亮 + 月 pills；中金所用 monthsOf（纯函数，零网络）
+      if (!state.optChain || Date.now() - state.optChainAt > 30000) loadOptionChain();
+      else renderOptionChain();          // 30s 内新鲜：直接重渲，不发请求
+    }
+  }
+
+  /* ==================== 期权 T 型报价（受 OPTIONS_ON 合规开关管辖） ====================
+     加密标的（BTC-USD/ETH-USD）另受 CRYPTO_ON 双重管辖。数据层是 js/sources/option.js
+     （window.OptionSource）：中金所换月是 server 参数（cffexChain），加密一包给全到期、
+     月过滤在客户端做（expiry 是行内字段）。全程零 rAF、整表一次 innerHTML、签名没变不碰 DOM。 */
+  const isCryptoUly = (k) => k === 'BTC-USD' || k === 'ETH-USD';
+  const OPT_VIA_LABEL = { eastmoney: '东财', okx: 'OKX', deribit: 'Deribit' };
+  let optMonthSig = '';   // 月 pills 内容签名：kind+月份列表没变就不重写 innerHTML（不打断 hover/焦点）
+
+  function resetOptTable() {
+    if (el.optTable) el.optTable.innerHTML = '<div class="sk sk-row"></div>';
+    state.optSig = '';
+  }
+
+  /* 控制条（纯 DOM，零网络）：kind 高亮 + 到期月 pills。
+     中金所 = monthsOf(kind)（'2611' 原码直出，不做月名换算——诚实零歧义）；
+     加密 = 最近一次链内 distinct expiry 升序（数据层一包给全到期）。
+     无月份可展示时整条 bar 撤掉（hidden），加载中保持隐藏。 */
+  function renderOptControls() {
+    if (!el.optKindBar || !el.optMonthBar) return;
+    el.optKindBar.querySelectorAll('.chip').forEach(b =>
+      b.classList.toggle('active', b.dataset.optkind === state.optKind));
+    const crypto = isCryptoUly(state.optKind);
+    const months = crypto
+      ? Array.from(new Set(((state.optChain && state.optChain.rows) || []).map(r => r && r.expiry).filter(Boolean))).sort()
+      : (window.OptionSource ? window.OptionSource.monthsOf(state.optKind) : state.optMonths.slice());
+    if (!months.length) {
+      el.optMonthBar.hidden = true;
+      el.optMonthBar.innerHTML = '';
+      optMonthSig = '';
+      return;
+    }
+    const sig = state.optKind + '|' + months.join(',');
+    if (sig !== optMonthSig) {
+      el.optMonthBar.innerHTML = months.map(m =>
+        `<button class="chip num" data-optmonth="${escapeHTML(m)}">${escapeHTML(m)}</button>`).join('');
+      optMonthSig = sig;
+    }
+    el.optMonthBar.hidden = false;
+    el.optMonthBar.querySelectorAll('.chip').forEach(b =>
+      b.classList.toggle('active', b.dataset.optmonth === state.optMonth));
+  }
+
+  function setOptKind(kind) {
+    // 入参先过白名单再进状态/数据层（不拼任何 URL；SSRF 惯例同 js/sources/tencent.js）；加密标的需加密开关
+    if (!/^(IO|MO|HO|BTC-USD|ETH-USD)$/.test(kind)) return;
+    if (isCryptoUly(kind) && !CRYPTO_ON) return;
+    state.optKind = kind;
+    state.optMonth = null;
+    state.optChain = null;
+    state.optChainAt = 0;
+    state.optFail = false;
+    state.optMonths = [];            // 旧 kind 的月份表作废，链到位后由 loadOptionChain 重填
+    resetOptTable();
+    setText(el.optUnder, '—');
+    setText(el.optVia, '—');
+    setText(el.optPcr, '认购/认沽成交量比为描述性统计，仅报数不下结论。');
+    renderOptControls();             // kind 高亮立即切换；月条清空回 hidden（加载前置空）
+    loadOptionChain();
+  }
+
+  function setOptMonth(m) {
+    if (!/^\d{4}$|^\d{6}$/.test(m)) return;   // '2611' 中金所 / '261127' 加密
+    if (isCryptoUly(state.optKind)) {
+      // 加密：全到期已在本端，月过滤纯客户端，不发请求
+      state.optMonth = m;
+      if (el.optMonthBar) el.optMonthBar.querySelectorAll('.chip').forEach(b =>
+        b.classList.toggle('active', b.dataset.optmonth === m));
+      renderOptionChain();
+      return;
+    }
+    // 中金所：月是 server 参数，换月 = 换链，清态重拉（同 setOptKind）。
+    // 先 renderOptControls 再拉链：月 pill 高亮立即切换，别等 EM 响应回来才动（评审发现 4）
+    state.optMonth = m;
+    state.optChain = null;
+    state.optChainAt = 0;
+    state.optFail = false;
+    resetOptTable();
+    renderOptControls();
+    loadOptionChain();
+  }
+
+  async function loadOptionChain() {
+    if (!OPTIONS_ON) return;
+    const OS = window.OptionSource;
+    if (!OS) { state.optFail = true; renderOptionChain(); return; }   // option.js 未就绪：诚实空态，不编数据
+    if (isCryptoUly(state.optKind) && !CRYPTO_ON) return;             // 双开关第二道防线
+    const gen = ++state.optGen;
+    // 调用点白名单（纵深防御，与 js/sources/option.js 入口闸门同一套；同 getMinute 的
+    // symSafe 惯例）：拷贝 → 校验拷贝 → 只传拷贝，state 原值不进网络调用
+    const kSafe = String(state.optKind || '');
+    if (!/^(IO|MO|HO|BTC-USD|ETH-USD)$/.test(kSafe)) return;
+    const mRaw = state.optMonth;
+    const mSafe = (mRaw === null || mRaw === undefined) ? null : String(mRaw);
+    if (mSafe !== null && !/^\d{4}$|^\d{6}$/.test(mSafe)) return;
+    try {
+      // 中金所兜底月最终落到 monthsOf(kSafe)[0]（纯函数零网络）：首拉/换 kind 时 optMonths
+      // 尚空，没有这层 cffexChain 的入参闸门会把 null 拒成零请求空链，30s 心跳也无法自愈。
+      // 走 OS.chain 统一入口（option.js 内部分流加密/中金所，同 tencent.getKline 的编排层惯例）
+      const chain = await OS.chain({ kind: kSafe, month: mSafe || (state.optMonths[0] || OS.monthsOf(kSafe)[0] || null) });
+      if (gen !== state.optGen) return;          // 慢响应不得覆盖新选择
+      state.optChain = chain || null;
+      state.optFail = !chain;                    // 数据层契约：全空返回 null
+      if (chain) {
+        state.optChainAt = Date.now();
+        if (!isCryptoUly(kSafe)) {
+          state.optMonths = OS.monthsOf(kSafe);
+          // 冒烟发现（2026-10-24）：首拉/切 kind 用 monthsOf[0] 当请求参数却不写回 optMonth，
+          // 月条全灰——用户不知道表里是哪个月。写回的必须是请求用的那个月，UI 与数据才一致
+          if (!state.optMonth) state.optMonth = state.optMonths[0] || null;
+        } else {
+          // 加密同一缺陷的另一种表现：一包含全到期，optMonth 为空时月过滤跳过，
+          // 全部到期月混进一张表（同 strike 重复多行）。默认选最近到期月（expiry 升序首个）
+          const exps = Array.from(new Set((chain.rows || []).map(r => r && r.expiry).filter(Boolean))).sort();
+          if (!state.optMonth && exps.length) state.optMonth = exps[0];
+        }
+      }
+    } catch { if (gen === state.optGen) state.optFail = true; }
+    renderOptionChain();
+    renderOptControls();                         // 链到位后补月 pills（中金所首拉 / 加密 expiry 汇总）
+  }
+
+  /* T 型报价渲染：拼 HTML 后一次 innerHTML（不逐行建 DOM）；签名没变就整表跳过
+     （setText 哲学：读屏用户对整段重写敏感）。行序 = 行权价降序；缺数一律 '--'，宁缺毋假。 */
+  function renderOptionChain() {
+    const box = el.optTable;
+    if (!box) return;
+    const chain = state.optChain;
+    if (!chain) {
+      // 状态机：optFail=true 且无 chain → 诚实空态（自动重试 = 30s 心跳链）；
+      // 否则是首访在途，保持骨架屏不打断
+      if (!state.optFail) return;
+      box.innerHTML = '<div class="empty">数据源暂时不可用，稍后自动重试</div>';
+      setText(el.optVia, '源不可用');
+      setText(el.optPcr, '认购/认沽成交量比为描述性统计，仅报数不下结论。');
+      state.optSig = '';
+      return;
+    }
+    const via = OPT_VIA_LABEL[chain.via] || chain.via || '--';
+    setText(el.optVia, via + ' · ' + fmtTime(chain.updatedAt));
+    const u = chain.underlying || {};
+    setText(el.optUnder, (u.name ? u.name + ' · ' : '') + fmtPrice(u.price));
+    // 加密月过滤：state.optMonth 有值时按行内 expiry 过滤（中金所的月已是 server 参数）
+    let rows = chain.rows || [];
+    if (state.optMonth && isCryptoUly(state.optKind)) rows = rows.filter(r => r && r.expiry === state.optMonth);
+    if (!rows.length) {
+      box.innerHTML = '<div class="empty">该到期月暂无可展示的合约</div>';
+      setText(el.optPcr, '认购/认沽成交量比为描述性统计，仅报数不下结论。');
+      state.optSig = '';
+      return;
+    }
+    rows = rows.slice().sort((a, b) => (num(b && b.strike) || 0) - (num(a && a.strike) || 0));   // 行权价降序
+    // 描述性 PCR：对当前展示行只报数不下结论（null 记 0；两侧全程无量则整句 '--'）
+    let sumCall = 0, sumPut = 0, sawVol = false;
+    rows.forEach(r => {
+      if (r && r.call && num(r.call.volume) !== null) { sumCall += num(r.call.volume); sawVol = true; }
+      if (r && r.put && num(r.put.volume) !== null) { sumPut += num(r.put.volume); sawVol = true; }
+    });
+    setText(el.optPcr, sawVol
+      ? `认购 ${fmtVol(sumCall)} / 认沽 ${fmtVol(sumPut)} · 比值 ${sumPut > 0 ? (sumCall / sumPut).toFixed(2) : '--'} · 认购/认沽成交量对比，仅为描述，不构成判断`
+      : '--');
+    // 增量守卫：签名相同不整表替换（30s 心跳里数据没变是常态）
+    const sig = state.optKind + '|' + state.optMonth + '|' + via + '|' + chain.updatedAt + '|' + rows.length;
+    if (sig === state.optSig) return;
+    state.optSig = sig;
+    const cell = (txt) => `<span class="opt-cell num" role="cell">${txt}</span>`;
+    const volC = (s) => cell(fmtVol(s && s.volume));
+    const pctC = (s) => `<span class="opt-cell num ${pctClass(s && s.chgPct)}" role="cell">${fmtPct(s && s.chgPct)}</span>`;
+    const prcC = (s) => cell(fmtPrice(s && s.price));
+    // 单边缺失（call/put 为 null）：fmt 系列对 null 一律出 '--'，该侧三格自然全 '--'
+    const head = '<div class="opt-tr opt-th" role="row">'
+      + '<span class="opt-cell" role="columnheader">认购量</span>'
+      + '<span class="opt-cell" role="columnheader">认购涨跌%</span>'
+      + '<span class="opt-cell" role="columnheader">认购最新价</span>'
+      + '<span class="opt-strike" role="columnheader">行权价</span>'
+      + '<span class="opt-cell" role="columnheader">认沽最新价</span>'
+      + '<span class="opt-cell" role="columnheader">认沽涨跌%</span>'
+      + '<span class="opt-cell" role="columnheader">认沽量</span>'
+      + '</div>';
+    box.innerHTML = head + rows.map(r =>
+      '<div class="opt-tr" role="row">'
+      + volC(r.call) + pctC(r.call) + prcC(r.call)
+      + `<span class="opt-strike num">${escapeHTML(String(r.strike))}</span>`
+      + prcC(r.put) + pctC(r.put) + volC(r.put)
+      + '</div>').join('');
   }
 
   /* 热力图换市场。两条调用路径要分清：
@@ -4478,8 +4766,10 @@
     if (state.heatMode === mode) return;
     state.heatMode = mode;
     document.querySelectorAll('[data-heat]').forEach(b => b.classList.toggle('active', b.dataset.heat === mode));
-    // 范围开关只对 A股有意义：加密只有 80 个币（块块有字），港股/美股一律按市值取 Top 500
+    // 范围开关只对 A股有意义：加密只有 80 个币（块块有字），港股/美股默认市值 Top 500
     if (el.heatTopToggle) el.heatTopToggle.hidden = !HEAT_RANGE_MODES[mode];
+    // 指数成分筛选只属于美股（标普500/道指30/纳指100）；其他市场整组藏掉
+    if (el.heatIdxSwitch) el.heatIdxSwitch.hidden = mode !== 'us';
     // 换视图重置视口：否则从 ×6 的 A股视图切到加密，进来是一个陌生的放大视图
     if (state.heat) state.heat.resetView();
     if (!state.heatItems[mode].length) {
@@ -4729,7 +5019,12 @@
       if (state.view !== 'market' || !isOn(el.heatSection)) return;
       if (HEAT_LOADERS[state.heatMode]) await HEAT_LOADERS[state.heatMode]();
       const rows = state.heatItems[state.heatMode] || [];
-      if (!state.heat) return;
+      if (!state.heat) {
+        // 直进市场 tab + 热力图分区的路径上，实例可能还没建过：
+        // 这里不画一次，applyZone 与调度器就会互相等（state.heat 永远是 null）
+        drawHeat();
+        return;
+      }
       // 数量对比必须用"当前渲染子集"的块数：A股默认 Top500 只画 500 块，
       // 拿全市场 5500 行对比恒不相等，会每 30s 白做一次全量重排（"只换色不闪白"失效）
       const renderCount = heatRenderCount();
@@ -4764,6 +5059,12 @@
       if (state.view !== 'chain') return;
       await loadBoards();
     }, 60000);
+    // 期权链 30s 心跳：只在期权视图内轮询（守卫写法同上面的 news/chain 链，tab 未打开零网络）；
+    // 是否真发请求由数据层 Cache TTL（盘中 30s / 闭市 10min）决定，UI 固定 30s 心跳
+    schedule('option', async () => {
+      if (!OPTIONS_ON || state.view !== 'option') return;
+      await loadOptionChain();
+    }, 30000);
     // 公开言论 60s（现住事件页的快讯子页）；全球指数条 60s（仅市场视图）
     schedule('voices', async () => {
       // 只有快讯子面板展示 voices：停在地图/预测子页时别再每 60s 白拉一遍新闻池
@@ -5051,6 +5352,11 @@
     });
     // ARIA tabs 的方向键：←→ 切换、Home/End 跳首尾（委托在 document 上，动态生成的 tablist 也一样生效）
     document.addEventListener('keydown', onTablistKeydown);
+    // 期权 T 型报价：标的/到期月的点击都委托在面板根上（面板常驻 DOM，这里绑一次）
+    $('view-option').addEventListener('click', (e) => {
+      const k = e.target.closest('[data-optkind]'); if (k) return setOptKind(k.dataset.optkind);
+      const m = e.target.closest('[data-optmonth]'); if (m) return setOptMonth(m.dataset.optmonth);
+    });
 
     // 首屏「我的自选」块右上角的「全部自选 →」：去自选页（排序/管理都在那儿）
     if (el.watchMore) el.watchMore.addEventListener('click', () => setTab('watch'));
@@ -5352,6 +5658,49 @@
       drawHeat();
     });
 
+    // 美股指数成分筛选：市值 Top500 ⇄ 标普500 / 道指30 / 纳指100。
+    // 成分换了一批 → 全量重排 + 视口复位（旧视图放大在哪只票上已经没有意义）
+    if (el.heatIdxSwitch) {
+      el.heatIdxSwitch.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-usidx]');
+        if (!b || !window.US_INDEXES) return;
+        const key = b.getAttribute('data-usidx');
+        if (key === state.heatUsIndex || !(key in window.US_INDEXES.LABELS)) return;
+        state.heatUsIndex = key;
+        el.heatIdxSwitch.querySelectorAll('[data-usidx]').forEach(x =>
+          x.classList.toggle('active', x.getAttribute('data-usidx') === key));
+        if (state.heat) state.heat.resetView();
+        drawHeat();
+      });
+    }
+
+    /* 热力图全屏：Fullscreen API（Safari 走 webkit 前缀）。元素级全屏不触发 window
+       resize，画布会停在 520px 高——fullscreenchange 里补 resize + 重排。
+       不支持的环境（老 iOS WebView）直接藏按钮，不出假入口。 */
+    if (el.heatFull && el.heatSection) {
+      const sec = el.heatSection;
+      const reqFs = sec.requestFullscreen || sec.webkitRequestFullscreen;
+      if (!reqFs) el.heatFull.hidden = true;
+      else {
+        el.heatFull.addEventListener('click', () => {
+          const doc = document;
+          const cur = doc.fullscreenElement || doc.webkitFullscreenElement;
+          if (cur) (doc.exitFullscreen || doc.webkitExitFullscreen).call(doc);
+          else {
+            const p = reqFs.call(sec);
+            if (p && p.catch) p.catch(() => {});
+          }
+        });
+        const onFsChange = () => {
+          const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
+          el.heatFull.textContent = on ? '退出全屏' : '全屏';
+          requestAnimationFrame(() => { if (state.heat) { state.heat.resize(); drawHeat(); } });
+        };
+        document.addEventListener('fullscreenchange', onFsChange);
+        document.addEventListener('webkitfullscreenchange', onFsChange);
+      }
+    }
+
     // 表格视图：canvas 的可读替代（读屏/纯键盘用户拿不到图里的数字）
     if (el.heatTableToggle) {
       el.heatTableToggle.addEventListener('click', () => {
@@ -5651,7 +6000,7 @@
         if (!cb) return;
         const k = cb.dataset.tabcfgHide;
         const cur = tabCfg();
-        const hidden = window.TabScope.toggleHidden(cur, k, CRYPTO_ON);
+        const hidden = window.TabScope.toggleHidden(cur, k, CRYPTO_ON, OPTIONS_ON);
         saveTabCfg({ order: cur.order, hidden });
       });
       el.tabCfg.addEventListener('click', (e) => {

@@ -87,5 +87,98 @@ await test('取色：colorAt 返回可用的 CSS 颜色（不抛）', () => {
   assert.ok(T.colorAt(B[B.length - 1].rep), '最后一段代表值取不到色');
 });
 
+/* ==================== 分组布局（groupedLayout，2026-10-29 美股板块分组） ====================
+   两级 squarify：组先铺大块、组内再铺个股。这层错了的症状都很隐蔽——
+   组框压住格子、格子越组、组间面积分配失衡——必须结构性钉死：
+   覆盖（每只都有块）/ 不重叠 / 组框不重叠 / 格子在组框内且在抬头之下。 */
+
+function mkItems() {
+  // 3 组 × 各 8 块，市值递减拉开差距，pct 有正有负（组头加权涨幅要有输入）
+  const out = [];
+  const groups = ['信息技术', '金融', '医疗保健'];
+  groups.forEach((g, gi) => {
+    for (let i = 0; i < 8; i++) {
+      out.push({ name: g + i, code: g + '-' + i, group: g, value: 1000 - gi * 100 - i * 10, pct: (i % 2 ? 1 : -1) * (i + gi) });
+    }
+  });
+  return out;
+}
+
+await test('分组布局：每只标的都有块（覆盖完整，无丢失）', () => {
+  const items = mkItems();
+  const { cells } = T.groupedLayout(items, 0, 0, 800, 600);
+  assert.equal(cells.length, items.length, `24 只应有 24 块，实际 ${cells.length}`);
+});
+
+await test('分组布局：组框数 = 组数，且组框互不重叠、都在画布内', () => {
+  const { frames } = T.groupedLayout(mkItems(), 0, 0, 800, 600);
+  assert.equal(frames.length, 3, '3 个行业应有 3 个组框');
+  for (const f of frames) {
+    assert.ok(f.x >= 0 && f.y >= 0 && f.x + f.w <= 800 && f.y + f.h <= 600, '组框越出画布');
+    assert.ok(f.headH > 0, '大画布上的组都应留抬头');
+  }
+  for (let i = 0; i < frames.length; i++) {
+    for (let j = i + 1; j < frames.length; j++) {
+      const a = frames[i], b = frames[j];
+      const overlap = a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+      assert.ok(!overlap, `组框 ${a.name} 与 ${b.name} 重叠`);
+    }
+  }
+});
+
+await test('分组布局：格子落在所属组框内、且在抬头之下', () => {
+  const { cells, frames } = T.groupedLayout(mkItems(), 0, 0, 800, 600);
+  const byName = {};
+  frames.forEach(f => { byName[f.name] = f; });
+  for (const c of cells) {
+    const g = c.item.group;
+    const f = byName[g];
+    assert.ok(f, `标的 ${c.item.name} 的组 ${g} 没有组框`);
+    assert.ok(c.x >= f.x - 0.01 && c.y >= f.y + f.headH - 0.01 &&
+      c.x + c.w <= f.x + f.w + 0.01 && c.y + c.h <= f.y + f.h + 0.01,
+      `标的 ${c.item.name} 的块越出了组框（或在抬头里）`);
+  }
+});
+
+await test('分组布局：格子互不重叠', () => {
+  const { cells } = T.groupedLayout(mkItems(), 0, 0, 800, 600);
+  for (let i = 0; i < cells.length; i++) {
+    for (let j = i + 1; j < cells.length; j++) {
+      const a = cells[i], b = cells[j];
+      const overlap = a.x < b.x + b.w - 0.01 && b.x < a.x + a.w - 0.01 &&
+        a.y < b.y + b.h - 0.01 && b.y < a.y + a.h - 0.01;
+      assert.ok(!overlap, `块 ${a.item.name} 与 ${b.item.name} 重叠`);
+    }
+  }
+});
+
+await test('分组布局：组按市值从大到小排（最大的组占左上角）', () => {
+  const { frames } = T.groupedLayout(mkItems(), 0, 0, 800, 600);
+  // mkItems 里「信息技术」组值最大
+  assert.equal(frames[0].name, '信息技术', '值最大的组应排第一');
+});
+
+await test('分组布局：无 group 字段全部归「其他」单组，不炸不丢', () => {
+  const items = mkItems().map(x => ({ name: x.name, code: x.code, value: x.value, pct: x.pct }));
+  const { cells, frames } = T.groupedLayout(items, 0, 0, 800, 600);
+  assert.equal(cells.length, items.length, '块数不能丢');
+  assert.equal(frames.length, 1, '无分组时整图一个「其他」框');
+  assert.equal(frames[0].name, '其他');
+});
+
+await test('分组布局：画布太小（退化）不抛异常、输出可渲染', () => {
+  const { cells, frames } = T.groupedLayout(mkItems(), 0, 0, 10, 10);
+  assert.ok(Array.isArray(cells) && Array.isArray(frames), '退化输出仍是数组');
+});
+
+await test('分组布局：零面积/负值标的被过滤', () => {
+  const items = mkItems().concat([
+    { name: 'zero', code: 'Z', value: 0, pct: 1 },
+    { name: 'neg', code: 'N', value: -5, pct: 1 },
+  ]);
+  const { cells } = T.groupedLayout(items, 0, 0, 800, 600);
+  assert.equal(cells.length, 24, '0/负面积的块不参与布局');
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
