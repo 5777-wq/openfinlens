@@ -101,6 +101,40 @@ const Treemap = (() => {
     }
   }
 
+  /* ---------- 分组布局（两级 squarify，2026-10-29 美股板块分组）----------
+     Coinglass/finviz 式：先按组聚合市值把组当大块铺满画布（一级 squarify），
+     再在每组内部对个股做二级 squarify。组矩形预留抬头（组名 + 加权涨幅）：
+     组够大才留头，太小的组退化为无框平铺——块永远比框重要。
+     GAP 是组间沟（露出画布底色）；一级布局前画布四周各出血 GAP/2，
+     避免最外圈组框贴死画布边缘。无 group 字段的 items 落「其他」组。 */
+  function groupedLayout(items, x, y, w, h) {
+    const GAP = 3, HEADER_H = 15, HEADER_MIN_W = 64, HEADER_MIN_H = 52;
+    const groups = new Map();
+    for (const it of items) {
+      if (!(it.value > 0)) continue;
+      const g = it.group || '其他';
+      let grp = groups.get(g);
+      if (!grp) { grp = { name: g, items: [], value: 0 }; groups.set(g, grp); }
+      grp.items.push(it);
+      grp.value += it.value;
+    }
+    if (!groups.size || w <= 0 || h <= 0) return { cells: [], frames: [] };
+    const garr = [...groups.values()].sort((a, b) => b.value - a.value);
+    const cells = [], frames = [];
+    for (const gr of squarify(garr, x + GAP / 2, y + GAP / 2, w - GAP, h - GAP)) {
+      const g = gr.item;
+      const gx = gr.x + GAP, gy = gr.y + GAP, gw = gr.w - GAP * 2, gh = gr.h - GAP * 2;
+      const headH = (gw >= HEADER_MIN_W && gh >= HEADER_MIN_H) ? HEADER_H : 0;
+      if (gw <= 2 || gh - headH <= 2) {   // 组太小放不下框：不留框不留头，直接铺
+        cells.push(...squarify(g.items, gr.x, gr.y, gr.w, gr.h));
+        continue;
+      }
+      frames.push({ x: gx, y: gy, w: gw, h: gh, name: g.name, headH });
+      cells.push(...squarify(g.items, gx, gy + headH, gw, gh - headH));
+    }
+    return { cells, frames };
+  }
+
   // ---------- 色阶 ----------
   function hexToRgb(hex) {
     const s = String(hex).trim().replace('#', '');
@@ -172,6 +206,7 @@ const Treemap = (() => {
   function create(canvas, { onClick, onViewportChange, onCursorChange, iconFor } = {}) {
     const ctx = canvas.getContext('2d', { alpha: false });
     let layout = [];
+    let frames = [];       // 分组模式的组框（组名 + 抬头区），平铺模式恒为 []
     let data = [];
     let dpr = 1;
     let hoverIdx = -1;
@@ -201,7 +236,14 @@ const Treemap = (() => {
     function relayout() {
       const rect = canvas.getBoundingClientRect();
       if (rect.width < 2 || rect.height < 2) return;   // 不可见时保留旧布局
-      layout = squarify(data, 0, 0, rect.width, rect.height);
+      if (data.some(it => it.group)) {
+        const r = groupedLayout(data, 0, 0, rect.width, rect.height);
+        layout = r.cells;
+        frames = r.frames;
+      } else {
+        layout = squarify(data, 0, 0, rect.width, rect.height);
+        frames = [];
+      }
       dropped = data.length - layout.length;
       draw();
     }
@@ -291,6 +333,49 @@ const Treemap = (() => {
       ctx.fillRect(0, 0, W, H);
 
       const z = view.zoom;
+
+      /* ---- 分组模式：组框 + 组名 + 市值加权涨幅 ----
+         加权涨幅每次 paint 由格子现值重算——updatePct 只换色不重排时，
+         组头的数字必须跟着格子一起活，不能冻在布局那一刻。
+         抬头条固定 15px 屏幕高：格子区从布局坐标 headH(=15) 起铺，屏幕上起始 ≥15px，
+         任何缩放下抬头都不会压到格子。 */
+      if (frames.length) {
+        const agg = {};
+        for (const c of layout) {
+          const gname = c.item.group || '其他';
+          const a = agg[gname] || (agg[gname] = { v: 0, pv: 0 });
+          a.v += c.item.value;
+          const p = c.item.pct;
+          if (typeof p === 'number' && !isNaN(p)) a.pv += p * c.item.value;
+        }
+        for (const f of frames) {
+          const sx = (f.x - view.ox) * z, sy = (f.y - view.oy) * z;
+          const sw = f.w * z, sh = f.h * z;
+          if (sx + sw < 0 || sy + sh < 0 || sx > W || sy > H) continue;
+          if (f.headH > 0) {
+            ctx.fillStyle = 'rgba(255,255,255,0.06)';
+            ctx.fillRect(sx, sy, sw, 15);
+          }
+          ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(sx + 0.5, sy + 0.5, sw - 1, sh - 1);
+          if (f.headH > 0 && sw >= 70) {
+            ctx.font = '600 10px -apple-system, "PingFang SC", sans-serif';
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = 'rgba(255,255,255,0.78)';
+            ctx.fillText(fitText(ctx, f.name, sw - 58), sx + 5, sy + 8);
+            const a = agg[f.name];
+            const pct = a && a.v ? a.pv / a.v : null;
+            if (pct !== null) {
+              const t = pct >= 0 ? _cs.up : _cs.down;
+              ctx.textAlign = 'right';
+              ctx.fillStyle = `rgb(${t[0]},${t[1]},${t[2]})`;
+              ctx.fillText((pct > 0 ? '+' : '') + pct.toFixed(2) + '%', sx + sw - 5, sy + 8);
+            }
+          }
+        }
+      }
 
       for (let i = 0; i < layout.length; i++) {
         const c = layout[i];
@@ -609,7 +694,7 @@ const Treemap = (() => {
     };
   }
 
-  return { create, squarify, pctColor, refreshColors, colorAt, PCT_BANDS, bandOf,
+  return { create, squarify, groupedLayout, pctColor, refreshColors, colorAt, PCT_BANDS, bandOf,
     // 视口纯函数（单测用）：语义见文件头注释
     viewport: { clamp, applyZoom, applyPan, ZOOM_MAX } };
 })();

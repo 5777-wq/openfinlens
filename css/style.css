@@ -374,6 +374,15 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 
 .heat-wrap { position: relative; border: 1px solid var(--border); padding: 6px; }
 #heatCanvas { display: block; width: 100%; height: 520px; }
+/* 热力图全屏（2026-10-29，Coinglass 式热力图跟进）：元素级 Fullscreen API，
+   分区变纵向 flex、画布吃满剩余高度。元素全屏不触发 window resize，
+   app.js 在 fullscreenchange 里补 resize + 重排。webkit 前缀照顾 Safari。 */
+#heatSection:fullscreen { display: flex; flex-direction: column; background: var(--bg, #0a0a0b); padding: 18px 22px; }
+#heatSection:-webkit-full-screen { display: flex; flex-direction: column; background: var(--bg, #0a0a0b); padding: 18px 22px; }
+#heatSection:fullscreen .heat-toolbar, #heatSection:-webkit-full-screen .heat-toolbar { flex-wrap: wrap; }
+#heatSection:fullscreen .heat-wrap, #heatSection:-webkit-full-screen .heat-wrap { flex: 1; min-height: 0; }
+#heatSection:fullscreen #heatCanvas, #heatSection:-webkit-full-screen #heatCanvas { height: 100%; }
+#heatSection:fullscreen #heatTable, #heatSection:-webkit-full-screen #heatTable { overflow: auto; }
 /* 热力图的表格视图：canvas 的可读替代。
    canvas 里的数字对读屏和纯键盘用户等于不存在，而全市场涨跌分布是核心视图——
    这份表格给的是同一批行（零新增请求），名字可点，进该标的的 K 线详情。 */
@@ -2533,3 +2542,18 @@ body[data-academy="off"] [data-gloss] { cursor: default; }
   .gloss-tip .gt-kind { margin-bottom: 6px; }
   .gloss-tip .gt-link { margin-top: 12px; padding: 10px 14px; border: 1px solid var(--border-hover); }
 }
+
+/* ============================================================ 期权 T 型报价 */
+/* 合规开关：body.no-options 下所有 options-only 元素整体隐藏（照抄 no-crypto 的做法） */
+body.no-options .options-only { display: none !important; }
+/* 移动端横滚（先例 .cmp-scroll / .macro-table）：不在窄屏重排 T 表为两张卡——
+   列语义（购/沽对读）会被破坏，横向滚出表格外框即可 */
+.opt-scroll { overflow-x: auto; scrollbar-width: thin; }
+.opt-table { min-width: 680px; border-top: 1px solid var(--border); }
+.opt-tr { display: grid; grid-template-columns: 1fr 1fr 1.1fr minmax(90px, 1.1fr) 1.1fr 1fr 1fr;
+  gap: 8px; align-items: center; padding: 7px 8px; border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums; }
+.opt-tr:hover { background: var(--bg-hover); }
+.opt-th { color: var(--text-tertiary); font-size: 11px; padding: 6px 8px; }
+.opt-cell { text-align: right; }
+.opt-strike { text-align: center; font-weight: 600; color: var(--text); }

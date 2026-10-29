@@ -31,7 +31,8 @@ const groups = [
   { file: 'tabscope.test.mjs', net: false },   // 顶栏板块：顺序/显隐自定义 +「全部」固定首位 + 非法配置清理
   { file: 'panes.test.mjs', net: false },      // 副图指标计算：RSI/MACD 序列 + 口径与 technical.js 一致
   { file: 'paneview.test.mjs', net: false },   // 副图指标窗几何：坐标/断线/刻度/与主图横向对齐
-  { file: 'treemap.test.mjs', net: false },    // 热力图色带：区间边界归属/连续无缝/取色
+  { file: 'treemap.test.mjs', net: false },    // 热力图色带：区间边界归属/连续无缝/取色 + 分组布局（两级squarify 覆盖/重叠/组框）
+  { file: 'us-indexes.test.mjs', net: false }, // 美股指数成分表：规模钉死/归一化匹配（BRK.B↔BRKB）/filter 行为/道指⊂标普
   { file: 'pmshare.test.mjs', net: false },    // 分享卡片：源码级合规回归（不外泄上游标识）+ 零网络请求
   { file: 'spark.test.mjs', net: false },   // 首屏图形层：振幅条位置/走势线坐标（纯函数，画歪了才算错）
   { file: 'insight.test.mjs', net: false },
@@ -39,6 +40,7 @@ const groups = [
   { file: 'technical.test.mjs', net: false }, // 技术面指标手算核对（纯函数）
   { file: 'events.test.mjs', net: false },  // 事件数据模型/聚类/时间语义/Bus（纯函数）
   { file: 'auniverse.test.mjs', net: false }, // 全市场行分类：指数 vs 个股（漏判与误判都要钉死）
+  { file: 'option.test.mjs', net: false },  // 期权数据源：合约月/行权价网格/secid 白名单/探针保留/OKX→Deribit 降级/熔断（离线组；不注册实网组——EM WAF 会 IP 级拉黑打红 CI，实网验证走手动 curl）
   { file: 'polymarket.test.mjs', net: false }, // 预测市场概率模型：标题闸门/互斥判定/档位聚合/清洗/历史网格（纯函数）
   { file: 'pmcharts.test.mjs', net: false },   // 市场预测图形层：环图扇区角度/走势坐标（纯函数，画歪了才算错）
   { file: 'pmview.test.mjs', net: false },     // 市场预测视图层：事件卡 HTML 结构/走势图跟选中的档位（纯渲染映射）

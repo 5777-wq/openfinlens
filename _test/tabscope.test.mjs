@@ -61,9 +61,9 @@ await test('隐藏：按配置过滤，其余照常', () => {
 });
 
 await test('隐藏到只剩一个可见板块时拒绝（单按钮顶栏没有导航意义）', () => {
-  const n = T.normalize({ hidden: ['cn', 'hk', 'us', 'crypto', 'fxmacro', 'events', 'chain', 'watch', 'portfolio', 'compare'] }, true);
+  const n = T.normalize({ hidden: ['cn', 'hk', 'us', 'crypto', 'fxmacro', 'option', 'events', 'chain', 'watch', 'portfolio', 'compare'] }, true);
   assert.equal(n.hidden.length, 0, '不该允许藏到只剩「全部」');
-  assert.equal(T.visibleTabs({ hidden: ['cn', 'hk', 'us', 'crypto', 'fxmacro', 'events', 'chain', 'watch', 'portfolio', 'compare'] }, true).length, T.TAB_DEFS.length);
+  assert.equal(T.visibleTabs({ hidden: ['cn', 'hk', 'us', 'crypto', 'fxmacro', 'option', 'events', 'chain', 'watch', 'portfolio', 'compare'] }, true).length, T.TAB_DEFS.length);
 });
 
 await test('非法配置被清理：未知 key 丢弃、重复去重', () => {
@@ -106,7 +106,7 @@ await test('切换显隐：可来回切换；「全部」不可藏', () => {
 
 await test('切换显隐：藏到不足两个可见时拒绝', () => {
   const base = { order: T.DEFAULT_ORDER.slice(), hidden: [] };
-  const many = ['cn', 'hk', 'us', 'crypto', 'fxmacro', 'events', 'chain', 'watch', 'portfolio', 'compare'];
+  const many = ['cn', 'hk', 'us', 'crypto', 'fxmacro', 'option', 'events', 'chain', 'watch', 'portfolio', 'compare'];
   let hidden = [];
   for (const k of many) hidden = T.toggleHidden({ order: base.order, hidden }, k, true);
   // 逐步藏，最后一次应该被拒（只剩「全部」）

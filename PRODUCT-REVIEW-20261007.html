@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>产品评审 · OpenFinLens + Meridian · 2026-10-07</title>
+<style>
+  :root{
+    --bg:#0d1014; --panel:#141920; --panel2:#1a2029; --line:#242c38;
+    --fg:#e6edf3; --dim:#8b98a8; --dim2:#6b7887;
+    --red:#ff6b6b; --amber:#ffb454; --green:#4ade80; --blue:#58a6ff; --violet:#a78bfa;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:15px/1.75 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;}
+  .wrap{max-width:900px;margin:0 auto;padding:48px 28px 96px}
+  header{border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:36px}
+  .kicker{font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+    letter-spacing:.18em;color:var(--dim2);text-transform:uppercase}
+  h1{font-size:30px;line-height:1.3;margin:14px 0 8px;letter-spacing:-.02em}
+  .sub{color:var(--dim);font-size:14px}
+  h2{font-size:19px;margin:44px 0 14px;letter-spacing:-.01em;
+    display:flex;align-items:center;gap:10px}
+  h2::before{content:"";width:3px;height:16px;background:var(--blue);border-radius:2px}
+  h3{font-size:15px;margin:24px 0 8px;color:var(--fg)}
+  p{margin:12px 0}
+  code{font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:var(--panel2);padding:2px 6px;border-radius:4px;color:#c9d5e3}
+  pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:14px 16px;overflow:auto;font:12.5px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;
+    color:#b9c6d4}
+  .verdict{background:linear-gradient(180deg,rgba(88,166,255,.09),rgba(88,166,255,.02));
+    border:1px solid rgba(88,166,255,.28);border-radius:12px;padding:22px 24px;margin:0 0 8px}
+  .verdict p:first-child{margin-top:0}
+  .verdict p:last-child{margin-bottom:0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:18px 20px;margin:16px 0}
+  .p0{border-left:3px solid var(--red)}
+  .p1{border-left:3px solid var(--amber)}
+  .p2{border-left:3px solid var(--blue)}
+  .tag{display:inline-block;font:700 10.5px/1 ui-monospace,monospace;letter-spacing:.08em;
+    padding:4px 8px;border-radius:5px;margin-right:10px;vertical-align:2px}
+  .t-p0{background:rgba(255,107,107,.16);color:var(--red);border:1px solid rgba(255,107,107,.32)}
+  .t-p1{background:rgba(255,180,84,.16);color:var(--amber);border:1px solid rgba(255,180,84,.32)}
+  .t-p2{background:rgba(88,166,255,.16);color:var(--blue);border:1px solid rgba(88,166,255,.32)}
+  .t-ok{background:rgba(74,222,128,.14);color:var(--green);border:1px solid rgba(74,222,128,.3)}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+  td.mono,th.mono{font-family:ui-monospace,monospace;font-size:12.5px}
+  ul,ol{margin:12px 0;padding-left:22px}
+  li{margin:7px 0}
+  .quote{color:var(--dim);border-left:2px solid var(--line);padding-left:16px;margin:16px 0;font-style:italic}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin:18px 0}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
+  .stat .n{font:700 25px/1.15 ui-monospace,monospace;letter-spacing:-.02em}
+  .stat .l{color:var(--dim2);font-size:12px;margin-top:5px}
+  hr{border:0;border-top:1px solid var(--line);margin:40px 0}
+  a{color:var(--blue)}
+  .foot{color:var(--dim2);font-size:12.5px;margin-top:52px;
+    border-top:1px solid var(--line);padding-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Product Review · 2026-10-07</div>
+  <h1>工程已经赢了，产品还没赢</h1>
+  <div class="sub">评审对象：OpenFinLens（全球金融看板）· Meridian（美股收盘信号台）｜ 评审视角：产品经理</div>
+</header>
+
+<div class="verdict">
+  <p><strong>一句话结论：</strong>你的技术执行远高于产品管理水位。当前状态是——<strong>一个真正有日常习惯回路的产品（Meridian）没有进版本库</strong>，<strong>一个已经上线却没有复访动因、也没有任何使用数据的产品（OpenFinLens）在公开运行</strong>。</p>
+  <p>先修仓库安全性（今天就该做），再决定两个产品谁是你的主航道，其余都可以等。</p>
+</div>
+
+<div class="grid">
+  <div class="stat"><div class="n" style="color:var(--red)">P0</div><div class="l">签名凭据未被 gitignore 覆盖</div></div>
+  <div class="stat"><div class="n" style="color:var(--red)">158</div><div class="l">本地落后远端的提交数</div></div>
+  <div class="stat"><div class="n" style="color:var(--amber)">10</div><div class="l">看板 tab 数（复访动因未验证）</div></div>
+  <div class="stat"><div class="n" style="color:var(--amber)">0</div><div class="l">产品侧埋点 / 反馈入口</div></div>
+</div>
+
+<h2>先说结论里最要紧的：仓库有一枚定时炸弹</h2>
+
+<div class="card p0">
+  <p><span class="tag t-p0">P0</span><strong><code>keystore-20261005/</code> 位于仓库根目录，且未被任何 gitignore 规则覆盖。</strong></p>
+  <p>该目录在磁盘上包含 <code>app-release-new.jks</code>、<code>cert.pem</code>、<code>key.pem</code> 以及一份 <code>凭据备忘-20261005.txt</code>（<code>.store-pw.txt</code> 为空）。我用 <code>git check-ignore</code> 验证过：<strong>这些文件当前都不在忽略列表里</strong>。</p>
+  <p>关键在于规则的作用域——<code>美股监控/.gitignore</code> 里确实写了 <code>*.jks</code>、<code>android/signing/</code>，但那些规则只对该子目录生效，而 keystore 放在<strong>根目录</strong>，不在其管辖范围内。同理，<code>backup-main-20261005.bundle</code>（675 KB 全量备份包）和 <code>.workbuddy/</code> 也都在未忽略状态。</p>
+  <p>你的仓库是公开的（<code>5777-wq/openfinlens</code>）。一次 <code>git add .</code> 就足以把 Android 签名私钥、证书私钥和口令备忘推上去，<strong>且泄露后无法靠改历史彻底撤回</strong>（GitHub 对已推送的密钥有吊销扫描，但那是事后补救）。</p>
+  <p style="color:var(--dim)"><strong>修复：</strong>在根 <code>.gitignore</code> 追加 <code>keystore-*/</code>、<code>*.jks</code>、<code>*.keystore</code>、<code>*.pem</code>、<code>backup-*.bundle</code>、<code>.workbuddy/</code>，然后用 <code>git status --porcelain</code> 确认这些路径不再出现。若签名口令已在别处复用，建议轮换。</p>
+</div>
+
+<div class="card p0">
+  <p><span class="tag t-p0">P0</span><strong>本地落后远端 158 个提交，而第二产品完全不在版本控制里。</strong></p>
+  <p>我先核实了一个可疑信号：<code>data/</code> 下各文件的最后提交停在 2026-09-21，看起来像采集管线死了 16 天。<strong>但这是错的</strong>——我拉了线上部署的数据文件，<code>generatedAt</code> 是 <code>2026-10-07T09:10:53Z</code>，就在几小时前。<strong>管线是健康的，是你的本地工作副本没同步。</strong></p>
+  <p>实测：<code>git rev-list --left-right --count origin/main...HEAD</code> → <code>158  0</code>。158 个提交全部是机器人数据刷新（events / 13f / polymarket），且 <code>main</code> 分支<strong>没有配置 upstream 跟踪</strong>（<code>git status -sb</code> 只显示 <code>## main</code>）。</p>
+  <p>与此同时，<code>美股监控/</code> 整个目录处于未跟踪状态——它不是一个脚本片段，而是一个完整产品：PWA、Cloudflare Pages、签名 APK、4 条 GitHub Actions 工作流、PWA 离线壳、外加一个 <code>skill/</code> 包。</p>
+  <p style="color:var(--dim)"><strong>风险叠加：</strong>无 upstream + 158 个远端提交 + 大量未跟踪新文件。这三者任意两个凑在一起，就会产出一场难收拾的合并事故。<strong>建议顺序：先补 ignore 规则 → 再决定美股监控是入库还是移出仓库 → 最后才 <code>git pull --rebase</code>。</strong></p>
+</div>
+
+<h2>产品判断：你有两个产品，但只有一个有复访理由</h2>
+
+<p>这是本次评审最核心的观点。把两个项目并排放，功能密度的差异其实暴露了产品定位的差异。</p>
+
+<table>
+  <thead><tr><th style="width:20%">维度</th><th>OpenFinLens（看板）</th><th>Meridian（美股信号台）</th></tr></thead>
+  <tbody>
+    <tr><td>解决的问题</td><td>「世界现在怎么样」——广度换深度</td><td>「我那 150 支票子今天有没有信号」——窄而具体</td></tr>
+    <tr><td>使用姿势</td><td>打开看一眼，没有明确的下一步</td><td>每天收盘后固定打开，有明确待办</td></tr>
+    <tr><td>回访触发器</td><td><strong>无</strong>（10 个 tab 都在等用户主动想起）</td><td><strong>有</strong>（日线信号 + 周线信号 + 推送通知）</td></tr>
+    <tr><td>数据新鲜度策略</td><td>浏览器 10 秒轮询 + Actions 5 分钟采集</td><td>每日收盘跑一次，产出日报</td></tr>
+    <tr><td>个性化</td><td>自选股（跨市场收藏）</td><td>自选清单 + 备注 + 持仓隐私分层</td></tr>
+    <tr><td>交付形态</td><td>GitHub Pages（已上线）</td><td>Pages + 签名 APK + 推送 + 本地报告</td></tr>
+    <tr><td>进版本库了吗</td><td>是</td><td><strong>否</strong></td></tr>
+  </tbody>
+</table>
+
+<div class="card p1">
+  <p><span class="tag t-p1">P1</span><strong>Meridian 才是有 PM 问题的产品，OpenFinLens 还没有。</strong></p>
+  <p>差别不在代码质量——两者都很高。差别在<strong>「用户为什么明天还会回来」</strong>。Meridian 有：定时任务、推送通知、周线级别的第二套时间框架、自选清单、持仓隐私分层。<strong>这是一条被设计出来的习惯回路。</strong></p>
+  <p>OpenFinLens 有 10 个 tab、5000+ 热力图、事件地图、13F、产业链、世界银行宏观——工程含量极高，但这些功能共享同一个复访缺口：<strong>没有一个功能是「非看不可」的</strong>。用户不会因为「今天有个新产业链环节强度变高了」而每天打开看板。</p>
+  <p style="color:var(--dim)"><strong>产品决策建议：</strong>明确写下「OpenFinLens 是我的主航道，还是我的技术资产库？」如果是前者，它需要一个像 Meridian 那样的每日触发器（比如收盘后的固定推送：「你的自选今天动了 3 个，回归信号 2 个」）；如果是后者，就把 Meridian 扶为主产品，看板转为它的数据层与展示层。<strong>两个产品各投入一半注意力的状态，对一个人来说等于两个都做不到 PM 级。</strong></p>
+</div>
+
+<h2>你没有任何数据能回答「有人在用吗」</h2>
+
+<div class="card p1">
+  <p><span class="tag t-p1">P1</span><strong>产品侧埋点、反馈入口、Issue 模板——一个都没有。</strong></p>
+  <p>我在 <code>index.html</code> 与 <code>js/app.js</code> 中检索 <code>analytics / umami / plausible / gtag / clarity / feedback / sentry</code>，<strong>零命中</strong>；<code>.github/</code> 下只有 3 条工作流，没有 <code>ISSUE_TEMPLATE</code>。</p>
+  <p>这里有一个值得正视的矛盾：<code>docs/ARCHITECTURE.md</code> §15 把「无账号、无追踪」写成了<strong>产品原则</strong>。保护用户隐私当然对，但这条原则<strong>不应该被扩大解释成「不做任何度量」</strong>——两者是完全不同的东西。你的前端已经做了移动端适配、hash 深链、四套皮肤、键盘切 tab，这些投入<strong>没有一项能被验证是否有效</strong>。</p>
+  <p style="color:var(--dim)"><strong>最小可行闭环（半天工作量）：</strong>不追踪个人、只做聚合计数——统计各 tab 停留时长占比、页面日活、复访率；README 末尾放一个「用得怎么样」的反馈链接；建一个只有一页的 <code>ISSUE_TEMPLATE</code>。<strong>只要三个数，你就知道下一刀该砍在哪里。</strong></p>
+</div>
+
+<h2>测试信号是混的，导致「红了」没有信息量</h2>
+
+<div class="card p2">
+  <p><span class="tag t-p2">P2</span><strong>20 组测试中有 4 组依赖实网，README 的绿色徽章因此不可复现。</strong></p>
+  <p>我在本机跑 <code>node _test/run-all.mjs</code>：<strong>4 组未通过</strong>——<code>history</code>(1) / <code>breadth</code>(2) / <code>boards</code>(2) / <code>live</code>(2)。逐条看失败原因，绝大多数是 <code>fetch failed</code>（我的执行环境连不上腾讯/东财），还有一条是 SPMO 上市日断言（实际 <code>2015-10-30</code>，预期 <code>2015-10-01</code>）。</p>
+  <p><strong>诚实说明：这些失败大概率是环境与上游数据漂移，不是我证明了你的代码有 bug。</strong>我也无法在此环境下验证 README 上「20 组 250 条断言」的说法。</p>
+  <p>但<strong>设计问题是真的</strong>：纯函数测试（engine / compare / worldmap / technical 等）全部通过，说明离线层设计得很好；可一旦实网断言混进同一个 <code>run-all</code>，红绿就无法区分「我们改坏了」和「上游变了 / 网断了」。</p>
+  <p style="color:var(--dim)"><strong>修复：</strong><code>run-all</code> 默认只跑离线组并全绿；实网组放到 <code>--live</code> 开关下，失败时<strong>降级为 warn 而非 fail</strong>；像 SPMO 上市日这类会随上游变的期望值，改成「断言合理性区间」而不是硬编码单日。</p>
+</div>
+
+<h2>其余观察（不紧急，但记一笔）</h2>
+
+<ul>
+  <li><strong><code>js/app.js</code> 已达 232 KB</strong>，是仓库第二大文件（<code>compareview.js</code> 仅 37.5 KB）的 6 倍。<code>ARCHITECTURE.md</code> 自己写了「<code>app.js</code> 只做编排与渲染」——这是规则，不是现状。下一个新功能继续往里堆之前，值得先切一刀。</li>
+  <li><strong>评审产物本身在膨胀：</strong>根目录已有 <code>REVIEW.md</code>(30 KB)、<code>PRODUCT-REVIEW</code>、<code>CODE-REVIEW</code>、<code>FIX-VERIFICATION</code> ×2、<code>REVIEW-ROUND4</code>。自审是好习惯，但六份评审文档应当沉淀成一份活的 <code>REVIEW.md</code>，其余归档到 <code>docs/</code>——评审的价值在推动决策，不在文档数量。</li>
+  <li><strong>合规与克制做得很好</strong>，这点值得明确表扬：Polymarket 只取概率不取引用、涉中国主权预测题主动屏蔽（HEAD 提交）、持仓隐私分 <code>config.local.json</code> 且默认 gitignore、不复权数据明确打徽标、免责声明口径清晰。<strong>这说明你是有产品判断力的人——问题只在于判断力目前没有用在「服务谁」上。</strong></li>
+</ul>
+
+<h2>建议的下一步（按顺序）</h2>
+
+<ol>
+  <li><strong>今天：堵漏。</strong>补根 <code>.gitignore</code>，确认 keystore / bundle / <code>.workbuddy</code> 不再出现在 <code>git status</code> 里。</li>
+  <li><strong>今天：收编。</strong>决定 <code>美股监控/</code> 是入库（建议独立仓库，它有自己完整的发布链：Pages + APK + 推送）还是移出当前仓库。</li>
+  <li><strong>今天：同步。</strong><code>git pull --rebase</code> 掉 158 个提交，并给 <code>main</code> 配 upstream（<code>git branch --set-upstream-to=origin/main main</code>）。</li>
+  <li><strong>本周：选航道。</strong>在 README 里用两句话写清「本项目为谁、解决哪一个问题、明天为什么值得再打开一次」。这句话写不出来，tab 就别再加。</li>
+  <li><strong>本周：接三个数。</strong>日活、tab 停留占比、次日复访率。匿名聚合即可，不违背隐私原则。</li>
+  <li><strong>下个迭代：修测试信号。</strong>离线组与实网组分离，让红绿重新具备信息量。</li>
+</ol>
+
+<hr>
+
+<h2>评审依据</h2>
+<ul>
+  <li><code>git log</code> / <code>git ls-remote</code> / <code>git rev-list</code> 实测（本地 HEAD <code>e3fed92</code>，远端 <code>854bdb3</code>，behind 158 / ahead 0）</li>
+  <li><code>git check-ignore -v keystore-20261005</code> → 无匹配；根 <code>.gitignore</code> 与 <code>美股监控/.gitignore</code> 逐条比对</li>
+  <li>线上部署 <code>data/events/global-events.json</code> 实取，<code>generatedAt</code> = 2026-10-07T09:10:53Z</li>
+  <li><code>node _test/run-all.mjs</code> 全量运行结果</li>
+  <li><code>index.html</code> tab 结构（10 个）、<code>js/</code> 体积分布、<code>README.md</code>、<code>docs/ARCHITECTURE.md</code>、<code>美股监控/README.md</code></li>
+</ul>
+<p class="foot">本评审由产品视角出具，工程判断仅限已实测部分。未修改项目任何源码或配置；评审期间执行了 <code>git fetch origin main</code>（仅更新远端引用，未触碰工作区与分支）。</p>
+
+<h2>复检补记（2026-10-07 当日晚间）</h2>
+
+<div class="card p0">
+  <p><span class="tag t-p0">更正</span><strong>「美股监控完全不在版本控制里」是误判。</strong></p>
+  <p>复检发现 <code>美股监控/</code> 自带完整 <code>.git</code>，是独立仓库 <code>5777-wq/us-stock-monitor</code>（公开，112+ 提交，本地与远端同步）。原评审只看了外层 openfinlens 仓库的 <code>git status</code>，嵌套仓库被显示为一个未跟踪目录，据此得出「未入库」结论——<strong>正确结论是：它早已独立成库，「收编」问题不存在，只需在外层 <code>.gitignore</code> 加一行防止误 gitlink（已加）。</strong></p>
+</div>
+
+<div class="card p0">
+  <p><span class="tag t-p0">新发现</span><strong>us-stock-monitor 的公开历史里留有旧签名密钥 + 明文口令。</strong></p>
+  <p><code>android/signing/app.keystore</code> 与 <code>android/app/build.gradle</code> 中的明文口令（<code>storePassword/keyPassword = usmon2026</code>）自 2026-10-01 提交进入公开历史；10-05 的 <code>f69a431</code> 做了轮换并从工作区删除，但<strong>删除不入史，任何人 clone 仍可从历史取回密钥和口令</strong>。</p>
+  <p><strong>缓解因素（已逐项实测）：</strong>签名密钥已于 10-05 轮换，新口令为强随机串且<strong>未复用</strong>旧口令；新凭据只存于 GitHub Secrets 与仓库外备忘；<code>usmon2026</code> 在两个仓库的当前树与全部工作文件中均已无踪迹。</p>
+  <p><strong>残余风险：</strong>持有旧密钥者可给 10-01～10-05 期间安装旧签名 APK 的设备推送恶意「更新」；个人产品实际暴露面接近于零。真正要紧的遗留动作：<strong>确认 <code>usmon2026</code> 没有在其他账号或服务中被复用</strong>（这点只能在仓库外排查）。</p>
+  <p style="color:var(--dim)"><strong>可选的卫生动作（非紧急）：</strong>用 <code>git filter-repo</code> 清除历史中的 keystore 与口令行并强推。由于密钥已轮换且内容可能早已被缓存，此动作属卫生性质而非止损性质。</p>
+</div>
+
+<div class="card p2">
+  <p><span class="tag t-ok">已执行</span><strong>评审行动项 1、3 已于当日完成：</strong></p>
+  <ul style="margin:8px 0 4px">
+    <li>外层根 <code>.gitignore</code> 堵漏（keystore-*/、*.jks、*.pem、凭据备忘、backup-*.bundle、.workbuddy/、美股监控/），已验证 <code>check-ignore</code> 全覆盖并推送（<code>9af0777</code>、<code>d938c1e</code>）；敏感文件经 <code>log --all</code> 核实<strong>从未进入外层仓库历史</strong>。</li>
+    <li>外层仓库快进同步落后 158 提交，<code>main</code> 已配 upstream；内层 us-stock-monitor 亦快进同步至 <code>c9d9eb8</code>（10-07 收盘报告）。</li>
+    <li>行动项 2（收编决策）如上更正——无需迁移。</li>
+  </ul>
+</div>
+
+</div>
+</body>
+</html>
