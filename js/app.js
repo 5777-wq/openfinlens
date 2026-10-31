@@ -152,7 +152,7 @@
     'segUpdown', 'segRefresh', 'segTheme', 'swDegraded', 'swAcademy', 'academyLink', 'sourceStatus', 'updatedLine', 'tabCfg',
     'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats', 'detailGloss',
     'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle', 'intradaySeg',
-    'maMenu', 'maLinesBox', 'maPaneBox', 'maAdd',
+    'maMenu', 'maLinesBox', 'maPaneBox', 'maAdd', 'maReset',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
     'globeStatus', 'mapLegend', 'mapStatusPts',
     'evGlobePane', 'evNewsPane', 'evPmPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
@@ -2254,6 +2254,14 @@
       state.chartKind = kind;
     }
     if (!state.chart) { el.chartBox.classList.add('off'); return; }
+    // 图表角落常显「代码 · 周期」徽标：周期文案取当前 active 周期按钮的字
+    // （index.html 的按钮文字是文案唯一来源，不另立映射表）；
+    // active 类在点击（data-period 分支）与 openDetail 两条路径上都先于本函数同步。
+    // t.code 是详情页头部已在用的展示代码。
+    if (state.chart.setInfo) {
+      const pbtn = document.querySelector('[data-period].active');
+      state.chart.setInfo({ code: t.code || t.symbol || '', period: pbtn ? pbtn.textContent.trim() : '' });
+    }
     // 副图指标（成交量 / RSI / MACD）：**先设副图再 setData**——
     // setData 内部会按当前副图重画，顺序反了会用上一次的副图类型。
     // 兜底：detailMACfg 任何时候都不能是 null——它是 null 时下面这行会抛
@@ -5820,16 +5828,24 @@
         </label>`;
       }).join('');
 
-      // 主图：每行 = 开关 + 类型 + 周期 + 删除
+      // 主图：每行 = 开关 + 类型 + 周期 + 线宽 + 取色色板 + 删除
       linesBox.innerHTML = lines.map((l, i) => {
         const t = MA_TYPES.find(x => x.key === l.type) || MA_TYPES[0];
+        // 当前指派的颜色下标：与 charts.js 的 slotStyles 同口径（归一到 0..5）；
+        // 未指派（旧配置/新建行）回退槽位序号，与画图侧的回退一致
+        const resolvedCi = (typeof l.ci === 'number' && isFinite(l.ci)) ? ((Math.round(l.ci) % 6) + 6) % 6 : i % 6;
+        const wSel = (l.w === 2 || l.w === 3) ? l.w : 1;
         return `<div class="ma-line-row" data-maline-row="${i}">
           <input type="checkbox" data-maline="${i}"${l.on ? ' checked' : ''}>
           <select data-matype="${i}">
             ${MA_TYPES.map(x => `<option value="${x.key}"${x.key === l.type ? ' selected' : ''}>${x.label}</option>`).join('')}
           </select>
           <input type="number" min="2" max="500" value="${l.n}" data-man="${i}">
-          <i class="ma-line-dot" style="background:var(--ma-${i % 6})"></i>
+          <select data-maw="${i}" title="线宽" aria-label="这条指标的线宽">
+            ${[1, 2, 3].map(w => `<option value="${w}"${w === wSel ? ' selected' : ''}>${w}px</option>`).join('')}
+          </select>
+          <span class="ma-swatches" title="线色（取自主题调色板）">${[0, 1, 2, 3, 4, 5].map(k =>
+            `<i class="ma-swatch${k === resolvedCi ? ' on' : ''}" data-macolor="${i}:${k}" style="background:var(--ma-${k})" title="颜色${k + 1}"></i>`).join('')}</span>
           <button type="button" data-madel="${i}" title="删除这条指标" aria-label="删除这条指标">×</button>
         </div>`;
       }).join('') || '<div class="ma-empty">还没有主图指标</div>';
@@ -5867,6 +5883,17 @@
       renderMaMenu();
     };
     if (el.maAdd) el.maAdd.addEventListener('click', addMaLine);
+    // 一键重置：回到默认指标配置（MA5/MA20/EMA26 + 成交量副图）。
+    // 深拷贝后再存：lines 逐项浅拷贝、pane 换新对象——MA_CFG_DEFAULT 同时是
+    // state.detailMACfg 的初值来源，直接引用会让后续参数面板的写入污染默认值。
+    // Store.set / setMAVisible / setPane 由 saveMaCfg 一并完成
+    if (el.maReset) el.maReset.addEventListener('click', () => {
+      saveMaCfg(
+        MA_CFG_DEFAULT.lines.map(l => Object.assign({}, l)),
+        { key: MA_CFG_DEFAULT.pane.key, params: {} },
+      );
+      renderMaMenu();
+    });
 
     document.addEventListener('change', (e) => {
       // 副图指标切换
@@ -5906,12 +5933,22 @@
         const n = Math.max(2, Math.min(500, Math.round(+num.value || 5)));
         num.value = n;
         applyMaLine(+num.dataset.man, { n });
+        return;
       }
+      // 线宽（1/2/3 之外的值一律按 1 处理，与 charts.js slotStyles 同口径）
+      const maw = e.target.closest('[data-maw]');
+      if (maw) { applyMaLine(+maw.dataset.maw, { w: [1, 2, 3].includes(+maw.value) ? +maw.value : 1 }); }
     });
-    // 删除一条主图指标（× 按钮）
+    // 删除一条主图指标（× 按钮）+ 取色色板（data-macolor）
+    // 注：色板是 <i> 元素，不触发 change 事件，所以走 click 委托（方案里 change 分支的意图在此落地）
     document.addEventListener('click', (e) => {
       const del = e.target.closest('[data-madel]');
       if (del) { delMaLine(+del.dataset.madel); return; }
+      const sw = e.target.closest('[data-macolor]');
+      if (sw) {
+        const [li, k] = sw.dataset.macolor.split(':').map(Number);
+        if (Number.isFinite(li) && Number.isFinite(k)) applyMaLine(li, { ci: k });
+      }
     });
 
     // 席位档案返回：有本会话历史走浏览器后退（#tab= / #symbol= hash 会被还原），深链直达退回之前 tab

@@ -138,14 +138,22 @@ test('指标菜单色块必须用 var(--ma-N)，不得写死 hex', () => {
   // 2026-10-20 起指标菜单改成动态渲染（可增删指标），色块不再静态写在 index.html 里，
   // 而是由 app.js 按槽位序号生成。断言的**意图**不变：色板只能来自 CSS 令牌，
   // 不许出现第二份字面量（改了 --ma-N 而菜单不变，就是两处漂移）。
+  // 2026-10-31 行内色点升级为 6 色取色板（当前指派用 .on 标记）：
+  // 守卫放宽为 /var\(--ma-\$\{/——色板与画图仍全部取令牌，不限定下标表达式形态。
   const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
   assert.ok(/id="maMenu"/.test(HTML), '找不到指标菜单');
   const gen = app.slice(app.indexOf('function renderMaMenu'));
   const block = gen.slice(0, gen.indexOf('\n  }'));
-  assert.ok(/var\(--ma-\$\{i % 6\}\)/.test(block), '色块必须按槽位序号取 var(--ma-N) 令牌');
+  assert.ok(/var\(--ma-\$\{/.test(block), '色板/色点必须取 var(--ma-N) 令牌');
+  assert.ok(/data-macolor=/.test(block), '取色色板（data-macolor）不见了');
+  assert.ok(/data-maw=/.test(block), '线宽控件（data-maw）不见了');
   // 菜单与图表两处都不许写死 hex 色值
   const hexInMenu = block.match(/#[0-9a-f]{3,8}\b/gi);
   assert.equal(hexInMenu, null, '指标菜单里出现了写死的 hex 色值: ' + (hexInMenu || []).join(','));
+});
+
+test('index.html 必须保留指标面板的一键重置入口（id="maReset"）', () => {
+  assert.ok(/id="maReset"/.test(HTML), '指标菜单的「恢复默认」按钮被删了（一键重置入口不许被误删）');
 });
 
 test('charts.js 不得再自带一份均线调色板字面量', () => {

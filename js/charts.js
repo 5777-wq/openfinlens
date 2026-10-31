@@ -65,6 +65,14 @@ const Charts = (() => {
     legend.className = 'k-legend';
     el.appendChild(legend);
 
+    // 图表角落常显徽标「代码 · 周期」（TradingView 左上角常驻读数）：详情页经 setInfo 喂入，
+    // paintLegend 总把徽标拼在图例最前面——没有数据时图例为空、徽标也照常显示（「常显」）
+    let symInfo = null;
+    const symHTML = () => {
+      const b = legendBadge(symInfo);
+      return b ? '<span class="kl-sym">' + escHtml(b) + '</span>' : '';
+    };
+
     const candle = addSeries(chart, 'Candlestick', {
       upColor: up, downColor: down, borderVisible: false,
       wickUpColor: up, wickDownColor: down,
@@ -335,9 +343,24 @@ const Charts = (() => {
        lightweight-charts 4.2.3 有 removeSeries，所以槽位能真正销毁再建。 */
     const MAX_OVERLAYS = 8;
     const lineSeries = [];          // 动态池：与展开后的槽位一一对应
+    // 槽位样式（slotStyles 的输出，与槽位一一对应）：用户指派的取色下标/线宽
+    let slotStyle = [];
 
     // 一个配置项 → 几个 series 槽（BOLL 三个，其余一个）
     const slotsOf = (l) => (l.type === 'boll' ? 3 : 1);
+
+    // 槽位取色：用户指派的 ci 优先（slotStyles 已归一到 0..n-1），
+    // 缺失回退槽位序号——与改造前「按槽位序号取色」的行为一致
+    const slotColorOf = (c, i) => {
+      const st = slotStyle[i];
+      const ci = (st && st.ci !== null && st.ci !== undefined) ? st.ci : i;
+      return c.lineColors[ci % c.lineColors.length];
+    };
+    // 槽位线宽：1/2/3 之外的值一律按 1（slotStyles 已收敛，这里是画图侧兜底）
+    const slotWidthOf = (i) => {
+      const st = slotStyle[i];
+      return (st && (st.w === 2 || st.w === 3)) ? st.w : 1;
+    };
 
     // 把配置数组展开成槽位数组（每个槽位记着自己的配置与轨号）
     function expandSlots(lines) {
@@ -362,9 +385,9 @@ const Charts = (() => {
           lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false,
         }));
       }
-      // 颜色按槽位序号重刷（增删后序号会变）
+      // 颜色/线宽按槽位重刷（增删后序号会变）：用户指派的 ci/w 优先，缺失回退槽位序号
       const c = themeColors();
-      lineSeries.forEach((s, i) => s.applyOptions({ color: c.lineColors[i % c.lineColors.length] }));
+      lineSeries.forEach((s, i) => s.applyOptions({ color: slotColorOf(c, i), lineWidth: slotWidthOf(i) }));
     }
 
     // 默认：MA5 + MA20 + EMA26（沿用原默认，其余槽位不画）
@@ -443,8 +466,9 @@ const Charts = (() => {
       const c = themeColors();
       candle.applyOptions({ upColor: c.up, downColor: c.down, wickUpColor: c.up, wickDownColor: c.down });
       // 均线取当前 c.lineColors：LINE_COLORS 是创建时捕获的闭包值，换肤/切红绿后会过期。
-      // 槽位数可变 → 取模（色板 6 色，槽位可到 8）。
-      lineSeries.forEach((s, i) => s.applyOptions({ color: c.lineColors[i % c.lineColors.length] }));
+      // 槽位数可变 → 取模（色板 6 色，槽位可到 8）。取色走 slotColorOf（用户指派优先）、
+      // 线宽走 slotWidthOf——否则换肤会把用户选的色/线宽重置回槽位序号默认值。
+      lineSeries.forEach((s, i) => s.applyOptions({ color: slotColorOf(c, i), lineWidth: slotWidthOf(i) }));
       if (lastKlines.length) renderPane(lastKlines, c);
       paintLegend(lastKlines.length - 1);
     }
@@ -479,7 +503,7 @@ const Charts = (() => {
       const ma = (maSlotMeta || []).map((m, i) => {
         const pt = maData[i] && maData[i][idx];
         if (!pt || pt.value === null || pt.value === undefined || !Number.isFinite(pt.value)) return '';
-        return `<span style="color:${c.lineColors[i % c.lineColors.length]}">${m.name} ${pt.value}</span>`;
+        return `<span style="color:${slotColorOf(c, i)}">${m.name} ${pt.value}</span>`;
       }).join('');
       return `<span class="kl-time">${fmtLegendTime(k.time)}</span>` +
         `<span>开 <b style="color:${col}">${k.open}</b></span>` +
@@ -491,7 +515,17 @@ const Charts = (() => {
     }
 
     function paintLegend(idx) {
-      legend.innerHTML = lastKlines.length ? legendHTML(idx === null || idx === undefined ? lastKlines.length - 1 : idx) : '';
+      // 徽标在前、读数在后；无数据时 legendHTML 那段是空串，只剩徽标
+      legend.innerHTML = symHTML() + (lastKlines.length
+        ? legendHTML(idx === null || idx === undefined ? lastKlines.length - 1 : idx)
+        : '');
+    }
+
+    /* 标的信息 {code, period}：非对象置空并重画。setData 之前调用也安全——
+       lastKlines 为空时 legendHTML 返回 ''，图例只剩徽标。 */
+    function setInfo(info) {
+      symInfo = (info && typeof info === 'object') ? info : null;
+      paintLegend();
     }
 
     if (typeof chart.subscribeCrosshairMove === 'function') {
@@ -534,6 +568,9 @@ const Charts = (() => {
       maSlotMeta = [];
       // 只画 on 的配置项；关掉的直接不占槽位（不建 series）
       const active = maLines.filter(l => l && l.on);
+      // 槽位样式（取色/线宽）跟 active 一起算：syncSeriesPool 建槽与补色、
+      // 图例读数的取色都从这里走
+      slotStyle = slotStyles(active, themeColors().lineColors.length);
       const slots = expandSlots(active);
       syncSeriesPool(slots);
       // 槽位 → 序列数据：BOLL 一次算三条，其余一条
@@ -576,11 +613,20 @@ const Charts = (() => {
        传布尔是旧接口（全开/全关），传对象是旧对象格式，都保留兼容。 */
     function setMAVisible(v) {
       if (Array.isArray(v)) {
-        const lines = v.filter(l => l && typeof l === 'object').slice(0, MAX_OVERLAYS).map(l => ({
-          type: l.type === 'ema' ? 'ema' : l.type === 'boll' ? 'boll' : 'ma',
-          n: Math.max(2, Math.min(500, Math.round(+l.n || 5))),
-          on: !!l.on,
-        }));
+        // ci/w 是用户在指标面板选的颜色下标/线宽，必须带过去：
+        // 之前这里只留 {type,n,on}，localStorage 里存的 ci/w 会在下一次
+        // setMAVisible 时被剥掉（菜单上有、图上不生效、刷新后丢失）
+        const lines = v.filter(l => l && typeof l === 'object').slice(0, MAX_OVERLAYS).map(l => {
+          const ciRaw = (l.ci === undefined || l.ci === null || l.ci === '') ? NaN : Math.round(+l.ci);
+          const wRaw = Math.round(+l.w);
+          return {
+            type: l.type === 'ema' ? 'ema' : l.type === 'boll' ? 'boll' : 'ma',
+            n: Math.max(2, Math.min(500, Math.round(+l.n || 5))),
+            on: !!l.on,
+            ci: Number.isFinite(ciRaw) ? ciRaw : null,   // 合法性由 slotStyles 画图侧再归一
+            w: (wRaw === 2 || wRaw === 3) ? wRaw : 1,
+          };
+        });
         maLines = lines;
       } else if (v && typeof v === 'object') {
         maLines = maLines.map(l => Object.assign({}, l));   // 未知对象：保持现状
@@ -627,7 +673,7 @@ const Charts = (() => {
     }
 
     return {
-      chart, candle, setData, applyTheme, setMAVisible, setEvents, setPane,
+      chart, candle, setData, applyTheme, setMAVisible, setEvents, setPane, setInfo,
       // 副图 canvas 挂在主图容器外面，销毁时必须一起摘掉，
       // 否则切标的/切周期会留下一堆空副图（每次 createKline 都新建一个）。
       remove() {
@@ -666,6 +712,13 @@ const Charts = (() => {
     legend.className = 'k-legend';
     el.appendChild(legend);
 
+    // 角落常显徽标（同 K 线图）：详情页 setInfo 喂入，显示「代码 · 分时」
+    let symInfo = null;
+    const symHTML = () => {
+      const b = legendBadge(symInfo);
+      return b ? '<span class="kl-sym">' + escHtml(b) + '</span>' : '';
+    };
+
     const area = addSeries(chart, 'Area', {
       lineWidth: 2, lineColor: up,
       topColor: up + '40', bottomColor: up + '02',
@@ -699,7 +752,16 @@ const Charts = (() => {
     }
 
     function paintLegend(idx) {
-      legend.innerHTML = points.length ? legendHTML(idx === null || idx === undefined ? points.length - 1 : idx) : '';
+      // 徽标在前、读数在后；无数据时只剩徽标（与 K 线图例同一「常显」语义）
+      legend.innerHTML = symHTML() + (points.length
+        ? legendHTML(idx === null || idx === undefined ? points.length - 1 : idx)
+        : '');
+    }
+
+    // 标的信息 {code, period}：非对象置空并重画（同 createKline.setInfo）
+    function setInfo(info) {
+      symInfo = (info && typeof info === 'object') ? info : null;
+      paintLegend();
     }
 
     if (typeof chart.subscribeCrosshairMove === 'function') {
@@ -730,7 +792,7 @@ const Charts = (() => {
     }
 
     return {
-      chart, setData, applyTheme: paint,
+      chart, setData, applyTheme: paint, setInfo,
       setMAVisible() { /* 分时无 MA */ },
       setEvents() { /* 分时不画日频事件标记 */ },
       // 分时图只保留成交量副图（TradingView 的分时默认也是成交量副图）；
@@ -858,7 +920,49 @@ const Charts = (() => {
     return closes.map(() => null);
   }
 
-  return { createKline, createTrend, createCompare, calcMA, emaSeries, themeColors, retheme };
+  /* ---- 纯函数（离线单测钉口径：_test/charts.test.mjs）---- */
+
+  // 徽标小文本里的 HTML 转义：code/period 来自外部喂入，拼 innerHTML 前先关掉标签
+  function escHtml(s) {
+    return String(s).replace(/[&<>"']/g, (ch) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  }
+
+  /* 图表角落常显徽标「代码 · 周期」：两段各自 trim 后用 ' · ' 连接，
+     任一为空只显示另一段，全空返回 ''。无 DOM 无网络。 */
+  function legendBadge(info) {
+    const o = (info && typeof info === 'object') ? info : {};
+    const kept = [o.code, o.period]
+      .map(v => (v === null || v === undefined) ? '' : String(v).trim())
+      .filter(Boolean);
+    return kept.length ? kept.join(' · ') : '';
+  }
+
+  /* 主图指标的槽位样式：输入**展开前**的配置数组 + 调色板长度，
+     输出与展开后槽位一一对应的 [{ci, w}]（ci=取 --ma-N 令牌的下标，w=线宽）。
+     · ci 用数值强转（容忍 DOM 来的字符串）：非法/缺失 → null（画图时回退槽位序号，
+       与改造前行为一致）；合法值归一到 ((round(ci)%n)+n)%n；
+     · 线宽仅 1/2/3 合法，其余一律 1；
+     · BOLL 占 3 轨（沿用 slotsOf 语义）：三轨从 ci 起顺延取色（ci, ci+1, ci+2 循环），
+       保持「一条配置的多轨取色连续」。 */
+  function slotStyles(lines, paletteN) {
+    const n = Math.max(1, Math.round(+paletteN) || 6);
+    const out = [];
+    (Array.isArray(lines) ? lines : []).forEach((l) => {
+      if (!l || typeof l !== 'object') return;
+      const rails = l.type === 'boll' ? 3 : 1;
+      const ciRaw = (l.ci === undefined || l.ci === null || l.ci === '') ? NaN : Math.round(+l.ci);
+      const ci = Number.isFinite(ciRaw) ? ((ciRaw % n) + n) % n : null;
+      const wRaw = Math.round(+l.w);
+      const w = (wRaw === 2 || wRaw === 3) ? wRaw : 1;
+      for (let k = 0; k < rails; k++) {
+        out.push({ ci: ci === null ? null : (ci + k) % n, w });
+      }
+    });
+    return out;
+  }
+
+  return { createKline, createTrend, createCompare, calcMA, emaSeries, themeColors, retheme, legendBadge, slotStyles };
 })();
 
 window.Charts = Charts;

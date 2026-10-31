@@ -31,6 +31,7 @@ const groups = [
   { file: 'tabscope.test.mjs', net: false },   // 顶栏板块：顺序/显隐自定义 +「全部」固定首位 + 非法配置清理
   { file: 'panes.test.mjs', net: false },      // 副图指标计算：RSI/MACD 序列 + 口径与 technical.js 一致
   { file: 'paneview.test.mjs', net: false },   // 副图指标窗几何：坐标/断线/刻度/与主图横向对齐
+  { file: 'charts.test.mjs', net: false },     // charts.js 纯函数：徽标拼接/槽位取色线宽（BOLL 顺延）/MA 口径
   { file: 'treemap.test.mjs', net: false },    // 热力图色带：区间边界归属/连续无缝/取色 + 分组布局（两级squarify 覆盖/重叠/组框）
   { file: 'us-indexes.test.mjs', net: false }, // 美股指数成分表：规模钉死/归一化匹配（BRK.B↔BRKB）/filter 行为/道指⊂标普
   { file: 'pmshare.test.mjs', net: false },    // 分享卡片：源码级合规回归（不外泄上游标识）+ 零网络请求

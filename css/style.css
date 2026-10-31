@@ -941,6 +941,12 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
   color: var(--text-secondary); background: transparent; border: 1px dashed var(--border);
   border-radius: 3px; cursor: pointer; }
 .ma-add:hover { color: var(--text); border-color: var(--border-hover); }
+/* 主图指标行的取色色板：6 个令牌色块（.ma-menu .ma-swatch 提一档特异性，
+   压过 .ma-menu i 的通配色点规则——否则 10×10 色块会被改成 14×3 细条） */
+.ma-swatches { display: inline-flex; gap: 3px; align-items: center; }
+.ma-menu .ma-swatch { width: 10px; height: 10px; border-radius: 2px; cursor: pointer;
+  border: 1px solid transparent; margin-left: 0; }
+.ma-menu .ma-swatch.on { border-color: var(--text-secondary); }
 .ma-empty { font-size: 11px; color: var(--text-faint); padding: 4px 0; }
 
 /* 技术面板块（替换原大师卡片） */
@@ -1696,6 +1702,8 @@ body.no-crypto .crypto-only { display: none !important; }
 .k-legend b { font-weight: 500; }
 .k-legend .kl-time { color: var(--text-secondary); }
 .k-legend .kl-dim { color: var(--text-faint); }
+/* 常显徽标（代码 · 周期）：比读数行略重一档，纯 color 走令牌，暗亮皮肤自动适配 */
+.k-legend .kl-sym { color: var(--text-secondary); font-weight: 500; padding-right: 2px; }
 
 /* ---- 到价提醒（2026-09-17）：顶栏铃铛面板 / 详情按钮 / 创建弹层 / toast ---- */
 .alert-badge {
