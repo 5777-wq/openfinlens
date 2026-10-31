@@ -840,5 +840,66 @@ test('间距离格值清零 + 令牌真实消费（离格档全清、var(--sp-) 
   assert.ok(used >= 370, `var(--sp-) 消费只有 ${used} 处（应 ≥370，防令牌摆设化）`);
 });
 
+/* ============================================================
+   字号音阶守卫（2026-11-01 · 路线图 P0★ 第 4 条 · 骨架③a）
+   ------------------------------------------------------------
+   诊断（docs/UI-AUDIT.md 病灶五）：font-size 全站 24 种档位并存
+   （8~56px），正文/标签/标题的层级靠手感不靠系统。
+   处方：--fs-12/13/15/20/32 五档进 tokens，映射规则与间距同款
+   「就近取档、平局向上」（12.5→13；14/16/17→15；18/19/21/22/24→20；
+   28/30/34/56→32；Floor=12px 可读性下限；展示层大数字一并归 32 档，
+   音阶落差由字重与 tabular-nums 承担）。
+   进度：骨架③a（本轮）清零 >12px 的 raw（67 处归档接线）+ font 简写
+   清账（.ask::before 10px/15px → var(--fs-12)/16px）；8~12px 十二档
+   （284 处）是过渡白名单，由 ③b/③c 分两半接线，白名单**只减不增**
+   直至清空。唯一永久豁免：font-size: 0（.ask 触达区文字隐藏技巧，
+   视觉由 ::before 承担，非排版档位）。
+   ============================================================ */
+
+test('字号五档令牌：--fs-12/13/15/20/32 进 tokens 且值恰为 12/13/15/20/32px', () => {
+  // 与间距组一同款：只钉"五档都在、值不漂"，消费总量由下一组断言 C 卡下限。
+  [['fs-12', '12px'], ['fs-13', '13px'], ['fs-15', '15px'], ['fs-20', '20px'],
+   ['fs-32', '32px']].forEach(([n, v]) => {
+    assert.equal(cssVar(n), v, `--${n} 应恰为 ${v}`);
+  });
+});
+
+test('font-size 收敛五档·阶段一（>12 档 raw 清零、font 简写清零、var(--fs-) ≥60）', () => {
+  // 断言 A：规则体内 font-size 声明值只许落在三类集合——
+  //   · 五档令牌 var(--fs-12/13/15/20/32)：③a 已接线的 67 处；
+  //   · 十二档过渡白名单 8/9/9.5/10/10.5/11/11.5/12px：284 处，③b/③c
+  //     分两半接线后清零，白名单**只减不增**（每清一段删一段键，新档位须走评审）；
+  //   · '0'：.ask 触达区文字隐藏技巧，永久豁免（见上）。
+  const ALLOWED = new Set([
+    'var(--fs-12)', 'var(--fs-13)', 'var(--fs-15)', 'var(--fs-20)', 'var(--fs-32)',
+    '8px', '9px', '9.5px', '10px', '10.5px', '11px', '11.5px', '12px',
+    '0',
+  ]);
+  const rules = CSS_NC.match(/[^{}]+\{[^{}]*\}/g) || [];
+  assert.ok(rules.length > 300, '规则切分数异常，选择器可能失效');
+  const bad = [];
+  rules.forEach(r => {
+    const i = r.indexOf('{');
+    const sel = r.slice(0, i).replace(/\s+/g, ' ').trim();
+    (r.slice(i).match(/\bfont-size\s*:\s*[^;}]+/g) || []).forEach(d => {
+      const val = d.slice(d.indexOf(':') + 1).trim();
+      if (!ALLOWED.has(val)) bad.push(`${sel || '(无名规则)'} → font-size: ${val}`);
+    });
+  });
+  assert.equal(bad.length, 0,
+    'font-size 越档（>12 档 raw 只许 var(--fs-*)；十二档过渡白名单只减不增）：\n    ' +
+    [...new Set(bad)].join('\n    '));
+  // 断言 B：font 简写带 px 字号防绕过——font: 10px/15px 把字号藏进简写
+  // 同样越档（font-family/font-weight 冒号前有后缀，天然不匹配本模式）。
+  const shorthand = CSS_NC.match(/\bfont\s*:\s*[\d.][^;}]*/g) || [];
+  assert.equal(shorthand.length, 0,
+    'font 简写仍带 px 字号（字号须走 var(--fs-*)、行高单独声明）：\n    ' +
+    shorthand.join('\n    '));
+  // 断言 C：令牌必须真实消费——防"五档进 tokens"退化成"令牌摆设"。
+  // ③a 接线 67 处声明 + 1 处 .ask::before 简写，实测 68，下限卡 60。
+  const used = (CSS_NC.match(/var\(--fs-/g) || []).length;
+  assert.ok(used >= 60, `var(--fs-) 消费只有 ${used} 处（应 ≥60，防令牌摆设化）`);
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
