@@ -169,6 +169,15 @@ test('vendor 库的 ?v= 必须是锁定的语义化版本，不被业务版本�
   vendor.forEach(v => assert.ok(/^\d+\.\d+\.\d+$/.test(v), `vendor 版本应形如 1.2.3，实际 "${v}"`));
 });
 
+test('index.html 每个 data-fold 折叠分区都必须带 id（折叠状态持久化按 id 记忆）', () => {
+  // 折叠态持久化的键是分区 id：无 id 的分区点了也不记、刷新恢复不了，
+  // 而且新增分区时漏写 id 不会有任何报错——所以钉成断言。
+  const tags = HTML.match(/<div class="section"[^>]*data-fold[^>]*>/g) || [];
+  assert.ok(tags.length >= 13, '没扫到预期的折叠分区数量，选择器可能失效');
+  const noId = tags.filter(t => !/\sid="[^"]+"/.test(t));
+  assert.equal(noId.length, 0, '这些折叠分区缺 id，折叠态持久化会跳过它们：' + noId.join(' | '));
+});
+
 test('开屏 splash 的所有形态都不得复活（解释性注释不计）', () => {
   const files = ['index.html', 'css/style.css', 'js/app.js'];
   const bad = [];

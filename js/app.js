@@ -5282,11 +5282,12 @@
     /* 折叠/展开：display:none 没法参与过渡，所以用一层 .fold-out 先淡出再真正收起；
        展开时 .fold-out 一直挂着（内容已是 opacity 0），摘掉它才淡入。 */
     const foldTimers = new WeakMap();
-    function setFold(sec, folded) {
+    function setFold(sec, folded, instant) {
       const head = sec.querySelector(':scope > .section-head');
       if (head) head.setAttribute('aria-expanded', String(!folded));
       clearTimeout(foldTimers.get(sec));
-      if (reduceMotion()) {
+      // instant：开机恢复上次的折叠态时直接落位，不做 fold-out 过渡动画
+      if (instant || reduceMotion()) {
         sec.classList.toggle('folded', folded);
         sec.classList.remove('fold-out');
         return;
@@ -5304,12 +5305,30 @@
       }
     }
 
+    /* 折叠状态持久化（gfd_foldsV1）：只记「哪些分区被收起」，展开即删。
+       键是分区 id；bindEvents 时 DOM 里只有 index.html 的静态分区
+       （宏观/持仓等动态分区在 mount 时才建），所以动态分区天然不参与记忆，
+       维持每次展开的现状。恢复前按现存 id 净化，脏值一律回落展开。 */
+    function readFolds() {
+      const valid = Array.from(document.querySelectorAll('[data-fold][id]')).map(s => s.id);
+      return new Set(Object.keys(window.U.sanitizeFolds(window.Store.get('foldsV1', {}), valid)));
+    }
+    function saveFold(sec, folded) {
+      if (!sec.id) return;
+      const set = readFolds();
+      if (folded) set.add(sec.id); else set.delete(sec.id);
+      const map = {};
+      set.forEach(k => { map[k] = true; });
+      window.Store.set('foldsV1', map);
+    }
     // 板块折叠：点标题收起/展开正文（聪明钱/情绪/热力图等长板块，按需收纳）
     document.addEventListener('click', (e) => {
       const head = e.target.closest('[data-fold] > .section-head');
       if (!head || e.target.closest('button, a, input, .pill, .ses-chip')) return;
       const sec = head.parentElement;
-      setFold(sec, !sec.classList.contains('folded'));
+      const folded = !sec.classList.contains('folded');
+      setFold(sec, folded);
+      saveFold(sec, folded);
     });
     // 二级分区切换：直接绑在导航条上，不挂在 document——
     // 导航条是稳定节点（只换 innerHTML），事件不必冒泡到 document 才被接住。
@@ -5344,6 +5363,14 @@
       h.setAttribute('tabindex', '0');
       h.setAttribute('aria-expanded', 'true');
     });
+    // 恢复上次的折叠状态：开机直接落位（instant 不做动画），
+    // aria-expanded 由 setFold 统一改对；净化后仍存在的 id 才会恢复
+    const savedFolds = readFolds();
+    if (savedFolds.size) {
+      document.querySelectorAll('[data-fold]').forEach(sec => {
+        if (savedFolds.has(sec.id)) setFold(sec, true, true);
+      });
+    }
 
     // tab
     el.tabs.addEventListener('click', (e) => {

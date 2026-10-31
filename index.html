@@ -258,7 +258,7 @@
         <button class="pill" data-fundssub="fund" role="tab" aria-selected="false">基金持仓</button>
       </div>
       <div data-fundspane="seat">
-        <div class="section" data-fold>
+        <div class="section" data-fold id="seatSection">
           <div class="section-head">
             <h2 class="section-title">席位动向</h2>
             <span class="sec-line"></span>
@@ -269,7 +269,7 @@
         </div>
       </div>
       <div data-fundspane="lhb" hidden>
-        <div class="section" data-fold>
+        <div class="section" data-fold id="lhbSection">
           <div class="section-head">
             <h2 class="section-title">今日龙虎榜</h2>
             <span class="sec-line"></span>
@@ -280,7 +280,7 @@
         </div>
       </div>
       <div data-fundspane="fund" hidden>
-        <div class="section" data-fold>
+        <div class="section" data-fold id="fundSection">
           <div class="section-head">
             <h2 class="section-title">基金持仓变动</h2>
             <span class="sec-line"></span>
@@ -304,7 +304,7 @@
         <button class="pill" data-fundssub="etf" role="tab" aria-selected="false">因子 ETF 持仓</button>
       </div>
       <div data-fundspane="13f">
-        <div class="section" data-fold>
+        <div class="section" data-fold id="brkSection">
           <div class="section-head">
             <h2 class="section-title">机构持仓 · 13F</h2>
             <span class="sec-line"></span>
@@ -315,7 +315,7 @@
         </div>
       </div>
       <div data-fundspane="etf" hidden>
-        <div class="section" data-fold>
+        <div class="section" data-fold id="etfSection">
           <div class="section-head">
             <h2 class="section-title" data-gloss="factor-etf" tabindex="0">因子 ETF 持仓</h2>
             <span class="sec-line"></span>
@@ -349,7 +349,7 @@
          注：港股没有美股 13F 那种可按机构拆分的免费结构化披露——HKEX 权益披露只有 HTML 交互，
          CCASS 明细虽细但使用条款 2.3 明文禁止程序化访问。所以这一块是**通道合计**口径，如实标注。 -->
     <div id="hkFundsPanel" data-zone="disclosure" hidden>
-      <div class="section" data-fold>
+      <div class="section" data-fold id="sbSection">
         <div class="section-head">
           <h2 class="section-title">南向资金持股 · 港股通</h2>
           <span class="sec-line"></span>
@@ -454,7 +454,7 @@
 
       <!-- 公开言论（原"聪明钱"tab 第 4 块）：它本来就是"新闻流里出现了人名"，
            与事件页同源同性质，放这里比单独占一个 tab 合理；口径照旧标注"发言 ≠ 交易" -->
-      <div class="section" data-fold style="margin-top:32px">
+      <div class="section" data-fold id="voicesSection" style="margin-top:32px">
         <div class="section-head">
           <h2 class="section-title">公开言论</h2>
           <span class="sec-line"></span>

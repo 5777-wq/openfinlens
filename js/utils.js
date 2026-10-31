@@ -194,8 +194,22 @@ const Cache = {
   },
 };
 
+// 折叠状态持久化的净化：把 localStorage 里读回的折叠表收敛成 {id:true}，
+// 只留「值为 true 且 id 在现存分区名单里」的键。读回来的可能是任何脏值
+// （手改、旧版本结构、JSON 损坏之外的合法垃圾），恢复前先净化——
+// 思路与 zones.resolveZone 一致：非法值收敛回落，不抛错也不猜。
+function sanitizeFolds(raw, validIds) {
+  const out = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  const valid = validIds || [];
+  Object.keys(raw).forEach(k => {
+    if (raw[k] === true && valid.indexOf(k) >= 0) out[k] = true;
+  });
+  return out;
+}
+
 window.U = {
   fetchJSONP, request, throttle, debounce,
   num, fmt, fmtPct, fmtChg, fmtVol, fmtPrice, priceDigits, fmtTime, fmtAgo, isMissing,
-  escapeHTML, Cache, toChartTime, fmtDay,
+  escapeHTML, Cache, toChartTime, fmtDay, sanitizeFolds,
 };

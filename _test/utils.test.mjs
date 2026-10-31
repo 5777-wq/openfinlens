@@ -147,5 +147,37 @@ test('fmtPrice 同样走缺失口径（空串不再显示 0.00）', () => {
   assert.equal(fmtPrice(7.28), '7.28');
 });
 
+/* ---------------- 折叠状态持久化：sanitizeFolds ----------------
+   localStorage 里读回来的折叠表可能是任何脏值（手改、旧版本结构、
+   JSON 损坏之外的合法垃圾），恢复前必须净化——只留「值为 true 且
+   id 在现存分区名单里」的键，其余一律回落展开。
+   注意：utils.js 在 vm 沙箱里跑，返回对象的原型来自沙箱 realm，
+   deepStrictEqual 会因跨 realm 原型不同而误报，所以用 JSON 串比较。 */
+
+test('sanitizeFolds：非对象脏值（null/数字/数组/字符串/undefined）一律收敛成 {}', () => {
+  assert.equal(JSON.stringify(U.sanitizeFolds(null, ['a'])), '{}');
+  assert.equal(JSON.stringify(U.sanitizeFolds(42, ['a'])), '{}');
+  assert.equal(JSON.stringify(U.sanitizeFolds(['a'], ['a'])), '{}', '数组不是合法的折叠表');
+  assert.equal(JSON.stringify(U.sanitizeFolds('a', ['a'])), '{}');
+  assert.equal(JSON.stringify(U.sanitizeFolds(undefined, ['a'])), '{}');
+});
+
+test('sanitizeFolds：只留「值为 true 且 id 现存」的键（脏 id、非 true 值全丢）', () => {
+  const raw = { keep: true, stale: true, notTrue: 'yes', one: 1, zero: 0 };
+  assert.equal(JSON.stringify(U.sanitizeFolds(raw, ['keep'])), '{"keep":true}',
+    'stale 不在现存名单里、notTrue/one/zero 不是严格 true');
+});
+
+test('sanitizeFolds：大小写敏感；validIds 缺省按空名单处理（全部丢弃）', () => {
+  assert.equal(JSON.stringify(U.sanitizeFolds({ A: true }, ['a'])), '{}');
+  assert.equal(JSON.stringify(U.sanitizeFolds({ a: true })), '{}');
+});
+
+test('sanitizeFolds：全部合法时原样保留（不丢合法的折叠记忆，键序随原表）', () => {
+  const raw = { heatSection: true, moodPanel: true };
+  assert.equal(JSON.stringify(U.sanitizeFolds(raw, ['heatSection', 'moodPanel', 'seatSection'])),
+    '{"heatSection":true,"moodPanel":true}');
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
