@@ -621,5 +621,61 @@ test('涨跌色硬编码字面量清零（无豁免——剥令牌声明后 CSS 
     'CSS 里残留涨跌色硬编码字面量（无豁免，改走令牌或 color-mix）：' + hits.join('、'));
 });
 
+/* ============================================================
+   页头与分隔线守卫（2026-10-31 · 路线图 P0★ 第 2 条）
+   ------------------------------------------------------------
+   诊断（docs/UI-AUDIT.md 病灶二）：巨型 tab 标题（clamp 到 64~72px 的
+   报纸头版语言）吃掉 1/8 屏幕但零信息；2~4px 粗黑规则线与 10 秒轮询的
+   终端数据密度打架。处方：页头降级成小节头（12px 大写字距标签 +
+   一行元数据），水平分隔线家族统一 1px。这两件事都不会报错，只在
+   页面上表现为"头版"与"终端"两种性格互相打架，所以钉成断言。
+   范围边界：卡片左竖条 / 色带 accent 边（.pm-sec-head、.pm-card、
+   #heroStrip 等）属形状令牌（下一轮）；选中下划线（.tab.active::after）
+   属选中态语言——均不在本组扫描范围。
+   ============================================================ */
+
+test('页头是小节头：所有皮肤的 h1.page-title 都不得回到巨型字号', () => {
+  const rules = CSS_NC.match(/[^{}]+\{[^{}]*\}/g) || [];
+  const hits = rules.filter(r => /page-title/.test(r.slice(0, r.indexOf('{'))));
+  assert.ok(hits.length >= 1, '没扫到 page-title 规则，选择器可能失效');
+  hits.forEach(r => {
+    const sel = r.slice(0, r.indexOf('{')).replace(/\s+/g, ' ').trim();
+    const body = r.slice(r.indexOf('{'));
+    assert.ok(!/clamp\(/.test(body), '页头又用了响应式巨型字号（clamp）：' + sel);
+    const fs = /font-size:\s*([\d.]+)px/.exec(body);
+    if (fs) assert.ok(parseFloat(fs[1]) <= 13,
+      `${sel} 的字号 ${fs[1]}px 超过小节头上限 13px（页头降级不许回退）`);
+  });
+  const small = hits.some(r => /font-size:\s*12px/.test(r.slice(r.indexOf('{'))));
+  assert.ok(small, '基础 h1.page-title 应是 12px 小节头标签（一行元数据语言）');
+});
+
+test('水平分隔线家族统一 1px（.section/.pm-sec/.pm-overview/.sec-line/.topbar）', () => {
+  // 词边界用 (?![\w-])：.section-head / .pm-sec-head / .topbar-actions 等
+  // 同前缀子元素各有自己的语言（卡片左竖条等留给形状令牌轮），不在此列。
+  const SEL = /\.section(?![\w-])|\.pm-sec(?![\w-])|\.pm-overview(?![\w-])|\.sec-line(?![\w-])|\.topbar(?![\w-])/;
+  const rules = CSS_NC.match(/[^{}]+\{[^{}]*\}/g) || [];
+  assert.ok(rules.length > 300, '规则切分数异常，选择器可能失效');
+  const bad = [];
+  rules.forEach(r => {
+    const i = r.indexOf('{');
+    const selRaw = r.slice(0, i);
+    if (!SEL.test(selRaw)) return;
+    const sel = selRaw.replace(/\s+/g, ' ').trim();
+    const body = r.slice(i);
+    if (/double/.test(body)) bad.push(sel + ' 仍用 double 报头双线');
+    const bds = body.match(/\bborder(?!-radius)(?:-[a-z]+)?\s*:\s*[^;}]+/g) || [];
+    bds.forEach(d => {
+      const px = /(\d+(?:\.\d+)?)px/.exec(d);
+      if (px && parseFloat(px[1]) > 1) bad.push(sel + ' → ' + d.replace(/\s+/g, ' ').trim());
+    });
+    if (/\.sec-line(?![\w-])/.test(selRaw)) {
+      const h = /(?:^|[;{\s])height:\s*(\d+(?:\.\d+)?)px/.exec(body);
+      if (h && parseFloat(h[1]) > 1) bad.push(sel + ' 分隔线高度 ' + h[1] + 'px 超过 1px');
+    }
+  });
+  assert.equal(bad.length, 0, '分隔线家族仍有粗线（应统一 1px）：\n    ' + bad.join('\n    '));
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

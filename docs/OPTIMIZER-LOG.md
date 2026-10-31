@@ -168,6 +168,62 @@ P0★「UI 语言统一」小节（6 条全未勾 + 未跟踪的 docs/UI-AUDIT.m
 - `_test/charts.test.mjs`、`_test/tokens.test.mjs`
 - `docs/TV-ROADMAP.md`（勾选 P0 第 3 条）、`docs/OPTIMIZER-LOG.md`（本条目）
 
+## 2026-10-31 23:17 · P0★ 页头降级：tab 标题改小节头（12px 标签+元数据行）、分隔线家族统一 1px、tokens.test 两组结构断言
+
+### 目标
+路线图 P0★ 第 2 条（UI-AUDIT.md 病灶二）：巨型 tab 标题（swiss/bauhaus/clay/memphis 四套
+clamp 到 64~72px 的报纸头版语言）降级为小节头——12px 大写字距标签 + 一行元数据
+（`.page-sub` 的标的数·刷新·抓取时间已存在，零 JS 改动）；2~4px 粗黑规则线（含
+`3px double` 报头双线）统一 1px；省出的高度还给数据（`.page-head` margin 28→16px）。
+**范围边界**：卡片左竖条/色带 accent 边（`.pm-sec-head`、`.pm-card`、`#heroStrip`）与
+选中下划线（`.tab.active::after`）不属"分隔线"，留给下一轮「形状令牌」与既有选中态语言。
+
+### 改动
+1. `css/style.css`（+9/-19，全 CRLF 保持，17 处小段编辑零整文件重写）：① 基础
+   `h1.page-title` 26px → 12px/600/0.14em/uppercase/`--text`（小节头语言，h1 语义保留，
+   读屏仍是页标题；层级高于 11px/`--text-secondary` 的 `.section-title`）；② `.page-head`
+   `align-items: flex-end → baseline`、`margin-bottom: 28px → 16px`（标题降为 12px 后
+   标签与元数据同行基线对齐）；③ 删窄屏媒体查询里 `h1.page-title { font-size: 22px }`
+   （基础降级后它会反向放大页头）；④ 删四套巨型标题规则：swiss（clamp 36-64px）、
+   bauhaus（clamp 40-72px + 900 重）、clay（clamp 38-68px）、memphis（clamp 36-64px +
+   rotate(-1.5deg) 倾斜）——memphis 的 Righteous 经 `--font-sans`（L1937）由 body 继承、
+   paper/clay 的衬线经共享 font-family 规则保留、aurora 渐变字保留（12px 上仍成立），
+   四套皮肤的身份层不丢；⑤ 分隔线家族 16 处 → 1px solid：oled/paper 的 `.section`/
+   `.pm-sec`/`.pm-overview`（3px double → 1px，`.section` padding-top 16→14 与其余皮肤
+   对齐）、swiss/bauhaus/memphis 的 `.section`/`.pm-sec`/`.sec-line`/`.topbar`
+   （2/3/4px → 1px；memphis 彩虹渐变 sec-line 保留、仅高度 4→1px）、删 swiss
+   `.topbar::after` 双线偏移装饰；⑥ 顺手修正 3 处因此过时的注释（"报头双线"“粗黑规则线”
+   "极端字号对比"）。
+2. `_test/tokens.test.mjs`（+56，2 组，42→44，测试先行）：组一「页头是小节头」——扫描
+   CSS_NC 全部选择器含 page-title 的规则，禁 clamp()、font-size ≤13px，且存在 12px 基础
+   规则；组二「分隔线家族统一 1px」——选择器命中 `.section/.pm-sec/.pm-overview/
+   .sec-line/.topbar`（负向先行 `(?![\w-])` 排除 .section-head/.pm-sec-head/.topbar-actions
+   等同前缀子元素）的规则体禁 `double`、border 声明（排除 border-radius）px ≤1、
+   `.sec-line` 显式 height ≤1px。施工前实跑 `node _test/tokens.test.mjs` = 42 passed /
+   2 failed，失败清单与预案逐条一致（4 处 clamp + 16 处粗线，零意外项）。
+3. `index.html`（67 处）：业务资源 `?v=20261031d` → `?v=20261031e`（style.css 内容变更
+   触发缓存失效，单调递增；vendor 语义化版本不动；非 v= 改动行数实测 0，LF 保持）。
+
+### 测试
+- 测试先行：施工前 `node _test/tokens.test.mjs` = **42 passed / 2 failed**（两组新断言
+  先红，失败点与预判一致）。
+- 施工后单跑：`node _test/tokens.test.mjs` = **44 passed / 0 failed**（42→44）。
+- 全量：`node _test/run-all.mjs --offline` = 共 43 组（离线 37 / 实网 6），本次执行
+  37 组、跳过 6 组，**✓ 全部测试组通过**。
+- 行尾核验（逐文件实跑字节统计）：style.css CR=2609 LF=2609 全 CRLF（裸 LF=0）、
+  index.html CR=0 纯 LF、tokens.test.mjs CR=0 纯 LF。
+- 红线核对：全中文注释；分区卡片+折叠布局零改动；8 套皮肤经守卫组二全量扫描（收敛对
+  所有皮肤一致生效，渐变/衬线/几何字身份保留）；无成交量展示/无 Polymarket 字样/无
+  省略号问句；纯视觉降级不涉买卖建议；零 JS 改动（无 setInterval、零新增取数零 API key，
+  红线 5/6 无涉）；style.css 小段编辑、index.html/测试/docs 保持 LF；?v= 单调递增至
+  20261031e；无开源代码移植；未做实网验证（红线 11）；未 git commit / push。
+- 8 套皮肤页头实拍观感属视觉冒烟，留给人工轮次；本轮以结构断言 + 静态守卫为完成判定。
+
+### 涉及文件
+- `css/style.css`、`index.html`
+- `_test/tokens.test.mjs`
+- `docs/TV-ROADMAP.md`（勾选 P0★ 第 2 条）、`docs/OPTIMIZER-LOG.md`（本条目）
+
 ## 2026-10-31 22:49 · P0★ 语义色收敛（修订版）：删死令牌 --ok、警示改橙、交互态去涨跌色、tokens.test 三组结构断言
 
 ### 目标

@@ -193,9 +193,13 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .view.active { display: block; animation: viewRise 0.32s var(--ease-out); }
 @keyframes viewRise { from { opacity: 0; transform: translateY(6px); } }
 
-h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
-.page-head { display: flex; align-items: flex-end; justify-content: space-between;
-  gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+/* 页头降级（P0★ 病灶二）：巨型标题是报纸头版语言，与终端数据密度打架。
+   h1 语义保留（读屏仍是页标题），视觉降为小节头——12px 大写字距标签，
+   元数据走 .page-sub（标的数·刷新·抓取时间），省出的高度还给数据。 */
+h1.page-title { font-size: 12px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; line-height: 1.2; color: var(--text); }
+.page-head { display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
 .page-sub { font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono); }
 
 /* ============================================================ 主行情 hero（一屏唯一的大） */
@@ -727,7 +731,6 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 @media (max-width: 640px) {
   .logo span:not(.logo-dot) { display: none; }
   .tabs { gap: 14px; }
-  h1.page-title { font-size: 22px; }
   .hero-value { font-size: 24px; }
   /* 简报带在窄屏改成三行堆叠：标签 / 分布条 / 数字，不挤压也不截断 */
   .brief-row { grid-template-columns: 1fr; gap: 5px; padding: 10px 2px; }
@@ -2014,7 +2017,7 @@ html[data-theme="oled"] body { font-family: var(--font-mono); }
 html[data-theme="oled"] body::after {
   content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px); }
-html[data-theme="oled"] .section { border-top: 3px double var(--border-hover); padding-top: 16px; }
+html[data-theme="oled"] .section { border-top: 1px solid var(--border-hover); padding-top: 14px; }
 html[data-theme="oled"] .section-title { letter-spacing: 0.26em; }
 html[data-theme="oled"] .modal, html[data-theme="oled"] .seg, html[data-theme="oled"] .pm-card,
 html[data-theme="oled"] .modal-close, html[data-theme="oled"] .switch,
@@ -2028,10 +2031,9 @@ html[data-theme="oled"] .pm-out-bar > i { box-shadow: none; }
 html[data-theme="paper"] h1.page-title, html[data-theme="paper"] .section-title,
 html[data-theme="paper"] .modal h2, html[data-theme="paper"] .pm-card-t {
   font-family: Georgia, "Times New Roman", "Songti SC", "STZhongsong", SimSun, serif; }
-html[data-theme="paper"] h1.page-title { font-weight: 700; letter-spacing: 0; }
 html[data-theme="paper"] .section-title { text-transform: none; letter-spacing: 0.05em;
   font-size: 14px; font-weight: 700; color: var(--text); }
-html[data-theme="paper"] .section { border-top: 3px double rgba(25,25,20,0.35); padding-top: 16px; }
+html[data-theme="paper"] .section { border-top: 1px solid rgba(25,25,20,0.35); padding-top: 14px; }
 html[data-theme="paper"] .sec-line { background: rgba(25,25,20,0.5); }
 html[data-theme="paper"] .pm-card, html[data-theme="paper"] .modal { border-radius: 0; box-shadow: none; }
 html[data-theme="paper"] .pm-card { border: 1px solid rgba(25,25,20,0.16); border-left-width: 3px; }
@@ -2060,7 +2062,7 @@ html[data-theme="aurora"] .pm-overview { --pm-ov-bg: rgba(18,22,38,0.5);
   box-shadow: 0 16px 44px rgba(0,0,0,0.38); }
 
 /* 硬核终端：单列密排行式布局（不是卡片墙），整块灰底行 + 方角 */
-html[data-theme="oled"] .pm-sec { border-top: 3px double var(--border-hover); padding-top: 14px; }
+html[data-theme="oled"] .pm-sec { border-top: 1px solid var(--border-hover); padding-top: 14px; }
 html[data-theme="oled"] .pm-cards { grid-template-columns: 1fr; gap: 0; }
 html[data-theme="oled"] .pm-card { border: none; border-bottom: 1px solid var(--border);
   border-radius: 0; --pm-card-bg: transparent; --pm-slice-sep: var(--bg-card); padding: 10px 6px; }
@@ -2070,10 +2072,10 @@ html[data-theme="oled"] .pm-sec-head { border-left: none; background: transparen
 html[data-theme="oled"] .pm-fold { border-radius: 0; }
 /* 总览：终端里不要浮起的卡片，整块贴底 */
 html[data-theme="oled"] .pm-overview { --pm-ov-bg: transparent; --pm-ov-sep: var(--bg-card);
-  border: none; border-top: 3px double var(--border-hover); border-radius: 0; padding: 12px 6px; }
+  border: none; border-top: 1px solid var(--border-hover); border-radius: 0; padding: 12px 6px; }
 
-/* 纸上编辑部：分类区块同报头双线，行内分隔用细黑线 */
-html[data-theme="paper"] .pm-sec { border-top: 3px double rgba(25,25,20,0.35); padding-top: 14px; }
+/* 纸上编辑部：分类区块报头细线，行内分隔用细黑线 */
+html[data-theme="paper"] .pm-sec { border-top: 1px solid rgba(25,25,20,0.35); padding-top: 14px; }
 html[data-theme="paper"] .pm-sec-head { border-left: none; background: transparent; padding-left: 2px; }
 
 /* ==================== 皮肤 · 第三轮（设计语言四件套：swiss/bauhaus/clay/memphis） ====================
@@ -2086,7 +2088,7 @@ html[data-theme="bauhaus"] body,
 html[data-theme="clay"] body,
 html[data-theme="memphis"] body { font-family: var(--font-sans), system-ui, sans-serif; }
 
-/* ---------- 瑞士国际主义：网格 + hairline + 0 圆角 + 0 投影 + 极端字号对比 ---------- */
+/* ---------- 瑞士国际主义：网格 + hairline + 0 圆角 + 0 投影 ---------- */
 html[data-theme="swiss"] * { border-radius: 0 !important; }
 /* 通配的 0 圆角是为了"瑞士网格"的硬朗感，但圆点是语义标记不是容器——
    被压成方块后事件类型的前置色点就失去了"这是一个点"的读感（用户反馈 tag 难看）。
@@ -2100,13 +2102,10 @@ html[data-theme="swiss"] .pm-fold, html[data-theme="swiss"] .event-detail,
 html[data-theme="swiss"] .pill, html[data-theme="swiss"] .bchip,
 html[data-theme="swiss"] .brow,
 html[data-theme="swiss"] .qrow { box-shadow: none; }
-html[data-theme="swiss"] h1.page-title {
-  font-weight: 800; letter-spacing: -0.025em;
-  font-size: clamp(36px, 4.8vw, 64px); line-height: 1.0; }
 html[data-theme="swiss"] .section-title { letter-spacing: 0.10em; font-weight: 600; }
-html[data-theme="swiss"] .sec-line { background: var(--accent-signature); height: 2px; }
-html[data-theme="swiss"] .section { border-top: 2px solid var(--text); padding-top: 14px; }
-html[data-theme="swiss"] .pm-sec { border-top: 2px solid var(--text); padding-top: 14px; }
+html[data-theme="swiss"] .sec-line { background: var(--accent-signature); height: 1px; }
+html[data-theme="swiss"] .section { border-top: 1px solid var(--text); padding-top: 14px; }
+html[data-theme="swiss"] .pm-sec { border-top: 1px solid var(--text); padding-top: 14px; }
 html[data-theme="swiss"] .pm-card {
   border: 1px solid var(--border); border-left: 3px solid var(--text);
   background: var(--bg-card); }
@@ -2116,9 +2115,7 @@ html[data-theme="swiss"] .seg button.active { background: var(--accent-signature
 html[data-theme="swiss"] .tab.active { color: var(--accent-signature); }
 html[data-theme="swiss"] .tab.active::after { background: var(--accent-signature); height: 2px; }
 html[data-theme="swiss"] #heroStrip { background: var(--bg-elevated); border: 1px solid var(--border); border-left: 3px solid var(--text); }
-html[data-theme="swiss"] .topbar { border-bottom: 2px solid var(--text); }
-html[data-theme="swiss"] .topbar::after { content: ''; position: absolute; left: 0; right: 0; bottom: -5px;
-  height: 1px; background: var(--text); }
+html[data-theme="swiss"] .topbar { border-bottom: 1px solid var(--text); }
 html[data-theme="swiss"] .modal { background: var(--bg-card); border: 1px solid var(--text); }
 /* 这四套皮肤给 .pill 套了边框，就必须自带内边距：
    基础 .pill 的 padding 是给"下划线型"设计的（左右几乎为 0），
@@ -2133,7 +2130,7 @@ html[data-theme="swiss"] .pill::after { display: none; }   /* 有边框了就不
 html[data-theme="swiss"] .chip { padding: 4px 10px; }
 html[data-theme="swiss"] body::before { display: none; }   /* 关掉默认环境光（瑞士要冷静） */
 
-/* ---------- 包豪斯：粗黑规则线 + 全大写宽字距标签 + Jost 几何 + 0 圆角 ---------- */
+/* ---------- 包豪斯：细规则线 + 全大写宽字距标签 + Jost 几何 + 0 圆角 ---------- */
 html[data-theme="bauhaus"] * { border-radius: 0 !important; }
 html[data-theme="bauhaus"] .ev-dot,
 html[data-theme="bauhaus"] .logo-dot { border-radius: 50% !important; }
@@ -2144,13 +2141,10 @@ html[data-theme="bauhaus"] .pm-fold, html[data-theme="bauhaus"] .event-detail,
 html[data-theme="bauhaus"] .pill, html[data-theme="bauhaus"] .bchip,
 html[data-theme="bauhaus"] .brow,
 html[data-theme="bauhaus"] .qrow { box-shadow: none; }
-html[data-theme="bauhaus"] h1.page-title {
-  font-weight: 900; letter-spacing: -0.01em;
-  font-size: clamp(40px, 5.4vw, 72px); line-height: 0.95; text-transform: none; }
 html[data-theme="bauhaus"] .section-title { letter-spacing: 0.16em; font-weight: 700; text-transform: uppercase; }
-html[data-theme="bauhaus"] .section { border-top: 4px solid var(--text); padding-top: 14px; }
-html[data-theme="bauhaus"] .sec-line { background: var(--accent-signature); height: 3px; }
-html[data-theme="bauhaus"] .pm-sec { border-top: 4px solid var(--text); padding-top: 14px; }
+html[data-theme="bauhaus"] .section { border-top: 1px solid var(--text); padding-top: 14px; }
+html[data-theme="bauhaus"] .sec-line { background: var(--accent-signature); height: 1px; }
+html[data-theme="bauhaus"] .pm-sec { border-top: 1px solid var(--text); padding-top: 14px; }
 html[data-theme="bauhaus"] .pm-card { border: 1px solid var(--text); background: var(--bg-card); }
 html[data-theme="bauhaus"] .pm-card:hover { background: #F2B705; color: #1a1a1a; }
 html[data-theme="bauhaus"] .pm-card:hover .num { color: #1a1a1a; }
@@ -2158,7 +2152,7 @@ html[data-theme="bauhaus"] .seg button.active { background: #1A47B8; color: #fff
   box-shadow: inset 0 -2px 0 rgba(255,255,255,0.9); }
 html[data-theme="bauhaus"] .tab.active { color: var(--accent-signature); }
 html[data-theme="bauhaus"] .tab.active::after { background: var(--accent-signature); height: 3px; }
-html[data-theme="bauhaus"] .topbar { border-bottom: 4px solid var(--text); }
+html[data-theme="bauhaus"] .topbar { border-bottom: 1px solid var(--text); }
 html[data-theme="bauhaus"] #heroStrip { background: var(--bg-card); border: 1px solid var(--text); border-bottom: 4px solid var(--accent-signature); }
 html[data-theme="bauhaus"] .modal { background: var(--bg-card); border: 2px solid var(--text); }
 html[data-theme="bauhaus"] .pill { background: transparent; border: 1px solid var(--text); border-radius: 0; padding: 5px 12px; }
@@ -2187,7 +2181,6 @@ html[data-theme="clay"] .modal h2,
 html[data-theme="clay"] .pm-card-t,
 html[data-theme="clay"] .board-head {
   font-family: "Newsreader", Georgia, "Times New Roman", "Songti SC", "STZhongsong", serif; }
-html[data-theme="clay"] h1.page-title { font-weight: 500; font-size: clamp(38px, 5.2vw, 68px); line-height: 1.05; letter-spacing: -0.02em; }
 html[data-theme="clay"] .section-title { font-weight: 600; letter-spacing: 0.02em; text-transform: none; font-size: 18px; }
 html[data-theme="clay"] .section { border-top: 1px solid var(--text); padding-top: 16px; }
 html[data-theme="clay"] .sec-line { background: rgba(43,42,38,0.32); height: 1px; }
@@ -2222,17 +2215,12 @@ html[data-theme="memphis"] .pm-fold, html[data-theme="memphis"] .event-detail,
 html[data-theme="memphis"] .pill, html[data-theme="memphis"] .bchip,
 html[data-theme="memphis"] .brow,
 html[data-theme="memphis"] .qrow { box-shadow: none; }
-html[data-theme="memphis"] h1.page-title {
-  font-family: "Righteous", "Jost", system-ui, sans-serif;
-  font-weight: 400; letter-spacing: -0.005em;
-  font-size: clamp(36px, 5vw, 64px); line-height: 1.0;
-  transform: rotate(-1.5deg); transform-origin: left center; }
 html[data-theme="memphis"] .section-title { letter-spacing: 0.18em; font-weight: 700; text-transform: uppercase; }
-html[data-theme="memphis"] .section { border-top: 3px solid var(--text); padding-top: 14px; }
+html[data-theme="memphis"] .section { border-top: 1px solid var(--text); padding-top: 14px; }
 html[data-theme="memphis"] .sec-line {
   background: linear-gradient(90deg, #FF3D7F 0 30%, #FFD93D 30% 50%, #1FC4FF 50% 70%, #18181a 70%);
-  height: 4px; }
-html[data-theme="memphis"] .pm-sec { border-top: 3px solid var(--text); padding-top: 14px; }
+  height: 1px; }
+html[data-theme="memphis"] .pm-sec { border-top: 1px solid var(--text); padding-top: 14px; }
 html[data-theme="memphis"] .pm-card { background: var(--bg-card); border: 1px solid var(--text); border-bottom-width: 3px; }
 html[data-theme="memphis"] .pm-card:hover { background: #FFF1A8; border-color: var(--accent-signature); }
 html[data-theme="memphis"] .pm-card:hover .num { color: #18181a; }
@@ -2240,7 +2228,7 @@ html[data-theme="memphis"] .seg button.active { background: #FFD93D; color: #181
   box-shadow: inset 0 -2px 0 #18181a; }
 html[data-theme="memphis"] .tab.active { color: var(--accent-signature); }
 html[data-theme="memphis"] .tab.active::after { background: var(--accent-signature); height: 3px; }
-html[data-theme="memphis"] .topbar { border-bottom: 3px solid var(--text); }
+html[data-theme="memphis"] .topbar { border-bottom: 1px solid var(--text); }
 html[data-theme="memphis"] #heroStrip { background: var(--bg-card); border: 1px solid var(--text); border-bottom: 4px solid #FFD93D; }
 html[data-theme="memphis"] .modal { background: var(--bg-card); border: 2px solid var(--text); }
 html[data-theme="memphis"] .pill { background: transparent; border: 1px solid var(--text); padding: 5px 12px; }
