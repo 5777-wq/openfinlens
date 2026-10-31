@@ -168,6 +168,25 @@ test('index.html 必须保留 6 个 data-draw 画线按钮（title/aria 齐全�
   });
 });
 
+test('index.html 必须保留「隐藏全部画线」入口（id="drawHide" 且带 aria-pressed）', () => {
+  // 画线交互轮的隐藏开关：不带 data-draw（不进工具白名单，由 charts.test.mjs 按
+  // 属性计数守卫 6 件）。按钮被误删后「隐藏全部画线」整个失联且不会有任何报错；
+  // aria-pressed 让读屏用户知道当前是隐藏态还是显示态（不能只活在 CSS 类里）。
+  const m = HTML.match(/<button[^>]*id="drawHide"[^>]*>/);
+  assert.ok(m, 'index.html 找不到 id="drawHide" 按钮');
+  assert.ok(/aria-pressed="/.test(m[0]), 'drawHide 按钮缺 aria-pressed：' + m[0]);
+  assert.ok(/title="[^"]+"/.test(m[0]) && /aria-label="[^"]+"/.test(m[0]),
+    'drawHide 按钮缺 title/aria-label');
+});
+
+test('js/app.js 必须保留 drawHideV1 持久化与 setHidden 接线（防隐藏态静默失效）', () => {
+  // 隐藏态走 localStorage（drawHideV1）：两处断言缺一不可——
+  // 缺持久化则刷新即丢；缺 setHidden 接线则按钮点了图不隐藏（状态改了、图表不知道）。
+  const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
+  assert.ok(/drawHideV1/.test(app), 'app.js 缺 drawHideV1 持久化键（隐藏态刷新即丢）');
+  assert.ok(/setHidden\(/.test(app), 'app.js 没有接线 chart.setHidden（按钮点了图不隐藏）');
+});
+
 test('charts.js 不得再自带一份均线调色板字面量', () => {
   const charts = readFileSync(path.join(ROOT, 'js/charts.js'), 'utf8');
   assert.ok(!/LINE_COLORS\s*=\s*\[/.test(charts), 'charts.js 又出现了 LINE_COLORS 字面量数组');

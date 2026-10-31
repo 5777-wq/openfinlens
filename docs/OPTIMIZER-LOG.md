@@ -73,3 +73,97 @@ TV-ROADMAP P0 第 2 条（骨架轮）：只做「画得出 / 存得住 / 重画
 - `js/charts.js`、`js/app.js`、`index.html`、`css/style.css`
 - `_test/charts.test.mjs`、`_test/tokens.test.mjs`
 - `docs/TV-ROADMAP.md`（勾选 P0 第 2 条）、`docs/OPTIMIZER-LOG.md`（本条目）
+
+## 2026-10-31 21:46 · P0 画线工具·交互：选中/拖拽/删除/全部隐藏 + 浮动工具条与右键菜单
+
+### 目标
+TV-ROADMAP P0 第 3 条（画线交互，接骨架轮）。只描述事实口径：命中容差 8px、从最上层往下找；
+拖拽吸附 K 线换锚/移价；删除与隐藏都是显式操作（删除即落盘、隐藏只藏不删）。边界：不做
+框选多选、不做锚点级手柄拖拽（TradingView 端点拖拽留给后续细节轮）。
+
+**选题偏序留痕（P0★）**：TV-ROADMAP 在本轮规划与评审之间被用户加入了未提交的工作区编辑——
+P0★「UI 语言统一」小节（6 条全未勾 + 未跟踪的 docs/UI-AUDIT.md），按文件字面序先于画线交互。
+评审员在明知此节存在的前提下裁定「观察项，不判违规」并放行本方案修订重提，OPTIMIZER-LOG
+三轮实践也均直接做 P0 图表核心小节——本轮按评审指令施工画线交互；建议下一轮转向 P0★
+第 1 条「语义色收敛」（UI-AUDIT.md 48 行诊断已就位，届时先评估「全站排查替换」规模）。
+
+### 改动
+1. `js/charts.js`（+331/-20，保持全 CRLF）：① 纯函数区新增并导出 `DRAW_HIT_TOL=8`、
+   `segDist`（点到线段距离，投影参数钳 [0,1]）、`drawTextBox`（文字命中框估算：11px mono，
+   charCode>0xFF 记 11px/字否则 6.6px/字，锚点为 fillText 基线，框 [x-2,y-16,w+6,20]——
+   不用 measureText，离线确定性）、`hitDrawing`（六工具逐个：trend 走 segDist、hline
+   |y-y1|≤tol 且 x≤w-axisW+tol、vline |x-x1|≤tol、rect 外接域 ±tol 含内部、fib x 在跨度内
+   且 y 与 fibYs 某档 ≤tol（null 档跳过）、text 落框内；d/c 为 null 一律不命中）、
+   `hitTestDrawings`（尾部最上层优先回扫，null coords 条目跳过）、`moveDrawing`（hline 只动
+   p1、vline 只动 k1、text 与两点工具 k1/k2+p1/p2 全位移；越界/锚不在 keys/非数位移返回
+   null；Object.assign 不用 spread，老 WebView 安全）、`clampBox`（浮层贴边钳制，框大于
+   区域归 0）；`themeColors()` 追加 `accent`（--accent-signature 令牌，现有消费者按需解构
+   零影响）。② `createKline` 交互态：`selIdx/dragCtx/hidden/hoverHit/toolbarEl/ctxMenuEl`
+   闭包状态 + `onHideAll` 回调；`coordsOf` 为 fib 追加 `fibYs`（逐档 priceToCoordinate，
+   解析不出记 null）；`drawOverlay` hidden 清屏即返回、非工具态画选中端点手柄（c.accent
+   3px 实心圆）并摆位工具条；`onMouseDown` 重排——最前两道 closest('.k-draw-sel,.k-draw-ctx')
+   与 hidden 放行，随后统一 closeCtxMenu()（不加 document mousedown，Esc 兜底），drawTool
+   分支维持原画线行为并起笔 select(-1)，无工具分支命中→stopPropagation+选中+吸附可得才
+   建 dragCtx（不可用只选中不拖，诚实降级）；`onMouseMove` 拖拽走 `applyDrag`（**两道 null
+   守卫**：snapPoint 回 null 直接 return——不守卫 mousemove 每帧 TypeError；moveDrawing/
+   sanitizeDrawing 回 null 直接 return 不置 moved 不改 drawings——不守卫则 drawings[idx]=null
+   打洞、onMouseUp 落盘时该条画线从 localStorage 静默永久删除）、无拖拽时 hoverHit 变化才
+   切 cursor 不重画；`onMouseUp`（document 新增）收尾，moved 才 onDrawings 落盘（拖拽过程
+   零 localStorage 写）；`onKeyDown` Esc 一层层退（菜单→选中→画线模式）+ Delete 删除选中
+   （既有 INPUT/TEXTAREA/SELECT 守卫沿用）；`contextmenu`（el capture 新增）命中打开两项
+   菜单「删除该画线」（splice + onDrawings 落盘，与 Delete 同口径）/「隐藏全部画线」
+   （setHidden(true) + onHideAll(true)，未传回调仅本图临时隐藏）；浮动工具条 `.k-draw-sel`
+   6 个 data-ci 色块取 --ma-N 令牌 + 删除按钮，改 ci 与删除都立即 onDrawings 落盘（防改色
+   刷新即丢）；`setDrawTool` 补 select(-1)/closeCtxMenu()/复位内联 cursor；`setDrawings`
+   回灌清选中关浮层弃拖；`setHidden` 收敛布尔并关选中/菜单/拖拽态；导出面追加 setHidden；
+   `remove()` 仅补摘两个新监听（document mouseup、el contextmenu）并清浮层 DOM——不新增
+   也不多摘 document mousedown。
+2. `js/app.js`（+31/-3，保持全 CRLF）：① state 增 `drawHidden: !!Store.get('drawHideV1', false)`；
+   ② DOM_IDS 补 `drawHide`；③ `applyDrawTool` 扩展：drawHide 按钮 active/aria-pressed 同步 +
+   `state.chart.setHidden(state.drawHidden)`（存在性守卫同 setDrawTool）；④ bindEvents 补
+   drawHide 点击（取反 → Store.set → applyDrawTool）；⑤ createKline options 补
+   `onHideAll`（记忆 + applyDrawTool 收敛；图表侧已由菜单 setHidden 生效，回调只管 app 层）。
+   loadDetailChart 的 K 线分支既有 setDrawings+applyDrawTool，换标的/换周期自动重放隐藏态。
+3. `index.html`（保持 LF）：6 个画线按钮后追加 `#drawHide`（◉ 字形，全中文 title/aria +
+   aria-pressed，不带 data-draw 不进工具白名单）；全部 67 处业务资源 `?v=20261031b` →
+   `?v=20261031c`（单调递增 bump，vendor 语义化版本不动）。
+4. `css/style.css`（+30，只小段插入、保持全 CRLF）：`.k-draw-sel`（absolute z-index:6、
+   bg-card/chart-border 令牌、flex、pointer-events:auto）+ `.k-draw-swatch`（12×12 色块、
+   .on 描边 --text-secondary，对齐 .ma-swatch 先例；不在 .ma-menu i 通配作用域，选择器独立
+   写）+ `.k-draw-del`（hover --bg-hover）+ `.k-draw-ctx`（z-index:7、按钮块级全宽）+
+   `@keyframes kdrawIn`（opacity/translateY(2px) 起，150ms --ease-out 挂两个浮层——只碰
+   opacity/transform，全局 prefers-reduced-motion 块自动把时长归零）；按钮过渡仅
+   color/border-color（--dur-fast/--ease-out，.draw-btn 先例）。取色全走既有令牌、零 hex
+   字面量。与方案的一处偏差：补了 `#drawHide.active` 三行——方案按钮类用 `.pill.draw-btn`
+   本可复用 `.draw-btn.active`，但 id 选择器显式落一条更防后续类名重构时静默掉选中态。
+5. `_test/charts.test.mjs`（+12 组，29→41）：segDist 三向（含端点外投影钳端点）；
+   drawTextBox ASCII/CJK 分档与框尺寸确定性（浮点和用 1e-9 容差比较，同输入逐字段全等）；
+   hitDrawing 六工具各一组（trend 线上/端点/离线、hline 容差与价格轴越界、vline、rect 含
+   内部、fib 档/null 档/出跨度、text 档内外）+ null 输入与重叠最上层/null coords 跳过合一
+   组；moveDrawing 位移口径与守卫面（越界/锚缺/非数/脏输入/keys 缺失→null）一组；clampBox
+   四向+空区域；导出守卫（七个新符号全在导出面、DRAW_HIT_TOL=8）。
+6. `_test/tokens.test.mjs`（+2 组，37→39）：「index.html 必须保留 id="drawHide" 且带
+   aria-pressed」结构守卫（照 maReset 先例）；「js/app.js 必须保留 drawHideV1 持久化与
+   setHidden 接线」双断言守卫（缺持久化则刷新即丢、缺接线则按钮点了图不隐藏）。
+
+### 测试
+- `node _test/run-all.mjs --offline`：共 43 组（离线 37 / 实网 6），本次执行 37 组、跳过 6 组，
+  **✓ 全部测试组通过**（基线本轮实测 37 组全绿，施工后组数不变、用例数递增——组=文件级
+  条目，本轮只扩展既有 charts/tokens 两个测试文件，run-all.mjs 零改动）。
+- 单跑：`node _test/charts.test.mjs` 41 passed / 0 failed（29→41，新增 12 组）；
+  `node _test/tokens.test.mjs` 39 passed / 0 failed（37→39，新增 2 组）。
+- 行尾核验（逐文件实跑字节统计）：charts.js/app.js/style.css 保持全 CRLF（裸 LF 0），
+  index.html/charts.test.mjs/tokens.test.mjs/docs 保持 LF（CRLF 0）。
+- 红线核对：全中文 title/aria（drawHide「隐藏全部画线（画线保留，再次点击显示）」）；动效
+  只 opacity/transform、150ms、统一 --ease-out、prefers-reduced-motion 全局块覆盖；无
+  setInterval（无新增调度）；零新增取数零 API key（红线 6 无涉）；无成交量展示/无
+  Polymarket 字样/无省略号问句；删除/选中/隐藏纯交互不涉买卖建议；?v= 单调递增至
+  20261031c；无开源代码移植；未做实网验证（红线 11）；未 git commit / push。
+- 浏览器内实选/实拖/右键属视觉冒烟，留给人工轮次；本轮以纯函数单测 + 静态守卫为完成判定
+  依据。`?v=` 一致性、6 个 data-draw 白名单、vendor 版本锁定等既有守卫在按钮新增与 bump 后
+  自然回归（tokens/charts 组内）。
+
+### 涉及文件
+- `js/charts.js`、`js/app.js`、`index.html`、`css/style.css`
+- `_test/charts.test.mjs`、`_test/tokens.test.mjs`
+- `docs/TV-ROADMAP.md`（勾选 P0 第 3 条）、`docs/OPTIMIZER-LOG.md`（本条目）

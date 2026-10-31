@@ -276,5 +276,147 @@ test('data-draw 按钮：index.html 的入口全部 ∈ Charts.DRAW_TOOLS 且恰
   assert.equal(new Set(used).size, 6, '画线按钮的 tool 值互不重复');
 });
 
+/* ---------------- 画线交互纯函数（命中/移动/钳制） ---------------- */
+
+test('segDist：水平/垂直/斜线三向距离（端点外投影钳到端点）', () => {
+  assert.equal(C.segDist(5, 10, 0, 10, 20, 10), 0);            // 水平线上
+  assert.equal(C.segDist(5, 4, 0, 10, 20, 10), 6);             // 水平线垂直距 6
+  assert.equal(C.segDist(10, 5, 10, 0, 10, 20), 0);            // 垂直线上
+  assert.equal(C.segDist(4, 5, 10, 0, 10, 20), 6);             // 垂直线水平距 6
+  assert.equal(C.segDist(10, 10, 0, 0, 20, 20), 0);            // 斜线中点
+  // 端点外投影钳到端点：距 (30,30) 最近点是 (20,20)，距离 √200
+  assert.ok(Math.abs(C.segDist(30, 30, 0, 0, 20, 20) - Math.sqrt(200)) < 1e-9,
+    '端点外应钳到端点取距离');
+});
+
+test('drawTextBox：ASCII 与 CJK 宽度分档、框尺寸确定性（不依赖 measureText）', () => {
+  // 6.6/11 的浮点和有二进制误差，数值字段用容差比较（确定性=同输入同输出）
+  const near = (a, b) => Math.abs(a - b) < 1e-9;
+  const boxOf = (t, x, y) => C.drawTextBox(t, x, y);
+  let b = boxOf('abc', 100, 50);                       // ASCII 3×6.6
+  assert.ok(b.x === 98 && b.y === 34 && b.h === 20 && near(b.w, 25.8), 'ASCII 框: ' + J(b));
+  b = boxOf('好', 100, 50);                            // CJK 全角 11
+  assert.ok(b.x === 98 && b.y === 34 && b.h === 20 && near(b.w, 17), 'CJK 框: ' + J(b));
+  b = boxOf('支撑a', 0, 0);                            // 2×11+6.6 字宽 + 6 余量
+  assert.ok(near(b.w, 34.6), '混合框: ' + J(b));
+  b = boxOf('', 0, 0);                                 // 空串只剩余量
+  assert.equal(J(b), J({ x: -2, y: -16, w: 6, h: 20 }));
+  assert.equal(J(C.drawTextBox(null, 3, 4)), J(C.drawTextBox('', 3, 4)));   // null 收敛空串
+  // 确定性：同输入两次调用逐字段全等（含浮点表示）
+  assert.equal(J(boxOf('支撑a', 7, 8)), J(boxOf('支撑a', 7, 8)));
+});
+
+test('hitDrawing：trend 线上/端点命中、离线不命中（默认容差 8px）', () => {
+  const d = { tool: 'trend', k1: 'a', p1: 1, k2: 'b', p2: 2 };
+  const c = { x1: 0, y1: 100, x2: 100, y2: 0 };
+  assert.equal(C.hitDrawing(d, c, 50, 50, {}), true);          // 线上
+  assert.equal(C.hitDrawing(d, c, 0, 100, {}), true);          // 端点
+  assert.equal(C.hitDrawing(d, c, 50, 58, {}), true);          // 距线 ~5.7px，容差内
+  assert.equal(C.hitDrawing(d, c, 50, 70, {}), false);         // 距线 ~14px > 8
+});
+
+test('hitDrawing：hline 容差内命中、x 越过价格轴不命中', () => {
+  const d = { tool: 'hline', k1: 'a', p1: 1 };
+  const c = { x1: 100, y1: 50, x2: null, y2: null };
+  assert.equal(C.hitDrawing(d, c, 200, 52, { w: 400, axisW: 44 }), true);   // |dy|=2 且在绘图区
+  assert.equal(C.hitDrawing(d, c, 200, 62, { w: 400, axisW: 44 }), false);  // |dy|=12 > 8
+  assert.equal(C.hitDrawing(d, c, 364, 50, { w: 400, axisW: 44 }), true);   // 恰在右缘（w-axisW+tol）
+  assert.equal(C.hitDrawing(d, c, 380, 50, { w: 400, axisW: 44 }), false);  // 越过价格轴
+});
+
+test('hitDrawing：vline x 命中（纵向全高，y 任意）', () => {
+  const d = { tool: 'vline', k1: 'a', p1: 1 };
+  const c = { x1: 120, y1: 30, x2: null, y2: null };
+  assert.equal(C.hitDrawing(d, c, 122, 999, {}), true);
+  assert.equal(C.hitDrawing(d, c, 130, 5, {}), false);         // |dx|=10 > 8
+});
+
+test('hitDrawing：rect 内部与边缘容差内命中、外 8px 外不命中（含内部，TradingView 同行为）', () => {
+  const d = { tool: 'rect', k1: 'a', p1: 1, k2: 'b', p2: 2 };
+  const c = { x1: 10, y1: 10, x2: 100, y2: 60 };
+  assert.equal(C.hitDrawing(d, c, 50, 30, {}), true);          // 内部
+  assert.equal(C.hitDrawing(d, c, 55, 10, {}), true);          // 边缘上
+  assert.equal(C.hitDrawing(d, c, 106, 30, {}), true);         // 边缘外 6px（容差内）
+  assert.equal(C.hitDrawing(d, c, 120, 30, {}), false);        // 边缘外 20px
+});
+
+test('hitDrawing：fib 某档命中、x 出跨度不命中、null 档与缺失 fibYs 跳过', () => {
+  const d = { tool: 'fib', k1: 'a', p1: 1, k2: 'b', p2: 2 };
+  const c = { x1: 0, y1: 0, x2: 100, y2: 0, fibYs: [10, null, 50, 90, 130, 170, 200] };
+  assert.equal(C.hitDrawing(d, c, 50, 52, {}), true);          // 50 档 |dy|=2
+  assert.equal(C.hitDrawing(d, c, 50, 20, {}), false);         // 档间（距 10/50 均 > 8）
+  assert.equal(C.hitDrawing(d, c, 120, 50, {}), false);        // x 出跨度
+  assert.equal(C.hitDrawing(d, c, 50, 30, {}), false);         // 30 落在 null 档附近不命中
+  assert.equal(C.hitDrawing(d, { x1: 0, y1: 0, x2: 100, y2: 0 }, 50, 50, {}), false);  // 无 fibYs
+});
+
+test('hitDrawing：text 档内命中、档外不命中', () => {
+  const d = { tool: 'text', k1: 'a', p1: 1, text: '支撑' };
+  const c = { x1: 100, y1: 100, x2: null, y2: null };
+  const b = C.drawTextBox('支撑', 100, 100);                   // 2×11+6=28 宽
+  assert.equal(C.hitDrawing(d, c, 100, 95, {}), true);         // 框内
+  assert.equal(C.hitDrawing(d, c, b.x + b.w + 10, b.y + 10, {}), false);   // 框外
+  assert.equal(C.hitDrawing(d, c, 99, 60, {}), false);         // 基线上方 16px 外
+});
+
+test('hitDrawing / hitTestDrawings：null 输入不命中、空表 -1；重叠取最上层、null coords 跳过回退下层', () => {
+  const d = { tool: 'hline', k1: 'a', p1: 1 };
+  const c = { x1: 100, y1: 50, x2: null, y2: null };
+  assert.equal(C.hitDrawing(null, c, 100, 50, {}), false);
+  assert.equal(C.hitDrawing(d, null, 100, 50, {}), false);
+  assert.equal(C.hitTestDrawings([], [], 100, 50, {}), -1);
+  assert.equal(C.hitTestDrawings(null, null, 100, 50, {}), -1);
+  assert.equal(C.hitTestDrawings([d], [c], 100, 50, { w: 400, axisW: 44 }), 0);
+  const list = [
+    { tool: 'hline', k1: 'a', p1: 1 },
+    { tool: 'hline', k1: 'a', p1: 2 },
+  ];
+  const coords = [
+    { x1: 100, y1: 50, x2: null, y2: null },
+    { x1: 100, y1: 52, x2: null, y2: null },     // 两条几乎重叠
+  ];
+  assert.equal(C.hitTestDrawings(list, coords, 100, 51, { w: 400, axisW: 44 }), 1);   // 尾部（最上层）优先
+  assert.equal(C.hitTestDrawings(list, [coords[0], null], 100, 50, { w: 400, axisW: 44 }), 0,
+    '上层锚点不可见（null coords）应跳过并命中下层');
+});
+
+test('moveDrawing：两点整体平移、hline 只动价 / vline 只动时 / text 双动；越界/锚缺/非数一律 null', () => {
+  const keys = ['d0', 'd1', 'd2', 'd3', 'd4'];
+  assert.equal(J(C.moveDrawing(
+    { tool: 'trend', k1: 'd0', p1: 10, k2: 'd1', p2: 12, ci: 2 }, 2, -1, keys)),
+    J({ tool: 'trend', k1: 'd2', p1: 9, k2: 'd3', p2: 11, ci: 2 }));   // k1/k2 同步 +2 档、p1/p2 同步
+  assert.equal(J(C.moveDrawing({ tool: 'hline', k1: 'd1', p1: 10 }, 0, 1.5, keys)),
+    J({ tool: 'hline', k1: 'd1', p1: 11.5 }));                          // k1 不动
+  assert.equal(J(C.moveDrawing({ tool: 'vline', k1: 'd1', p1: 10 }, 1, 5, keys)),
+    J({ tool: 'vline', k1: 'd2', p1: 10 }));                            // p1 不动
+  assert.equal(J(C.moveDrawing({ tool: 'text', k1: 'd1', p1: 10, text: 'x' }, -1, -0.5, keys)),
+    J({ tool: 'text', k1: 'd0', p1: 9.5, text: 'x' }));
+  assert.equal(C.moveDrawing({ tool: 'hline', k1: 'd1', p1: 1 }, 0, '1.5', keys).p1, 2.5,
+    'pDelta 字符串经 + 强转');
+  // 守卫面：越界换锚 / 锚不在 keys / 非数位移 / 脏输入 / keys 缺失 → null（不写回 drawings）
+  const k3 = ['d0', 'd1', 'd2'];
+  assert.equal(C.moveDrawing({ tool: 'vline', k1: 'd2', p1: 1 }, 1, 0, k3), null);            // 右越界
+  assert.equal(C.moveDrawing({ tool: 'vline', k1: 'd0', p1: 1 }, -1, 0, k3), null);           // 左越界
+  assert.equal(C.moveDrawing({ tool: 'vline', k1: 'dX', p1: 1 }, 1, 0, k3), null);            // 锚不在序列
+  assert.equal(C.moveDrawing({ tool: 'trend', k1: 'd0', p1: 1, k2: 'd2', p2: 2 }, 1, 0, k3), null);  // k2 越界
+  assert.equal(C.moveDrawing({ tool: 'text', k1: 'd1', p1: 1, text: 'x' }, 0, NaN, k3), null);       // 非数位移
+  assert.equal(C.moveDrawing(null, 0, 0, k3), null);                                          // 脏输入
+  assert.equal(C.moveDrawing({ tool: 'hline', k1: 'd1', p1: 1 }, 0, 0, null), null);          // keys 缺失
+});
+
+test('clampBox：负坐标归 0、右下越界钳制、框大于区域归 0', () => {
+  assert.equal(J(C.clampBox(-5, -5, 100, 30, 400, 300)), J({ x: 0, y: 0 }));
+  assert.equal(J(C.clampBox(500, 400, 100, 30, 400, 300)), J({ x: 300, y: 270 }));
+  assert.equal(J(C.clampBox(50, 50, 100, 30, 400, 300)), J({ x: 50, y: 50 }));   // 区间内不动
+  assert.equal(J(C.clampBox(10, 10, 500, 400, 400, 300)), J({ x: 0, y: 0 }));    // 框大于区域
+  assert.equal(J(C.clampBox(5, 5, 0, 0, 0, 0)), J({ x: 0, y: 0 }));              // 空区域不抛错
+});
+
+test('导出守卫：画线交互纯函数必须全部挂到 Charts 导出面（含 DRAW_HIT_TOL=8）', () => {
+  ['DRAW_HIT_TOL', 'segDist', 'drawTextBox', 'hitDrawing', 'hitTestDrawings', 'moveDrawing', 'clampBox']
+    .forEach(k => assert.ok(k in C, 'Charts 缺少导出 ' + k));
+  assert.equal(C.DRAW_HIT_TOL, 8);
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -123,6 +123,8 @@
     pendingEtfScroll: false,      // 深链 #etf= 进来：数据到位后滚到因子 ETF 持仓块
     chartEventsOn: true,       // 详情页 K 线事件标记开关
     drawTool: null,            // 画线模式：Charts.DRAW_TOOLS 之一或 null（详情工具条切换，Esc 退出）
+    // 「隐藏全部画线」：只藏不删（画线保留在 drawV1），持久化记忆（Store.get 自带 try/catch）
+    drawHidden: !!Store.get('drawHideV1', false),
     // Movers 三榜的行载荷（data-symbol → 全市场行）：行不在 universe 轮询全集里，
     // 点击进详情需要 secid/market 映射，渲染时顺手登记
     moversRows: new Map(),
@@ -153,7 +155,7 @@
     'segUpdown', 'segRefresh', 'segTheme', 'swDegraded', 'swAcademy', 'academyLink', 'sourceStatus', 'updatedLine', 'tabCfg',
     'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats', 'detailGloss',
     'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle', 'intradaySeg',
-    'maMenu', 'maLinesBox', 'maPaneBox', 'maAdd', 'maReset',
+    'maMenu', 'maLinesBox', 'maPaneBox', 'maAdd', 'maReset', 'drawHide',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
     'globeStatus', 'mapLegend', 'mapStatusPts',
     'evGlobePane', 'evNewsPane', 'evPmPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
@@ -2229,12 +2231,20 @@
   }
 
   // 画线模式与按钮 active 态同步（maToggle 同款模式）：按钮点击与 Esc 退出两条路径
-  // 的 UI 状态都收敛到这一处；图表可能已随切标的换新，回调里按当前 state.chart 走
+  // 的 UI 状态都收敛到这一处；图表可能已随切标的换新，回调里按当前 state.chart 走。
+  // 「隐藏全部画线」也在这一处同步：按钮 active/aria-pressed + 图表侧 setHidden
+  // （分时图没有 setHidden，存在性守卫同 setDrawTool 一行）；换标的/换周期时
+  // loadDetailChart 的 K 线分支每次 setDrawings + applyDrawTool，隐藏态自动重放。
   function applyDrawTool() {
     document.querySelectorAll('[data-draw]').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.draw === state.drawTool);
     });
     if (state.chart && state.chart.setDrawTool) state.chart.setDrawTool(state.drawTool);
+    if (el.drawHide) {
+      el.drawHide.classList.toggle('active', !!state.drawHidden);
+      el.drawHide.setAttribute('aria-pressed', String(!!state.drawHidden));
+    }
+    if (state.chart && state.chart.setHidden) state.chart.setHidden(state.drawHidden);
   }
 
   async function loadDetailChart() {
@@ -2282,6 +2292,9 @@
         onDrawings: saveDrawings,
         // Esc 退出画线：回调读当前 state（图表可能已随切标的换新），UI 收敛到 applyDrawTool
         onToolEnd: () => { state.drawTool = null; applyDrawTool(); },
+        // 右键菜单「隐藏全部画线」回调：记忆进 localStorage 并同步按钮态；
+        // 图表侧的隐藏已由菜单自身 setHidden 生效，这里只管 app 层状态收敛
+        onHideAll: (h) => { state.drawHidden = !!h; Store.set('drawHideV1', state.drawHidden); applyDrawTool(); },
       });
       state.chartKind = kind;
     }
@@ -6010,6 +6023,16 @@
         applyDrawTool();
       });
     });
+
+    // 「隐藏全部画线」：取反并持久化（画线保留在 drawV1，再次点击显示）；
+    // UI 与图表侧同步都收敛到 applyDrawTool
+    if (el.drawHide) {
+      el.drawHide.addEventListener('click', () => {
+        state.drawHidden = !state.drawHidden;
+        Store.set('drawHideV1', state.drawHidden);
+        applyDrawTool();
+      });
+    }
 
     // 搜索
     el.searchInput.addEventListener('input', (e) => doSearch(e.target.value.trim()));

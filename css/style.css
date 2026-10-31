@@ -1721,6 +1721,36 @@ body.no-crypto .crypto-only { display: none !important; }
 .draw-btn { transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
 .draw-btn.active { color: var(--accent-signature); border-color: var(--border-hover);
   background: var(--bg-hover); }
+/* 「隐藏全部画线」按钮与画线工具按钮同款选中态（aria-pressed 同步，配色走令牌） */
+#drawHide.active { color: var(--accent-signature); border-color: var(--border-hover);
+  background: var(--bg-hover); }
+
+/* ---- 画线交互浮层（2026-10-31 交互轮）：浮动工具条 + 右键菜单 ----
+   绝对定位于图表容器内（.k-draw-sel/.k-draw-ctx 的 left/top 由 charts.js 摆位），
+   配色全走令牌（8 套皮肤自动适配、零 hex 字面量）；出现动效只碰 opacity/transform，
+   150ms + 统一缓动，prefers-reduced-motion 由全局块把时长归零。 */
+.k-draw-sel { position: absolute; z-index: 6; display: flex; align-items: center; gap: 4px;
+  padding: 4px 6px; border-radius: 4px; pointer-events: auto;
+  background: var(--bg-card); border: 1px solid var(--chart-border);
+  animation: kdrawIn 150ms var(--ease-out); }
+/* 取色色块 12×12：对齐 .ma-swatch 先例；.k-draw-sel 不在 .ma-menu 作用域内，
+   .ma-menu i 的通配规则影响不到这里，选择器独立写 */
+.k-draw-swatch { width: 12px; height: 12px; border-radius: 2px; cursor: pointer;
+  border: 1px solid transparent; transition: border-color var(--dur-fast) var(--ease-out); }
+.k-draw-swatch.on { border-color: var(--text-secondary); }
+.k-draw-del { padding: 1px 6px; font-size: 11px; color: var(--text-secondary);
+  background: transparent; border: 1px solid transparent; border-radius: 3px; cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+.k-draw-del:hover { color: var(--text); background: var(--bg-hover); border-color: var(--border); }
+/* 右键菜单：两项块级全宽按钮（删除该画线 / 隐藏全部画线），hover 走 --bg-hover */
+.k-draw-ctx { position: absolute; z-index: 7; min-width: 120px; padding: 4px; border-radius: 4px;
+  pointer-events: auto; background: var(--bg-card); border: 1px solid var(--chart-border);
+  animation: kdrawIn 150ms var(--ease-out); }
+.k-draw-ctx button { display: block; width: 100%; padding: 5px 8px; font-size: 12px; text-align: left;
+  color: var(--text); background: transparent; border: 0; border-radius: 3px; cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+.k-draw-ctx button:hover { color: var(--text); background: var(--bg-hover); }
+@keyframes kdrawIn { from { opacity: 0; transform: translateY(2px); } }
 
 /* ---- 到价提醒（2026-09-17）：顶栏铃铛面板 / 详情按钮 / 创建弹层 / toast ---- */
 .alert-badge {

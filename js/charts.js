@@ -49,6 +49,9 @@ const Charts = (() => {
       up: varOf('--up', '#ff5c5c'),
       down: varOf('--down', '#2ebd85'),
       lineColors: MA_FALLBACK.map((fb, i) => varOf('--ma-' + i, fb)),
+      // 画线选中态的强调色（端点手柄）：走 accent 令牌，8 套皮肤自动适配
+      // （现有消费者按需解构，多出的字段零影响）
+      accent: varOf('--accent-signature', '#e8a33d'),
     };
   }
 
@@ -61,6 +64,9 @@ const Charts = (() => {
     const opts = (options && typeof options === 'object') ? options : {};
     const onDrawings = typeof opts.onDrawings === 'function' ? opts.onDrawings : null;
     const onToolEnd = typeof opts.onToolEnd === 'function' ? opts.onToolEnd : null;
+    // 右键菜单「隐藏全部画线」的上层回调：app 层记忆 + 按钮态同步。
+    // 未传时菜单项仍可隐藏本图（临时态，不落盘）。
+    const onHideAll = typeof opts.onHideAll === 'function' ? opts.onHideAll : null;
     const { up, down, lineColors: LINE_COLORS } = themeColors();
     const chart = L.createChart(el, Object.assign(baseOptions(), { height: el.clientHeight || 420 }));
 
@@ -576,6 +582,17 @@ const Charts = (() => {
     let textInput = null;       // 文字标注的落点输入框
     let timeByKey = null;       // tKey(k.time) → k.time 反查表（setData 时失效重建）
 
+    /* 画线交互态（选中/拖拽/隐藏，2026-10-31 交互轮）：
+       selIdx = 当前选中的画线下标（-1 无）；dragCtx = 拖拽上下文；
+       hidden = 「隐藏全部画线」开关（只藏不删，画线保留在存储）；
+       hoverHit = 悬停命中的下标（变化才切 cursor，不重画）。 */
+    let selIdx = -1;
+    let dragCtx = null;         // { idx, grab:{k,p}, keys:string[], moved:boolean }
+    let hidden = false;
+    let hoverHit = -1;
+    let toolbarEl = null;       // 浮动工具条（.k-draw-sel：六色块 + 删除）
+    let ctxMenuEl = null;       // 右键菜单（.k-draw-ctx：删除 / 隐藏全部）
+
     const isTwoPoint = (tool) => tool === 'trend' || tool === 'rect' || tool === 'fib';
     const fmtDrawNum = (v) => String(+Number(v).toFixed(2));
 
@@ -661,6 +678,14 @@ const Charts = (() => {
           out.x2 = x2;
           out.y2 = y2;
         }
+        // fib 命中判定要逐档 y：priceToCoordinate 逐档解析，解析不出记 null
+        // （该档在 hitDrawing 里跳过）；paintShape 不读 fibYs，不受影响
+        if (d.tool === 'fib' && out.x2 !== null) {
+          out.fibYs = fibLevels(d.p1, d.p2).map(it => {
+            const fy = (candle && typeof candle.priceToCoordinate === 'function') ? candle.priceToCoordinate(it.p) : null;
+            return (fy === null || fy === undefined || !isFinite(fy)) ? null : fy;
+          });
+        }
         return out;
       } catch (e) { return null; }
     }
@@ -737,9 +762,24 @@ const Charts = (() => {
         if (!ctx) return;
         const w = el.clientWidth, h = el.clientHeight;
         ctx.clearRect(0, 0, w, h);
+        if (hidden) return;                 // 「隐藏全部画线」：清屏即返回（画线保留在存储）
         const c = themeColors();
         drawings.forEach(d => paintShape(ctx, d, c, w, h));
-        if (!drawTool) return;
+        if (!drawTool) {
+          // 选中态：端点手柄（3px 实心圆，两点工具两个、单点一个）+ 浮动工具条贴锚摆位
+          if (selIdx >= 0 && drawings[selIdx]) {
+            const sc = coordsOf(drawings[selIdx]);
+            if (sc) {
+              ctx.fillStyle = c.accent;
+              ctx.beginPath(); ctx.arc(sc.x1, sc.y1, 3, 0, Math.PI * 2); ctx.fill();
+              if (sc.x2 !== null && sc.x2 !== undefined) {
+                ctx.beginPath(); ctx.arc(sc.x2, sc.y2, 3, 0, Math.PI * 2); ctx.fill();
+              }
+              positionToolbar(sc);
+            }
+          }
+          return;
+        }
         // 画线模式的辅助预览：吸附点小圆点；两点工具第一下之后实时预览成形
         const pt = ptCoords(previewPt);
         const anchor = draft ? ptCoords({ k: draft.k1, p: draft.p1 }) : null;
@@ -798,71 +838,315 @@ const Charts = (() => {
       input.focus();
     }
 
-    function onMouseDown(e) {
-      if (!drawTool) return;                // 画线模式未激活：放行（LWC 照常平移/缩放）
-      e.stopPropagation();                  // 阻断 LWC 拖拽平移与 subscribeClick 事件标记
-      e.preventDefault();                   // 防 mousedown 默认夺焦（文字输入框要留在焦点）
-      if (e.button !== 0 || textInput) return;
-      const pt = snapPoint(e.offsetX, e.offsetY);
-      if (!pt) return;                      // 吸附失败不提交（也不清 draft，可换点再按）
-      if (isTwoPoint(drawTool)) {
-        if (draft) {
-          const nd = { tool: draft.tool, k1: draft.k1, p1: draft.p1, k2: pt.k, p2: pt.p, ci: draft.ci };
-          draft = null;
-          commitDrawing(nd);
-        } else {
-          draft = { tool: drawTool, k1: pt.k, p1: pt.p, ci: null };
-          drawOverlay();
-        }
+    /* ---- 画线交互（选中/拖拽/删除/隐藏，2026-10-31）----
+       TradingView 模型：无工具时点中画线即选中（命中容差 8px、从最上层往下找），
+       选中浮出工具条（六色块 + 删除），按住可拖（吸附 K 线换锚/移价），
+       Esc 取消选中 / 关右键菜单，Delete 或右键菜单删除，
+       「隐藏全部画线」只藏不删（存储保留，再点显示）。 */
+
+    // 命中测试：drawings → coordsOf → 尾部（最上层）优先；axisW 与 paintShape 同款
+    function hitAt(x, y) {
+      const w = el.clientWidth || 0, h = el.clientHeight || 0;
+      let axisW = 44;
+      try {
+        const ps = chart.priceScale && chart.priceScale('right');
+        const pw = ps && typeof ps.width === 'function' ? ps.width() : 0;
+        if (pw > 10) axisW = pw;
+      } catch (e) { /* 老版本没有 width()，用默认 44 */ }
+      return hitTestDrawings(drawings, drawings.map(coordsOf), x, y,
+        { tol: DRAW_HIT_TOL, w: w, h: h, axisW: axisW });
+    }
+
+    /* 拖拽位移（吸附驱动）：换锚/移价 → 净化 → 回写。两道 null 守卫：
+       ① snapPoint 回 null（吸附失效区）直接 return——coordinateToTime 出序列/出视野
+          或价格无效都回 null（charts.js snapPoint 契约），不守卫则对 null 取 .k，
+          mousemove 每帧 TypeError；
+       ② moveDrawing/sanitizeDrawing 回 null（锚拖出序列边界/不在当前序列）直接
+          return——不置 moved、不改 drawings、不重画。不守卫则 drawings[idx]=null
+          打洞，onMouseUp 落盘时 sanitizeDrawings 把该条静默永久删除（localStorage
+          里这条画线消失）。 */
+    function applyDrag(x, y) {
+      if (!dragCtx || dragCtx.idx < 0 || !drawings[dragCtx.idx]) { dragCtx = null; return; }
+      const cur = snapPoint(x, y);
+      if (!cur) return;                                   // 守卫①：吸附失效区
+      const gi = dragCtx.keys.indexOf(dragCtx.grab.k);
+      const ci2 = dragCtx.keys.indexOf(cur.k);
+      if (gi < 0 || ci2 < 0) {                            // 序列换了（setData 竞态）：弃拖
+        dragCtx = null;
+        try { el.style.cursor = ''; } catch (e) { /* ignore */ }
         return;
       }
-      if (drawTool === 'text') { openTextInput(pt.k, pt.p, e.offsetX, e.offsetY); return; }
-      commitDrawing({ tool: drawTool, k1: pt.k, p1: pt.p, ci: null });
+      const moved = moveDrawing(drawings[dragCtx.idx], ci2 - gi, cur.p - dragCtx.grab.p, dragCtx.keys);
+      const clean = sanitizeDrawing(moved);
+      if (!clean) return;                                 // 守卫②：越界/锚不在序列
+      if (JSON.stringify(clean) === JSON.stringify(drawings[dragCtx.idx])) return;   // 没动不写
+      drawings[dragCtx.idx] = clean;
+      dragCtx.moved = true;
+      drawOverlay();
+    }
+
+    // 浮动工具条摆位：贴选中画线第一锚点上方，clampBox 钳在画布内（只改 left/top）
+    function positionToolbar(c0) {
+      if (!toolbarEl) return;
+      const bw = toolbarEl.offsetWidth || 110, bh = toolbarEl.offsetHeight || 26;
+      const pos = clampBox(c0.x1 - bw / 2, c0.y1 - bh - 8, bw, bh,
+        el.clientWidth || 0, el.clientHeight || 0);
+      toolbarEl.style.left = Math.round(pos.x) + 'px';
+      toolbarEl.style.top = Math.round(pos.y) + 'px';
+    }
+
+    // 删除选中画线：splice 后整体净化重画并落盘（与 Delete 键/右键菜单同口径）
+    function deleteSelected() {
+      const i = selIdx;
+      if (i < 0 || !drawings[i]) return;
+      removeToolbar();
+      removeCtxMenu();
+      selIdx = -1;
+      drawings = sanitizeDrawings(drawings.slice(0, i).concat(drawings.slice(i + 1)));
+      drawOverlay();
+      if (onDrawings) onDrawings(drawings);
+    }
+
+    function removeToolbar() {
+      if (toolbarEl && toolbarEl.parentNode) toolbarEl.parentNode.removeChild(toolbarEl);
+      toolbarEl = null;
+    }
+    function removeCtxMenu() {
+      if (ctxMenuEl && ctxMenuEl.parentNode) ctxMenuEl.parentNode.removeChild(ctxMenuEl);
+      ctxMenuEl = null;
+    }
+    // 取消选中：摘工具条；状态确实变化才重画（收敛入口之一）
+    function closeSel() {
+      removeToolbar();
+      if (selIdx >= 0) { selIdx = -1; drawOverlay(); }
+    }
+    // 选中（收敛入口）：浮出工具条并重画（手柄 + 摆位）；idx<0 或越界 = 取消选中
+    function select(idx) {
+      closeCtxMenu();
+      if (idx === null || idx === undefined || idx < 0 || !drawings[idx]) { closeSel(); return; }
+      selIdx = idx;
+      openToolbar();
+      drawOverlay();
+    }
+
+    // 浮动工具条：6 个取色色块（--ma-N 令牌，当前指派 .on）+「删除」。
+    // click 委托：改 ci（sanitize 同口径归一，改完立即 onDrawings 落盘——
+    // 不落盘则改色刷新即丢）或删除（deleteSelected，与 Delete 键同口径）。
+    function openToolbar() {
+      removeToolbar();
+      const d = drawings[selIdx];
+      if (!d) { selIdx = -1; return; }
+      const bar = document.createElement('div');
+      bar.className = 'k-draw-sel';
+      for (let i = 0; i < 6; i++) {
+        const sw = document.createElement('i');
+        sw.className = 'k-draw-swatch' + ((((d.ci || 0) % 6) + 6) % 6 === i ? ' on' : '');
+        sw.setAttribute('data-ci', String(i));
+        sw.style.background = 'var(--ma-' + i + ')';
+        sw.title = '颜色 ' + (i + 1);
+        bar.appendChild(sw);
+      }
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'k-draw-del';
+      del.textContent = '删除';
+      del.title = '删除该画线';
+      del.setAttribute('aria-label', '删除该画线');
+      bar.appendChild(del);
+      bar.addEventListener('click', (ev) => {
+        const t = ev.target;
+        if (!t || !t.closest) return;
+        const sw = t.closest('[data-ci]');
+        if (sw && selIdx >= 0 && drawings[selIdx]) {
+          const ci = ((Math.round(+sw.getAttribute('data-ci')) % 6) + 6) % 6;
+          if (drawings[selIdx].ci !== ci) {
+            drawings[selIdx].ci = ci;
+            drawOverlay();
+            if (onDrawings) onDrawings(drawings);   // 改色立即落盘（防刷新即丢）
+          }
+          return;
+        }
+        if (t.closest('.k-draw-del')) deleteSelected();
+      });
+      el.appendChild(bar);
+      toolbarEl = bar;
+    }
+
+    // 右键菜单：两项（删除该画线 / 隐藏全部画线），贴边钳制。
+    // 「隐藏全部画线」：setHidden(true) 生效本图 + onHideAll(true) 让 app 层记忆；
+    // 未传回调则仅本图临时隐藏（刷新即恢复）。
+    function openCtxMenu(x, y) {
+      removeCtxMenu();
+      const menu = document.createElement('div');
+      menu.className = 'k-draw-ctx';
+      [
+        { label: '删除该画线', fn: deleteSelected },
+        { label: '隐藏全部画线', fn: () => { setHidden(true); if (onHideAll) onHideAll(true); } },
+      ].forEach(it => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = it.label;
+        b.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          removeCtxMenu();
+          it.fn();
+        });
+        menu.appendChild(b);
+      });
+      el.appendChild(menu);
+      const pos = clampBox(x, y, menu.offsetWidth || 120, menu.offsetHeight || 76,
+        el.clientWidth || 0, el.clientHeight || 0);
+      menu.style.left = Math.round(pos.x) + 'px';
+      menu.style.top = Math.round(pos.y) + 'px';
+      ctxMenuEl = menu;
+    }
+    function closeCtxMenu() { removeCtxMenu(); }
+
+    // 「隐藏全部画线」开关：hidden 收敛布尔；隐藏时关选中/菜单/拖拽态并清屏重画。
+    // 不回调 onHideAll（避免 app 层 applyDrawTool → setHidden 成环）——菜单项自己调。
+    function setHidden(v) {
+      hidden = !!v;
+      closeSel();
+      closeCtxMenu();
+      dragCtx = null;
+      hoverHit = -1;
+      try { el.style.cursor = ''; } catch (e) { /* ignore */ }
+      drawOverlay();
+    }
+
+    function onMouseDown(e) {
+      // 浮层自身（工具条/右键菜单）的按下不进图表逻辑：closest 守卫放最前，
+      // 否则会被 el 的 capture 监听拦掉、按钮 click 永远收不到
+      if (e && e.target && e.target.closest && e.target.closest('.k-draw-sel,.k-draw-ctx')) return;
+      if (hidden) return;                   // 整层隐藏：交互全放行（图表照常用）
+      closeCtxMenu();                       // 左键任意按下先关右键菜单（不挂 document mousedown）
+      if (drawTool) {                       // 画线模式：维持原画线行为
+        e.stopPropagation();                // 阻断 LWC 拖拽平移与 subscribeClick 事件标记
+        e.preventDefault();                 // 防 mousedown 默认夺焦（文字输入框要留在焦点）
+        if (e.button !== 0 || textInput) return;
+        select(-1);                         // 起笔时顺手取消选中（防残留手柄/工具条）
+        const pt = snapPoint(e.offsetX, e.offsetY);
+        if (!pt) return;                    // 吸附失败不提交（也不清 draft，可换点再按）
+        if (isTwoPoint(drawTool)) {
+          if (draft) {
+            const nd = { tool: draft.tool, k1: draft.k1, p1: draft.p1, k2: pt.k, p2: pt.p, ci: draft.ci };
+            draft = null;
+            commitDrawing(nd);
+          } else {
+            draft = { tool: drawTool, k1: pt.k, p1: pt.p, ci: null };
+            drawOverlay();
+          }
+          return;
+        }
+        if (drawTool === 'text') { openTextInput(pt.k, pt.p, e.offsetX, e.offsetY); return; }
+        commitDrawing({ tool: drawTool, k1: pt.k, p1: pt.p, ci: null });
+        return;
+      }
+      // 无工具：选中/拖拽分支
+      if (e.button !== 0 || textInput) return;    // 右键给 contextmenu，中键放行
+      const hit = hitAt(e.offsetX, e.offsetY);
+      if (hit < 0) { select(-1); return; }        // 未命中：取消选中，LWC 照常平移
+      e.stopPropagation();                        // 命中：拦 LWC 平移，进入选中/拖拽
+      e.preventDefault();
+      select(hit);
+      const cur = snapPoint(e.offsetX, e.offsetY);
+      if (cur) {
+        dragCtx = { idx: hit, grab: cur, keys: lastKlines.map(bar => tKey(bar.time)), moved: false };
+        try { el.style.cursor = 'grabbing'; } catch (err) { /* ignore */ }
+      }
+      // 吸附不可用（老版本 LWC / 序列空）→ 只选中不拖，诚实降级同骨架轮
     }
     function onMouseMove(e) {
-      if (!drawTool) return;
-      previewPt = snapPoint(e.offsetX, e.offsetY);
-      drawOverlay();                        // 十字线未拦照常联动；这里只管画图辅助预览
+      if (hidden) return;
+      if (drawTool) {
+        previewPt = snapPoint(e.offsetX, e.offsetY);
+        drawOverlay();                      // 十字线未拦照常联动；这里只管画图辅助预览
+        return;
+      }
+      if (dragCtx) { applyDrag(e.offsetX, e.offsetY); return; }
+      // 悬停命中：hoverHit 变化才切 cursor（命中 'move'），不重画
+      const hit = hitAt(e.offsetX, e.offsetY);
+      if (hit !== hoverHit) {
+        hoverHit = hit;
+        try { el.style.cursor = hit >= 0 ? 'move' : ''; } catch (err) { /* ignore */ }
+      }
     }
     function onMouseLeave() {
       if (!drawTool) return;
       previewPt = null;
       drawOverlay();
     }
-    // Esc：取消 draft 并退出画线模式（UI 收敛回 app.js 的 applyDrawTool）
+    // 拖拽收尾（document 级：鼠标可在画布外松开）：moved 才落盘一次——
+    // 拖拽过程零 localStorage 写，只在收尾写一次。
+    function onMouseUp() {
+      if (!dragCtx) return;
+      const moved = dragCtx.moved;
+      dragCtx = null;
+      try { el.style.cursor = ''; } catch (e) { /* ignore */ }
+      if (moved && onDrawings) onDrawings(drawings);
+    }
+    // Esc：先关右键菜单 → 再取消选中 → 最后落画线模式退出逻辑（一层一层退）；
+    // Delete：无工具且有选中时删除该画线并落盘（与右键菜单同口径）
     function onKeyDown(e) {
-      if (!e || e.key !== 'Escape') return;
+      if (!e) return;
       const tg = e.target;
       if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA' || tg.tagName === 'SELECT')) return;
-      if (!drawTool && !draft) return;
-      draft = null;
-      if (drawTool) {
+      if (e.key === 'Escape') {
+        if (!drawTool) {
+          if (ctxMenuEl) { closeCtxMenu(); return; }
+          if (selIdx >= 0) { select(-1); return; }
+          return;
+        }
+        draft = null;                       // 画线模式：取消 draft 并退出（UI 收敛回 app.js）
         setDrawTool(null);
         if (onToolEnd) onToolEnd();
-      } else {
-        drawOverlay();
+        return;
       }
+      if (e.key === 'Delete' && !drawTool && selIdx >= 0) deleteSelected();
+    }
+    // 右键菜单（capture 挂 el）：命中画线 → 打开菜单；未命中放行浏览器默认菜单
+    function onContextMenu(e) {
+      if (e && e.target && e.target.closest && e.target.closest('.k-draw-sel,.k-draw-ctx')) return;
+      if (hidden || drawTool || dragCtx) return;    // 隐藏态/画线中/拖拽中：放行
+      const hit = hitAt(e.offsetX, e.offsetY);
+      if (hit < 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      select(hit);
+      openCtxMenu(e.offsetX, e.offsetY);
     }
     // capture 挂在 el 上：先于 LWC 内部元素的监听，激活时 stopPropagation 才拦得住
     try { el.addEventListener('mousedown', onMouseDown, true); } catch (e) { /* ignore */ }
     try { el.addEventListener('mousemove', onMouseMove, true); } catch (e) { /* ignore */ }
     try { el.addEventListener('mouseleave', onMouseLeave, true); } catch (e) { /* ignore */ }
+    try { el.addEventListener('contextmenu', onContextMenu, true); } catch (e) { /* ignore */ }
     try { document.addEventListener('keydown', onKeyDown); } catch (e) { /* ignore */ }
+    try { document.addEventListener('mouseup', onMouseUp); } catch (e) { /* ignore */ }
 
-    // 切换画线模式：白名单外一律置 null；切换清 draft、el 挂 k-drawing（十字光标）
+    // 切换画线模式：白名单外一律置 null；切换清 draft、取消选中、关右键菜单、
+    // 复位内联 cursor（防拖拽残留的 grabbing/move 内联样式压掉 .k-drawing 十字光标）、
+    // el 挂 k-drawing（十字光标）
     function setDrawTool(tool) {
       drawTool = (tool && DRAW_TOOLS.indexOf(tool) >= 0) ? tool : null;
       draft = null;
       discardTextInput();
       if (!drawTool) previewPt = null;
+      select(-1);
+      closeCtxMenu();
+      try { el.style.cursor = ''; } catch (e) { /* ignore */ }
       try { el.classList.toggle('k-drawing', !!drawTool); } catch (e) { /* ignore */ }
       drawOverlay();
     }
 
-    // 回灌（切标的/切周期）：整体替换并重画。跨周期锚点解析不出的条目自动不画、保留在存储
+    // 回灌（切标的/切周期）：整体替换并重画。跨周期锚点解析不出的条目自动不画、保留在存储；
+    // 回灌时清选中/关浮层/弃拖（旧下标对新表已无意义）
     function setDrawings(list) {
       drawings = sanitizeDrawings(list);
       timeByKey = null;
+      closeSel();
+      closeCtxMenu();
+      dragCtx = null;
+      hoverHit = -1;
       drawOverlay();
     }
 
@@ -1002,8 +1286,9 @@ const Charts = (() => {
 
     return {
       chart, candle, setData, applyTheme, setMAVisible, setEvents, setPane, setInfo,
-      // 画线：setDrawings 回灌（按标的）、setDrawTool 切换画线模式
-      setDrawings, setDrawTool,
+      // 画线：setDrawings 回灌（按标的）、setDrawTool 切换画线模式、
+      // setHidden 「隐藏全部画线」开关（app 层持久化后经 applyDrawTool 回放）
+      setDrawings, setDrawTool, setHidden,
       // 副图 canvas 挂在主图容器外面，销毁时必须一起摘掉，
       // 否则切标的/切周期会留下一堆空副图（每次 createKline 都新建一个）。
       remove() {
@@ -1021,12 +1306,18 @@ const Charts = (() => {
         if (resizeRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(resizeRaf);
         if (paneRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(paneRaf);
         paneRaf = 0;
-        // 画线层一起摘：overlay canvas / 文字输入框 / document keydown / el 上三个 capture 监听
-        // （切标的会反复 createKline，漏摘就堆出一串 Esc 回调与幽灵画布）
+        // 画线层一起摘：overlay canvas / 文字输入框 / document keydown+mouseup /
+        // el 上四个 capture 监听（mousedown/mousemove/mouseleave/contextmenu）
+        // ——只摘真实挂上的这些，不新增也不多摘（切标的会反复 createKline，
+        // 漏摘就堆出一串 Esc/右键回调与幽灵画布）
         try { el.removeEventListener('mousedown', onMouseDown, true); } catch { /* ignore */ }
         try { el.removeEventListener('mousemove', onMouseMove, true); } catch { /* ignore */ }
         try { el.removeEventListener('mouseleave', onMouseLeave, true); } catch { /* ignore */ }
+        try { el.removeEventListener('contextmenu', onContextMenu, true); } catch { /* ignore */ }
         try { document.removeEventListener('keydown', onKeyDown); } catch { /* ignore */ }
+        try { document.removeEventListener('mouseup', onMouseUp); } catch { /* ignore */ }
+        removeToolbar();
+        removeCtxMenu();
         discardTextInput();
         try { if (drawCanvas && drawCanvas.parentNode) drawCanvas.parentNode.removeChild(drawCanvas); }
         catch { /* ignore */ }
@@ -1387,8 +1678,123 @@ const Charts = (() => {
     return FIB_LEVELS.map(lv => ({ lv: lv, p: a + (b - a) * lv }));
   }
 
+  /* ---- 画线交互纯函数（离线单测钉口径：_test/charts.test.mjs）----
+     命中/移动/钳制三族，全部无 DOM 无网络：
+     · hitDrawing(d, c, x, y, o)：c = coordsOf 产物 {x1,y1,x2,y2,fibYs?}，
+       o = {tol, w, h, axisW}（tol 缺省 DRAW_HIT_TOL）；d 或 c 为 null 一律不命中；
+     · hitTestDrawings(list, coordsList, x, y, o)：从数组尾部（最上层）往回扫，
+       返回首个命中下标或 -1；coords 为 null（锚点不在当前序列/不可见）的条目跳过；
+     · moveDrawing(d, idxDelta, pDelta, keys)：keys = tKey 序列字符串数组，
+       换锚/移价后返回新对象（Object.assign 不用 spread，老 WebView 安全），
+       越界或锚不在 keys 返回 null——调用方丢弃本次位移，不得写回 drawings；
+     · clampBox(x, y, w, h, bw, bh)：浮层贴边钳制，区域小于框时归 0。 */
+  const DRAW_HIT_TOL = 8;       // 命中容差 px（TradingView 同量级：太小点不中、太大误命中）
+
+  // 点到线段的最短距离：投影参数 t 钳到 [0,1] 后取欧氏距离（钳端点即两点距离）
+  function segDist(x, y, x1, y1, x2, y2) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const len2 = dx * dx + dy * dy;
+    let t = len2 > 0 ? ((x - x1) * dx + (y - y1) * dy) / len2 : 0;
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    return Math.hypot(x - (x1 + t * dx), y - (y1 + t * dy));
+  }
+
+  // 文字标注的命中框估算：11px mono 字宽按字符分档——charCode > 0xFF（CJK 全角）
+  // 记 11px/字，否则 6.6px/字；锚点是 fillText 的基线（文字主体在基线上方），
+  // 框取 [x-2, y-16, w+6, 20]。不用 measureText：离线测试/未挂 canvas 时也保持确定性。
+  function drawTextBox(text, x, y) {
+    const s = String(text === null || text === undefined ? '' : text);
+    let w = 0;
+    for (let i = 0; i < s.length; i++) w += s.charCodeAt(i) > 0xFF ? 11 : 6.6;
+    return { x: x - 2, y: y - 16, w: w + 6, h: 20 };
+  }
+
+  // 单条画线命中判定：
+  // · trend 点到线段距离 ≤ tol；hline |y-y1| ≤ tol 且 x ≤ w-axisW+tol（横线止于价格轴左缘）；
+  // · vline |x-x1| ≤ tol（纵向全高，y 任意）；
+  // · rect 外接域（min/max ± tol）内即命中——含内部，与 TradingView 一致；
+  // · fib x 在两端点 min/max ± tol 内且 y 与 fibYs 某一档 |dy| ≤ tol（null 档跳过）；
+  // · text 落在 drawTextBox 档内。
+  function hitDrawing(d, c, x, y, o) {
+    if (!d || !c || typeof d.tool !== 'string') return false;
+    const tol = (o && o.tol) || DRAW_HIT_TOL;
+    if (d.tool === 'trend') return segDist(x, y, c.x1, c.y1, c.x2, c.y2) <= tol;
+    if (d.tool === 'hline') {
+      const axisW = (o && o.axisW) || 0;
+      return Math.abs(y - c.y1) <= tol && x <= ((o && o.w) || 0) - axisW + tol;
+    }
+    if (d.tool === 'vline') return Math.abs(x - c.x1) <= tol;
+    if (d.tool === 'rect') {
+      return x >= Math.min(c.x1, c.x2) - tol && x <= Math.max(c.x1, c.x2) + tol &&
+        y >= Math.min(c.y1, c.y2) - tol && y <= Math.max(c.y1, c.y2) + tol;
+    }
+    if (d.tool === 'fib') {
+      if (x < Math.min(c.x1, c.x2) - tol || x > Math.max(c.x1, c.x2) + tol) return false;
+      const ys = Array.isArray(c.fibYs) ? c.fibYs : [];
+      return ys.some(v => v !== null && v !== undefined && isFinite(v) && Math.abs(y - v) <= tol);
+    }
+    if (d.tool === 'text') {
+      const b = drawTextBox(d.text, c.x1, c.y1);
+      return x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h;
+    }
+    return false;
+  }
+
+  // 整表命中：尾部（最上层）优先返回首个命中的下标；空表/脏输入一律 -1
+  function hitTestDrawings(list, coordsList, x, y, o) {
+    if (!Array.isArray(list) || !Array.isArray(coordsList)) return -1;
+    const n = Math.min(list.length, coordsList.length);
+    for (let i = n - 1; i >= 0; i--) {
+      if (hitDrawing(list[i], coordsList[i], x, y, o)) return i;
+    }
+    return -1;
+  }
+
+  // 拖拽位移：hline 只动 p1（横线纵向拖）、vline 只动 k1（竖线横向拖）；
+  // text 与两点工具 k1/k2 全按同一序号差位移、p1/p2 加同一价格差。
+  // 新锚不在 keys 或越界 → null（调用方丢弃，不得写回 drawings）。
+  function moveDrawing(d, idxDelta, pDelta, keys) {
+    if (!d || typeof d.tool !== 'string' || !Array.isArray(keys) || !keys.length) return null;
+    const dp = +pDelta;
+    if (!isFinite(dp)) return null;
+    if (d.tool === 'hline') {
+      const p1 = d.p1 + dp;
+      return isFinite(p1) ? Object.assign({}, d, { p1: p1 }) : null;
+    }
+    const shiftK = (k) => {
+      const i = keys.indexOf(k);
+      if (i < 0) return null;
+      const j = i + idxDelta;
+      return (j >= 0 && j < keys.length) ? keys[j] : null;
+    };
+    if (d.tool === 'vline') {
+      const k1 = shiftK(d.k1);
+      return k1 ? Object.assign({}, d, { k1: k1 }) : null;
+    }
+    // text 与两点工具：k1/k2 全位移 + 价格全位移
+    const k1 = shiftK(d.k1);
+    if (!k1) return null;
+    const out = Object.assign({}, d, { k1: k1, p1: d.p1 + dp });
+    if (d.k2 !== undefined && d.k2 !== null) {
+      const k2 = shiftK(d.k2);
+      if (!k2) return null;
+      out.k2 = k2;
+      out.p2 = d.p2 + dp;
+    }
+    return out;
+  }
+
+  // 浮层贴边钳制：把 (x,y) 处 w×h 的框收进 bw×bh 的区域；区域小于框时归 0
+  function clampBox(x, y, w, h, bw, bh) {
+    return {
+      x: Math.max(0, Math.min(x, Math.max(0, (bw || 0) - (w || 0)))),
+      y: Math.max(0, Math.min(y, Math.max(0, (bh || 0) - (h || 0)))),
+    };
+  }
+
   return { createKline, createTrend, createCompare, calcMA, emaSeries, themeColors, retheme, legendBadge, slotStyles,
-    DRAW_TOOLS, sanitizeDrawing, sanitizeDrawings, sanitizeDrawStore, fibLevels };
+    DRAW_TOOLS, sanitizeDrawing, sanitizeDrawings, sanitizeDrawStore, fibLevels,
+    DRAW_HIT_TOL, segDist, drawTextBox, hitDrawing, hitTestDrawings, moveDrawing, clampBox };
 })();
 
 window.Charts = Charts;
