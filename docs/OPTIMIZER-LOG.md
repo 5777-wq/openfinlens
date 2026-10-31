@@ -433,3 +433,27 @@ TV-ROADMAP P0★ 第 4 条「间距 8px 骨架」渐进施工第四轮，按 ③
 - `css/style.css`、`index.html`、`js/worldmap.js`
 - `_test/tokens.test.mjs`
 - `docs/TV-ROADMAP.md`（本条未完成不勾选——③c 111 处与 spacing 在档 251 处接线留后续轮，文件零改动）、`docs/OPTIMIZER-LOG.md`（本条目）
+
+## 2026-11-01 05:20 · P0★ 间距骨架③c：字号 12 档余量 111 处接线归 --fs-12、过渡白名单清空（spacing 在档 251 处留 ④ 轮，条目不勾）
+
+### 目标
+TV-ROADMAP P0★ 第 4 条「间距 8px 骨架」渐进施工第五轮，按 ③b 留痕的拆轮计划收尾字号部分：本轮 **③c = 接线剩余 8/9/9.5/10.5/11.5/12px 共 111 处 → var(--fs-12)**（12px×86 为纯令牌改名零视觉变化，其余 25 处升档至 Floor=12），十二档过渡白名单清空、字号音阶五档收敛**全部完成**。实测基线（施工前 node 逐形态枚举）：六形态 raw=去注释逐形态相等——8px×2、9px×6、9.5px×2、10.5px×5、11.5px×10、12px×86 合计 111；无空格形态 0、`!important` 形态 0；font-size 声明总数 352、var(--fs- 消费 241（与 ③b 留痕一致）；注释内零残留。预算拆轮依据同 ③a 评审口径（git numstat 增删合计）：spacing 在档 251 处若并进本轮 style.css 即 362/362≈724 行、总计 ≈888 超限近五成，故 spacing 接线独立成 ④ 轮。条目**未完**——spacing 在档字面量 251 处接线（8px×85、4px×40、12px×74、16px×41、24px×8、32px×3，③a 同口径）留 ④ 轮，'style.css 清 magic number' 未全量达成，TV-ROADMAP 本条**不勾选**、文件零改动。混行尾红线零偏离：style.css 仅 6 次 Edit replace_all 声明片段级编辑（六锚串互不为子串：9/9.5、10/10.5 均带小数点分隔、声明+分号定界），无脚本改写、无整文件重写。
+
+### 改动
+1. `_test/tokens.test.mjs`（+21/−20，纯 LF 保持，测试先行照 ①②③a③b 先红后绿纪律）：① 字号组头注释「进度」段改写：③a 清零 >12 档 67 处 + font 简写清账、③b 接线 173 处、③c（本轮）接线剩余 111 处、白名单清空、五档收敛**全部完成**；font-size:0 豁免机制写明（640px 媒体查询内 0 隐藏文字、::before 以 var(--fs-12)/16px 重绘问号，桌面 9.5→12 接线后与移动端自然对齐）；spacing 在档 251 处留 ④ 轮注记。② 测试名「font-size 收敛五档·阶段二（…≥230）」→「font-size 收敛五档·终（12 档白名单清空、font 简写清零、var(--fs-) ≥340）」。③ 断言 A ALLOWED 集合删除 '8px'/'9px'/'9.5px'/'10.5px'/'11.5px'/'12px' 六键，余 var(--fs-12/13/15/20/32) ∪ {'0'}，失败信息同步改写（raw 档位只许令牌 ∪ {0}，新档位须走评审）。④ 断言 C 下限 230→340（注释写明实测 352 = ③b 241 + ③c 111，留 12 余量）防令牌摆设化。⑤ **方案外连带修复一处**：L649 页头组钉的是字面量正则 `/font-size:\s*12px/`，本轮把基础 h1.page-title 的 12px 接线成 var(--fs-12) 后失配（绿相首跑第二红），放宽为 `/font-size:\s*(12px|var\(--fs-12\))/`——令牌值恰 12px 由字号五档组钉死，两种形态同义接受，断言语义（基础页头必须落在 12px 小节头档）不变、非放松。
+2. `css/style.css`（111/111，全 CRLF 保持、总行 2631 不变，仅 6 次 Edit replace_all 声明片段级编辑、零整文件重写）：`font-size: 8px;`（2 处）、`font-size: 9px;`（6 处）、`font-size: 9.5px;`（2 处）、`font-size: 10.5px;`（5 处）、`font-size: 11.5px;`（10 处）、`font-size: 12px;`（86 处）各整体替换为 `font-size: var(--fs-12);`——六种形态全部归 Floor=12 档（就近取档：8/9/9.5/10.5/11.5 距 12 均近于距 13）；声明+分号锚定，同行 font-family/line-height/color/transition 等声明构造性零接触（diff 复核：唯一伴现 transition 行的 transition 声明原样）；无新令牌、无皮肤块改动（--fs-* 定义全文件恰 5 处全在 :root 单点，8 套皮肤一致生效）、无任何 transition/animation 触碰。
+3. `index.html`（67/67，纯 LF 保持）：全部 67 处业务资源 ?v=20261101e → ?v=20261101f（style.css 内容变更触发缓存失效，当日字母序单调递增；vendor 语义化版本 4.2.3/3.1.0/3.2.4/3.1.1 不动，20261101e 残留 0）。
+
+### 测试
+- 测试先行红相：`node _test/tokens.test.mjs` → **50 passed / 1 failed**（唯一红组即字号组，违规清单收口 "111 !== 0"，分布 12px×86/11.5×10/10.5×5/9×6/9.5×2/8×2 与基线枚举逐条对照零意外项；page-title 组施工前为绿）。
+- 施工后单跑（首跑暴露 ⑤ 连带红）：`node _test/tokens.test.mjs` → 50 passed / 1 failed（第二红即页头组字面量正则失配，见改动 ⑤）；修复后复跑 → **51 passed / 0 failed**（断言 C 实测 var(--fs- 352 ≥ 340）。
+- 全量：`node _test/run-all.mjs --offline` → 共 43 组（离线 37 / 实网 6），执行 37 组**全部通过**（run-all.mjs 零改动）。未做实网验证（红线 11）。
+- 复扫互证（node 计数）：六形态去注释残留恰 0；font-size 声明总数 352 = var(--fs-五档) 351 + '0'×1；var(--fs- 消费 352；--fs-* 定义点恰 5 处全在 :root。
+- 行尾字节（node 逐字节）：style.css CR=2631=LF=2631（全 CRLF、裸 LF=0、总行 2631 不变）；index.html CR=0（纯 LF）；tokens.test.mjs CR=0（纯 LF）。`git diff --numstat`：style.css 111/111、index.html 67/67、tokens.test.mjs 21/20——增删合计 **397 行**（不含留痕文档）≤600。
+- 视觉冒烟清单（留人工轮）：25 处升档重点核对 .pm-donut-ct/.pm-donut-cs（8→12 环形图中心数字）、.ask（9.5→12 桌面问号与移动端对齐，15px 圈内 12px 字形不溢出）、9px 徽章组（.qc-flag/.vb-title/.my/.ev-imp/.imp-kind）、11.5px 组（.fq-*/.imp-sum/.pm-out-l/.cmp-corr/.gloss-tip .gt-link）、10.5px 组（.imp-dir/.sr-count/.brk-chg/.ce-link）；12px×86 纯改名零视觉变化；8 套皮肤下仅字号变、色令牌与对比度结论不变。
+- 红线核对：全中文注释；分区卡片+折叠布局零改动；8 套皮肤 --fs-* :root 单点定义无覆盖；无成交量展示/无 Polymarket 品牌字样新增（diff 内 polymarket 字样均为既有文件路径随版本号 bump）/无省略号问句；纯排版收敛不涉买卖建议；零 JS 改动、零新增取数零 API key、无 setInterval、无新增动画；style.css 全程小段编辑保持全 CRLF；?v= 单调递增 20261101f；无开源代码移植、无新增纯函数（接线轮，红线 12 不适用）。未 git commit / push。附注：Mimosa 提交前扫描报 js/app.js 既有历史风险（ssrf 链等 1 高危）——均为本轮未触碰文件的存量问题，非本轮引入。
+
+### 涉及文件
+- `css/style.css`、`index.html`
+- `_test/tokens.test.mjs`
+- `docs/TV-ROADMAP.md`（本条未完成不勾选——spacing 在档 251 处接线留 ④ 轮，文件零改动）、`docs/OPTIMIZER-LOG.md`（本条目）
