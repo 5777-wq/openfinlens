@@ -486,3 +486,30 @@ TV-ROADMAP P0★ 第 4 条「间距 8px 骨架」渐进施工第六轮，按评�
 - `css/style.css`、`index.html`
 - `_test/tokens.test.mjs`
 - `docs/TV-ROADMAP.md`（本条不勾选——16/24/32/48 共 52 处留 ④b；新增 .chain-flow 恢复条目）、`docs/OPTIMIZER-LOG.md`（本条目）
+
+## 2026-11-01 07:35 · P0★ 间距骨架④b——16/24/32/48 共 52 处接线归 --sp、calc 三条与 index.html 内联清账、chain-flow 规则头恢复（间距骨架条目勾选）
+
+### 目标
+TV-ROADMAP P0★ 第 4 条「间距 8px 骨架」渐进施工第七轮（收尾），按 ④a 留痕的 ④b 计划执行，并按「小项可合并 2-3 个」指令合并同小节小项「产业链展开态 .chain-flow 规则头恢复」：本轮 **④b = 接线 16/24/32/48 共 52 处（16px×41、24px×8、32px×3，含 calc() 内 32/24/16px 与同声明裸 16px——④a「不碰 calc」的例外到期）+ index.html 4 处内联清账（L242/L247/L470/L802）+ .chain-flow 规则头插回（ae3768e^ L432-433 原状逐字恢复，仅 gap 6px→--sp-8、padding-bottom 4px→--sp-4 按②轮映射令牌化）+ 断言 B 550→600 + BANNED 补四档**。实测基线（施工前断言域同口径枚举）：48 种声明形态 / 49 处声明 / **52 个 px 点**（16px×41 + 24px×8 + 32px×3，48px×0），与方案 52 点总数逐项吻合（方案逐形态计数与"约 28 种声明锚"为粗口径，实测 48 形态如实按枚举接线）；31 锚串经施工前验证：互不为子串、注释零命中、无空格/`!important` 变体零命中。发丝级 1/2/3px×60 与负值 -1px/-3.5px 两处为永久豁免不动。两小项完成后 P0★ 尚余「暗色皮肤对比度修复」「移动端修急」两条未勾，不构成里程碑。混行尾红线零偏离：全程 Edit 声明片段级小段编辑（31 次 replace_all/单点替换 + 1 次双行插入 + 1 次注释行收账），无脚本改写、无整文件重写。
+
+### 改动
+1. `_test/tokens.test.mjs`（52/16，纯 LF 保持，测试先行照 ①②③a③b③c④a 先红后绿纪律）：① 间距组 BANNED 追加 `'16','24','32','48'` 四档（注释写明 ④b 接线后清零、禁用集仍只增不减、永久豁免为发丝级 1/2/3px×60 与负值两处合计 62——方案手记"发丝级×62"系含负值的合计口径，按实测分列）；② 断言 B 下限 550→600（注释写明实测 651=597+52+2，含 .chain-flow 恢复的 2 处令牌消费；**方案干跑预估 649 漏计 chain-flow 的 2 处**，如实按实测记）；③ 测试名改「间距离格值清零 + ④b 在档接线（16/24/32/48 清零、calc 内一并接线、var(--sp-) ≥600）」、组头「进度」注释改写为 ④b 收尾完成/条目可勾选/calc 口径收账，并更正上一版组头笔误「禁用集只减不增」→「只增不减」（注释级）；④ 七档令牌组注释「--sp-16/24/32/48 在 ④b 接线前允许零消费」改写为已接线；⑤ 新增结构守卫组「.chain-flow 规则头恢复守卫」**两个 test()**：(a) CSS_NC 必须存在选择器恰为 `.chain-flow` 的规则、规则体含 display: flex / align-items: stretch / overflow-x: auto / gap: var(--sp-8)（防再次静默误删——ae3768e 事故形态：规则头被删、孤儿尾行残留、花括号配平破裂，配平守卫防结构破裂、本组防规则缺失）；(b) js/app.js 必须仍产出 `class="chain-flow"` 容器（照 drawHideV1 跨文件守卫先例——容器消失则 CSS 规则成死代码无人察觉；红相 (b) 即绿，与方案红相「52 passed / 2 failed」互证）。
+2. `css/style.css`（49/47，全 CRLF 保持、总行 2630→2632，仅 chain-flow +2 行）：① 31 锚 49 处声明 52 px 点身份映射 Npx→var(--sp-N)、值零变化零视觉影响（calc 三条：.main 基础 32px→var(--sp-32)、.main @640 24px→var(--sp-24) 且同声明裸 16px→var(--sp-16)、.gloss-tip 两处媒体覆盖 16px→var(--sp-16)；混合声明只换离格段、既有 var 段与 0 原样）；② L575 前产业链注释块与 .link-node 之间插回 `.chain-flow { display: flex; align-items: stretch; gap: var(--sp-8); overflow-x: auto;\r\n  padding-bottom: var(--sp-4); scrollbar-width: thin; }`（ae3768e^ L432-433 原状逐字恢复、仅两处按②轮映射令牌化；横条+overflow-x 滚动即 ae3768e 前长期原行为，竖排改版属后续视觉轮议题；零新增动画/transition）；③ :root 间距令牌注释「④a 已接线 4/8/12 三档；16/24/32/48 共 52 处留 ④b」→「④b 已全量接线」（注释一致性顺手账，照 ③a 先例；方案未列此项，+1/−1 如实记）。
+3. `index.html`（71/71，纯 LF 保持）：① 4 处内联清账（④a 留痕债）：L242/L247 `margin-bottom:32px`→`var(--sp-32)`、L470 `margin-top:32px`→`var(--sp-32)`、L802 `margin-top:18px`→`var(--sp-16)`（18 离格按②轮映射 14/15/17/18/19→16；var 经 :root 令牌继承到内联样式生效，②轮 app.js:2891、③b 轮 worldmap.js:454 同机制先例）；② 全部 67 处业务资源 ?v=20261101g→?v=20261101h（style.css 内容变更触发缓存失效，当日字母序单调递增；vendor 语义化版本 4.2.3/3.1.0/3.2.4/3.1.1 不动，20261101g 残留 0）。
+4. `docs/TV-ROADMAP.md`：勾选两条——P0★「间距 8px 骨架」（④a+④b 全量达成：七档令牌、spacing 魔法数清零——发丝级与负值按断言域永久豁免、字号五档、index.html 内联清账）与「产业链展开态 .chain-flow 规则头恢复」（条目文字不动，勾选依据=离线测试全绿+守卫钉死；视觉冒烟按完成判定留人工轮）。
+
+### 测试
+- 测试先行红相：`node _test/tokens.test.mjs` → **52 passed / 2 failed**（与方案预估逐字一致；唯二红组即间距组与 chain-flow CSS 守卫，间距组违规清单收口 **"52 !== 0"**、与施工前枚举 52 px 点逐条对照零意外项；app.js 容器守卫红相即绿）。
+- 施工后单跑：`node _test/tokens.test.mjs` → **54 passed / 0 failed**（52→54；方案写 53 为算术口径差——守卫组实为 (a)(b) 两个 test()，红相 52/2 恰与两 test 结构互证；断言 B 实测 var(--sp- 651 ≥ 600）。
+- 全量：`node _test/run-all.mjs --offline` → 共 43 组（离线 37 / 实网 6），执行 37 组**全部通过**（run-all.mjs 零改动）。未做实网验证（红线 11）。
+- 复扫互证（node 脚本，与测试同口径）：规则体内 ≥4px 间距字面量残留恰 **0**（发丝级 1×13 含 -1px、2×32、3×16、3.5×1 原样）；calc 内 ≥4px 残留 **0**；var(--sp-) 消费 **597→651**；--sp-* 定义恰 **7** 处全在 :root（8 套皮肤零覆盖）；CSS_NC 花括号 **1272/1272 配平**（插入为完整规则 +1/+1）。
+- 最强审计（④a 同款）：`git show HEAD:css/style.css` 基线做同套 31 锚替换（模拟命中 49 处声明）+ :root 注释改写 + chain-flow 插入后，与工作区**逐字节一致**（剥 \r 比较——HEAD blob 纯 LF、工作区全 CRLF 系 core.autocrlf=true 检出转换，git diff/numstat 均按归一化内容计算，②轮「剥 \r 比较」同口径），证明改动面恰为计划内编辑、零其他字节变动。
+- 行尾核验（node 逐字节）：style.css CRLF=2632/裸 LF=0/裸 CR=0（全 CRLF，+2 行）；index.html CR=0 纯 LF；tokens.test.mjs CR=0 纯 LF；TV-ROADMAP.md CR=0 纯 LF。`git diff --numstat`：style.css 49/47、index.html 71/71、tokens.test.mjs 52/16——增删合计 **306 行** ≤600（方案估 ≈281，同区间；先例 ①545/②559/③b511/③c397/④a542）。
+- `?v=` 守卫：20261101h 恰 67 处、20261101g 残留 0、vendor 四个语义化版本原样（tokens.test 既有守卫自然回归）。
+- 视觉冒烟清单（留人工轮）：.chain-flow 展开态横条在 8 套皮肤下的观感与横向滚动；4/8→16px 升档的两处内联（selftest 折叠头 margin-top 18→16、moodPanel 底距 32px 令牌化同值）。其余 49 处声明为身份映射零视觉变化。
+- 红线核对：全中文注释；分区卡片+折叠布局零改动；8 套皮肤 --sp/--fs 均 :root 单点定义零覆盖；无成交量展示/无 Polymarket 品牌字样新增（diff 内 polymarket 字样均为既有文件路径随版本号 bump）/无省略号问句；纯排版接线与布局恢复不涉买卖建议；零 JS 逻辑改动、无 setInterval、零新增动画与调度、零新增取数零 API key；style.css 全程 Edit 小段编辑、实施后逐字节复核全 CRLF（裸 LF=0）；?v= 单调递增 20261101h；无开源代码移植、无新增纯函数（接线轮，红线 12 不适用）。未 git commit / push。
+
+### 涉及文件
+- `css/style.css`、`index.html`
+- `_test/tokens.test.mjs`
+- `docs/TV-ROADMAP.md`（勾选 P0★「间距 8px 骨架」与「产业链展开态 .chain-flow 规则头恢复」两条）、`docs/OPTIMIZER-LOG.md`（本条目）
