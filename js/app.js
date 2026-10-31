@@ -2888,7 +2888,7 @@
       <div class="evd-title">${escapeHTML(name)} · 国家视图</div>
       ${Object.entries(assets).length ? '<div class="cd-assets">' + Object.entries(assets).map(assetRow).join('') + '</div>'
         : '<div class="empty">该国代表性资产暂未接入行情</div>'}
-      <div class="evd-rel-label" style="margin-top:10px">该国最新事件与新闻</div>
+      <div class="evd-rel-label" style="margin-top:var(--sp-12)">该国最新事件与新闻</div>
       ${evs.length ? evs.slice(0, 6).map(e => `<div class="evd-item" data-ev="${escapeHTML(e.id)}" tabindex="0" role="button">
           <span class="ev-dot" style="background:${window.Events.typeColor(e.type)}"></span>
           <span class="evd-item-t">${escapeHTML(e.title.slice(0, 56))}</span>
