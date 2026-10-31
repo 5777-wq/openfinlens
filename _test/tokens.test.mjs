@@ -677,5 +677,101 @@ test('水平分隔线家族统一 1px（.section/.pm-sec/.pm-overview/.sec-line/
   assert.equal(bad.length, 0, '分隔线家族仍有粗线（应统一 1px）：\n    ' + bad.join('\n    '));
 });
 
+/* ============================================================
+   形状令牌守卫（2026-11-01 · 路线图 P0★ 第 3 条）
+   ------------------------------------------------------------
+   诊断（docs/UI-AUDIT.md 病灶三）：卡片语言三种以上并存——圆角、
+   描边、阴影各成体系，此前 tokens.test 管住了颜色令牌、没管形状令牌。
+   处方：radius 三档（4/8/14）+ 描边一档（1px）+ 阴影两档进 tokens，
+   卡片收敛为三模板：
+     · 大卡/浮层 = --r-lg + --shadow-2（modal、aurora 玻璃面板）
+     · 标准卡   = --r-md + 1px 描边（pm-card/fq-card/event-detail 等）
+     · 迷你卡/行内控件 = --r-sm 无阴影（qrow/chip/徽章/取色块）
+     · 条形轨道 = 999px 胶囊；方角(0)/圆(50%)是 paper 皮肤与
+       几何图形（圆点/问号）的身份层，不属于档位体系。
+   形状漂了不会报错，只在页面上表现为"每个组件自说自话"，钉成断言。
+   ============================================================ */
+
+const RADIUS_OK = new Set(['var(--r-sm)', 'var(--r-md)', 'var(--r-lg)', '0', '50%', '999px']);
+
+test('radius 三档令牌：全站 border-radius 收敛六形态 + --r-sm/md/lg 恰为 4/8/14px', () => {
+  // 先扫违规（红的时候给出完整清单），再卡令牌定义本身。
+  const rules = CSS_NC.match(/[^{}]+\{[^{}]*\}/g) || [];
+  assert.ok(rules.length > 300, '规则切分数异常，选择器可能失效');
+  const bad = [];
+  rules.forEach(r => {
+    const i = r.indexOf('{');
+    const body = r.slice(i);
+    if (!/border-radius\s*:/.test(body)) return;
+    const sel = r.slice(0, i).replace(/\s+/g, ' ').trim();
+    const val = (/border-radius\s*:\s*([^;}]+)/.exec(body))[1]
+      .replace(/!important/g, '').trim();
+    // 多值形态（如 "0 var(--r-sm) var(--r-sm) 0"）逐分量验收
+    val.split(/\s+/).forEach(part => {
+      if (!RADIUS_OK.has(part)) bad.push(sel + ': ' + val);
+    });
+  });
+  assert.equal(bad.length, 0,
+    'border-radius 出现六形态之外的档位（大卡 r-lg / 标准卡 r-md / 迷你件 r-sm）：\n    ' +
+    [...new Set(bad)].join('\n    '));
+  assert.equal(cssVar('r-sm'), '4px', '--r-sm 应恰为 4px');
+  assert.equal(cssVar('r-md'), '8px', '--r-md 应恰为 8px');
+  assert.equal(cssVar('r-lg'), '14px', '--r-lg 应恰为 14px');
+});
+
+test('阴影两档令牌：全站 box-shadow 收敛 + --shadow-1/2 黑基定义 + paper 亮色覆盖', () => {
+  // 海拔只许两档：--shadow-1（浮出菜单/提示浮层/悬停浮起）、--shadow-2（模态/大浮层）。
+  // 豁免三类：none（关闭海拔，oled/paper 等皮肤覆盖）、inset 开头（选中/下划线
+  // 指示条，不是海拔）、0 0 0 2px 开头（focus 焦点环复合，不是海拔）。
+  const rules = CSS_NC.match(/[^{}]+\{[^{}]*\}/g) || [];
+  const bad = [];
+  rules.forEach(r => {
+    const i = r.indexOf('{');
+    const sel = r.slice(0, i).replace(/\s+/g, ' ').trim();
+    const re = /box-shadow\s*:\s*([^;}]+)/g;
+    let m;
+    while ((m = re.exec(r.slice(i)))) {
+      const v = m[1].trim();
+      const okVal = ['var(--shadow-1)', 'var(--shadow-2)', 'none'].includes(v)
+        || v.startsWith('inset')
+        || /^0\s+0\s+0\s+2px/.test(v);
+      if (!okVal) bad.push(sel + ': ' + v);
+    }
+  });
+  assert.equal(bad.length, 0,
+    'box-shadow 海拔值超出两档（--shadow-1 / --shadow-2）：\n    ' +
+    [...new Set(bad)].join('\n    '));
+  const s1 = cssVar('shadow-1'), s2 = cssVar('shadow-2');
+  assert.ok(s1 && /rgba\(0,\s*0,\s*0/.test(s1), '--shadow-1 缺失或不是 rgba(0,0,0,…) 黑基：' + s1);
+  assert.ok(s2 && /rgba\(0,\s*0,\s*0/.test(s2), '--shadow-2 缺失或不是 rgba(0,0,0,…) 黑基：' + s2);
+  // paper 浅色皮肤必须覆写亮色阴影，否则悬停浮起拿到的是纯黑 0.5 的重阴影（纸上显脏）。
+  assert.ok(/--shadow-1\s*:/.test(themeBlock('paper')),
+    'paper 皮肤块缺 --shadow-1 亮色覆盖（浅色皮肤会拿到纯黑重阴影）');
+});
+
+test('描边一档：可见描边只许 1px、标记条统一 2px', () => {
+  // 方向边（border-left/top/bottom/right）2px = 标记条（卡片左竖条/色带），合法；
+  // 全边 border: 2px（描边框）禁止——描边只许 1px 一档；
+  // ≥3px 的可见边一律违规。放行后随 solid transparent 的滚动条 thumb：
+  // 那是"透明边框 + padding-box 裁剪"做内边距的技巧，不是可见描边。
+  const rules = CSS_NC.match(/[^{}]+\{[^{}]*\}/g) || [];
+  assert.ok(rules.length > 300, '规则切分数异常，选择器可能失效');
+  const bad = [];
+  rules.forEach(r => {
+    const i = r.indexOf('{');
+    const sel = r.slice(0, i).replace(/\s+/g, ' ').trim();
+    const bds = r.slice(i).match(/\bborder(?!-radius)(?:-(?:left|right|top|bottom))?(?:-width)?\s*:\s*[^;}]+/g) || [];
+    bds.forEach(d => {
+      if (/transparent/.test(d)) return;   // 滚动条内边距技巧，非可见描边
+      if (/^\s*border\s*:\s*[2-9]/.test(d)) { bad.push(sel + ' → ' + d.trim()); return; }
+      const pxs = (d.match(/(\d+(?:\.\d+)?)px/g) || []).map(parseFloat);
+      if (pxs.some(n => n >= 3)) bad.push(sel + ' → ' + d.trim());
+    });
+  });
+  assert.equal(bad.length, 0,
+    '描边宽度越档（可见描边 1px 一档、方向边标记条 2px 一档）：\n    ' +
+    [...new Set(bad)].join('\n    '));
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

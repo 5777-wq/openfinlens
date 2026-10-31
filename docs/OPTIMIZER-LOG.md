@@ -247,3 +247,91 @@ clamp 到 64~72px 的报纸头版语言）降级为小节头——12px 大写字
 - `css/style.css`、`js/fundprofile.js`、`index.html`
 - `_test/tokens.test.mjs`
 - `docs/TV-ROADMAP.md`（勾选 P0★ 第 1 条）、`docs/OPTIMIZER-LOG.md`（本条目）
+
+## 2026-11-01 00:26 · P0★ 形状令牌：radius 4/8/14 三档 + 阴影两档进 tokens、描边一档标记条 2px、全站 radius 收敛六形态、tokens.test 增三组形状断言
+
+### 目标
+路线图 P0★ 第 3 条（UI-AUDIT.md 病灶三）：卡片语言三种以上并存——圆角、描边、阴影各成体系，
+此前 tokens.test 管住了颜色令牌、没管形状令牌。实测盘点（本轮 grep 全量）：radius 散布
+1/1.5/2/3/4/5/6/8/9/10/12/14/16px 共 13 种字面量 + 0/50%/999px（测试先行红清单 105 处）；
+box-shadow 海拔字面量 11 处 5 种写法；非 1px 可见描边 14 处（3px/4px 标记条与 2px 全边描边）。
+处方：radius 三档（--r-sm/md/lg = 4/8/14）+ 阴影两档（--shadow-1/2）进 tokens、可见描边收敛
+1px 一档、方向边标记条统一 2px，卡片收敛三模板：大卡/浮层 = --r-lg + --shadow-2（modal、
+aurora 玻璃面板）；标准卡 = --r-md + 1px 描边（pm-card/fq-card/event-detail 等）；迷你卡/
+行内控件 = --r-sm 无阴影（qrow/chip/徽章/取色块）；条形轨道 = 999px 胶囊；方角(0)/圆(50%)
+是 paper 皮肤与几何图形的身份层。**范围边界**：零 JS 改动（js/*.js grep border-radius/
+box-shadow 内联为空）；不新增任何 box-shadow 过渡（FIELD-NOTES 家规 2，L1949/L1958 存量
+transition 声明原样保留）；inset 选中/下划线指示条与 focus-ring 复合环非海拔阴影，不在
+两档体系内。
+
+### 改动
+1. `css/style.css`（+141/-130，全 CRLF 保持 2620=2620，约 90 处小段编辑零整文件重写）：
+   ① :root 尾部插入形状令牌 `--r-sm: 4px; --r-md: 8px; --r-lg: 14px;` 与
+   `--shadow-1: 0 8px 28px rgba(0,0,0,0.5)`（浮出菜单/提示浮层/悬停浮起一档）、
+   `--shadow-2: 0 16px 44px rgba(0,0,0,0.38)`（模态/大浮层一档，取自现存出现 4 次的字面量），
+   含三模板映射中文注释；同步修正头部过时注释「圆角只有 6 / 3px 两档」。② radius 收敛
+   105 处 → 六形态 {var(--r-sm), var(--r-md), var(--r-lg), 0, 50%, 999px}，按选择器语义
+   分流（非盲替）：42 处 3px 与 15 处 1/1.5/2px 徽章/控件/输入 → --r-sm；13 处 4px 按语义
+   分流（控件 fq-opt → r-sm；浮层 ma-menu/alert-panel/k-draw-sel/k-draw-ctx/toast 与
+   内容卡 chart-event/fq-lv/fq-chain/fq-stale/share-preview img → r-md）；12 处 6px（modal
+   → r-lg，globe-stage/event-detail/pm-overview/fq-q/fq-intro/fq-verdict/fq-warn/fq-card →
+   r-md，fp-tr → r-sm，mac-spread i → r-sm）；3 处 5px（fp-bar 及其 i 进度条 → 999px，
+   pm-card → r-md）；条形轨道归 999px 胶囊（rbar .rb-track、brief-bar、pm-out-bar 及其 i、
+   mac-cbar 及其 i，与既有唯一 999px brk-chg 同语言）；微件归 r-sm（logo-dot/switch 旋钮/
+   ma-menu i/ma-line-dot/cmp-dot/fq-scale i/flag/qlogo/ma-swatch/k-draw-swatch/fq-chain-q i，
+   浏览器对超尺寸半径自动钳到半短边，视觉不变或可接受）；8/9/10/12px 控件与卡（mac-spread/
+   port-num/aurora modal-close/fp-stack/mac-chip/fp-ret/sig-card/pstat → r-md，alert-badge →
+   r-sm）；皮肤块（aurora section 14px/modal 14px/pm-sec 16px/pm-overview 16px → r-lg、
+   pm-card 12px → r-md、seg 9px → r-md、seg button 6px → r-sm；paper 方角 0 身份与 50% 圆
+   全部保留不动）；1173 多值「0 4px 4px 0」→「0 var(--r-sm) var(--r-sm) 0」。③ 阴影两档
+   11 处：ma-menu/alert-panel/toast/pm-card:hover/gloss-tip → var(--shadow-1)；aurora
+   section/pm-sec/pm-overview → var(--shadow-2)；paper 主题块内新增 1 行
+   `--shadow-1: 0 8px 20px rgba(25,25,20,0.12)` 亮色覆盖，其 pm-card:hover 规则体改
+   var(--shadow-1)。④ 描边一档 + 标记条统一 2px 14 处：bauhaus/memphis 的 .modal
+   border 2px → 1px；标记条 3px/4px → 2px（fq-intro/fq-verdict/fq-warn/toast、swiss
+   pm-card 与 heroStrip 左条、clay heroStrip 顶条与 pm-card 左条、bauhaus/memphis
+   heroStrip 底条、paper pm-card border-left-width、memphis pm-card border-bottom-width）。
+2. `_test/tokens.test.mjs`（+96，3 组，44→47，测试先行照 23:17 轮先红后绿先例）：组一
+   「radius 三档令牌」——正则抓 CSS_NC 全部 border-radius（含 !important 与多值形态）逐
+   分量 ∈ 六形态，违规报「选择器: 值」，另卡 --r-sm/md/lg 恰为 4/8/14px；组二「阴影两档
+   令牌」——全部 box-shadow ∈ {var(--shadow-1), var(--shadow-2), none} ∪ inset 开头 ∪
+   ^0 0 0 2px（焦点环复合），--shadow-1/2 须为 rgba(0,0,0,…) 黑基，paper 块须有
+   --shadow-1 亮色覆盖（缺了浅色皮肤会拿到纯黑 0.5 重阴影）；组三「描边一档」——0 处
+   方向边或全边宽度 ≥3px（放行 6 处 solid transparent 滚动条 thumb 内边距技巧）、0 处
+   全边 border: 2px，方向边 2px 即标记条合法。复用既有 CSS_NC/cssVar/themeBlock 助手。
+3. `index.html`（67 处单处替换，保持纯 LF）：业务资源 `?v=20261031e` → `?v=20261101a`
+   （style.css 内容变更触发缓存失效，字典序单调递增；vendor 语义化版本不动；非 v= 改动
+   实测 0 行）。
+
+**与方案的三处偏差裁定（留痕）**：
+- aurora `.pm-card:hover` 的彩色辉光 `0 12px 34px rgba(90,110,255,0.25)` 收敛为中性
+  `var(--shadow-1)`——彩色辉光属第二套海拔语言，玻璃渐变底色身份保留，海拔归令牌；
+- `.pm-out-bar > i` 的 `0 0 10px rgba(var(--glow-1), 0.25)` 辉光**删除**而非收敛——oled
+  皮肤本就覆盖为 none，这是跨皮肤不一致的装饰噪声（删一致性噪声优于保留一份字面量），
+  oled 的 `box-shadow: none` 覆盖随之成为无害冗余保留；
+- 描边实测 14 处而非方案预估 13 处：`clay .pm-card` 左条 3px（L2188）在方案清单外，
+  同属「标记条统一 2px」口径（基础 .pm-card 左竖条即 2px），一并收敛；radius 实测红清单
+  105 处而非方案预估约 80 处（方案按声明行计数、红清单按选择器计数，两口径之差），逐条
+  对照零意外项。
+
+### 测试
+- 测试先行：施工前 `node _test/tokens.test.mjs` = **44 passed / 3 failed**（三组新断言
+  先红，失败清单 radius 105 + shadow 11 + 描边 14，与预案逐条对照零意外项）。
+- 施工后单跑：`node _test/tokens.test.mjs` = **47 passed / 0 failed**（44→47）。
+- 全量：`node _test/run-all.mjs --offline` = 共 43 组（离线 37 / 实网 6），本次执行
+  37 组、跳过 6 组，**✓ 全部测试组通过**。
+- 行尾核验（逐文件实跑字节统计）：style.css CR=2620 LF=2620 全 CRLF（裸 LF=0）、
+  index.html CR=0 纯 LF、tokens.test.mjs CR=0 纯 LF、两份 docs CR=0 纯 LF。
+- 红线核对：全中文注释；分区卡片+折叠布局零改动；8 套皮肤收敛一致生效（paper 方角 0
+  与 50% 圆身份、aurora 玻璃渐变、四套几何皮肤 `* { border-radius: 0 !important }` 身份
+  层全部保留，swiss/clay/memphis 选中豁免与 ev-dot 圆点守卫自然回归）；无成交量展示/
+  无 Polymarket 字样/无省略号问句；纯形状重构不涉买卖建议；零 JS 改动（无 setInterval、
+  零新增取数零 API key，红线 5/6 无涉）；不新增任何动画（存量 box-shadow transition
+  原样，未新碰）；?v= 单调递增至 20261101a；无开源代码移植；未做实网验证（红线 11）；
+  未 git commit / push。
+- 8 套皮肤形状实拍观感属视觉冒烟，留给人工轮次；本轮以结构断言 + 静态守卫为完成判定。
+
+### 涉及文件
+- `css/style.css`、`index.html`
+- `_test/tokens.test.mjs`
+- `docs/TV-ROADMAP.md`（勾选 P0★ 第 3 条）、`docs/OPTIMIZER-LOG.md`（本条目）
