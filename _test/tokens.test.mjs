@@ -545,5 +545,81 @@ test('一级 tab 是 roving tabindex（同一时刻只占一个 Tab 位）', () 
   assert.ok(/id="view-market"[^>]*aria-labelledby="tab-all"/.test(HTML), '市场面板没有用 aria-labelledby 指向当前 tab');
 });
 
+/* ============================================================
+   语义色收敛守卫（2026-10-31 · 路线图 P0★ 第 1 条）
+   ------------------------------------------------------------
+   路线图裁定："红/绿只许表示涨跌"。三道闸：
+   一、--warn 与涨跌色解耦且 8 套皮肤可读（警示用橙，对比度同 AA 正文标准）；
+   二、非涨跌元素禁用 var(--up*)/var(--down*)（规则级方向语义白名单，只减不增）；
+   三、CSS 全文涨跌色硬编码字面量清零（剥令牌声明后无豁免——死令牌 --ok 已删除）。
+   JS 画布 fallback 里的红绿属方向色语义，不在二、三的扫描范围（两者只扫 CSS）。
+   ============================================================ */
+
+test('警示色 --warn 与涨跌色解耦且 8 套皮肤对三表面都 ≥4.5:1', () => {
+  // --warn 曾直接取涨红 #ff5c5c：红涨模式下"警示"与"涨"同色，违反"红只表示涨跌"。
+  // 收敛后深色皮肤用警示橙 #ff8f3d，5 套浅色皮肤各自覆写深琥珀 #a04c05
+  // （对最差表面 paper --bg-elevated #edebe4 实测 4.99:1，对白底 5.95:1）。
+  // 绿涨模式只是 --up/--down 两个字面量互换，下面照两种模式的取值各查一遍。
+  const dirVals = [cssVar('up'), cssVar('down'),
+    (CSS.match(/data-updown="green"\s*\{[^}]*--up:\s*([^;]+);/) || [])[1],
+    (CSS.match(/data-updown="green"\s*\{[^}]*--down:\s*([^;]+);/) || [])[1]]
+    .filter(Boolean).map(v => v.trim().toLowerCase());
+  THEMES.forEach(t => {
+    const warn = themeVarOrRoot('warn', t);
+    assert.ok(/^#[0-9a-f]{6}$/i.test(warn), t + ' 的 --warn 缺失或不是 #rrggbb：' + warn);
+    dirVals.forEach(v => assert.ok(v !== warn.toLowerCase(),
+      `${t} 的 --warn(${warn}) 与涨跌色 ${v} 同值——警示色必须与涨跌色解耦`));
+    const b = themeBlock(t);
+    ['bg', 'bg-elevated', 'bg-card'].forEach(surface => {
+      const bgHex = themeVar(surface, b);
+      assert.ok(/^#[0-9a-f]{6}$/i.test(bgHex), t + ' 的 --' + surface + ' 不是 hex：' + bgHex);
+      const r = contrast(hex2rgb(warn), hex2rgb(bgHex));
+      assert.ok(r >= 4.5,
+        `${t} 的警示色 ${warn} 对 --${surface}(${bgHex}) 只有 ${r.toFixed(2)}:1（AA 正文要 4.5:1）`);
+    });
+  });
+});
+
+test('非涨跌元素禁用涨跌色（规则级方向语义白名单，只减不增）', () => {
+  // 任何规则体里消费 var(--up*)/var(--down*) 八形态的（--up/--down/--up-text/
+  // --up-bg/--up-rgb 及 --down 对应四个），其选择器必须命中方向语义白名单。
+  // 白名单由 2026-10-31 全站排查得出（评审核实恰穷尽剩余方向色规则），
+  // **只减不增**：再往里加条目等于给"红绿非涨跌语义"开新口子，必须走路线图评审。
+  // --up-rgb/--down-rgb 目前在 CSS 无 var() 消费（只有 JS 价格闪烁在用）。
+  const WL = ['.up', '.down', '.hero-chg', '.sb-panic', '.sb-greed', '.thermo-track',
+    '.ts-', '.tc-bias', '.imp-dir', '.pm-chg', '.brk-chg', '.rbar', '.brief-bar', '.brief-v'];
+  const DIR = /var\(--(up|down)(-text|-bg|-rgb)?\s*[),]/;
+  const rules = CSS_NC.match(/[^{}]+\{[^{}]*\}/g) || [];
+  assert.ok(rules.length > 300, '规则切分数异常，选择器可能失效');
+  const bad = rules.filter(r => {
+    if (!DIR.test(r)) return false;
+    const sel = r.slice(0, r.indexOf('{')).trim();
+    return !WL.some(w => sel.includes(w));
+  });
+  assert.equal(bad.length, 0,
+    '这些规则在非方向语义元素上消费涨跌色（白名单只减不增，新增须走评审）：\n    ' +
+    bad.map(s => s.replace(/\s+/g, ' ').trim()).join('\n    '));
+});
+
+test('涨跌色硬编码字面量清零（无豁免——剥令牌声明后 CSS 全文不得再现）', () => {
+  // 语义收敛的最后一道闸：--up/--down/--text-rise/--text-fall 令牌声明本身合法，
+  // 但除此之外 CSS 里不许再出现这些色值字面量（否则改涨跌色时漏改一处就是两份漂移）。
+  // 曾计划给 --ok: #2ebd85 留豁免，实查（ae3768e 已删最后消费者 .status-ok、全仓零
+  // var(--ok) 消费）为死令牌，2026-10-31 直接删除——从此无任何具名豁免，本断言
+  // 是无豁免绝对禁令。JS 画布 fallback 的红绿属方向色语义，不在扫描范围（只扫 CSS）。
+  const stripped = CSS_NC.replace(/--(up|down|text-rise|text-fall)[a-z-]*\s*:\s*[^;]+;/g, '');
+  const BANNED = [
+    [/#ff5c5c/i, '#ff5c5c（涨红）'],
+    [/#2ebd85/i, '#2ebd85（跌绿）'],
+    [/#f6465d/i, '#f6465d'],
+    [/rgba\(\s*255\s*,\s*92\s*,\s*92\s*,/i, 'rgba(255,92,92,·)（涨红系）'],
+    [/rgba\(\s*46\s*,\s*189\s*,\s*133\s*,/i, 'rgba(46,189,133,·)（跌绿系）'],
+    [/rgba\(\s*246\s*,\s*70\s*,\s*93\s*,/i, 'rgba(246,70,93,·)'],
+  ];
+  const hits = BANNED.filter(([re]) => re.test(stripped)).map(([, label]) => label);
+  assert.equal(hits.length, 0,
+    'CSS 里残留涨跌色硬编码字面量（无豁免，改走令牌或 color-mix）：' + hits.join('、'));
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

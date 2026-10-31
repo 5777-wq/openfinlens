@@ -286,7 +286,7 @@ window.FundProfile = (() => {
         if (i >= 0) {
           body += `<h3 class="fp-sub">资产配置（最新一期占净比）</h3>
           <div class="fp-stack">
-            ${stackSeg('股票', arrAt(d.alloc.stock, i), 'var(--up)')}
+            ${stackSeg('股票', arrAt(d.alloc.stock, i), 'var(--ma-1)')}
             ${stackSeg('债券', arrAt(d.alloc.bond, i), 'var(--accent-signature)')}
             ${stackSeg('现金', arrAt(d.alloc.cash, i), 'rgba(255,255,255,0.35)')}
           </div>`;

@@ -67,9 +67,11 @@
   --down-rgb: 46,189,133;
   /* 吸顶跑马条高度：.main 的 padding-top 读它；<1100px 时隐藏并归零（见文件尾部媒体块） */
   --tape-h: 34px;
-  /* 状态语义色（数据源正常/降级）：与涨跌色解耦，不随红绿模式反转（保留上轮契约） */
-  --ok: #2ebd85;
-  --warn: #ff5c5c;
+  /* 警示色：与涨跌色解耦——红/绿只许表示涨跌，警示一律用橙。
+     深色皮肤用警示橙 #ff8f3d；5 套浅色皮肤各自覆写深琥珀 #a04c05
+     （对最差表面 paper --bg-elevated #edebe4 实测 4.99:1，对白底 5.95:1）。
+     死令牌 --ok 已删除：ae3768e 删掉最后消费者 .status-ok 后全仓零消费。 */
+  --warn: #ff8f3d;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fast: 0.2s; --dur-med: 0.4s; --dur-slow: 0.8s;
   --topbar-h: 56px;
@@ -657,7 +659,7 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
    整行只在异常时出现（正常时 hidden）——"一切正常"不需要占据版面。
    异常时做成一��提示条（左侧竖线 + 淡底），而不是一行漂浮的红字。 */
 #sourceStatus.warn { color: var(--warn); padding: 6px 10px; margin-bottom: 10px;
-  border-left: 2px solid var(--warn); background: rgba(255, 92, 92, 0.06); }
+  border-left: 2px solid var(--warn); background: color-mix(in srgb, var(--warn) 7%, transparent); }
 .selftest { margin-bottom: 32px; }
 .selftest summary { cursor: pointer; font-size: 11px; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--text-tertiary); }
@@ -936,7 +938,7 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .ma-line-row button { width: 20px; height: 20px; line-height: 1; font-size: 14px;
   color: var(--text-faint); background: transparent; border: 1px solid transparent;
   border-radius: 3px; cursor: pointer; }
-.ma-line-row button:hover { color: var(--down-text); border-color: var(--border); }
+.ma-line-row button:hover { color: var(--accent-signature); border-color: var(--border); }
 .ma-add { width: 100%; margin-top: 6px; padding: 5px 0; font-size: 12px;
   color: var(--text-secondary); background: transparent; border: 1px dashed var(--border);
   border-radius: 3px; cursor: pointer; }
@@ -1063,7 +1065,7 @@ h1.page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line
 .imp-group { margin-top: 8px; }
 .imp-kind { display: inline-block; font-size: 9px; letter-spacing: .12em; padding: 1px 6px;
   border-radius: 2px; font-family: var(--font-mono); text-transform: uppercase; }
-.imp-kind.k-data { color: #2ebd85; border: 1px solid rgba(46,189,133,.4); }
+.imp-kind.k-data { color: var(--text-secondary); border: 1px solid var(--border-hover); }
 .imp-kind.k-corr { color: #e0a83c; border: 1px solid rgba(224,168,60,.4); }
 .imp-kind.k-ai { color: #b06ad4; border: 1px solid rgba(176,106,212,.4); }
 .imp-edge { display: grid; grid-template-columns: auto auto 1fr auto; gap: 4px 8px;
@@ -1385,7 +1387,7 @@ body.no-crypto .crypto-only { display: none !important; }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cmp-chip-x { width: 16px; height: 16px; line-height: 1; border: none; background: none;
   color: var(--text-faint); font-size: 14px; cursor: pointer; padding: 0; }
-.cmp-chip-x:hover { color: var(--up-text); }
+.cmp-chip-x:hover { color: var(--accent-signature); }
 .cmp-dot { width: 7px; height: 7px; border-radius: 1px; flex: none; display: inline-block; }
 
 .cmp-toolbar { gap: 18px; }
@@ -1560,9 +1562,9 @@ body.no-crypto .crypto-only { display: none !important; }
 .fq-chip { font-size: 10px; padding: 1px 7px; border-radius: 3px; color: var(--text-tertiary);
   border: 1px solid var(--border); white-space: nowrap; }
 .fq-chip.fq-tier { font-family: var(--font-mono); }
-.fq-chip.fq-tier.t1, .fq-chip.fq-tier.t2 { color: var(--down-text); border-color: rgba(46,189,133,.35); }
+.fq-chip.fq-tier.t1, .fq-chip.fq-tier.t2 { color: var(--text-tertiary); border-color: var(--border); }
 .fq-chip.fq-tier.t3 { color: var(--text-secondary); }
-.fq-chip.fq-tier.t4, .fq-chip.fq-tier.t5 { color: var(--up-text); border-color: rgba(255,92,92,.35); }
+.fq-chip.fq-tier.t4, .fq-chip.fq-tier.t5 { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
 .fq-why, .fq-risk { font-size: 11.5px; line-height: 1.7; margin: 0; color: var(--text-secondary); }
 /* 标签占固定宽度 → 正文换行后仍与首行对齐（悬挂缩进） */
 .fq-why b, .fq-risk b { display: inline-block; width: 5em; color: var(--text-faint); font-weight: 400;
@@ -1851,6 +1853,7 @@ html[data-theme="paper"] {
   /* 浅底上的涨跌文字色（实测 5.5:1 / 5.5:1，对 --bg-elevated #edebe4）：
      亮色 #ff5c5c/#2ebd85 压浅底只有 2.2~2.4:1，AA 正文要 4.5:1。 */
   --text-rise: #B02A20; --text-fall: #0F6B48;
+  --warn: #a04c05;
   --chart-text: #6f6f76; --chart-grid: rgba(25,25,20,0.06); --chart-border: rgba(25,25,20,0.14);
   --glow-1: 31,58,95; --glow-2: 91,141,239;
   --topbar-bg: rgba(245,244,239,0.86); --tape-bg: rgba(245,244,239,0.80);
@@ -1868,6 +1871,7 @@ html[data-theme="swiss"] {
   /* 浅底上的涨跌文字色（实测 5.5:1 / 5.5:1，对 --bg-elevated #ffffff）：
      亮色 #ff5c5c/#2ebd85 压白底只有 3.0:1 / 2.4:1，AA 正文要 4.5:1。 */
   --text-rise: #B02A20; --text-fall: #0F6B48;
+  --warn: #a04c05;
   --chart-text: #6f6f6b; --chart-grid: rgba(17,17,17,0.06); --chart-border: rgba(17,17,17,0.16);
   --glow-1: 227,6,19; --glow-2: 17,17,17;
   --topbar-bg: rgba(247,246,242,0.92); --tape-bg: rgba(247,246,242,0.86);
@@ -1885,6 +1889,7 @@ html[data-theme="bauhaus"] {
   --accent-signature: #D7263D; --accent-rgb: 215,38,61;
   /* 浅底上的涨跌文字色（实测 5.5:1 / 5.5:1，对 --bg-elevated #f3eee2） */
   --text-rise: #B02A20; --text-fall: #0F6B48;
+  --warn: #a04c05;
   --chart-text: #555048; --chart-grid: rgba(26,26,26,0.08); --chart-border: rgba(26,26,26,0.18);
   --glow-1: 215,38,61; --glow-2: 26,71,184;
   --topbar-bg: rgba(250,247,240,0.92); --tape-bg: rgba(250,247,240,0.86);
@@ -1902,6 +1907,7 @@ html[data-theme="clay"] {
   --accent-signature: #D97757; --accent-rgb: 217,119,87;
   /* 浅底上的涨跌文字色（实测 5.5:1 / 5.5:1，对 --bg-elevated #F0EEE6） */
   --text-rise: #B02A20; --text-fall: #0F6B48;
+  --warn: #a04c05;
   /* 焦点环：主强调橙压浅底只有 2.78:1（要 3:1），换成同色系深一档的砖橙（4.31:1） */
   --focus-ring: #A85A3C;
   --chart-text: #5a574c; --chart-grid: rgba(43,42,38,0.05); --chart-border: rgba(43,42,38,0.12);
@@ -1921,6 +1927,7 @@ html[data-theme="memphis"] {
   --accent-signature: #FF3D7F; --accent-rgb: 255,61,127;     /* 强调：粉红；其余高饱和色作点缀用色 */
   /* 浅底上的涨跌文字色（实测 5.6:1 / 5.5:1，对 --bg-elevated #f0ece2） */
   --text-rise: #B02A20; --text-fall: #0F6B48;
+  --warn: #a04c05;
   /* 焦点环：主强调粉压在浅色浮层底上只有 2.86:1（要 3:1），换成同色系深一档（5.48:1） */
   --focus-ring: #B31E5A;
   --chart-text: #4a494f; --chart-grid: rgba(24,24,26,0.08); --chart-border: rgba(24,24,26,0.18);
@@ -2259,8 +2266,8 @@ html[data-theme="memphis"] body::before {
 .mac-spreads { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 .mac-spread { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid rgba(255,255,255,0.10); border-radius: 8px; font-size: 12px; color: var(--text-secondary); }
 .mac-spread b { font-weight: 600; color: var(--text); }
-.mac-spread i { font-style: normal; padding: 1px 7px; border-radius: 6px; font-size: 11px; background: rgba(246,70,93,0.16); color: var(--down-text); }
-.mac-spread.inv { border-color: rgba(246,70,93,0.45); }
+.mac-spread i { font-style: normal; padding: 1px 7px; border-radius: 6px; font-size: 11px; background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); }
+.mac-spread.inv { border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
 .mac-group { margin-bottom: 16px; }
 .mac-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
 .mac-chip { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: baseline; gap: 0 8px; padding: 8px 10px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: var(--bg-card); cursor: pointer; text-align: left; transition: border-color 0.15s ease, transform 0.15s ease; }
@@ -2270,7 +2277,7 @@ html[data-theme="memphis"] body::before {
 .mc-pct { font-size: 12px; text-align: right; }
 .mac-sig-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
 .sig-card { padding: 14px; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; background: var(--bg-card); }
-.sig-card.inv { border-color: rgba(246,70,93,0.45); }
+.sig-card.inv { border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
 .sig-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
 .sig-value { font-size: 22px; font-weight: 700; }
 .sig-value small { font-size: 11px; color: var(--text-tertiary); margin-left: 3px; font-weight: 400; }
@@ -2296,8 +2303,8 @@ html[data-theme="memphis"] body::before {
 .prow .num i { font-style: normal; color: var(--text-tertiary); font-size: 11px; }
 .pr-ops { display: flex; gap: 6px; justify-content: flex-end; }
 .pr-op { font-size: 11px; padding: 3px 9px; }
-.pr-op.danger { color: var(--down-text); }
-.pr-op.armed { background: rgba(246,70,93,0.14); border-color: rgba(246,70,93,0.5); }
+.pr-op.danger { color: var(--warn); }
+.pr-op.armed { background: color-mix(in srgb, var(--warn) 14%, transparent); border-color: color-mix(in srgb, var(--warn) 50%, transparent); }
 .port-curve-wrap { position: relative; }
 .port-curve-wrap canvas { width: 100%; display: block; }
 @media (max-width: 900px) {

@@ -167,3 +167,27 @@ P0★「UI 语言统一」小节（6 条全未勾 + 未跟踪的 docs/UI-AUDIT.m
 - `js/charts.js`、`js/app.js`、`index.html`、`css/style.css`
 - `_test/charts.test.mjs`、`_test/tokens.test.mjs`
 - `docs/TV-ROADMAP.md`（勾选 P0 第 3 条）、`docs/OPTIMIZER-LOG.md`（本条目）
+
+## 2026-10-31 22:49 · P0★ 语义色收敛（修订版）：删死令牌 --ok、警示改橙、交互态去涨跌色、tokens.test 三组结构断言
+
+### 目标
+路线图 P0★ 第 1 条：语义色收敛——红/绿只许表示涨跌，警示一律用橙；全站排查替换非涨跌元素上的涨跌色，并在 tokens.test 钉成三组结构断言。修订版相对初版的一处硬伤裁决：初版想保留 `--ok: #2ebd85` 作组三断言豁免，与"红/绿只许表示涨跌"自相矛盾。**--ok 删除依据（评审要求留痕①）**：`git show ae3768e -- css/style.css` 实查显示该"死代码清理"提交已删最后消费者 `.status-ok { color: var(--ok); }` 只留定义；`grep -rn "var(--ok\b"` 全仓（js/css/html/mjs/json）仅命中根目录 4 份独立评审报告 HTML，它们自带内联令牌（如 FIX-VERIFICATION-20260914.html 的 `--ok:#1f7a52`，与 style.css 值不同）且不加载 css/style.css——即全仓对 style.css 的 `--ok` 零消费，自 ae3768e 起即死令牌。删除它使组三断言成为无豁免绝对禁令，恰是路线图的字面要求。
+
+### 改动
+1. `css/style.css`（+21/-14，全 CRLF 保持，14 处小段编辑零整文件重写）：⓪ 删 L70-71 注释与 `--ok: #2ebd85;` 死令牌；① `--warn: #ff5c5c` → `#ff8f3d`（警示橙），注释独立成行置于声明上方（行内注释会被 tokens.test 的 themeVar 正则 `([^;]+)` 捕进值里导致 hex2rgb 抛错，故照 tape-h 注释块先例）；② paper/swiss/bauhaus/clay/memphis 五套浅色皮肤各增 1 行 `--warn: #a04c05;`（**对比度归因（留痕③）**：对最差表面 paper `--bg-elevated #edebe4` 实测 4.99:1，对白底 5.95:1，8 套皮肤 × bg/bg-elevated/bg-card 三表面全部 ≥4.5:1）；③ `#sourceStatus.warn` 淡底 `rgba(255,92,92,0.06)` → `color-mix(in srgb, var(--warn) 7%, transparent)`；④ `.ma-line-row button:hover` 色 `--down-text` → `--accent-signature`；⑤ `.imp-kind.k-data` 硬编码 `#2ebd85`/`rgba(46,189,133,.4)` → `--text-secondary`/`--border-hover`；⑥ `.cmp-chip-x:hover` 色 `--up-text` → `--accent-signature`；⑦ `.fq-tier.t1/.t2` → 中性 `--text-tertiary`/`--border`；⑧ `.fq-tier.t4/.t5` → `--warn` + color-mix 45%；⑨ `.mac-spread i` → warn color-mix 14% 底 + warn 字；⑩ `.mac-spread.inv` / ⑪ `.sig-card.inv` 描边 → warn color-mix 45%；⑫ `.pr-op.danger` → `--warn`；⑬ `.pr-op.armed` 两处红 rgba → warn color-mix 14%/50%。
+2. `js/fundprofile.js`（1 行，CRLF 保持）：L289 资产配置"股票"段 `var(--up)` → `var(--ma-1)`（资产类别取图表调色板槽位蓝；"债券"accent、"现金"白维持）。**留痕②**：该 JS 改动不在组二/组三任何断言扫描范围（两断言只扫 CSS），属装饰性低风险、本轮无单测覆盖，如实记录。
+3. `_test/tokens.test.mjs`（+76，3 组，39→42，测试先行）：组一「警示色 --warn 与涨跌色解耦且 8 套皮肤对三表面都 ≥4.5:1」（themeVarOrRoot('warn') 存在且 hex、≠ 红涨/绿涨两种模式的 --up/--down 值、contrast ≥4.5）；组二「非涨跌元素禁用涨跌色」规则级白名单（按既有 CSS_NC 先例剥注释、`[^{}]+\{[^{}]*\}` 切规则，凡消费 var(--up*)/var(--down*) 八形态的规则 selector 必须命中 14 项方向语义白名单 .up/.down/.hero-chg/.sb-panic/.sb-greed/.thermo-track/.ts-/.tc-bias/.imp-dir/.pm-chg/.brk-chg/.rbar/.brief-bar/.brief-v，评审核实恰穷尽剩余方向色规则；断言信息写明**白名单只减不增**，新增须走评审）；组三「涨跌色硬编码字面量清零（无豁免）」（剥注释 + 剥 `--(up|down|text-rise|text-fall)[a-z-]*:` 令牌声明后，CSS 全文不得出现 #ff5c5c/#2ebd85/#f6465d/rgba(255,92,92,/rgba(46,189,133,/rgba(246,70,93,——因 --ok 已删，无任何具名豁免；JS 画布 fallback 属方向色语义不在扫描范围，只扫 CSS）。
+4. `index.html`（67 处）：业务资源 `?v=20261031c` → `?v=20261031d`（vendor 4 个语义化版本不动，单调递增）。
+5. **保留不动（评审已核实为方向语义，白名单内留痕）**：`.sb-panic`/`.sb-greed`/`.thermo-track` 情绪表盘（恐慌↔跌、贪婪↔涨的方向性情绪刻度）、`.imp-dir`（预期↑↓）、app.js 龙虎榜买卖方向色、价格闪烁 `--up-rgb`/`--down-rgb`（CSS 无 var() 消费、仅 JS WAAPI 用）、portfolio.js 曲线填充。
+
+### 测试
+- 测试先行：施工前 `node _test/tokens.test.mjs` = **39 passed / 3 failed**（新增 3 组先红，失败点与预判一致：组一 --warn=#ff5c5c 撞涨红、组二恰 6 条规则越白名单、组三 5 类字面量残留）。
+- 施工后单跑：`node _test/tokens.test.mjs` = **42 passed / 0 failed**（39→42）。
+- 全量：`node _test/run-all.mjs --offline` = 共 43 组（离线 37 / 实网 6），本次执行 37 组、跳过 6 组，**✓ 全部测试组通过**。
+- 行尾核验（逐文件实跑字节统计）：style.css 2621 CR=2621 LF 全 CRLF（裸 LF=0）、fundprofile.js 382=382 全 CRLF；tokens.test.mjs/index.html/两份 docs CR=0 纯 LF。
+- 未做实网验证（红线 11）；未 git commit / push。8 套皮肤警示橙实拍观感属视觉冒烟，留给人工轮次。
+
+### 涉及文件
+- `css/style.css`、`js/fundprofile.js`、`index.html`
+- `_test/tokens.test.mjs`
+- `docs/TV-ROADMAP.md`（勾选 P0★ 第 1 条）、`docs/OPTIMIZER-LOG.md`（本条目）
