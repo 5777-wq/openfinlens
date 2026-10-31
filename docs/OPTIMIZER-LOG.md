@@ -335,3 +335,27 @@ transition 声明原样保留）；inset 选中/下划线指示条与 focus-ring
 - `css/style.css`、`index.html`
 - `_test/tokens.test.mjs`
 - `docs/TV-ROADMAP.md`（勾选 P0★ 第 3 条）、`docs/OPTIMIZER-LOG.md`（本条目）
+
+## 2026-11-01 01:51 · P0★ 间距骨架①：七档 --sp 令牌进 tokens + 6/10px 两大离格值 172 处清零（14px 与字号音阶留后续轮，条目不勾）
+
+### 目标
+TV-ROADMAP P0★ 第 4 条「间距 8px 骨架」渐进施工第一轮：七档 --sp-4/8/12/16/24/32/48 进 tokens，清掉最大两档离格值 6px/10px（实测 172 处/158 行）。条目**未完**——剩余离格 226 处（实测：14px×58、5px×36、7px×25、18px×22、20px×21、9px×21、28px×8、44px×6、其余零星 29 处）与字号音阶五档（12/13/15/20/32，大数字 30/34/56px 属展示层需裁定豁免口径）留后续轮，TV-ROADMAP 本条**不勾选**。混行尾红线「只小段编辑」零偏离：全程 Edit 声明片段级编辑，无脚本改写。
+
+### 改动
+1. `css/style.css`（162+/158-，全 CRLF 保持）：① --shadow-2 与 --topbar-h 之间插入间距令牌块（注释两行：七档定义 + 映射规则「就近取档、平局向上」，字号音阶五档由后续轮引入不混入本组；一行：--sp-4…48 七档声明，16/24/32/48 骨架先行允许零消费）；② 文件头注释形状令牌行后补「· 间距七档 --sp-4…48（4/8/12/16/24/32/48）」；③ 158 行内 172 处间距声明值替换：6px→var(--sp-8)、10px→var(--sp-12)，共 60 种声明形态、Edit replace_all 按声明片段+分号锚定逐组替换——同行 width/height/left/font-size/transform 等非间距声明从片段粒度上构造性零接触。非间距 6/10px 声明实测 115 处（方案口径 116，差 1 属基线统计口径差）逐字节未动。
+2. `index.html`（67/67）：业务资源 ?v=20261101a → ?v=20261101b（当日字母序单调递增；vendor 语义化版本不动；纯 LF 保持）。已知内联残留照旧留痕：index.html:713 margin-top:6px、js/app.js:2891 margin-top:10px（不在断言域，后续轮随对应文件清理）。
+3. `_test/tokens.test.mjs`（+56，测试先行）：组一「间距七档令牌」——七档经既有 cssVar 读取、值逐个 equal '4px'…'48px'；组二「间距离格值渐进清零 + 令牌真实消费」——断言 A 按 `[^{}]+\{[^{}]*\}` 切规则扫 margin/padding/gap 家族（含方向/逻辑变体）声明，禁用集 ['6','10']（注释写明**只增不减**、14px×58 由后续轮加入）命中必为 0，违规输出「选择器 → 声明」清单，<4px 发丝级豁免（实测 2px×32、3px×15、1px×13）；断言 B var(--sp- ≥150 防令牌摆设化（实际 172）。
+4. 施工后实测口径：间距声明 px 字面量共 536 处——在档未接线 250（8px×84、12px×74、16px×41、4px×40、24px×8、32px×3，后续轮接线）、发丝级 60、离格 226（与 398−172=226 核对一致）。
+
+### 测试
+- 测试先行红相：`node _test/tokens.test.mjs` → **47 passed / 2 failed**（恰为两组新断言；组二违规清单收口 "172 !== 0"，与基线枚举一致、零意外项）。
+- 施工后单跑：`node _test/tokens.test.mjs` → **49 passed / 0 failed**。
+- 全量：`node _test/run-all.mjs --offline` → 共 43 组（离线 37 / 实网 6），执行 37 组**全部通过**（run-all.mjs 零改动）。
+- Q1 硬护栏（只读审计脚本，`git show HEAD:css/style.css` 基线 vs 工作区）：间距声明 6/10px 残留 **0**；非间距声明 115 条多重集逐字节一致（仅剥 \r）；CSS 去注释后 var(--sp- 恰 **172** 次。
+- 行尾字节：style.css CR=LF=2624、裸 LF=0（全 CRLF，+4 行=令牌块 3+头注释 1）；index.html / tokens.test.mjs / OPTIMIZER-LOG.md CR=0（纯 LF）。`git diff --numstat`：style.css 162/158、index.html 67/67、tokens.test.mjs +56——增删合计 ≈545 行，两口径均 ≤600。
+- 未做实网验证（红线 11）；未 git commit / push。零 JS 改动、零新增取数零 API key、零新增动画与调度；8 套皮肤块内 6/10px 消费点同规则替换、身份层零触碰；无成交量展示/无 Polymarket 字样/无省略号问句/纯间距重构不涉买卖建议。
+
+### 涉及文件
+- `css/style.css`、`index.html`
+- `_test/tokens.test.mjs`
+- `docs/TV-ROADMAP.md`（本条未完成不勾选，文件零改动）、`docs/OPTIMIZER-LOG.md`（本条目）

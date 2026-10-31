@@ -773,5 +773,61 @@ test('描边一档：可见描边只许 1px、标记条统一 2px', () => {
     [...new Set(bad)].join('\n    '));
 });
 
+/* ============================================================
+   间距骨架守卫（2026-11-01 · 路线图 P0★ 第 4 条）
+   ------------------------------------------------------------
+   诊断（docs/UI-AUDIT.md 病灶四）：间距无骨架——margin/padding/gap
+   里的 px 字面量 4~48px 十几种档位并存，节奏靠手感不靠系统。
+   处方：--sp-4/8/12/16/24/32/48 七档进 tokens（映射规则：就近取档、
+   平局向上——6px→--sp-8、10px→--sp-12），已转换的离格值清零钉成断言。
+   渐进策略：本轮只清零 6px/10px 两档（实测 172 处），14px×58 处由
+   后续轮加入禁用集；字号音阶五档（12/13/15/20/32）另轮处理。
+   ============================================================ */
+
+test('间距七档令牌：--sp-4…48 进 tokens 且值恰为 4/8/12/16/24/32/48px', () => {
+  // 2026-11-01 骨架先行：--sp-16/24/32/48 本轮允许零消费（后续轮接线），
+  // 消费总量由下一组断言 B 卡下限；这里只钉"七档都在、值不漂"。
+  [['sp-4', '4px'], ['sp-8', '8px'], ['sp-12', '12px'], ['sp-16', '16px'],
+   ['sp-24', '24px'], ['sp-32', '32px'], ['sp-48', '48px']].forEach(([n, v]) => {
+    assert.equal(cssVar(n), v, `--${n} 应恰为 ${v}`);
+  });
+});
+
+test('间距离格值渐进清零 + 令牌真实消费（6/10px 清零、var(--sp-) ≥150）', () => {
+  // 断言 A：规则体内间距家族声明（margin/padding/gap 家族，含方向与
+  // 逻辑变体）不得再现禁用档位的 px 字面量。禁用集**只增不减**：
+  // 2026-11-01 清零 6px/10px 两档（实测 172 处）；14px×58 处由后续轮加入；
+  // <4px 发丝级（1/2/3px，多为描边/微调）不在禁用范围。
+  const BANNED = new Set(['6', '10']);   // 只增不减：14px 由后续轮加入
+  const SP = /^(margin|padding|gap|row-gap|column-gap)(?:-(?:top|right|bottom|left|inline|block|start|end|inline-start|inline-end|block-start|block-end))?$/;
+  const rules = CSS_NC.match(/[^{}]+\{[^{}]*\}/g) || [];
+  assert.ok(rules.length > 300, '规则切分数异常，选择器可能失效');
+  const bad = [];
+  rules.forEach(r => {
+    const i = r.indexOf('{');
+    const sel = r.slice(0, i).replace(/\s+/g, ' ').trim();
+    r.slice(i).split(';').forEach(piece => {
+      const ci = piece.indexOf(':');
+      if (ci < 0) return;
+      const prop = piece.slice(0, ci).replace(/[{}]/g, ' ').trim();
+      if (!SP.test(prop)) return;
+      const val = piece.slice(ci + 1);
+      (val.match(/(?<![\d.])(\d+(?:\.\d+)?)px/g) || []).forEach(px => {
+        const n = parseFloat(px);
+        if (n >= 4 && BANNED.has(String(parseInt(n, 10))))
+          bad.push(`${sel || '(无名规则)'} → ${prop}: ${val.trim()}`);
+      });
+    });
+  });
+  assert.equal(bad.length, 0,
+    '间距家族声明仍含禁用档位字面量（禁用集只增不减，新档位须走评审）：\n    ' +
+    [...new Set(bad)].join('\n    '));
+  // 断言 B：令牌必须真实消费——防"骨架先行"退化成"令牌摆设"。
+  // 本轮 172 处 6/10px 全部转 var(--sp-8/12)，消费下限卡 150；
+  // --sp-16/24/32/48 随后续轮接线后此下限应随轮上调。
+  const used = (CSS_NC.match(/var\(--sp-/g) || []).length;
+  assert.ok(used >= 150, `var(--sp-) 消费只有 ${used} 处（应 ≥150，防令牌摆设化）`);
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
