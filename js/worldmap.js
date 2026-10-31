@@ -451,7 +451,7 @@ window.WorldMapView = (() => {
     if (!ev || !tip) return;
     const head = c.count > 1 ? `${c.count} EVENTS · ${ev.country || ''}` : (ev.country || '');
     tip.innerHTML =
-      `<div style="color:var(--text-tertiary);font-size:10px;letter-spacing:.06em">${escapeHTML(head)}</div>` +
+      `<div style="color:var(--text-tertiary);font-size:var(--fs-12);letter-spacing:.06em">${escapeHTML(head)}</div>` +
       escapeHTML((ev.title || '').slice(0, 64));
     tip.hidden = false;
     const rect = container.getBoundingClientRect();

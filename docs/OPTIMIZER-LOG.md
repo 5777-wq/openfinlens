@@ -408,3 +408,28 @@ TV-ROADMAP P0★ 第 4 条「间距 8px 骨架」渐进施工第三轮。按评�
 - `css/style.css`、`index.html`
 - `_test/tokens.test.mjs`
 - `docs/TV-ROADMAP.md`（本条未完成不勾选——12 档 284 处接线与 spacing 在档接线留后续轮，文件零改动）、`docs/OPTIMIZER-LOG.md`（本条目）
+
+## 2026-11-01 04:22 · P0★ 间距骨架③b：10/11px 字号档 173 处接线归 --fs-12、12 档过渡白名单收窄删两键（剩余 111 处留 ③c，条目不勾）
+
+### 目标
+TV-ROADMAP P0★ 第 4 条「间距 8px 骨架」渐进施工第四轮，按 ③a 留痕的拆轮计划续作：本轮 **③b = 接线最大的两档 10px×86 + 11px×87 共 173 处 → var(--fs-12)**（就近取档规则下 8~12px 全归 --fs-12，Floor=12px 可读性下限），并把十二档过渡白名单按「只减不增」纪律删掉 10px/11px 两键、断言 C 下限 60→230。实测基线（施工前 node 计数）：style.css `font-size: 10px;` 86 处、`font-size: 11px;` 87 处，全部为「带空格+分号」单一形态（无空格形态 0、注释内残留 0）；var(--fs- 消费 68（剥注释同 68）；JS 内联 1~11px 字号仅 worldmap.js:454 一处（vendor 0 处，flags.js:48 为 SVG 绘图属性不在 CSS 断言域）；worldmap.test.mjs 无字号断言。条目**未完**——剩余 8/9/9.5/10.5/11.5/12px 共 111 处由 ③c 收尾、spacing 在档字面量接线（同口径重扫恰 **251 处**：8px×85、4px×40、12px×74、16px×41、24px×8、32px×3，与 ③a 留痕一致）同留后续轮，TV-ROADMAP 本条**不勾选**。混行尾红线零偏离：全程 Edit replace_all 声明片段级编辑（style.css 仅 2 次），无脚本改写、无整文件重写。
+
+### 改动
+1. `_test/tokens.test.mjs`（+17/−12，测试先行照 ①②③a 先红后绿纪律）：① 白名单收窄——ALLOWED 集合删除 '10px' 与 '11px' 两键，余 var(--fs-12/13/15/20/32) ∪ {8px/9px/9.5px/10.5px/11.5px/12px} ∪ {'0'} 共 12 键；② 块注释「进度」段改写：③a 清零 >12 档 67 处 + font 简写清账、③b（本轮）接线 173 处 → var(--fs-12)、剩余 111 处（12px×86 为纯令牌改名，其余 25 处为升档）由 ③c 收尾；③ 测试名改「font-size 收敛五档·阶段二（10/11px 档接线清零、font 简写清零、var(--fs-) ≥230）」；④ 断言 C 下限 60→230（注释写明实测 241 = ③a 68 + ③b 173）防令牌摆设化。
+2. `css/style.css`（173/173，全 CRLF 保持、总行 2631 不变，仅 2 次 Edit replace_all 片段级）：`font-size: 10px;` → `font-size: var(--fs-12);`（86 处）、`font-size: 11px;` → `font-size: var(--fs-12);`（87 处）——声明+分号锚定，同行 font-family/font-weight/color 等声明从片段粒度上构造性零接触；无新令牌、无皮肤块改动（--fs-* 定义全文件恰 5 处、全部在 :root 单点，8 套皮肤一致生效）；无任何动画/transition 触碰。
+3. `js/worldmap.js`（1/1，全 CRLF 保持）：L454 事件浮层内联模板串 `font-size:10px;` → `font-size:var(--fs-12);`——CSS 自定义属性经 :root 继承在内联样式生效（②轮 app.js:2891 margin-top:10px→var(--sp-12) 同机制先例）；事件浮层小字 10→12px 升档与全站 Floor 一致。
+4. `index.html`（67/67，纯 LF 保持）：全部 67 处业务资源 ?v=20261101d → ?v=20261101e（style.css 与 worldmap.js 内容均变更触发缓存失效，当日字母序单调递增；vendor 语义化版本 4.2.3/3.1.0 等不动，`20261101d` 残留 0）。
+
+### 测试
+- 测试先行红相：`node _test/tokens.test.mjs` → **50 passed / 1 failed**（唯一红组即字号组，违规清单收口 "173 !== 0"，与基线枚举 10px×86+11px×87 逐条对照零意外项）。
+- 施工后单跑：`node _test/tokens.test.mjs` → **51 passed / 0 failed**（断言 C 实测 var(--fs- 241 次）。
+- 全量：`node _test/run-all.mjs --offline` → 共 43 组（离线 37 / 实网 6），执行 37 组**全部通过**（run-all.mjs 零改动）。未做实网验证（红线 11）。
+- 复扫互证（node 计数）：接线后 CSS 去注释内 `font-size: 10px;`/`font-size: 11px;` 各恰 **0**、var(--fs- 消费恰 **241**（=240 声明 + 1 .ask::before 简写）、font-size 声明总数 **352**（=var(--fs-12) 173 + 其余 179 = 67 令牌 + 111 白名单余量 + 1 '0'）；断言 A 同口径分布复核：var(--fs-13)×40/var(--fs-15)×13/var(--fs-20)×11/var(--fs-32)×3、12px×86/9px×6/11.5px×10/10.5px×5/8px×2/9.5px×2、'0'×1——与 ③c 剩余口径 8×2/9×6/9.5×2/10.5×5/11.5×10/12×86=111 完全一致。
+- 行尾字节（node 逐字节）：style.css CRLF=2631/裸LF=0（全 CRLF 不变）、worldmap.js CRLF=571/裸LF=0；index.html、tokens.test.mjs、OPTIMIZER-LOG.md CR=0（纯 LF）。`git diff --numstat`：style.css 173/173、index.html 67/67、worldmap.js 1/1、tokens.test.mjs +17/−12——增删合计 **511 行**（不含留痕文档）≤600。
+- 视觉冒烟清单（留人工轮）：10/11px→12px 全站小字升档，重点核对窄容器（pill 徽章、行情条、表格列头、hero-cap 大写字距标签）是否换行溢出；8 套皮肤下色令牌不变仅字号变、对比度结论不变；worldmap 事件浮层小字同步 12px。
+- 红线核对：全中文注释；分区卡片+折叠布局零改动；8 套皮肤 --fs-* :root 单点定义无覆盖；无成交量展示/无 Polymarket 字样/无省略号问句；纯排版收敛不涉买卖建议；零新增取数零 API key、无 setInterval、无新增动画（内联字号变更非动画）；style.css 全程小段编辑保持全 CRLF；?v= 单调递增 20261101e；无开源代码移植、无新增纯函数（接线轮，红线 12 不适用）。未 git commit / push。
+
+### 涉及文件
+- `css/style.css`、`index.html`、`js/worldmap.js`
+- `_test/tokens.test.mjs`
+- `docs/TV-ROADMAP.md`（本条未完成不勾选——③c 111 处与 spacing 在档 251 处接线留后续轮，文件零改动）、`docs/OPTIMIZER-LOG.md`（本条目）
