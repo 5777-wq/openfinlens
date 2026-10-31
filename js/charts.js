@@ -53,9 +53,14 @@ const Charts = (() => {
   }
 
   // 蜡烛图 + 成交量 + MA
-  function createKline(el) {
+  // options（可选第二参）：{ onDrawings, onToolEnd } —— 画线工具的持久化 / 退出回调。
+  // 不传时行为与旧版完全一致（createTrend 不动）。
+  function createKline(el, options) {
     const L = LWC();
     if (!L) return null;
+    const opts = (options && typeof options === 'object') ? options : {};
+    const onDrawings = typeof opts.onDrawings === 'function' ? opts.onDrawings : null;
+    const onToolEnd = typeof opts.onToolEnd === 'function' ? opts.onToolEnd : null;
     const { up, down, lineColors: LINE_COLORS } = themeColors();
     const chart = L.createChart(el, Object.assign(baseOptions(), { height: el.clientHeight || 420 }));
 
@@ -145,6 +150,7 @@ const Charts = (() => {
       if (!paneRaf) return;           // 另一条路径已经画过，别画两遍
       paneRaf = 0;
       if (lastKlines.length) renderPane(lastKlines, themeColors());
+      drawOverlay();                  // 画线 overlay 跟随主图重画（平移/缩放后坐标会变）
     }
     function schedulePaneRender() {
       if (paneRaf) return;
@@ -471,6 +477,7 @@ const Charts = (() => {
       lineSeries.forEach((s, i) => s.applyOptions({ color: slotColorOf(c, i), lineWidth: slotWidthOf(i) }));
       if (lastKlines.length) renderPane(lastKlines, c);
       paintLegend(lastKlines.length - 1);
+      drawOverlay();                  // 画线取色不在 LWC 管线里：换肤即时重取令牌色重画
     }
 
     /* ---- 十字光标图例 ---- */
@@ -540,11 +547,331 @@ const Charts = (() => {
       });
     }
 
+    /* ---------- 画线工具（基础六件：骨架轮，2026-10-31）----------
+       TradingView 模型：绘图层独立于数据序列——画在覆盖主图的 overlay canvas 上，
+       每条画线只存「锚点（tKey 产物的时间串 + 价格）」，重画时按当前视野换算坐标。
+       本轮只做「画得出 / 存得住 / 重画正确」；选中/拖拽/删除/隐藏留给下一条
+       「画线工具·交互」（TV-ROADMAP P0 第 3 条）。
+       · 坐标空间：LWC 主图 pane 左上角 = 容器左上角（价格轴在右、时间轴在下），
+         el 的 offsetX/Y 与 timeToCoordinate/priceToCoordinate 同一坐标空间，
+         overlay 全覆盖 el 即可，无需偏移换算；
+       · 吸附：timeScale().coordinateToTime(x) 经 tKey 归一后反查当前序列的原始 time
+         （日K 是 "YYYY-MM-DD" 串、分钟K 是伪 UTC 秒——存储统一存 tKey 产物字符串），
+         candle.coordinateToPrice(y) 取价；老版本 LWC 没有这两个 API 时静默退化为
+         「画不了」（诚实降级，不假装画上）；
+       · 交互：drawTool 为 null 时事件直接放行（图表照常平移缩放）；激活时只拦
+         mousedown（阻断 LWC 拖拽平移与 subscribeClick 事件标记），mousemove 不拦——
+         十字线/图例照常联动，正好当画图的取点辅助；
+       · 重画：挂在 runPaneRender 的 rAF+40ms 兜底链末尾（fitContent 后坐标下一帧
+         才落地 + 部分 WebView rAF 不触发，同 setData 的注释），resize/换肤各补一次。 */
+    const drawCanvas = document.createElement('canvas');
+    drawCanvas.className = 'k-draw';
+    drawCanvas.setAttribute('aria-hidden', 'true');
+    el.appendChild(drawCanvas);
+
+    let drawings = [];          // 已提交的画线（永远是 sanitizeDrawings 收敛口径）
+    let drawTool = null;        // 当前画线模式：DRAW_TOOLS 之一或 null
+    let draft = null;           // 两点工具的第一下：{ tool, k1, p1, ci }
+    let previewPt = null;       // 鼠标预览落点（吸附产物）：{ k, p }
+    let textInput = null;       // 文字标注的落点输入框
+    let timeByKey = null;       // tKey(k.time) → k.time 反查表（setData 时失效重建）
+
+    const isTwoPoint = (tool) => tool === 'trend' || tool === 'rect' || tool === 'fib';
+    const fmtDrawNum = (v) => String(+Number(v).toFixed(2));
+
+    // 画布就绪：按 devicePixelRatio 设变换，位图尺寸不匹配时重设（防 CSS 拉伸模糊）
+    function drawCtx() {
+      const w = el.clientWidth || 0, h = el.clientHeight || 0;
+      if (!w || !h) return null;
+      const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+      const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+      if (drawCanvas.width !== pw || drawCanvas.height !== ph) {
+        drawCanvas.width = pw;
+        drawCanvas.height = ph;
+      }
+      const ctx = drawCanvas.getContext && drawCanvas.getContext('2d');
+      if (!ctx) return null;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return ctx;
+    }
+
+    // k1（tKey 产物）→ 当前序列里的原始 time：日K 就是字符串本身，分钟K 反查数字。
+    // 反查不到（切了周期/切了标的）返回 null —— 该条画线自动不画、仍保留在存储里。
+    function chartTimeOf(k) {
+      if (!timeByKey) {
+        timeByKey = new Map();
+        lastKlines.forEach(bar => {
+          if (bar && bar.time !== null && bar.time !== undefined) timeByKey.set(tKey(bar.time), bar.time);
+        });
+      }
+      return timeByKey.has(k) ? timeByKey.get(k) : null;
+    }
+
+    // 屏幕点 → 吸附点：x 吸到 K 线时间（必须在当前序列内），y 取价格。不可用返回 null。
+    function snapPoint(x, y) {
+      try {
+        const ts = chart.timeScale && chart.timeScale();
+        if (!ts || typeof ts.coordinateToTime !== 'function') return null;
+        if (!lastKlines.length) return null;
+        const t = ts.coordinateToTime(x);
+        if (t === null || t === undefined) return null;
+        const key = tKey(t);
+        if (!lastKlines.some(bar => tKey(bar.time) === key)) return null;
+        const price = (candle && typeof candle.coordinateToPrice === 'function') ? candle.coordinateToPrice(y) : null;
+        if (price === null || price === undefined || !isFinite(price)) return null;
+        return { k: key, p: +price };
+      } catch (e) { return null; }
+    }
+
+    // 吸附点 → 画布坐标（预览用）；任一解析不出（不可见/反查不到）返回 null
+    function ptCoords(pt) {
+      if (!pt) return null;
+      try {
+        const ts = chart.timeScale && chart.timeScale();
+        const time = chartTimeOf(pt.k);
+        if (!ts || time === null) return null;
+        const x = ts.timeToCoordinate(time);
+        const y = (candle && typeof candle.priceToCoordinate === 'function') ? candle.priceToCoordinate(pt.p) : null;
+        if (x === null || x === undefined || !isFinite(x)) return null;
+        if (y === null || y === undefined || !isFinite(y)) return null;
+        return { x: x, y: y };
+      } catch (e) { return null; }
+    }
+
+    // 画线对象 → 画布坐标：k→time→timeToCoordinate、p→priceToCoordinate；
+    // 两点工具缺 k2/p2 或任一点不可见时返回 null，调用方跳过该条。
+    function coordsOf(d) {
+      try {
+        const ts = chart.timeScale && chart.timeScale();
+        if (!ts || typeof ts.timeToCoordinate !== 'function') return null;
+        const time1 = chartTimeOf(d.k1);
+        if (time1 === null) return null;
+        const x1 = ts.timeToCoordinate(time1);
+        const y1 = (candle && typeof candle.priceToCoordinate === 'function') ? candle.priceToCoordinate(d.p1) : null;
+        if (x1 === null || x1 === undefined || !isFinite(x1)) return null;
+        if (y1 === null || y1 === undefined || !isFinite(y1)) return null;
+        const out = { x1: x1, y1: y1, x2: null, y2: null };
+        if (d.k2 !== undefined && d.k2 !== null) {
+          const time2 = chartTimeOf(d.k2);
+          if (time2 === null) return null;
+          const x2 = ts.timeToCoordinate(time2);
+          const y2 = (candle && typeof candle.priceToCoordinate === 'function') ? candle.priceToCoordinate(d.p2) : null;
+          if (x2 === null || x2 === undefined || !isFinite(x2)) return null;
+          if (y2 === null || y2 === undefined || !isFinite(y2)) return null;
+          out.x2 = x2;
+          out.y2 = y2;
+        }
+        return out;
+      } catch (e) { return null; }
+    }
+
+    // 逐条画：trend 直线 / hline 全宽横线+右端价格标签 / vline 全高竖线 /
+    // rect 归一化矩形（描边 + 6% 填充）/ fib 七档水平细线+档位标签 / text 文字。
+    // 取色全走 --ma-N 令牌链（themeColors），标签文字走 --chart-text（renderPane 同款兜底写法）。
+    function paintShape(ctx, d, c, w, h) {
+      const pt = coordsOf(d);
+      if (!pt) return false;
+      // 横线止于价格轴左缘（与 renderPane 的 axisW 同款逻辑：副图与主图右缘对齐）
+      let axisW = 44;
+      try {
+        const ps = chart.priceScale && chart.priceScale('right');
+        const pw = ps && typeof ps.width === 'function' ? ps.width() : 0;
+        if (pw > 10) axisW = pw;
+      } catch (e) { /* 老版本没有 width()，用默认 44 */ }
+      const color = c.lineColors[(d.ci || 0) % c.lineColors.length];
+      const textColor = getComputedStyle(document.body).getPropertyValue('--chart-text').trim() || '#8a8a92';
+      const fontMono = getComputedStyle(document.body).getPropertyValue('--font-mono').trim() || 'monospace';
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 1;
+      if (d.tool === 'trend') {
+        ctx.beginPath(); ctx.moveTo(pt.x1, pt.y1); ctx.lineTo(pt.x2, pt.y2); ctx.stroke();
+        return true;
+      }
+      if (d.tool === 'hline') {
+        const right = Math.max(10, w - axisW);
+        ctx.beginPath(); ctx.moveTo(0, pt.y1); ctx.lineTo(right, pt.y1); ctx.stroke();
+        ctx.fillStyle = textColor;
+        ctx.font = '10px ' + fontMono;
+        ctx.fillText(fmtDrawNum(d.p1), right - 46, pt.y1 - 3);
+        return true;
+      }
+      if (d.tool === 'vline') {
+        ctx.beginPath(); ctx.moveTo(pt.x1, 0); ctx.lineTo(pt.x1, h); ctx.stroke();
+        return true;
+      }
+      if (d.tool === 'rect') {
+        const rx = Math.min(pt.x1, pt.x2), ry = Math.min(pt.y1, pt.y2);
+        ctx.strokeRect(rx, ry, Math.abs(pt.x2 - pt.x1), Math.abs(pt.y2 - pt.y1));
+        const ga = ctx.globalAlpha;
+        ctx.globalAlpha = 0.06;
+        ctx.fillRect(rx, ry, Math.abs(pt.x2 - pt.x1), Math.abs(pt.y2 - pt.y1));
+        ctx.globalAlpha = ga;
+        return true;
+      }
+      if (d.tool === 'fib') {
+        const right = Math.max(pt.x1, pt.x2);
+        ctx.font = '10px ' + fontMono;
+        fibLevels(d.p1, d.p2).forEach(it => {
+          const y = (candle && typeof candle.priceToCoordinate === 'function') ? candle.priceToCoordinate(it.p) : null;
+          if (y === null || y === undefined || !isFinite(y)) return;
+          ctx.beginPath(); ctx.moveTo(pt.x1, y); ctx.lineTo(pt.x2, y); ctx.stroke();
+          ctx.fillStyle = textColor;
+          ctx.fillText((it.lv * 100).toFixed(1) + '% ' + fmtDrawNum(it.p), right + 4, y - 3);
+          ctx.fillStyle = color;
+        });
+        return true;
+      }
+      if (d.tool === 'text') {
+        ctx.fillStyle = color;
+        ctx.font = '11px ' + fontMono;
+        ctx.fillText(d.text, pt.x1, pt.y1 - 4);
+        return true;
+      }
+      return false;
+    }
+
+    function drawOverlay() {
+      try {
+        const ctx = drawCtx();
+        if (!ctx) return;
+        const w = el.clientWidth, h = el.clientHeight;
+        ctx.clearRect(0, 0, w, h);
+        const c = themeColors();
+        drawings.forEach(d => paintShape(ctx, d, c, w, h));
+        if (!drawTool) return;
+        // 画线模式的辅助预览：吸附点小圆点；两点工具第一下之后实时预览成形
+        const pt = ptCoords(previewPt);
+        const anchor = draft ? ptCoords({ k: draft.k1, p: draft.p1 }) : null;
+        if (anchor) {
+          ctx.beginPath(); ctx.arc(anchor.x, anchor.y, 2.5, 0, Math.PI * 2); ctx.fill();
+          if (pt) paintShape(ctx, {
+            tool: draft.tool, k1: draft.k1, p1: draft.p1, k2: previewPt.k, p2: previewPt.p, ci: draft.ci,
+          }, c, w, h);
+        } else if (pt) {
+          ctx.beginPath(); ctx.arc(pt.x, pt.y, 2.5, 0, Math.PI * 2); ctx.fill();
+        }
+      } catch (e) { /* 图表已销毁/老版本 LWC：忽略，下一帧再试 */ }
+    }
+
+    // 提交：先净化再入库（闭包内 drawings 永远是收敛口径），重画并回调持久化
+    function commitDrawing(nd) {
+      const clean = sanitizeDrawing(nd);
+      if (!clean) return;
+      drawings = sanitizeDrawings(drawings.concat([clean]));
+      drawOverlay();
+      if (onDrawings) onDrawings(drawings);
+    }
+
+    // 文字标注：吸附成功后在锚点浮出输入框，Enter 提交、Esc/失焦取消
+    function discardTextInput() {
+      const inp = textInput;
+      textInput = null;
+      if (inp && inp.parentNode) inp.parentNode.removeChild(inp);
+    }
+    function openTextInput(k, p, x, y) {
+      discardTextInput();
+      const input = document.createElement('input');
+      input.className = 'k-draw-input';
+      input.type = 'text';
+      input.maxLength = 40;
+      input.placeholder = '文字标注';
+      input.setAttribute('aria-label', '文字标注内容');
+      // 锚点即输入框左下角，贴边时往回收一点防出画布
+      input.style.left = Math.round(Math.min(x, Math.max(0, el.clientWidth - 170))) + 'px';
+      input.style.top = Math.round(Math.min(y, Math.max(0, el.clientHeight - 30))) + 'px';
+      el.appendChild(input);
+      textInput = input;
+      const close = (commit) => {
+        if (textInput !== input) return;    // 已被 discardTextInput 收走：不再处理
+        textInput = null;
+        const txt = commit ? String(input.value || '').trim().slice(0, 40) : '';
+        if (input.parentNode) input.parentNode.removeChild(input);
+        if (commit && txt) commitDrawing({ tool: 'text', k1: k, p1: p, text: txt });
+      };
+      input.addEventListener('keydown', (ev) => {
+        ev.stopPropagation();               // Esc/Enter 不漏给全局「退出画线模式」
+        if (ev.key === 'Enter') close(true);
+        else if (ev.key === 'Escape') close(false);
+      });
+      input.addEventListener('blur', () => close(false));
+      input.focus();
+    }
+
+    function onMouseDown(e) {
+      if (!drawTool) return;                // 画线模式未激活：放行（LWC 照常平移/缩放）
+      e.stopPropagation();                  // 阻断 LWC 拖拽平移与 subscribeClick 事件标记
+      e.preventDefault();                   // 防 mousedown 默认夺焦（文字输入框要留在焦点）
+      if (e.button !== 0 || textInput) return;
+      const pt = snapPoint(e.offsetX, e.offsetY);
+      if (!pt) return;                      // 吸附失败不提交（也不清 draft，可换点再按）
+      if (isTwoPoint(drawTool)) {
+        if (draft) {
+          const nd = { tool: draft.tool, k1: draft.k1, p1: draft.p1, k2: pt.k, p2: pt.p, ci: draft.ci };
+          draft = null;
+          commitDrawing(nd);
+        } else {
+          draft = { tool: drawTool, k1: pt.k, p1: pt.p, ci: null };
+          drawOverlay();
+        }
+        return;
+      }
+      if (drawTool === 'text') { openTextInput(pt.k, pt.p, e.offsetX, e.offsetY); return; }
+      commitDrawing({ tool: drawTool, k1: pt.k, p1: pt.p, ci: null });
+    }
+    function onMouseMove(e) {
+      if (!drawTool) return;
+      previewPt = snapPoint(e.offsetX, e.offsetY);
+      drawOverlay();                        // 十字线未拦照常联动；这里只管画图辅助预览
+    }
+    function onMouseLeave() {
+      if (!drawTool) return;
+      previewPt = null;
+      drawOverlay();
+    }
+    // Esc：取消 draft 并退出画线模式（UI 收敛回 app.js 的 applyDrawTool）
+    function onKeyDown(e) {
+      if (!e || e.key !== 'Escape') return;
+      const tg = e.target;
+      if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA' || tg.tagName === 'SELECT')) return;
+      if (!drawTool && !draft) return;
+      draft = null;
+      if (drawTool) {
+        setDrawTool(null);
+        if (onToolEnd) onToolEnd();
+      } else {
+        drawOverlay();
+      }
+    }
+    // capture 挂在 el 上：先于 LWC 内部元素的监听，激活时 stopPropagation 才拦得住
+    try { el.addEventListener('mousedown', onMouseDown, true); } catch (e) { /* ignore */ }
+    try { el.addEventListener('mousemove', onMouseMove, true); } catch (e) { /* ignore */ }
+    try { el.addEventListener('mouseleave', onMouseLeave, true); } catch (e) { /* ignore */ }
+    try { document.addEventListener('keydown', onKeyDown); } catch (e) { /* ignore */ }
+
+    // 切换画线模式：白名单外一律置 null；切换清 draft、el 挂 k-drawing（十字光标）
+    function setDrawTool(tool) {
+      drawTool = (tool && DRAW_TOOLS.indexOf(tool) >= 0) ? tool : null;
+      draft = null;
+      discardTextInput();
+      if (!drawTool) previewPt = null;
+      try { el.classList.toggle('k-drawing', !!drawTool); } catch (e) { /* ignore */ }
+      drawOverlay();
+    }
+
+    // 回灌（切标的/切周期）：整体替换并重画。跨周期锚点解析不出的条目自动不画、保留在存储
+    function setDrawings(list) {
+      drawings = sanitizeDrawings(list);
+      timeByKey = null;
+      drawOverlay();
+    }
+
     function setData(klines) {
       // 盘后/清算时段腾讯日K会混入 OHLC 为 null 的脏bar（lightweight-charts 内部直接炸），
       // 整根剔除：蜡烛/成交量/均线/事件标记共用同一份干净序列
       lastKlines = (klines || []).filter(k => k && k.time !== null && k.time !== undefined &&
         [k.open, k.high, k.low, k.close].every(v => v !== null && v !== undefined && isFinite(v)));
+      timeByKey = null;               // 序列换了：tKey → time 反查表失效（画线侧重建）
       const c = themeColors();
       candle.setData(lastKlines.map(k => ({
         time: k.time, open: k.open, high: k.high, low: k.low, close: k.close,
@@ -651,6 +978,7 @@ const Charts = (() => {
       if (!resizeRaf) return;
       resizeRaf = 0;
       if (lastKlines.length) renderPane(lastKlines, themeColors());
+      drawOverlay();                  // 布局宽度变了：overlay 位图同步重设再画
     }
     function onResize() {
       if (resizeRaf) return;
@@ -674,6 +1002,8 @@ const Charts = (() => {
 
     return {
       chart, candle, setData, applyTheme, setMAVisible, setEvents, setPane, setInfo,
+      // 画线：setDrawings 回灌（按标的）、setDrawTool 切换画线模式
+      setDrawings, setDrawTool,
       // 副图 canvas 挂在主图容器外面，销毁时必须一起摘掉，
       // 否则切标的/切周期会留下一堆空副图（每次 createKline 都新建一个）。
       remove() {
@@ -691,6 +1021,15 @@ const Charts = (() => {
         if (resizeRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(resizeRaf);
         if (paneRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(paneRaf);
         paneRaf = 0;
+        // 画线层一起摘：overlay canvas / 文字输入框 / document keydown / el 上三个 capture 监听
+        // （切标的会反复 createKline，漏摘就堆出一串 Esc 回调与幽灵画布）
+        try { el.removeEventListener('mousedown', onMouseDown, true); } catch { /* ignore */ }
+        try { el.removeEventListener('mousemove', onMouseMove, true); } catch { /* ignore */ }
+        try { el.removeEventListener('mouseleave', onMouseLeave, true); } catch { /* ignore */ }
+        try { document.removeEventListener('keydown', onKeyDown); } catch { /* ignore */ }
+        discardTextInput();
+        try { if (drawCanvas && drawCanvas.parentNode) drawCanvas.parentNode.removeChild(drawCanvas); }
+        catch { /* ignore */ }
         // 十字线状态复位：下一次 createKline 是全新的闭包，不复位也不会串——
         // 显式置空只是让"销毁后仍被 rAF 持有"的窗口期读到一致的空态
         mainCrossX = null;
@@ -962,7 +1301,94 @@ const Charts = (() => {
     return out;
   }
 
-  return { createKline, createTrend, createCompare, calcMA, emaSeries, themeColors, retheme, legendBadge, slotStyles };
+  /* ---- 画线工具纯函数（离线单测钉口径：_test/charts.test.mjs）----
+     画线对象（存储口径）：{ tool, k1, p1[, k2, p2][, text], ci }
+     · tool ∈ DRAW_TOOLS 六件；trend/rect/fib 是两点工具（必须另有合法 k2/p2），
+       hline/vline/text 是单点工具（k2/p2 一律忽略不收）；
+     · k1/k2 是 tKey 的两种产物：日K "YYYY-MM-DD"、分钟K 伪 UTC 秒——存储统一存
+       字符串（纯数字串合法），画图侧按当前序列反查原始 time；数字类型的秒存进来
+       一律拒收（tKey 产物恒为字符串，收到数字说明数据没走过归一）；
+     · 价格经 + 强转必须有限（DOM/localStorage 来的字符串容忍，NaN/Infinity 拒收）；
+     · text 仅 text 工具有：trim 后非空、截断 40 字符；
+     · ci 与 slotStyles 同口径：数值强转 → 归一 0..5，非法（含缺失）→ null
+       （画图侧 ci||0 回退主色）。 */
+  const DRAW_TOOLS = ['trend', 'hline', 'vline', 'rect', 'fib', 'text'];
+  const FIB_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+  const DRAW_MAX = 200;          // 单标的画线上限：防 localStorage 与重画失控
+  const DRAW_KEY_MAX = 24;       // 存储键（标的 symbol）长度上限
+  const DRAW_TEXT_MAX = 40;      // 文字标注长度上限
+  const isDrawTwoPoint = (tool) => tool === 'trend' || tool === 'rect' || tool === 'fib';
+
+  // 时间锚：必须是「YYYY-MM-DD」或纯数字秒串（tKey 两种产物），数字类型一律拒收
+  function sanitizeDrawK(k) {
+    if (typeof k !== 'string') return null;
+    return (/^\d{4}-\d{2}-\d{2}$/.test(k) || /^\d+$/.test(k)) ? k : null;
+  }
+
+  // 价格锚：+ 强转后必须有限（null/undefined/空串/NaN/Infinity 拒收，'1.5' 收敛为 1.5）
+  function sanitizeDrawP(p) {
+    if (p === null || p === undefined || p === '') return null;
+    const v = +p;
+    return isFinite(v) ? v : null;
+  }
+
+  function sanitizeDrawing(d) {
+    if (!d || typeof d !== 'object' || Array.isArray(d)) return null;
+    if (DRAW_TOOLS.indexOf(d.tool) < 0) return null;
+    const k1 = sanitizeDrawK(d.k1);
+    const p1 = sanitizeDrawP(d.p1);
+    if (!k1 || p1 === null) return null;
+    const out = { tool: d.tool, k1: k1, p1: p1 };
+    if (isDrawTwoPoint(d.tool)) {
+      const k2 = sanitizeDrawK(d.k2);
+      const p2 = sanitizeDrawP(d.p2);
+      if (!k2 || p2 === null) return null;
+      out.k2 = k2;
+      out.p2 = p2;
+    }
+    if (d.tool === 'text') {
+      const txt = String(d.text === null || d.text === undefined ? '' : d.text).trim().slice(0, DRAW_TEXT_MAX);
+      if (!txt) return null;
+      out.text = txt;
+    }
+    const ciRaw = (d.ci === undefined || d.ci === null || d.ci === '') ? NaN : Math.round(+d.ci);
+    out.ci = Number.isFinite(ciRaw) ? ((ciRaw % 6) + 6) % 6 : null;
+    return out;
+  }
+
+  function sanitizeDrawings(raw) {
+    if (!Array.isArray(raw)) return [];
+    const out = [];
+    for (let i = 0; i < raw.length && out.length < DRAW_MAX; i++) {
+      const clean = sanitizeDrawing(raw[i]);
+      if (clean) out.push(clean);
+    }
+    return out;
+  }
+
+  /* 画线存储表：{ [symbol]: drawing[] }。键（标的 symbol）须 trim 后非空且
+     ≤24 字符；真符号必带市场前缀/字母（sh600519 / usAAPL / BTCUSDT / EM:…），
+     纯数字键只可能是旧数据误存的下标，一并剔除。 */
+  function sanitizeDrawStore(raw) {
+    const out = {};
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+    Object.keys(raw).forEach((key) => {
+      const k = String(key).trim();
+      if (!k || k.length > DRAW_KEY_MAX || /^\d+$/.test(k)) return;
+      const list = sanitizeDrawings(raw[key]);
+      if (list.length) out[k] = list;
+    });
+    return out;
+  }
+
+  // 斐波那契回撤档位：p1→p2 之间的 7 档价位，纯算术、方向无关（反向锚点同表）
+  function fibLevels(p1, p2) {
+    const a = +p1, b = +p2;
+    return FIB_LEVELS.map(lv => ({ lv: lv, p: a + (b - a) * lv }));
+  }
+
+  return { createKline, createTrend, createCompare, calcMA, emaSeries, themeColors, retheme, legendBadge, slotStyles,
+    DRAW_TOOLS, sanitizeDrawing, sanitizeDrawings, sanitizeDrawStore, fibLevels };
 })();
 
 window.Charts = Charts;

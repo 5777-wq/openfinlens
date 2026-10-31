@@ -49,3 +49,27 @@
 - `js/charts.js`、`js/app.js`、`index.html`、`css/style.css`
 - `_test/charts.test.mjs`（新建）、`_test/tokens.test.mjs`、`_test/run-all.mjs`
 - `docs/TV-ROADMAP.md`（勾选 P0 两条）、`docs/OPTIMIZER-LOG.md`（本条目）
+
+## 2026-10-31 20:41 · P0 画线工具基础六件：吸附 K 线 + 按代码 localStorage 持久化
+
+### 目标
+TV-ROADMAP P0 第 2 条（骨架轮）：只做「画得出 / 存得住 / 重画正确」——趋势线/水平线/垂直线/矩形/斐波那契回撤/文字标注六件，吸附 K 线落点，按标的 symbol 存 localStorage；选中/拖拽/删除/隐藏留给下一条「画线工具·交互」（P0 第 3 条）。勾完本条 P0 仍余 5 条未勾，不构成里程碑。
+
+### 改动
+1. `js/charts.js`（+429/-8，保持全 CRLF）：① 纯函数区新增并导出 `DRAW_TOOLS=['trend','hline','vline','rect','fib','text']`、`sanitizeDrawing`（tool 白名单 / k1 必须是 `YYYY-MM-DD` 或纯数字秒**字符串**（tKey 两种产物，数字类型拒收）/ p1 经 `+` 强转须有限 / 两点工具（trend/rect/fib）必须另有合法 k2,p2、单点工具忽略 k2,p2 / text trim 非空截断 40 字符 / ci 与 slotStyles 同口径归一、非法→null）、`sanitizeDrawings`（非数组→[]、脏项过滤、200 条上限）、`sanitizeDrawStore`（键 trim 后非空且 ≤24 字符、**纯数字键剔除**——真符号必带市场前缀/字母，纯数字键只可能是误存下标；值须非空数组逐项净化）、`fibLevels`（FIB 七档，纯算术方向无关）；② `createKline` 增可选第二参 `options={onDrawings,onToolEnd}`（不传行为不变，createTrend 不动）：`.k-draw` overlay canvas 挂 el（同 .k-legend 先例，z-index 低于图例、pointer-events:none），dpr 变换 + 尺寸失配重设位图；`snapPoint` 走 `coordinateToTime` 经 tKey 反查当前序列原始 time + `coordinateToPrice`，任一不可用返回 null（老版本 LWC 静默退化为画不了，诚实降级）；`drawOverlay` 逐条 k→time→`timeToCoordinate`、p→`priceToCoordinate`，按 tool 分支画 trend/hline（止于 priceScale('right').width() 同款逻辑，右端价格标签）/vline/rect（描边+6% 填充）/fib（7 条水平细线+档位%/价格标签）/text；取色全走 themeColors 的 --ma-N 令牌链、标签文字走 --chart-text（renderPane 同款兜底写法）；交互 capture 监听 el 的 mousedown/mousemove/mouseleave + document keydown——drawTool 为 null 放行，激活时仅 mousedown stopPropagation（拦 LWC 平移与 subscribeClick 事件标记，十字线/图例照常联动当取点辅助），单点工具一下提交、两点工具第一下落 draft、mousemove 预览、第二下提交，Esc 取消 draft 并退出（onToolEnd 回调），text 工具锚点浮出 `.k-draw-input`（Enter 提交、Esc/失焦取消）；提交路径 `sanitizeDrawings(drawings.concat([nd]))` → 重画 → onDrawings；`setDrawings(list)` 回灌（timeByKey 反查表失效重建）、`setDrawTool(tool)`（白名单外置 null、清 draft、el toggle `k-drawing`）；③ 重画接线：`runPaneRender` 末尾追加 `drawOverlay()`（复用 rAF+40ms WebView 兜底链）、`runResizeRender`/`applyTheme` 各补一次（换肤即时重取令牌色）、`setData` 里失效反查表；④ remove() 摘除 drawCanvas / 文字输入框 / document keydown / el 三监听。
+2. `js/app.js`（+55/-2，保持全 CRLF）：① state 增 `drawTool:null`；② `saveDrawings(list)`（键=state.detail.symbol 写 `drawV1`，读写两侧都过 Charts.sanitizeDraw*，清空即删键）、`drawFor(symbol)`、`applyDrawTool()`（同步 [data-draw] 按钮 active 态 + state.chart.setDrawTool，图表可能已随切标的换新故带守卫）；③ createKline 调用处传 `{ onDrawings: saveDrawings, onToolEnd: ()=>{ state.drawTool=null; applyDrawTool(); } }`；④ loadDetailChart 的 K 线分支在 setData/setMAVisible 之后 `setDrawings(drawFor(t.symbol))` + `applyDrawTool()`——图表实例跨标的复用时每次按当前 symbol 重灌，无串档窗口；⑤ bindEvents 绑 6 个画线按钮：同 tool 再点退出（toggle）、否则切换（与 maToggle 同款模式）。
+3. `index.html`（保持 LF）：详情工具条 alertDetailBtn 后追加 6 个 `<button class="pill draw-btn" data-draw="…">`（字形 ╱ ─ │ ▭ ƒ T，title/aria 全中文含「吸附K线，Esc退出」提示）；全部 67 处业务资源 `?v=20261031a` → `?v=20261031b`（单调递增 bump，vendor 语义化版本 4.2.3 等不动）。
+4. `css/style.css`（+18，只小段插入、保持全 CRLF）：`.k-draw`（absolute inset:0、pointer-events:none、z-index:4 低于图例的 5）、`#klineChart.k-drawing{cursor:crosshair}`、`.k-draw-input`（bg --bg-card / border --chart-border / color --text 令牌）、`.draw-btn.active`（accent + bg-hover + border-hover 令牌）与 `.draw-btn` 过渡（仅 border-color/color，--dur-fast/--ease-out）。**与方案的一处偏差**：输入框文字色方案写的是 `--text-primary`，本仓库无该令牌（主文字令牌是 `--text`），按实有令牌落地。
+5. `_test/charts.test.mjs`（+15 组，共 29 组）：sanitizeDrawing 8 组（合法往返收敛 / tool 白名单含大写拒收 / k1 两种 tKey 产物通过、数字与脏串拒收 / p1 强转与有限性 / 两点必填 k2,p2、单点忽略 / text 空拒超长截 40 / ci 归一 / 非对象拒）；sanitizeDrawings 2 组；sanitizeDrawStore 2 组（坏键坏值收敛、合法结构保留）；fibLevels 2 组（10→20 七档 0.5 档=15、反向 20→10 的 0.618 档=13.82、p1=p2 全档同价）；白名单一致性 1 组（读 index.html 断言 6 个 data-draw 全 ∈ DRAW_TOOLS 且互不重复，防 UI 与白名单漂移）。跨 realm 对象一律 JSON.stringify 串比较（既有先例）。
+6. `_test/tokens.test.mjs`（+1 组，共 37 组）：「index.html 必须保留 6 个 data-draw 画线按钮（title/aria 齐全）」结构守卫；`?v=` 一致性与 vendor 版本守卫 bump 后自然通过无需改。
+
+### 测试
+- `node _test/run-all.mjs --offline`：共 43 组（离线 37 / 实网 6），本次执行 37 组、跳过 6 组，**✓ 全部测试组通过**（基线 37 组全绿，施工后仍 37 组全绿）。
+- 单跑：`node _test/charts.test.mjs` 29 passed / 0 failed（新增 15 组）；`node _test/tokens.test.mjs` 37 passed / 0 failed（新增 1 组）。
+- 红线核对：全中文 title/aria；overlay 取色全走 --ma-N/--chart-text 令牌链、applyTheme 换肤重画；无成交量展示/无 Polymarket 字样/无省略号问句；纯几何标注工具不涉买卖建议；零新增取数零 API key（红线 6 无涉）；无 setInterval（复用 rAF+40ms 兜底 setTimeout 链，无新增调度）；charts.js/app.js/style.css 保持全 CRLF、index.html/测试/docs 保持 LF；?v= bump 至 20261031b；无开源代码移植；未做实网验证（红线 11）；未 git commit / push。
+- 浏览器内实画（真点按/拖拽）属视觉冒烟，留给人工轮次；本轮以纯函数单测 + 静态守卫为完成判定依据。
+
+### 涉及文件
+- `js/charts.js`、`js/app.js`、`index.html`、`css/style.css`
+- `_test/charts.test.mjs`、`_test/tokens.test.mjs`
+- `docs/TV-ROADMAP.md`（勾选 P0 第 2 条）、`docs/OPTIMIZER-LOG.md`（本条目）

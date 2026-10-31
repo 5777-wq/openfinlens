@@ -156,6 +156,18 @@ test('index.html 必须保留指标面板的一键重置入口（id="maReset"）
   assert.ok(/id="maReset"/.test(HTML), '指标菜单的「恢复默认」按钮被删了（一键重置入口不许被误删）');
 });
 
+test('index.html 必须保留 6 个 data-draw 画线按钮（title/aria 齐全）', () => {
+  // 画线工具入口与图表白名单的一致性由 charts.test.mjs 卡（data-draw ∈ DRAW_TOOLS）；
+  // 这里只卡「入口不许被误删/缺无障碍标注」：6 件工具（趋势线/水平线/垂直线/矩形/
+  // 斐波那契回撤/文字标注）少一个，用户就少一件画具且不会有任何报错。
+  const tags = HTML.match(/<button[^>]*data-draw="[^"]*"[^>]*>/g) || [];
+  assert.equal(tags.length, 6, `画线按钮应为 6 个，实际 ${tags.length}`);
+  tags.forEach(b => {
+    assert.ok(/title="[^"]+"/.test(b), '画线按钮缺 title：' + b);
+    assert.ok(/aria-label="[^"]+"/.test(b), '画线按钮缺 aria-label：' + b);
+  });
+});
+
 test('charts.js 不得再自带一份均线调色板字面量', () => {
   const charts = readFileSync(path.join(ROOT, 'js/charts.js'), 'utf8');
   assert.ok(!/LINE_COLORS\s*=\s*\[/.test(charts), 'charts.js 又出现了 LINE_COLORS 字面量数组');

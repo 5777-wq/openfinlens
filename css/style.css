@@ -1705,6 +1705,23 @@ body.no-crypto .crypto-only { display: none !important; }
 /* 常显徽标（代码 · 周期）：比读数行略重一档，纯 color 走令牌，暗亮皮肤自动适配 */
 .k-legend .kl-sym { color: var(--text-secondary); font-weight: 500; padding-right: 2px; }
 
+/* ---- 画线工具 overlay（2026-10-31，基础六件骨架轮）----
+   画线 canvas 覆盖主图容器（#klineChart 已是 position:relative）：z-index 低于
+   图例(5)高于 LWC 画布，pointer-events 关闭不挡图表手势；画线模式下容器换十字光标。 */
+.k-draw { position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 4; }
+#klineChart.k-drawing { cursor: crosshair; }
+/* 文字标注的落点输入框：锚点处浮出的小输入框，配色全走令牌（暗亮皮肤自动适配） */
+.k-draw-input { position: absolute; z-index: 6; width: 160px; padding: 3px 6px;
+  font-size: 12px; font-family: var(--font-mono);
+  background: var(--bg-card); border: 1px solid var(--chart-border); color: var(--text);
+  outline-offset: 1px; }
+/* 画线按钮选中态：复用 .pill 配色令牌加描边，激活一眼可辨；
+   过渡只碰 border-color/color（方案口径），时长统一走 --dur-fast/--ease-out */
+.draw-btn { transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+.draw-btn.active { color: var(--accent-signature); border-color: var(--border-hover);
+  background: var(--bg-hover); }
+
 /* ---- 到价提醒（2026-09-17）：顶栏铃铛面板 / 详情按钮 / 创建弹层 / toast ---- */
 .alert-badge {
   display: inline-block; min-width: 15px; height: 15px; margin-left: 5px;

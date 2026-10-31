@@ -122,6 +122,7 @@
     etf: null, etfAt: 0, etfVia: null, etfCachedAt: 0, etfSub: 'spmo',
     pendingEtfScroll: false,      // 深链 #etf= 进来：数据到位后滚到因子 ETF 持仓块
     chartEventsOn: true,       // 详情页 K 线事件标记开关
+    drawTool: null,            // 画线模式：Charts.DRAW_TOOLS 之一或 null（详情工具条切换，Esc 退出）
     // Movers 三榜的行载荷（data-symbol → 全市场行）：行不在 universe 轮询全集里，
     // 点击进详情需要 secid/market 映射，渲染时顺手登记
     moversRows: new Map(),
@@ -2209,6 +2210,33 @@
     el.klineChart.innerHTML = '';
   }
 
+  /* ---- 画线持久化（2026-10-31）：键 = 标的 symbol（跨市场唯一，同自选口径），值 = 画线数组 ----
+     存储键 drawV1（落盘为 gfd_drawV1）；读写两侧都过 Charts.sanitizeDraw* 净化，
+     localStorage 里的脏数据（旧版本/手改）进不了渲染管线。 */
+  function saveDrawings(list) {
+    const t = state.detail;
+    if (!t) return;                 // 详情已关：无处回灌，丢弃
+    const all = window.Charts.sanitizeDrawStore(Store.get('drawV1', {}));
+    const clean = window.Charts.sanitizeDrawings(list);
+    if (clean.length) all[t.symbol] = clean;
+    else delete all[t.symbol];      // 画线清空即删键，不留空数组
+    Store.set('drawV1', all);
+  }
+
+  function drawFor(symbol) {
+    if (!symbol) return [];
+    return window.Charts.sanitizeDrawStore(Store.get('drawV1', {}))[symbol] || [];
+  }
+
+  // 画线模式与按钮 active 态同步（maToggle 同款模式）：按钮点击与 Esc 退出两条路径
+  // 的 UI 状态都收敛到这一处；图表可能已随切标的换新，回调里按当前 state.chart 走
+  function applyDrawTool() {
+    document.querySelectorAll('[data-draw]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.draw === state.drawTool);
+    });
+    if (state.chart && state.chart.setDrawTool) state.chart.setDrawTool(state.drawTool);
+  }
+
   async function loadDetailChart() {
     const t = state.detail;
     if (!t) return;
@@ -2250,7 +2278,11 @@
 
     if (state.chartKind !== kind) {
       disposeChart();
-      state.chart = kind === 'trend' ? window.Charts.createTrend(el.klineChart) : window.Charts.createKline(el.klineChart);
+      state.chart = kind === 'trend' ? window.Charts.createTrend(el.klineChart) : window.Charts.createKline(el.klineChart, {
+        onDrawings: saveDrawings,
+        // Esc 退出画线：回调读当前 state（图表可能已随切标的换新），UI 收敛到 applyDrawTool
+        onToolEnd: () => { state.drawTool = null; applyDrawTool(); },
+      });
       state.chartKind = kind;
     }
     if (!state.chart) { el.chartBox.classList.add('off'); return; }
@@ -2279,6 +2311,10 @@
     } else {
       state.chart.setData(data);
       state.chart.setMAVisible(maCfg.lines);
+      // 画线回灌（K 线分支）：切标的/切周期都按当前 symbol 重灌——图表实例跨标的
+      // 复用时每次都重灌，无串档窗口；跨周期锚不上的画线该条自动不画、仍保留在存储
+      if (state.chart.setDrawings) state.chart.setDrawings(drawFor(t.symbol));
+      applyDrawTool();
     }
     // 事件标记层：全球事件 + 龙虎榜按 symbol 落位（分时为 no-op）
     applyDetailEvents();
@@ -5966,6 +6002,14 @@
         applyDetailEvents();
       });
     }
+
+    // 画线工具（基础六件）：同 tool 再点退出（toggle），否则切换并同步图表模式
+    document.querySelectorAll('[data-draw]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.drawTool = state.drawTool === btn.dataset.draw ? null : btn.dataset.draw;
+        applyDrawTool();
+      });
+    });
 
     // 搜索
     el.searchInput.addEventListener('input', (e) => doSearch(e.target.value.trim()));
