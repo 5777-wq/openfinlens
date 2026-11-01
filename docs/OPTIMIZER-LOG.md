@@ -513,3 +513,29 @@ TV-ROADMAP P0★ 第 4 条「间距 8px 骨架」渐进施工第七轮（收尾�
 - `css/style.css`、`index.html`
 - `_test/tokens.test.mjs`
 - `docs/TV-ROADMAP.md`（勾选 P0★「间距 8px 骨架」与「产业链展开态 .chain-flow 规则头恢复」两条）、`docs/OPTIMIZER-LOG.md`（本条目）
+
+## 2026-11-01 08:37 · P0★ 暗色对比度修复 + 移动端修急——暗色灰阶提亮/黑影禁用改 1px 描边、简报带堆叠级联序修复、顶栏搜索占中（P0★ 小节收官里程碑）
+
+### 目标
+TV-ROADMAP P0★ 最后两条合并施工（「小项可合并」）：①「暗色皮肤对比度修复」——UI-AUDIT 病灶五（OLED 纯黑下对比度塌：阴影在纯黑上不可见、卡片失边界、灰字约 3:1）；②「移动端修急」——病灶六（390px 情绪条行溢出"3 涨"数字被裁、顶栏拥挤）。两条完成即 P0★ 7 条全勾 = 小节收官里程碑。施工前 node 实算定位两处病根：**暗色三套（:root/aurora/oled）--text-faint 对最差表面仅 2.75~2.98:1**（.brief-c 计数/图例刻度等信息性文字正用它，旧注释"仅装饰符号不承载信息"不成立）；**--border rgba alpha 0.06~0.10 合成后对 --bg 仅 1.10~1.15:1**（卡片边界形同不存在）；**--shadow-1 rgba(0,0,0,0.5) 黑影叠 #0a0a0b/#000 底 1:1 不可见**。**移动端修急的病根不是缺规则而是级联序事故**——窄屏堆叠规则（grid-template-columns: 1fr 等）写在文件前部首个 640px 媒体块（红相实测 index 37865），被文件更后位置的 .brief-row/.brief-v 基础规则（index 87404、同特异性后者胜）静默覆盖，三列网格 170+140+间距已 326px、390px 屏可用 ~358px、第三列 brief-v 只剩十几像素。混行尾红线零偏离：style.css 全程 Edit 片段级小段编辑（14 次替换/插入），无脚本改写、无整文件重写。
+
+### 改动
+1. `_test/tokens.test.mjs`（126/9，纯 LF 保持，测试先行先红后绿）：① 「阴影两档令牌」组尾改写：:root --shadow-1/2 断言由 rgba(0,0,0,…) 黑基改为 **=== 'none'**（暗色禁阴影）；5 套浅色皮肤（swiss/paper/bauhaus/clay/memphis）块 themeVar('shadow-1') 必须存在且含 rgba（浅色亮影承接海拔）；aurora/oled 两块不得覆写 shadow 令牌（继承 none）；组内 box-shadow 声明白名单断言原样保留；测试名同步改写。② 新增组「暗色 3 套文字灰阶对全部四表面 ≥4.5:1」：[':root','aurora','oled'] × ['text-secondary','text-tertiary','text-faint'] 经 themeVarOrRoot 取值，对 bg/bg-elevated/bg-card/bg-hover 用既有 contrast() 实算 ≥4.5（红相：faint 2.98 先红钉住）。③ 新增组「暗色 1px 描边可见度」：新增 rgbaOver 合成助手（rgba 前景按 alpha 合成到 bg 再算——描边是半透明色，直接拿 rgba 值算对比度会失真），--border 合成后 ≥1.25:1、--border-hover ≥1.7:1（红相：:root 1.15 先红）。④ 新增组「移动端修急：简报带堆叠级联序 + 顶栏搜索占中」：CSS_NC 中 '.brief-row { grid-template-columns: 1fr' 的位置必须 **>** '.brief-row { display: grid' 的位置（级联序守卫——本轮事故形态钉死，红相 37865 < 87404）；.brief-v white-space:normal、.logo span 缩图标存在；.topbar-actions { flex: 1 与 .search-wrap { flex: 1、.search-input width:100% 锚定在 .topbar-actions 所在媒体块内断言（**方案偏差修正**：全站已有 `.cmp-search .search-input { width: 100%; }`（css/style.css:1395），按方案原文做全局子串断言会恒绿误判已修，故收窄到媒体块作用域并补 138px 定宽清零断言）。
+2. `css/style.css`（39/18，全 CRLF 保持、总行 2632→2653，14 次 Edit 片段级）：① :root 灰阶提亮（原地改值）：--text-secondary #9a9aa2→#b4b4bc、--text-tertiary #808088→#a0a0a8、--text-faint #5c5c63→#8a8a92，faint 行尾注释改写（.brief-c 计数/图例刻度等信息性文字也用它、已提亮至 ≥4.5:1、浅色皮肤块各自覆写不受影响）；② :root --shadow-1/--shadow-2 值改 none，注释块改写（暗色 3 套一律禁阴影、卡片边界交给 1px 描边、浅色亮影由皮肤块承接；**方案偏差修正**：方案注释稿称"--shadow-2 现无消费者"，实查 --shadow-2 消费者恰有 aurora 玻璃面板三处（.section L2021/.pm-sec L2076/.pm-overview L2085），注释按实情写"消费者仅 aurora 三处、暗色下同样解析为 none、保留令牌位"——方案该句为不实陈述，不照抄）；③ :root --border 0.07→0.15、--border-hover 0.16→0.26；④ aurora 块灰阶 #9aa2b8→#aeb7cf、#7e86a0→#96a0bc、#5a6178→#7e88a6、--border 0.10→0.17、--border-hover 0.22→0.32；⑤ oled 块 --border 0.06→0.15、--border-hover 0.14→0.26（灰阶继承 :root 不覆写）；⑥ 4 套浅色皮肤块各 +1 行 --shadow-1 亮影（swiss rgba(17,17,17,0.16)/bauhaus rgba(26,26,26,0.16)/clay rgba(43,42,38,0.14)/memphis rgba(24,24,26,0.16)，均 0 8px 24px 形态；paper 已有不动）；⑦ 简报带级联序修复：删首个 640px 媒体块内死规则（注释+3 条，留指针注释），在 .brief-v b.lead.down 之后、wgrid 注释之前插入 @media (max-width:640px) 堆叠块（.brief-row 1fr / .brief-bar 100% / .brief-v normal）+ 中文注释说明必须位于基础规则之后；⑧ 顶栏重排：.topbar-actions margin-left:auto→flex:1 + margin-left:var(--sp-16) + min-width:0，新增 .search-wrap{flex:1;min-width:0;}、.search-input 138px→100%，logo 规则上方补重排注释。所有 box-shadow:var(--shadow-1/2) 消费者（ma-menu:943、alert-panel:1810、ofl-toast:1849、pm-card:hover:2010、aurora 玻璃面板 .section:2042/.pm-sec:2097/.pm-overview:2106、paper pm-card:hover:2084、gloss-tip:2526）声明原样、暗色下解析为 none，pm-card:hover 保留 transform 浮起 + border-color 反馈；js/*.js 零改动（grep 确认无 box-shadow/灰阶硬编码消费）。
+3. `index.html`（67/67，纯 LF 保持）：全部 67 处业务资源 ?v=20261101h→?v=20261101i（style.css 内容变更触发缓存失效，当日字母序单调递增；vendor 语义化版本 4.2.3/3.1.0/3.2.4/3.1.1 不动，20261101h 残留 0）。
+4. `docs/TV-ROADMAP.md`：勾选 P0★ 上述两条（条目文字不动）。至此 P0★ 7 条全勾 = 小节收官里程碑。
+
+### 测试
+- 测试先行红相：`node _test/tokens.test.mjs` → **53 passed / 4 failed**（唯四红组即阴影组/暗色灰阶组/描边可见度组/移动端级联序组，红项与施工前 node 实算预判逐一对照零意外：阴影 s1=rgba(0,0,0,0.5)≠none、faint 2.98<4.5、:root --border 合成 1.15<1.25、堆叠 37865<87404）。
+- 施工后单跑：`node _test/tokens.test.mjs` → **57 passed / 0 failed**（53→57 新增 3 组 + 阴影组改写；方案预估 51→55 为基数口径差，红相 53/4 与四 test 结构互证）。
+- 全量：`node _test/run-all.mjs --offline` → 共 43 组（离线 37 / 实网 6），执行 37 组**全部通过**（基线本轮施工前实测同 37 组全绿，run-all.mjs 零改动）。未做实网验证（红线 11）。
+- 对比度实算（node，WCAG 相对亮度公式，施工前预验 + 测试组全量钉死）：暗色灰阶新值对最差表面——:root 8.85/7.02/5.32、oled（继承 :root）9.08/7.21/5.46、aurora 8.53/6.56/4.86，全部 ≥4.5:1（旧值 2.75~2.98）；描边合成后 :root 1.47/2.22、aurora 1.30/1.81、oled 1.39/2.10，全部 ≥1.25/≥1.7（旧值 1.10~1.15/1.35~1.53）。方案给出的 aurora 4.86 与 :root/oled 各值实算吻合；方案旧值口径 6.64/4.73/2.80 与本轮实算 6.52/4.65/2.75 为表面集合口径差（四表面 vs 三表面），新值与阈值判定不受影响，如实记录。
+- 行尾核验（node 逐字节）：style.css CRLF=2653/裸 LF=0（全 CRLF，+21 行）；index.html CR=0 纯 LF；tokens.test.mjs CR=0 纯 LF；TV-ROADMAP.md/OPTIMIZER-LOG.md CR=0 纯 LF。`git diff --numstat`：tokens.test.mjs 126/9、style.css 39/18、index.html 67/67——增删合计 **326 行** ≤600（方案估 ≈300，同区间）。
+- `?v=` 守卫：20261101i 恰 67 处、20261101h 残留 0、vendor 四个语义化版本原样。
+- 视觉冒烟清单（留人工轮）：暗色 3 套（终端黑/极光/纯黑）的灰阶观感与卡片 1px 边界清晰度、4 套浅色悬停浮起阴影变轻（0.5→0.14~0.16 alpha）、390px 简报带三行堆叠（标签/分布条/数字，"3 涨"完整可读）、顶栏搜索占中后的第一行观感与触控目标宽度。
+- 红线核对：全中文注释；分区卡片+折叠布局零改动；8 套皮肤全兼容（浅色 5 套仅 +1 行亮影、身份层零触碰；暗色 3 套灰阶/描边/阴影经测试组逐表面全量实算）；无成交量展示/无 Polymarket 字样/无省略号问句；纯视觉与排版修复不涉买卖建议；零 JS 改动、零新增取数零 API key、无 setInterval、无新增动画（纯静态属性变更）；style.css 全程片段级编辑实施后逐字节复核全 CRLF（裸 LF=0）；?v= 单调递增 20261101i。未 git commit / push。
+
+### 涉及文件
+- `css/style.css`、`index.html`
+- `_test/tokens.test.mjs`
+- `docs/TV-ROADMAP.md`（勾选 P0★「暗色皮肤对比度修复」「移动端修急」两条——P0★ 7 条全勾收官）、`docs/OPTIMIZER-LOG.md`（本条目）

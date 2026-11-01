@@ -721,10 +721,12 @@ test('radius 三档令牌：全站 border-radius 收敛六形态 + --r-sm/md/lg 
   assert.equal(cssVar('r-lg'), '14px', '--r-lg 应恰为 14px');
 });
 
-test('阴影两档令牌：全站 box-shadow 收敛 + --shadow-1/2 黑基定义 + paper 亮色覆盖', () => {
+test('阴影两档令牌：全站 box-shadow 收敛 + 暗色禁阴影(none) + 浅色亮影覆盖', () => {
   // 海拔只许两档：--shadow-1（浮出菜单/提示浮层/悬停浮起）、--shadow-2（模态/大浮层）。
-  // 豁免三类：none（关闭海拔，oled/paper 等皮肤覆盖）、inset 开头（选中/下划线
-  // 指示条，不是海拔）、0 0 0 2px 开头（focus 焦点环复合，不是海拔）。
+  // 豁免三类：none（关闭海拔）、inset 开头（选中/下划线指示条，不是海拔）、
+  // 0 0 0 2px 开头（focus 焦点环复合，不是海拔）。
+  // 2026-11-01（P0★ 病灶五）：:root 暗色默认 = none（黑影叠黑底不可见），
+  // 浅色 5 套皮肤块各自覆写 --shadow-1 亮影承接海拔。
   const rules = CSS_NC.match(/[^{}]+\{[^{}]*\}/g) || [];
   const bad = [];
   rules.forEach(r => {
@@ -743,12 +745,24 @@ test('阴影两档令牌：全站 box-shadow 收敛 + --shadow-1/2 黑基定义 
   assert.equal(bad.length, 0,
     'box-shadow 海拔值超出两档（--shadow-1 / --shadow-2）：\n    ' +
     [...new Set(bad)].join('\n    '));
-  const s1 = cssVar('shadow-1'), s2 = cssVar('shadow-2');
-  assert.ok(s1 && /rgba\(0,\s*0,\s*0/.test(s1), '--shadow-1 缺失或不是 rgba(0,0,0,…) 黑基：' + s1);
-  assert.ok(s2 && /rgba\(0,\s*0,\s*0/.test(s2), '--shadow-2 缺失或不是 rgba(0,0,0,…) 黑基：' + s2);
-  // paper 浅色皮肤必须覆写亮色阴影，否则悬停浮起拿到的是纯黑 0.5 的重阴影（纸上显脏）。
-  assert.ok(/--shadow-1\s*:/.test(themeBlock('paper')),
-    'paper 皮肤块缺 --shadow-1 亮色覆盖（浅色皮肤会拿到纯黑重阴影）');
+  // 2026-11-01（P0★ 病灶五·暗色对比度）：:root 暗色默认两档改为 none——
+  // rgba(0,0,0,…) 黑影叠 #0a0a0b/#000 底 1:1 不可见，卡片边界交给 1px 描边
+  // （--border 已提亮，守卫见下方「暗色 1px 描边可见度」组）。
+  assert.equal(cssVar('shadow-1'), 'none', '--shadow-1（暗色默认）应禁阴影：' + cssVar('shadow-1'));
+  assert.equal(cssVar('shadow-2'), 'none', '--shadow-2（暗色默认）应禁阴影：' + cssVar('shadow-2'));
+  // 海拔交给浅色承接：5 套浅色皮肤块各自覆写 --shadow-1 亮影
+  // （paper 原有，swiss/bauhaus/clay/memphis 四套本轮补——:root 变 none 后
+  // 浅色悬停浮起/浮层拿到的会是 none，等于海拔消失）。
+  ['swiss', 'paper', 'bauhaus', 'clay', 'memphis'].forEach(t => {
+    const s = themeVar('shadow-1', themeBlock(t));
+    assert.ok(s && /rgba\(/.test(s), t + ' 皮肤块缺 --shadow-1 亮色覆盖（rgba 阴影）：' + s);
+  });
+  // 暗色另两套（aurora/oled）不得覆写 shadow 令牌——继承 :root 的 none。
+  ['aurora', 'oled'].forEach(t => {
+    const b = themeBlock(t);
+    assert.ok(!/--shadow-1\s*:/.test(b) && !/--shadow-2\s*:/.test(b),
+      t + ' 皮肤块不应覆写 --shadow-*（暗色一律禁阴影，继承 :root 的 none）');
+  });
 });
 
 test('描边一档：可见描边只许 1px、标记条统一 2px', () => {
@@ -773,6 +787,109 @@ test('描边一档：可见描边只许 1px、标记条统一 2px', () => {
   assert.equal(bad.length, 0,
     '描边宽度越档（可见描边 1px 一档、方向边标记条 2px 一档）：\n    ' +
     [...new Set(bad)].join('\n    '));
+});
+
+/* ============================================================
+   暗色对比度守卫（2026-11-01 · 路线图 P0★ 第 6 条）
+   ------------------------------------------------------------
+   诊断（docs/UI-AUDIT.md 病灶五）：OLED/暗色纯黑下对比度塌——
+   文字灰对最差表面仅 2.75~2.95:1（.brief-c 计数/图例刻度等信息性
+   文字正用 --text-faint，不是"仅装饰"），卡片边界 rgba 白/靛
+   0.06~0.10 合成后对 --bg 仅 1.10~1.15:1 形同不存在；阴影
+   rgba(0,0,0,0.5) 叠 #0a0a0b/#000 底 1:1 不可见。
+   处方：暗色 3 套（:root/aurora/oled）文字灰阶提亮至对全部四表面
+   ≥4.5:1；描边提亮（--border 合成后 ≥1.25:1、--border-hover ≥1.7:1）；
+   阴影一律禁用改 1px 描边（守卫在上一组阴影令牌内）。5 套浅色皮肤
+   块各自覆写 --text-* 不受影响，本组只扫暗色三套。对比度按 WCAG
+   相对亮度公式实算，rgba 描边先按 alpha 合成到底色再算。
+   ============================================================ */
+
+test('暗色 3 套文字灰阶对全部四表面 ≥4.5:1（:root/aurora/oled）', () => {
+  // .brief-c 计数、图例刻度等信息性文字用的正是 --text-faint——旧注释
+  // "仅装饰符号不承载信息"不成立，旧值 #5c5c63 对最差表面只有 2.75:1。
+  // 新值三档各提亮约三档灰阶：:root #b4b4bc/#a0a0a8/#8a8a92（最差表面
+  // 8.85/7.02/5.32），aurora 自有 #aeb7cf/#96a0bc/#7e88a6（8.53/6.56/4.86），
+  // oled 不覆写灰阶、继承 :root（9.08/7.21/5.46）。
+  [':root', 'aurora', 'oled'].forEach(t => {
+    ['text-secondary', 'text-tertiary', 'text-faint'].forEach(tok => {
+      const v = themeVarOrRoot(tok, t);
+      assert.ok(/^#[0-9a-f]{6}$/i.test(v), t + ' 的 --' + tok + ' 不是 #rrggbb：' + v);
+      const b = themeBlock(t);
+      ['bg', 'bg-elevated', 'bg-card', 'bg-hover'].forEach(surface => {
+        const bgHex = themeVar(surface, b);
+        assert.ok(/^#[0-9a-f]{6}$/i.test(bgHex), t + ' 的 --' + surface + ' 不是 hex：' + bgHex);
+        const r = contrast(hex2rgb(v), hex2rgb(bgHex));
+        assert.ok(r >= 4.5,
+          `${t} 的 --${tok}(${v}) 对 --${surface}(${bgHex}) 只有 ${r.toFixed(2)}:1（AA 正文要 4.5:1）`);
+      });
+    });
+  });
+});
+
+const rgbaOver = (rgba, bg) => {
+  // rgba 前景按 alpha 合成到 bg 上：描边是半透明白/靛，直接拿 rgba 值算对比度
+  // 会失真——卡片边界"看得见与否"取决于合成后的实色。
+  const m = /^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*([\d.]+)\s*\)$/.exec(String(rgba).trim());
+  assert.ok(m, '不是 rgba(r,g,b,a) 形式：' + rgba);
+  const a = parseFloat(m[4]);
+  return [1, 2, 3].map(i => Math.round(parseInt(m[i], 10) * a + bg[i - 1] * (1 - a)));
+};
+
+test('暗色 1px 描边可见度：--border 合成后对 --bg ≥1.25:1、--border-hover ≥1.7:1', () => {
+  // 旧值 0.06~0.10 alpha 合成后只有 1.10~1.15:1——卡片与背景失去边界，
+  // 禁阴影后这就是唯一的分界线。新值：:root 0.15/0.26（1.47/2.22）、
+  // aurora 0.17/0.32（1.30/1.81）、oled 0.15/0.26（1.39/2.10）。
+  [':root', 'aurora', 'oled'].forEach(t => {
+    const b = themeBlock(t);
+    const bgHex = themeVar('bg', b);
+    assert.ok(/^#[0-9a-f]{6}$/i.test(bgHex), t + ' 的 --bg 不是 hex：' + bgHex);
+    const bg = hex2rgb(bgHex);
+    const border = themeVar('border', b);
+    const hover = themeVar('border-hover', b);
+    const rb = contrast(rgbaOver(border, bg), bg);
+    const rh = contrast(rgbaOver(hover, bg), bg);
+    assert.ok(rb >= 1.25,
+      `${t} 的 --border(${border}) 对 --bg(${bgHex}) 合成后只有 ${rb.toFixed(2)}:1（卡片边界看不见）`);
+    assert.ok(rh >= 1.7,
+      `${t} 的 --border-hover(${hover}) 对 --bg(${bgHex}) 合成后只有 ${rh.toFixed(2)}:1`);
+  });
+});
+
+/* ============================================================
+   移动端修急守卫（2026-11-01 · 路线图 P0★ 第 7 条）
+   ------------------------------------------------------------
+   诊断（docs/UI-AUDIT.md 病灶六）：390px 下情绪条行溢出——
+   "3 涨…"数字被裁。病根不是缺规则而是级联序事故：窄屏堆叠规则
+   （grid-template-columns: 1fr 等）写在文件前部的 640px 媒体块，
+   被 .brief-row/.brief-v 基础规则（文件更后位置、同特异性后者胜）
+   静默覆盖，三列网格 170+140+间距已 326px，390px 屏可用 ~358px，
+   第三列只剩十几像素。修法＝堆叠规则搬到基础规则之后；顶栏重排
+   （logo 缩图标、搜索占满中段）。钉成断言防再次被后置规则覆盖。
+   ============================================================ */
+
+test('移动端修急：简报带堆叠级联序 + 顶栏搜索占中（390px 守卫）', () => {
+  // 断言 A：堆叠规则必须位于 .brief-row 基础规则之后——同特异性后者胜，
+  // 放在基础规则之前（如首个 640px 媒体块）会被静默覆盖（本轮事故形态）。
+  const base = CSS_NC.indexOf('.brief-row { display: grid');
+  const stack = CSS_NC.indexOf('.brief-row { grid-template-columns: 1fr');
+  assert.ok(base > -1, '找不到 .brief-row 基础规则（display: grid）');
+  assert.ok(stack > -1, '找不到简报带窄屏堆叠规则（grid-template-columns: 1fr）');
+  assert.ok(stack > base,
+    `简报带堆叠规则（index ${stack}）位于基础规则（index ${base}）之前——会被同特异性后置规则静默覆盖（数字被裁的事故形态）`);
+  assert.ok(/\.brief-v\s*\{\s*white-space:\s*normal;\s*\}/.test(CSS_NC),
+    '找不到 .brief-v 窄屏折行规则（white-space: normal）');
+  // 断言 B：顶栏重排——logo 缩图标、搜索占满中段（手机端顶栏两行化块内）。
+  assert.ok(/\.logo span:not\(\.logo-dot\)\s*\{\s*display:\s*none;\s*\}/.test(CSS_NC),
+    'logo 未缩为图标（顶栏文字未隐藏）');
+  const tb = CSS_NC.indexOf('.topbar-actions { flex: 1');
+  assert.ok(tb > -1, '手机端顶栏 .topbar-actions 未改 flex: 1（搜索占不进中段）');
+  // 搜索相关断言锚定在 .topbar-actions 所在的媒体块内，避免被
+  // 全站其它 .search-input 规则（如 .cmp-search 的 width:100%）误判为已修。
+  const mstart = CSS_NC.lastIndexOf('@media', tb);
+  const block = CSS_NC.slice(mstart, CSS_NC.indexOf('\n}', tb));
+  assert.ok(/\.search-wrap\s*\{\s*flex:\s*1/.test(block), '手机端顶栏块缺 .search-wrap { flex: 1 }（搜索占中）');
+  assert.ok(/\.search-input\s*\{\s*width:\s*100%;\s*\}/.test(block), '手机端搜索框未撑满中段（width: 100%）');
+  assert.ok(!/\.search-input\s*\{\s*width:\s*138px/.test(CSS_NC), '手机端搜索框仍是 138px 定宽');
 });
 
 /* ============================================================

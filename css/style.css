@@ -19,11 +19,12 @@
   --bg-card: #101013;          /* 图表底色由此读取 */
   --bg-hover: #151518;
   --text: #f2f2f0;
-  --text-secondary: #9a9aa2;
-  --text-tertiary: #808088;
-  --text-faint: #5c5c63;       /* 仅装饰符号（序号/轴线），不承载信息 */
-  --border: rgba(255,255,255,0.07);
-  --border-hover: rgba(255,255,255,0.16);
+  --text-secondary: #b4b4bc;
+  --text-tertiary: #a0a0a8;
+  --text-faint: #8a8a92;       /* 暗色皮肤下 .brief-c 计数/图例刻度等信息性文字也用它，
+                                  已提亮至对全部暗色表面 ≥4.5:1；浅色皮肤块各自覆写不受影响 */
+  --border: rgba(255,255,255,0.15);
+  --border-hover: rgba(255,255,255,0.26);
   /* 2026-09-15：原值 #D97757 就是 Claude/Anthropic 的品牌赭橙，是全站辨识度最高的
      "AI 生成"信号，改为终端琥珀（Bloomberg 系）。改色时 --accent-rgb 必须同值同步，
      它是 rgba() 合成半透明描边/底色的唯一来源（此前散落的 rgba(217,119,87,·) 就是这么漂的）。 */
@@ -82,10 +83,12 @@
      迷你卡/行内控件 = --r-sm 无阴影（qrow/chip/徽章/取色块）；
      条形轨道 = 999px 胶囊；方角(0)/圆(50%)是 paper 皮肤与几何图形的身份层。 */
   --r-sm: 4px; --r-md: 8px; --r-lg: 14px;
-  /* --shadow-1：浮出菜单/提示浮层/悬停浮起一档；--shadow-2：模态/大浮层一档。
-     基值取自收敛前出现最多的两档字面量；paper 浅色皮肤在主题块内覆写亮色版。 */
-  --shadow-1: 0 8px 28px rgba(0,0,0,0.5);
-  --shadow-2: 0 16px 44px rgba(0,0,0,0.38);
+  /* 暗色 3 套（:root/aurora/oled）一律禁阴影：rgba(0,0,0,…) 黑影叠 #0a0a0b/#000 底
+     1:1 不可见，卡片边界交给 1px 描边（--border 已提亮，对 bg 合成后 1.47:1）；
+     5 套浅色皮肤块各自覆写 --shadow-1 亮影承接海拔。--shadow-2 的消费者仅 aurora
+     玻璃面板三处（.section/.pm-sec/.pm-overview），暗色下同样解析为 none，保留令牌位。 */
+  --shadow-1: none;
+  --shadow-2: none;
   /* 间距七档令牌（2026-11-01，P0★ 病灶四）：4/8/12/16/24/32/48，④b 已全量接线（4/8/12 三档 199 处 + 16/24/32/48 四档 52 处，calc 内一并接线）。
      映射规则：就近取档、平局向上（6px→--sp-8、10px→--sp-12）；字号音阶五档见下一组 --fs-* 令牌。 */
   --sp-4: 4px; --sp-8: 8px; --sp-12: 12px; --sp-16: 16px; --sp-24: 24px; --sp-32: 32px; --sp-48: 48px;
@@ -751,13 +754,14 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
 }
 
 @media (max-width: 640px) {
+  /* 顶栏重排（P0★ 病灶六）：logo 缩为圆点图标（文字隐藏），搜索占满中段
+     （见下方「手机端顶栏两行化」块的 .topbar-actions/.search-wrap） */
   .logo span:not(.logo-dot) { display: none; }
   .tabs { gap: var(--sp-16); }
   .hero-value { font-size: var(--fs-20); }
-  /* 简报带在窄屏改成三行堆叠：标签 / 分布条 / 数字，不挤压也不截断 */
-  .brief-row { grid-template-columns: 1fr; gap: var(--sp-4); padding: var(--sp-12) 2px; }
-  .brief-bar { width: 100%; }
-  .brief-v { white-space: normal; }
+  /* 简报带窄屏堆叠规则已迁走（P0★ 病灶六）：.brief-row/.brief-v 基础规则在文件更后
+     位置、同特异性后者胜，留在这里会被静默覆盖——390px 下三列网格把"3 涨"数字裁掉。
+     堆叠规则现位于 .brief-v b.lead.down 之后，级联序由 tokens.test 钉死。 */
   .qrow { grid-template-columns: 1fr auto auto; grid-template-rows: auto auto; gap: 2px var(--sp-16);
     padding: var(--sp-12) var(--sp-32) var(--sp-12) var(--sp-4); }
   .qrow-head { display: none; }
@@ -796,8 +800,11 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
 @media (max-width: 640px) {
   :root { --topbar-h: 92px; }          /* .main 的 padding-top 读它：留足两行顶栏的高度 */
   .topbar { flex-wrap: wrap; gap: 0 var(--sp-16); padding: 0 var(--sp-16); height: auto; min-height: 56px; }
-  .topbar-actions { margin-left: auto; }
-  .search-input { width: 138px; }
+  /* 顶栏重排（P0★ 病灶六）：搜索占满 logo 与提醒/设置之间的中段（视觉居中、
+     触控目标 ~180px 宽）；logo 缩图标见上方 640px 块的 .logo span 规则 */
+  .topbar-actions { flex: 1; margin-left: var(--sp-16); min-width: 0; }
+  .search-wrap { flex: 1; min-width: 0; }
+  .search-input { width: 100%; }
   .tabs { order: 3; flex: 0 0 100%; gap: var(--sp-24); min-width: 0; }
   /* 触控热区 ≥40px（9 个 tab 挤 343px 曾只有 20-36px 宽）；右缘渐隐暗示可横滑 */
   .tabs .tab { padding: var(--sp-12) var(--sp-8) var(--sp-12); min-height: 40px; display: inline-flex; align-items: center; }
@@ -1638,6 +1645,16 @@ body.no-crypto .crypto-only { display: none !important; }
 .brief-v b.lead.up { color: var(--up-text); }
 .brief-v b.lead.down { color: var(--down-text); }
 
+/* 简报带窄屏堆叠（移动端修急，P0★ 病灶六）：必须位于上方 .brief-row/.brief-v
+   基础规则之后——同特异性后者胜，曾放在首个 640px 媒体块里被静默覆盖：
+   三列网格 170+140+间距已 326px，390px 屏可用 ~358px，第三列 brief-v 只剩
+   十几像素、"3 涨"数字被裁。堆叠后 brief-v 独占一行 ~354px，单行放下不裁。 */
+@media (max-width: 640px) {
+  .brief-row { grid-template-columns: 1fr; gap: var(--sp-4); padding: var(--sp-12) 2px; }
+  .brief-bar { width: 100%; }
+  .brief-v { white-space: normal; }
+}
+
 /* 我的自选：卡片网格（窄屏 2 列 → 宽屏 4 列，与 hero 同构） */
 .wgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
   background: var(--border); border: 1px solid var(--border); margin-top: var(--sp-16); }
@@ -1853,8 +1870,8 @@ body::before { content: ''; position: fixed; inset: -18%; z-index: -1; pointer-e
 /* —— 极光：深蓝黑底 + 靛蓝紫强调（阶跃/Kimi 气质） —— */
 html[data-theme="aurora"] {
   --bg: #0b0d15; --bg-elevated: #141827; --bg-card: #10131f; --bg-hover: #161b2c;
-  --text: #eef0f8; --text-secondary: #9aa2b8; --text-tertiary: #7e86a0; --text-faint: #5a6178;
-  --border: rgba(140,160,255,0.10); --border-hover: rgba(140,160,255,0.22);
+  --text: #eef0f8; --text-secondary: #aeb7cf; --text-tertiary: #96a0bc; --text-faint: #7e88a6;
+  --border: rgba(140,160,255,0.17); --border-hover: rgba(140,160,255,0.32);
   --accent-signature: #7c8cff; --accent-rgb: 124,140,255;
   --chart-text: #8b93ad; --chart-grid: rgba(140,160,255,0.05); --chart-border: rgba(140,160,255,0.12);
   --glow-1: 124,140,255; --glow-2: 56,214,255;
@@ -1864,7 +1881,7 @@ html[data-theme="aurora"] {
 /* —— 纯黑：OLED 极致对比，强调色与终端黑一致 —— */
 html[data-theme="oled"] {
   --bg: #000000; --bg-elevated: #0c0c0e; --bg-card: #050506; --bg-hover: #121214;
-  --border: rgba(255,255,255,0.06); --border-hover: rgba(255,255,255,0.14);
+  --border: rgba(255,255,255,0.15); --border-hover: rgba(255,255,255,0.26);
   --accent-signature: #38d9f0; --accent-rgb: 56,217,240;
   --topbar-bg: rgba(0,0,0,0.86); --tape-bg: rgba(0,0,0,0.80);
 }
@@ -1903,6 +1920,7 @@ html[data-theme="swiss"] {
   --glow-1: 227,6,19; --glow-2: 17,17,17;
   --topbar-bg: rgba(247,246,242,0.92); --tape-bg: rgba(247,246,242,0.86);
   scrollbar-color: rgba(17,17,17,0.20) transparent;
+  --shadow-1: 0 8px 24px rgba(17,17,17,0.16);   /* 阴影亮色覆盖：暗色 :root 已改 none，浅色海拔由皮肤块承接 */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
 }
 html[data-theme="swiss"] ::-webkit-scrollbar-thumb { background: rgba(17,17,17,0.20); border: 3px solid transparent; background-clip: padding-box; }
@@ -1921,6 +1939,7 @@ html[data-theme="bauhaus"] {
   --glow-1: 215,38,61; --glow-2: 26,71,184;
   --topbar-bg: rgba(250,247,240,0.92); --tape-bg: rgba(250,247,240,0.86);
   scrollbar-color: rgba(26,26,26,0.22) transparent;
+  --shadow-1: 0 8px 24px rgba(26,26,26,0.16);   /* 阴影亮色覆盖：暗色 :root 已改 none，浅色海拔由皮肤块承接 */
   --font-sans: "Jost", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
 }
 html[data-theme="bauhaus"] ::-webkit-scrollbar-thumb { background: rgba(26,26,26,0.22); border: 3px solid transparent; background-clip: padding-box; }
@@ -1941,6 +1960,7 @@ html[data-theme="clay"] {
   --glow-1: 217,119,87; --glow-2: 90,87,76;
   --topbar-bg: rgba(250,249,245,0.92); --tape-bg: rgba(250,249,245,0.86);
   scrollbar-color: rgba(43,42,38,0.18) transparent;
+  --shadow-1: 0 8px 24px rgba(43,42,38,0.14);   /* 阴影亮色覆盖：暗色 :root 已改 none，浅色海拔由皮肤块承接 */
   --font-sans: "Newsreader", Georgia, "Times New Roman", "Songti SC", "STZhongsong", serif;
 }
 html[data-theme="clay"] ::-webkit-scrollbar-thumb { background: rgba(43,42,38,0.18); border: 3px solid transparent; background-clip: padding-box; }
@@ -1961,6 +1981,7 @@ html[data-theme="memphis"] {
   --glow-1: 255,61,127; --glow-2: 31,196,255;
   --topbar-bg: rgba(250,247,241,0.92); --tape-bg: rgba(250,247,241,0.86);
   scrollbar-color: rgba(24,24,26,0.22) transparent;
+  --shadow-1: 0 8px 24px rgba(24,24,26,0.16);   /* 阴影亮色覆盖：暗色 :root 已改 none，浅色海拔由皮肤块承接 */
   --font-sans: "Righteous", "Jost", -apple-system, BlinkMacSystemFont, "PingFang SC", system-ui, sans-serif;
 }
 html[data-theme="memphis"] ::-webkit-scrollbar-thumb { background: rgba(24,24,26,0.22); border: 3px solid transparent; background-clip: padding-box; }
