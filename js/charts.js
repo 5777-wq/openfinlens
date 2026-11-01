@@ -2,7 +2,8 @@
    兼容 v3/v4（addCandlestickSeries）与 v5（addSeries(CandlestickSeries)）两套 API。
    均线：MA5/10/20/60 + EMA12/26 六条槽位，setMAVisible(配置对象) 按 key 开关（详情页存 localStorage）。
    标尺与对比（K线）：setScale('normal'|'log'|'pct') 切价格标尺档位；
-   setCompare(cmp) 叠加第二条标的（rebaseCompare 归一化重定基，值落在主图价格单位）。 */
+   setCompare(cmp) 叠加第二条标的（rebaseCompare 归一化重定基，值落在主图价格单位）。
+   图表类型 setType：五档切换（蜡烛/美式棒/线/面积/平均K）同实例换主系列、零重载闪烁。 */
 
 const Charts = (() => {
   const LWC = () => window.LightweightCharts;
@@ -37,7 +38,7 @@ const Charts = (() => {
     if (typeof chart.addSeries === 'function' && L[kind + 'Series']) {
       return chart.addSeries(L[kind + 'Series'], opts);
     }
-    const legacy = { Candlestick: 'addCandlestickSeries', Histogram: 'addHistogramSeries', Line: 'addLineSeries', Area: 'addAreaSeries' };
+    const legacy = { Candlestick: 'addCandlestickSeries', Histogram: 'addHistogramSeries', Line: 'addLineSeries', Area: 'addAreaSeries', Bar: 'addBarSeries' };
     return chart[legacy[kind]](opts);
   }
 
@@ -69,7 +70,7 @@ const Charts = (() => {
     // 右键菜单「隐藏全部画线」的上层回调：app 层记忆 + 按钮态同步。
     // 未传时菜单项仍可隐藏本图（临时态，不落盘）。
     const onHideAll = typeof opts.onHideAll === 'function' ? opts.onHideAll : null;
-    const { up, down, lineColors: LINE_COLORS } = themeColors();
+    const { lineColors: LINE_COLORS } = themeColors();
     const chart = L.createChart(el, Object.assign(baseOptions(), { height: el.clientHeight || 420 }));
 
     // 图例层（2026-09-17）：十字光标处的 OHLC/量/涨跌幅 + 均线读数，随光标移动；
@@ -86,10 +87,28 @@ const Charts = (() => {
       return b ? '<span class="kl-sym">' + escHtml(b) + '</span>' : '';
     };
 
-    const candle = addSeries(chart, 'Candlestick', {
-      upColor: up, downColor: down, borderVisible: false,
-      wickUpColor: up, wickDownColor: down,
-    });
+    /* ---- 主系列（图表类型五档：蜡烛/美式棒/线/面积/平均K）----
+       LWC 不能原地改 series 类型：换档 = removeSeries 旧主系列 + 新建（setType）。
+       闭包 candle 用 let 可重指派——图例/画线吸附/事件标记/副图 hover 的坐标换算
+       都在调用时读 candle，重指派后自动跟随新系列；MA 池/对比线是独立 series 零接触。 */
+    let curType = 'candle';        // 当前主图类型（sanitizeChartType 五档口径）
+    let haCache = [];              // 平均K序列缓存（与 lastKlines 等长时图例读它）
+    function mainSeriesOptions(t) {
+      const c = themeColors();
+      if (t === 'bar') return { upColor: c.up, downColor: c.down, openVisible: true };
+      if (t === 'line') return { color: c.lineColors[0], lineWidth: 2 };
+      // 面积：渐变透明度后缀接在令牌色上（createTrend 的 topColor/bottomColor 同款先例）
+      if (t === 'area') return {
+        lineWidth: 2, lineColor: c.lineColors[0],
+        topColor: c.lineColors[0] + '40', bottomColor: c.lineColors[0] + '0a',
+      };
+      // 蜡烛与平均K同为 Candlestick 系列（HA 只是另一种喂法，见 applyTypeData）
+      return { upColor: c.up, downColor: c.down, borderVisible: false,
+        wickUpColor: c.up, wickDownColor: c.down };
+    }
+    const MAIN_KIND = { candle: 'Candlestick', ha: 'Candlestick', bar: 'Bar', line: 'Line', area: 'Area' };
+    const buildMainSeries = (t) => addSeries(chart, MAIN_KIND[t] || 'Candlestick', mainSeriesOptions(t));
+    let candle = buildMainSeries('candle');
 
     /* ---------- 副图指标窗（独立 canvas，自绘） ----------
        TradingView 的模型：主图 + 一个独立的指标窗（成交量 / RSI / MACD）。
@@ -535,7 +554,7 @@ const Charts = (() => {
 
     function applyTheme() {
       const c = themeColors();
-      candle.applyOptions({ upColor: c.up, downColor: c.down, wickUpColor: c.up, wickDownColor: c.down });
+      candle.applyOptions(mainSeriesOptions(curType));   // 按当前类型重取令牌色（line/area 不误喂蜡烛选项）
       // 均线取当前 c.lineColors：LINE_COLORS 是创建时捕获的闭包值，换肤/切红绿后会过期。
       // 槽位数可变 → 取模（色板 6 色，槽位可到 8）。取色走 slotColorOf（用户指派优先）、
       // 线宽走 slotWidthOf——否则换肤会把用户选的色/线宽重置回槽位序号默认值。
@@ -565,12 +584,18 @@ const Charts = (() => {
         : d.getUTCFullYear() + '/' + (d.getUTCMonth() + 1) + '/' + d.getUTCDate() + ' ' + hm;
     };
 
+    /* 图例读数按「所显序列」取数：蜡烛/美式棒/线/面积读实值，平均K读 haCache
+       （所见即所得，TradingView 同款）；haCache 与 lastKlines 等长才可信
+       （喂数窗口期回退实值）。涨跌幅按所显序列的前一根 close 算（统计口径，无建议语义）。 */
+    const viewAt = (idx) => (curType === 'ha' && haCache.length === lastKlines.length && haCache[idx])
+      ? haCache[idx] : lastKlines[idx];
+
     function legendHTML(idx) {
-      const k = lastKlines[idx];
+      const k = viewAt(idx);
       if (!k) return '';
       const c = themeColors();
       const col = k.close >= k.open ? c.up : c.down;
-      const prev = lastKlines[idx - 1];
+      const prev = viewAt(idx - 1);
       const chg = (prev && prev.close) ? (k.close - prev.close) / prev.close * 100 : null;
       // 读数按**展开后的槽位**（maSlotMeta），不是配置项：
       // BOLL 一项占三轨，图例要分别标出上/中/下轨。
@@ -589,6 +614,7 @@ const Charts = (() => {
         }
       }
       return `<span class="kl-time">${fmtLegendTime(k.time)}</span>` +
+        (curType === 'ha' ? '<span class="kl-dim">平均K</span>' : '') +
         `<span>开 <b style="color:${col}">${k.open}</b></span>` +
         `<span>高 <b style="color:${col}">${k.high}</b></span>` +
         `<span>低 <b style="color:${col}">${k.low}</b></span>` +
@@ -1220,16 +1246,32 @@ const Charts = (() => {
       drawOverlay();
     }
 
+    /* 主系列喂新数据（按当前类型）：蜡烛/美式棒喂 OHLC、线/面积喂收盘价、
+       平均K喂 heikinAshi 序列（haCache 留给图例读数）。只换数据不动视野——
+       setData 全量后由本函数 fitContent，setType 换档时由它自己回灌视野。 */
+    function applyTypeData() {
+      if (curType === 'ha') {
+        haCache = heikinAshi(lastKlines);
+        candle.setData(haCache);
+        return;
+      }
+      haCache = [];
+      if (curType === 'line' || curType === 'area') {
+        candle.setData(lastKlines.map(k => ({ time: k.time, value: k.close })));
+        return;
+      }
+      candle.setData(lastKlines.map(k => ({
+        time: k.time, open: k.open, high: k.high, low: k.low, close: k.close,
+      })));
+    }
+
     function setData(klines) {
       // 盘后/清算时段腾讯日K会混入 OHLC 为 null 的脏bar（lightweight-charts 内部直接炸），
       // 整根剔除：蜡烛/成交量/均线/事件标记共用同一份干净序列
       lastKlines = (klines || []).filter(k => k && k.time !== null && k.time !== undefined &&
         [k.open, k.high, k.low, k.close].every(v => v !== null && v !== undefined && isFinite(v)));
       timeByKey = null;               // 序列换了：tKey → time 反查表失效（画线侧重建）
-      const c = themeColors();
-      candle.setData(lastKlines.map(k => ({
-        time: k.time, open: k.open, high: k.high, low: k.low, close: k.close,
-      })));
+      applyTypeData();
       // 先 fitContent 再画副图：副图的横坐标直接取主图的 timeToCoordinate，
       // 时间轴没落位时换算出来的 x 是旧的（首尾会差半格甚至错位）。
       chart.timeScale().fitContent();
@@ -1240,6 +1282,27 @@ const Charts = (() => {
       // range change 订阅触发的重画也合并到同一帧，差一帧 16ms 肉眼无感）。
       schedulePaneRender();
       renderMA();
+      paintLegend(lastKlines.length - 1);
+    }
+
+    /* ---- 图表类型切换（五档同实例、零重载闪烁）----
+       存视野 → removeSeries 旧主系列 → 新建 → 喂同源数据 → 回灌视野：
+       全程同步且不 fitContent——时间轴不动、视野不变，肉眼无闪。
+       事件标记挂新系列（applyMarkers）、画线 overlay 按新系列坐标重算、图例重画；
+       MA 池/对比线/自绘副图是独立 series 与闭包引用，自动跟随、零接触。
+       老版本 LWC 没有 get/setVisibleRange：try/catch 静默降级为不回灌（视野回默认）。 */
+    function setType(type) {
+      const t = sanitizeChartType(type);
+      if (t === curType) return;      // 同档早退：菜单回显重入不闪
+      let range = null;
+      try { range = chart.timeScale().getVisibleRange(); } catch (e) { range = null; }
+      try { if (typeof chart.removeSeries === 'function') chart.removeSeries(candle); } catch (e) { /* ignore */ }
+      curType = t;
+      candle = buildMainSeries(t);
+      applyTypeData();
+      if (range) { try { chart.timeScale().setVisibleRange(range); } catch (e) { /* ignore */ } }
+      applyMarkers();                 // 旧系列随 removeSeries 消亡，标记重挂到新系列
+      drawOverlay();
       paintLegend(lastKlines.length - 1);
     }
 
@@ -1355,14 +1418,18 @@ const Charts = (() => {
     }
 
     return {
-      chart, candle, setData, applyTheme, setMAVisible, setEvents, setPane, setInfo,
+      chart,
+      // candle 用 getter：外部消费方（alerts.js 的价格线）在调用时读取——
+      // setType 重指派闭包 candle 后自动跟随新主系列，无需外部重新 attach
+      get candle() { return candle; },
+      setData, applyTheme, setMAVisible, setEvents, setPane, setInfo,
       // 画线：setDrawings 回灌（按标的）、setDrawTool 切换画线模式、
       // setHidden 「隐藏全部画线」开关（app 层持久化后经 applyDrawTool 回放）
       setDrawings, setDrawTool, setHidden,
       // getKlines：setData 过滤脏 bar 后的干净序列——app 层 rebase 用它与画布完全同源
       getKlines: () => lastKlines,
-      // 标尺（普通/对数/百分比）与对比叠加（compare overlay）
-      setScale, setCompare,
+      // 标尺（普通/对数/百分比）、对比叠加（compare overlay）与图表类型五档切换
+      setScale, setCompare, setType,
       // 副图 canvas 挂在主图容器外面，销毁时必须一起摘掉，
       // 否则切标的/切周期会留下一堆空副图（每次 createKline 都新建一个）。
       remove() {
@@ -1673,6 +1740,43 @@ const Charts = (() => {
     return v === 'log' || v === 'pct' ? v : 'normal';
   }
 
+  /* ---- 图表类型档位归一（离线单测钉口径）：只认五字面量，
+     其余（数字/undefined/null/'HA' 大写/空串/中文/对象）一律收敛 'candle'，
+     localStorage 读回的脏值进不了图表侧（sanitizeScale 同口径）。 */
+  const CHART_TYPES = ['candle', 'bar', 'line', 'area', 'ha'];
+  function sanitizeChartType(v) {
+    return CHART_TYPES.indexOf(v) >= 0 ? v : 'candle';
+  }
+
+  /* ---- Heikin-Ashi 平均K（离线单测钉口径）----
+     haClose=(o+h+l+c)/4；首根 haOpen=(o+c)/2，其后 haOpen=(前根haOpen+前根haClose)/2；
+     haHigh=max(h,haOpen,haClose)、haLow=min(l,haOpen,haClose)。输出 open/high/low/close
+     四字段直接可喂 Candlestick 系列，time 原样保留、不 mutate 输入；
+     脏输入（非数组 → []、单项 OHLC 任一非有限 → 跳根，平滑链接最近一根有效 HA）。 */
+  function heikinAshi(klines) {
+    if (!Array.isArray(klines)) return [];
+    const out = [];
+    let prevOpen = null, prevClose = null;
+    for (let i = 0; i < klines.length; i++) {
+      const k = klines[i];
+      if (!k) continue;
+      const o = +k.open, h = +k.high, l = +k.low, c = +k.close;
+      if (![o, h, l, c].every(v => isFinite(v))) continue;   // 脏根跳过
+      const haClose = (o + h + l + c) / 4;
+      const haOpen = prevOpen === null ? (o + c) / 2 : (prevOpen + prevClose) / 2;
+      out.push({
+        time: k.time,
+        open: haOpen,
+        high: Math.max(h, haOpen, haClose),
+        low: Math.min(l, haOpen, haClose),
+        close: haClose,
+      });
+      prevOpen = haOpen;
+      prevClose = haClose;
+    }
+    return out;
+  }
+
   /* ---- 双标的归一化叠加（compare overlay）核心口径（离线单测钉口径）----
      对比标的收盘序列重定基到主图价格单位，与蜡烛共用右价格轴（对数模式值恒正）。
      输入两组 [{time, close}]（主图传 getKlines 的干净序列）；时间键归一（字符串日期
@@ -1918,7 +2022,7 @@ const Charts = (() => {
   }
 
   return { createKline, createTrend, createCompare, calcMA, emaSeries, themeColors, retheme, legendBadge, slotStyles,
-    sanitizeScale, rebaseCompare,
+    sanitizeScale, rebaseCompare, sanitizeChartType, CHART_TYPES, heikinAshi,
     DRAW_TOOLS, sanitizeDrawing, sanitizeDrawings, sanitizeDrawStore, fibLevels,
     DRAW_HIT_TOL, segDist, drawTextBox, hitDrawing, hitTestDrawings, moveDrawing, clampBox };
 })();

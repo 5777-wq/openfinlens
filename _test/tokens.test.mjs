@@ -215,6 +215,28 @@ test('js/app.js 必须接线标尺与对比（chartScaleV1 持久化 + setScale/
   assert.ok(/klineFor\(state\.cmpTarget/.test(app), 'app.js 对比取数必须复用 klineFor（不得另起炉灶）');
 });
 
+test('index.html 必须保留图表类型入口（ktypeToggle + 五档 data-ktype）', () => {
+  // 「图表类型」条目（TV-ROADMAP P0 图表核心第 5 条）的入口守卫：按钮被误删后
+  // 功能失联且不会有任何报错。title 必须含中文（红线 1）；data-ktype 五档
+  // ∈ {candle,bar,line,area,ha} 且互不重复（sanitizeChartType 只认五字面量，
+  // 档位对不上等于切不中）。
+  const kt = HTML.match(/<button[^>]*id="ktypeToggle"[^>]*>/);
+  assert.ok(kt, 'index.html 找不到 id="ktypeToggle" 按钮（图表类型入口被误删）');
+  assert.ok(/title="[^"]*[\u4e00-\u9fa5][^"]*"/.test(kt[0]), 'ktypeToggle 缺中文 title：' + kt[0]);
+  const kinds = [...HTML.matchAll(/data-ktype="([^"]+)"/g)].map(m => m[1]);
+  assert.equal(JSON.stringify([...new Set(kinds)].sort()), JSON.stringify(['area', 'bar', 'candle', 'ha', 'line']),
+    'data-ktype 五档必须恰为 candle/bar/line/area/ha 各一（缺档/重复都会让类型菜单切不中）：' + kinds.join(','));
+});
+
+test('js/app.js 必须接线图表类型（chartTypeV1 持久化 + setType 调用 + sanitizeChartType 消费）', () => {
+  // 跨文件守卫（照 chartScaleV1 先例）：缺持久化类型刷新即丢；缺 setType 接线
+  // 按钮点了图不变；缺 sanitizeChartType 消费则 localStorage 脏值直灌图表侧。
+  const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
+  assert.ok(/chartTypeV1/.test(app), 'app.js 缺 chartTypeV1 持久化键（图表类型刷新即丢）');
+  assert.ok(/setType\(/.test(app), 'app.js 没有接线 chart.setType（按钮点了图不变）');
+  assert.ok(/sanitizeChartType\(/.test(app), 'app.js 没有消费 sanitizeChartType（脏值直灌图表侧）');
+});
+
 test('charts.js 不得再自带一份均线调色板字面量', () => {
   const charts = readFileSync(path.join(ROOT, 'js/charts.js'), 'utf8');
   assert.ok(!/LINE_COLORS\s*=\s*\[/.test(charts), 'charts.js 又出现了 LINE_COLORS 字面量数组');

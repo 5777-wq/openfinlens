@@ -484,6 +484,71 @@ test('rebaseCompare：脏数据收敛（非数组/交集空/close 非有限/基�
   assert.equal(J(r.points.map(p => p.value)), J([100, 120]));
 });
 
+/* ---------------- sanitizeChartType / CHART_TYPES：图表类型档位归一（K线「图表类型」条目） ---------------- */
+
+test('sanitizeChartType：合法值原样往返（五档 candle/bar/line/area/ha）', () => {
+  assert.equal(J(C.CHART_TYPES), J(['candle', 'bar', 'line', 'area', 'ha']));
+  C.CHART_TYPES.forEach(t => assert.equal(C.sanitizeChartType(t), t));
+});
+
+test('sanitizeChartType：脏值一律收敛 candle（数字/undefined/null/大写/空串/中文/对象）', () => {
+  // localStorage 读回的脏值进不了图表侧：只认五字面量，'HA' 大写也不静默 toLowerCase（sanitizeScale 同口径）
+  [1, 0, undefined, null, 'HA', 'BAR', '', '蜡烛', {}, ['ha']].forEach(v =>
+    assert.equal(C.sanitizeChartType(v), 'candle'));
+});
+
+/* ---------------- heikinAshi：平均K 标准口径（haClose 四价均值、haOpen 平滑链、包络取大取小） ---------------- */
+
+test('heikinAshi：首根口径（haOpen=(o+c)/2、haClose=(o+h+l+c)/4、包络含 haOpen/haClose）', () => {
+  const out = C.heikinAshi([{ time: 'd1', open: 10, high: 15, low: 8, close: 12 }]);
+  assert.equal(out.length, 1);
+  assert.equal(out[0].time, 'd1');
+  assert.equal(out[0].open, 11);        // (10+12)/2
+  assert.equal(out[0].close, 11.25);    // (10+15+8+12)/4
+  assert.ok(out[0].high >= Math.max(out[0].open, out[0].close), '包络必须盖住 HA 实体上沿');
+  assert.ok(out[0].low <= Math.min(out[0].open, out[0].close), '包络必须盖住 HA 实体下沿');
+});
+
+test('heikinAshi：平滑口径（第二根 haOpen=(前根haOpen+前根haClose)/2；上根实体盖过当根区间时 haHigh 取 haOpen）', () => {
+  // d2 整根跳空到上一根 HA 实体（[11, 11.25]）之下：真实 high=5.5 < 平滑 haOpen=11.125，
+  // HA 的 high 必须取 haOpen（ TradingView 平均K同款——HA 实体永远连续）
+  const out = C.heikinAshi([
+    { time: 'd1', open: 10, high: 15, low: 8, close: 12 },
+    { time: 'd2', open: 5, high: 5.5, low: 4, close: 4.5 },
+  ]);
+  const p = out[0], q = out[1];
+  assert.equal(q.open, (p.open + p.close) / 2);   // 平滑链
+  assert.equal(q.close, 4.75);                    // 四价均值 (5+5.5+4+4.5)/4
+  assert.equal(q.high, q.open, '上根实体盖过当根区间时 haHigh 应取 haOpen');
+  assert.equal(q.low, 4, '当根真实 low 更低时 haLow 取真实 low');
+});
+
+test('heikinAshi：保形（time 原样透传、长度不变、输入数组不被 mutate）', () => {
+  const input = [
+    { time: 'd1', open: 10, high: 15, low: 8, close: 12 },
+    { time: 'd2', open: 12, high: 16, low: 11, close: 14 },
+  ];
+  const before = J(input);
+  const out = C.heikinAshi(input);
+  assert.equal(out.length, 2);
+  assert.equal(out[0].time, 'd1');
+  assert.equal(out[1].time, 'd2');
+  assert.equal(J(input), before, '输入数组必须原样（纯函数不许 mutate 输入）');
+});
+
+test('heikinAshi：脏输入（非数组 → []；OHLC 任一非有限的根跳过、平滑链跨缺口不断）', () => {
+  assert.equal(J(C.heikinAshi('not-array')), J([]));
+  assert.equal(J(C.heikinAshi(null)), J([]));
+  const out = C.heikinAshi([
+    { time: 'd1', open: 10, high: 15, low: 8, close: 12 },
+    { time: 'd2', open: NaN, high: 16, low: 11, close: 14 },   // 脏根跳过
+    { time: 'd3', open: 12, high: 16, low: 11, close: 14 },
+  ]);
+  assert.equal(out.length, 2);
+  assert.equal(out[1].time, 'd3');
+  assert.equal(out[1].open, (out[0].open + out[0].close) / 2, '跳根后平滑链接最近一根有效 HA');
+});
+
 test('导出守卫：sanitizeScale / rebaseCompare 必须挂到 Charts 导出面（对比叠加的纯函数口径）', () => {
   assert.equal(typeof C.sanitizeScale, 'function', 'Charts 缺少导出 sanitizeScale');
   assert.equal(typeof C.rebaseCompare, 'function', 'Charts 缺少导出 rebaseCompare');
@@ -493,6 +558,23 @@ test('导出守卫：画线交互纯函数必须全部挂到 Charts 导出面（
   ['DRAW_HIT_TOL', 'segDist', 'drawTextBox', 'hitDrawing', 'hitTestDrawings', 'moveDrawing', 'clampBox']
     .forEach(k => assert.ok(k in C, 'Charts 缺少导出 ' + k));
   assert.equal(C.DRAW_HIT_TOL, 8);
+});
+
+test('导出守卫：图表类型三件套必须挂到 Charts 导出面（CHART_TYPES 恰五值互不重复）', () => {
+  ['CHART_TYPES', 'sanitizeChartType', 'heikinAshi'].forEach(k => assert.ok(k in C, 'Charts 缺少导出 ' + k));
+  assert.equal(typeof C.sanitizeChartType, 'function', 'Charts.sanitizeChartType 应为函数');
+  assert.equal(typeof C.heikinAshi, 'function', 'Charts.heikinAshi 应为函数');
+  assert.ok(Array.isArray(C.CHART_TYPES), 'CHART_TYPES 应为数组');
+  assert.equal(C.CHART_TYPES.length, 5, 'CHART_TYPES 应恰五档');
+  assert.equal(new Set(C.CHART_TYPES).size, 5, 'CHART_TYPES 五档不许重复');
+});
+
+test('data-ktype 菜单：index.html 的入口全部 ∈ Charts.CHART_TYPES 且恰好 5 个互不重复', () => {
+  const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const used = [...html.matchAll(/data-ktype="([^"]+)"/g)].map(m => m[1]);
+  assert.equal(used.length, 5, '图表类型菜单应为 5 档，实际 ' + used.length);
+  used.forEach(t => assert.ok(C.CHART_TYPES.indexOf(t) >= 0, 'data-ktype="' + t + '" 不在 CHART_TYPES 白名单'));
+  assert.equal(new Set(used).size, 5, '图表类型档位互不重复');
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

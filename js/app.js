@@ -127,6 +127,8 @@
     drawHidden: !!Store.get('drawHideV1', false),
     // 价格标尺 normal|log|pct（chartScaleV1 持久化；charts.js defer 且在前，顺序有保证）
     chartScale: window.Charts.sanitizeScale(Store.get('chartScaleV1', 'normal')),
+    // 图表类型 candle|bar|line|area|ha（chartTypeV1 持久化；sanitizeChartType 同上顺序保证）
+    chartType: window.Charts.sanitizeChartType(Store.get('chartTypeV1', 'candle')),
     // 对比叠加：cmpTarget = 对比标的（会话级不落盘）；cmpSeq = 会话代号（同 chartGen 惯例）
     cmpTarget: null,
     cmpSeq: 0,
@@ -163,6 +165,7 @@
     'maMenu', 'maLinesBox', 'maPaneBox', 'maAdd', 'maReset', 'drawHide',
     // 价格标尺 + 对比叠加（详情工具条，与 maToggle 同一弹层语言）
     'scaleToggle', 'scaleMenu', 'kcmpToggle', 'kcmpMenu', 'kcmpInput', 'kcmpResults', 'kcmpClear', 'kcmpStatus',
+    'ktypeToggle', 'ktypeMenu',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
     'globeStatus', 'mapLegend', 'mapStatusPts',
     'evGlobePane', 'evNewsPane', 'evPmPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
@@ -2275,6 +2278,26 @@
     applyScale();
   }
 
+  /* 图表类型：UI（radio checked/label.on）与图表侧都收敛到 applyType；
+     saveType 落 chartTypeV1 持久化。换类型 = 换主系列，到价提醒线挂在其上，
+     须重挂（applyChartLines 先逐条 removePriceLine 再新建，无双挂）。 */
+  function applyType() {
+    document.querySelectorAll('#ktypeMenu [data-ktype]').forEach(row => {
+      const on = row.dataset.ktype === state.chartType;
+      row.classList.toggle('on', on);
+      const radio = row.querySelector('input[type="radio"]');
+      if (radio) radio.checked = on;
+    });
+    if (state.chart && state.chart.setType) state.chart.setType(state.chartType);
+    if (window.AlertCenter && window.AlertCenter.applyChartLines) window.AlertCenter.applyChartLines();
+  }
+
+  function saveType(v) {
+    state.chartType = window.Charts.sanitizeChartType(v);
+    Store.set('chartTypeV1', state.chartType);
+    applyType();
+  }
+
   async function loadDetailChart() {
     const t = state.detail;
     if (!t) return;
@@ -2358,6 +2381,8 @@
       applyDrawTool();
       // 标尺每次重放当前档位（实例可能刚换 kind 或跨标的复用）；对比线重算（同标的切周期保持对比）
       if (state.chart.setScale) state.chart.setScale(state.chartScale);
+      // 图表类型每次重放当前档位（同上：实例可能刚换 kind 或跨标的复用；分时分支不重放）
+      if (state.chart.setType) state.chart.setType(state.chartType);
       applyCompareOverlay(gen);
     }
     // 事件标记层：全球事件 + 龙虎榜按 symbol 落位（分时为 no-op）
@@ -2366,13 +2391,15 @@
     if (window.AlertCenter) window.AlertCenter.attachChart(kind === 'kline' ? state.chart : null, t);
     // 分时下 MA 无意义（加密的 5 分钟 K 除外），禁用开关以免"看起来坏了"
     if (el.maToggle) el.maToggle.disabled = (kind === 'trend' && t.market !== 'crypto');
-    // 标尺/对比依赖主图蜡烛序列与右轴标尺：分时图诚实禁用（同 maToggle 口径），
+    // 标尺/对比/图表类型依赖主图蜡烛序列与右轴标尺：分时图诚实禁用（同 maToggle 口径），
     // 顺手关掉还开着的弹层，不留"按钮灰了菜单还开着"的悬空态
     if (el.scaleToggle) el.scaleToggle.disabled = kind === 'trend';
     if (el.kcmpToggle) el.kcmpToggle.disabled = kind === 'trend';
+    if (el.ktypeToggle) el.ktypeToggle.disabled = kind === 'trend';
     if (kind === 'trend') {
       if (el.scaleMenu) el.scaleMenu.hidden = true;
       if (el.kcmpMenu) el.kcmpMenu.hidden = true;
+      if (el.ktypeMenu) el.ktypeMenu.hidden = true;
     }
   }
 
@@ -6007,6 +6034,22 @@
       el.scaleMenu.addEventListener('change', (e) => {
         const row = e.target.closest('[data-scale]');
         if (row) saveScale(row.dataset.scale);
+      });
+    }
+
+    /* 图表类型菜单：active = 菜单展开中（scaleToggle 同款）；打开时按当前类型回显 radio */
+    if (el.ktypeToggle && el.ktypeMenu) {
+      el.ktypeToggle.addEventListener('click', () => {
+        const open = el.ktypeMenu.hidden;
+        if (open) applyType();
+        el.ktypeMenu.hidden = !open;
+        el.ktypeToggle.classList.toggle('active', open);
+      });
+    }
+    if (el.ktypeMenu) {
+      el.ktypeMenu.addEventListener('change', (e) => {
+        const row = e.target.closest('[data-ktype]');
+        if (row) saveType(row.dataset.ktype);
       });
     }
 
