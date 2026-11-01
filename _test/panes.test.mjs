@@ -386,5 +386,66 @@ await test('跨文件守卫：charts.js 的 PANE_LINE_SLOTS 必须覆盖 PANE_DE
   });
 });
 
+/* ---------- 副图管理：sanitizePaneList 清单净化（≤3 实例，路线图「副图管理」条目） ---------- */
+
+await test('sanitizePaneList：合法往返——顺序/key/params 保形、缺 h 补 110', () => {
+  const out = P.sanitizePaneList([
+    { key: 'rsi', params: { n: 9 }, h: 140 },
+    { key: 'macd', params: { fast: 12, slow: 26, signal: 9 } },
+  ]);
+  assert.equal(out.length, 2);
+  assert.equal(out[0].key, 'rsi');
+  assert.equal(out[0].params.n, 9, 'params 数值保形');
+  assert.equal(out[0].h, 140, '已有 h 保形');
+  assert.equal(out[1].key, 'macd');
+  assert.deepEqual(Array.from(Object.keys(out[1].params)).sort(), ['fast', 'signal', 'slow']);
+  assert.equal(out[1].h, 110, '缺 h 补缺省 110');
+});
+
+await test('sanitizePaneList：键白名单 + 同名去重留首 + 超 3 截断 + 非数组/非对象收敛', () => {
+  assert.deepEqual(Array.from(P.sanitizePaneList('no')), [], '非数组 → []');
+  assert.deepEqual(Array.from(P.sanitizePaneList(null)), []);
+  const out = P.sanitizePaneList([
+    { key: 'rsi' }, { key: '不存在的键' }, { key: 'rsi', h: 90 }, { key: 'macd' }, { key: 'cci' }, { key: 'dmi' },
+  ]);
+  assert.deepEqual(Array.from(out.map(p => p.key)), ['rsi', 'macd', 'cci'], '脏键剔、重复键留首、恰截 3');
+  assert.deepEqual(Array.from(P.sanitizePaneList([42, 'x', null])), [], '非对象项剔');
+});
+
+await test('sanitizePaneList：h 钳制——30→60、999→220、字符串数字接受、非数→缺省', () => {
+  // 分两次调用：4 条会先撞上 PANES_MAX=3 截断（截断语义在上一组单独验）
+  const out = P.sanitizePaneList([{ key: 'rsi', h: 30 }, { key: 'macd', h: 999 }, { key: 'cci', h: '150' }]);
+  assert.equal(out[0].h, 60, '低于下限钳到 60');
+  assert.equal(out[1].h, 220, '高于上限钳到 220');
+  assert.equal(out[2].h, 150, "字符串 '150' 经 + 强转接受");
+  assert.equal(P.sanitizePaneList([{ key: 'dmi', h: 'abc' }])[0].h, 110, '非数 → 缺省 110');
+});
+
+await test('sanitizePaneList：params 按 def min/max 钳制、非数丢、白名单外键剔', () => {
+  const out = P.sanitizePaneList([{ key: 'rsi', params: { n: 1, junk: 5, bad: 'x' } }]);
+  assert.equal(out[0].params.n, 2, 'n=1 → 钳到 min=2');
+  assert.equal('junk' in out[0].params, false, '白名单外键剔');
+  const out2 = P.sanitizePaneList([{ key: 'rsi', params: { n: 999 } }]);
+  assert.equal(out2[0].params.n, 100, 'n=999 → 钳到 max=100');
+  const out3 = P.sanitizePaneList([{ key: 'rsi', params: { n: 'abc' } }]);
+  assert.equal('n' in out3[0].params, false, '非数值丢（computePane 内部自钳制是双保险，不是借口）');
+  assert.deepEqual(Array.from(Object.keys(P.sanitizePaneList([{ key: 'vol' }])[0].params)), [], 'vol 无参数 → 空 params');
+});
+
+await test('sanitizePaneList：空数组合法（可移除全部副图）+ 常量导出守卫', () => {
+  assert.deepEqual(Array.from(P.sanitizePaneList([])), []);
+  assert.equal(P.PANES_MAX, 3, 'PANES_MAX=3（路线图「≤3 个」口径）');
+  assert.equal(P.PANE_H_DEF, 110);
+  assert.equal(P.PANE_H_MIN, 60);
+  assert.equal(P.PANE_H_MAX, 220);
+  assert.equal(typeof P.sanitizePaneList, 'function');
+});
+
+await test('sanitizePaneList：跨 realm 对象按 JSON.stringify 串比较仍判等（既有先例口径）', () => {
+  const out = P.sanitizePaneList([{ key: 'rsi', params: { n: 14 }, h: 130 }]);
+  assert.equal(JSON.stringify(out), JSON.stringify([{ key: 'rsi', params: { n: 14 }, h: 130 }]),
+    '净化输出须与输入语义逐字段一致（charts.setPanes 的 changed 判定就靠这个串比较）');
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

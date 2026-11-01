@@ -18,9 +18,10 @@
      不要在业务代码里再写字面量 rgba(…)：改色时它一定会漂。 */
   const ACCENT_RGB = (getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb') || '').trim() || '232,163,61';
 
-  /* 默认指标配置：主图 3 条（MA5 / MA20 / EMA26）+ 副图成交量。
-     主图条数不固定（可增删，上限 8）；副图三选一（成交量 / RSI / MACD）。
-     存量配置（只有 lines、没有 pane）也会被补上默认副图。
+  /* 默认指标配置：主图 3 条（MA5 / MA20 / EMA26）+ 副图清单（缺省只有成交量）。
+     主图条数不固定（可增删，上限 8）；副图 ≤3 个实例（可增删 / 上下重排 / 分隔条拖高，
+     条目 {key,params} 的 h 缺省由 panes.sanitizePaneList 补 110）。
+     存量配置（只有 lines、没有 panes）也会被补上默认副图。
      ⚠ 必须定义在 state 之前：state.detailMACfg 拿它当初值。
      之前这个常量写在 init() 里、赋值在 await fetchAllQuotes() 之后，
      于是「首屏还在加载时按后退 / 点搜索建议」这条路径上 detailMACfg 仍是 null，
@@ -32,7 +33,7 @@
       { type: 'ma', n: 20, on: true },
       { type: 'ema', n: 26, on: true },
     ],
-    pane: { key: 'vol', params: {} },
+    panes: [{ key: 'vol', params: {} }],
   };
 
   const state = {
@@ -78,7 +79,7 @@
     chartGen: 0,              // 图表请求代号（防慢响应覆盖新图）
     searchGen: 0,             // 搜索请求代号（同理，防旧关键词结果覆盖新输入）
     detailPeriod: 'day',       // 用户要求：默认打开日K
-    detailMACfg: MA_CFG_DEFAULT,  // 均线配置 {lines, pane}；init 时再用 localStorage 里的覆盖
+    detailMACfg: MA_CFG_DEFAULT,  // 均线配置 {lines, panes}；init 时再用 localStorage 里的覆盖
     chart: null,
     chartKind: null,
     searchSel: -1,
@@ -2346,6 +2347,17 @@
         // 右键菜单「隐藏全部画线」回调：记忆进 localStorage 并同步按钮态；
         // 图表侧的隐藏已由菜单自身 setHidden 生效，这里只管 app 层状态收敛
         onHideAll: (h) => { state.drawHidden = !!h; Store.set('drawHideV1', state.drawHidden); applyDrawTool(); },
+        // 副图分隔条拖拽调高落盘：按 key 把新高度合并进现有清单（参数不动），
+        // 只写 state + Store，不回调 setPanes——图表侧 panes 已是新值，再灌会白重建一轮
+        onPanesChange: (list) => {
+          const cur = maCfgPanes();
+          const merged = (list || []).map((p) => {
+            const old = cur.find(q => q.key === p.key);
+            return { key: p.key, params: Object.assign({}, old ? old.params : p.params), h: p.h };
+          });
+          state.detailMACfg = { lines: maCfgLines(), panes: merged };
+          Store.set('maCfg', state.detailMACfg);
+        },
       });
       state.chartKind = kind;
     }
@@ -2358,13 +2370,14 @@
       const pbtn = document.querySelector('[data-period].active');
       state.chart.setInfo({ code: t.code || t.symbol || '', period: pbtn ? pbtn.textContent.trim() : '' });
     }
-    // 副图指标（成交量 / RSI / MACD）：**先设副图再 setData**——
-    // setData 内部会按当前副图重画，顺序反了会用上一次的副图类型。
+    // 副图清单（成交量 / RSI / MACD / …，≤3 个）：**先设副图再 setData**——
+    // setData 内部会按当前清单重画，顺序反了会用上一次的副图清单。
     // 兜底：detailMACfg 任何时候都不能是 null——它是 null 时下面这行会抛
     // TypeError，抛点在 setData 之前，于是图表建好却没数据：用户看到一块空白画布，
     // 而且异常被 Promise.allSettled 吞掉，页面上一点提示都没有。
     const maCfg = state.detailMACfg || MA_CFG_DEFAULT;
-    if (state.chart && state.chart.setPane) state.chart.setPane(maCfg.pane);
+    // panes||[pane]：旧 localStorage 里残留的单选形态也能被防御性接住
+    if (state.chart && state.chart.setPanes) state.chart.setPanes(maCfg.panes || [maCfg.pane]);
     if (kind === 'trend') {
       // prevClose 优先用卡片/缓存里同步可得的报价，避免与 refreshDetailQuote 的竞态
       // （四路并行时 quote 常常未到，null 会让 charts 把收跌日整条染成涨色）
@@ -5958,12 +5971,22 @@
       return (state.detailMACfg && Array.isArray(state.detailMACfg.lines)) ? state.detailMACfg.lines : [];
     }
 
-    function saveMaCfg(lines, pane) {
-      state.detailMACfg = { lines, pane: pane || (state.detailMACfg && state.detailMACfg.pane) || { key: 'vol', params: {} } };
+    function maCfgPanes() {
+      return (state.detailMACfg && Array.isArray(state.detailMACfg.panes)) ? state.detailMACfg.panes : [];
+    }
+
+    // 副图清单统一经 sanitizePaneList 收敛后落盘（脏键 / 超限 / 非法高度进不了存储）；
+    // panes 缺省回退当前清单（只改主图线时不碰副图）。
+    // Store.set / setMAVisible / setPanes 由这里一并完成
+    function saveMaCfg(lines, panes) {
+      const san = (window.Panes && typeof window.Panes.sanitizePaneList === 'function')
+        ? window.Panes.sanitizePaneList
+        : (x) => (Array.isArray(x) ? x : []);
+      state.detailMACfg = { lines, panes: san(panes || maCfgPanes()) };
       window.Store.set('maCfg', state.detailMACfg);
       if (state.chart) {
         state.chart.setMAVisible(state.detailMACfg.lines);
-        state.chart.setPane(state.detailMACfg.pane);
+        state.chart.setPanes(state.detailMACfg.panes);
       }
     }
 
@@ -5972,19 +5995,28 @@
       const linesBox = el.maLinesBox, paneBox = el.maPaneBox;
       if (!linesBox || !paneBox) return;
       const lines = maCfgLines();
-      const pane = (state.detailMACfg && state.detailMACfg.pane) || { key: 'vol', params: {} };
+      const paneList = maCfgPanes();
+      const paneMax = (window.Panes && window.Panes.PANES_MAX) || 3;
+      const capFull = paneList.length >= paneMax;
 
-      // 副图：类型单选 + 该类型自己的参数
+      // 副图：管理清单（勾选=上图表，≤3 个）+ 激活行的参数与上下重排。
+      // cap 满时未勾行禁用并给 title——"为什么勾不上"要看得见；
+      // ↑/↓ 首行无↑、末行无↓（disabled 表达），与相邻条目交换即重排。
       const pdefs = (window.Panes && window.Panes.PANE_DEFS) || [];
       paneBox.innerHTML = pdefs.map(d => {
-        const on = (pane.key || 'vol') === d.key;
-        const params = (d.params || []).map(p => {
-          const v = (pane.params && pane.params[p.key] != null) ? pane.params[p.key] : p.def;
-          return `<input type="number" min="${p.min}" max="${p.max}" value="${v}" data-paneparam="${d.key}:${p.key}">`;
-        }).join('');
-        return `<label class="ma-pane-row${on ? ' on' : ''}">
-          <input type="radio" name="mapane" value="${d.key}"${on ? ' checked' : ''} data-pane="${d.key}">
-          <span>${d.label}</span>${params}
+        const entry = paneList.find(p => p.key === d.key) || null;
+        const idx = entry ? paneList.indexOf(entry) : -1;
+        const params = entry ? (d.params || []).map(p => {
+          const v = (entry.params && entry.params[p.key] != null) ? entry.params[p.key] : p.def;
+          return `<input type="number" min="${p.min}" max="${p.max}" value="${v}" title="${p.label}" aria-label="${d.label} ${p.label}" data-paneparam="${d.key}:${p.key}">`;
+        }).join('') : '';
+        const blocked = !entry && capFull;
+        const btns = !entry ? '' :
+          `<button type="button" data-paneup="${d.key}" aria-label="${d.label} 上移" title="上移"${idx > 0 ? '' : ' disabled'}>↑</button>` +
+          `<button type="button" data-panedown="${d.key}" aria-label="${d.label} 下移" title="下移"${idx < paneList.length - 1 ? '' : ' disabled'}>↓</button>`;
+        return `<label class="ma-pane-row${entry ? ' on' : ''}"${blocked ? ' title="最多同时显示 ' + paneMax + ' 个副图"' : ''}>
+          <input type="checkbox"${entry ? ' checked' : ''}${blocked ? ' disabled' : ''} data-pane="${d.key}">
+          <span>${d.label}</span>${params}${btns}
         </label>`;
       }).join('');
 
@@ -6177,43 +6209,69 @@
       saveMaCfg(lines.filter((_, k) => k !== i));
       renderMaMenu();
     };
+    // 副图上下重排：与相邻条目交换（≤3 条，重排即改渲染顺序）
+    const movePane = (key, dir) => {
+      const cur = maCfgPanes();
+      const i = cur.findIndex(p => p.key === key);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= cur.length) return;
+      const next = cur.slice();
+      next[i] = cur[j]; next[j] = cur[i];
+      saveMaCfg(maCfgLines(), next);
+      renderMaMenu();
+    };
     if (el.maAdd) el.maAdd.addEventListener('click', addMaLine);
     // 一键重置：回到默认指标配置（MA5/MA20/EMA26 + 成交量副图）。
-    // 深拷贝后再存：lines 逐项浅拷贝、pane 换新对象——MA_CFG_DEFAULT 同时是
+    // 深拷贝后再存：lines 逐项浅拷贝、panes 逐条换新对象——MA_CFG_DEFAULT 同时是
     // state.detailMACfg 的初值来源，直接引用会让后续参数面板的写入污染默认值。
-    // Store.set / setMAVisible / setPane 由 saveMaCfg 一并完成
+    // Store.set / setMAVisible / setPanes 由 saveMaCfg 一并完成
     if (el.maReset) el.maReset.addEventListener('click', () => {
       saveMaCfg(
         MA_CFG_DEFAULT.lines.map(l => Object.assign({}, l)),
-        { key: MA_CFG_DEFAULT.pane.key, params: {} },
+        MA_CFG_DEFAULT.panes.map(p => ({ key: p.key, params: Object.assign({}, p.params) })),
       );
       renderMaMenu();
     });
 
     document.addEventListener('change', (e) => {
-      // 副图指标切换
-      const paneRadio = e.target.closest('[data-pane]');
-      if (paneRadio) {
-        const key = paneRadio.dataset.pane;
+      // 副图勾选/取消（≤3 实例管理；上限由菜单禁用态表达，这里再兜一次底）
+      const paneCb = e.target.closest('input[data-pane]');
+      if (paneCb) {
+        const key = paneCb.dataset.pane;
         const def = window.Panes && window.Panes.paneDef(key);
-        const params = {};
-        (def && def.params || []).forEach(p => { params[p.key] = p.def; });
-        saveMaCfg(maCfgLines(), { key, params });
+        const cur = maCfgPanes();
+        const paneMax = (window.Panes && window.Panes.PANES_MAX) || 3;
+        if (!def || cur.some(p => p.key === key) || (paneCb.checked && cur.length >= paneMax)) {
+          renderMaMenu();   // 状态对不上（脏键 / 重复 / 超限）：回显真实清单，不静默吞
+          return;
+        }
+        if (paneCb.checked) {
+          // 新条目只带 def 默认参数（h 缺省由 sanitize 补 110）；同名旧条目已被
+          // 上面的 some 拦住——取消勾选是整条移除，再勾回即全新条目
+          const params = {};
+          (def.params || []).forEach(p => { params[p.key] = p.def; });
+          saveMaCfg(maCfgLines(), cur.concat([{ key, params }]));
+        } else {
+          saveMaCfg(maCfgLines(), cur.filter(p => p.key !== key));
+        }
         renderMaMenu();
         return;
       }
-      // 副图参数（RSI 周期 / MACD 快慢信号）
+      // 副图参数（RSI 周期 / MACD 快慢信号）：按 key 定位条目改 params，
+      // 整条替换时 h 原样带回——改参数不能把已拖的高度重置回 110
       const pparam = e.target.closest('[data-paneparam]');
       if (pparam) {
         const [key, pkey] = pparam.dataset.paneparam.split(':');
-        const pane = (state.detailMACfg && state.detailMACfg.pane) || { key: 'vol', params: {} };
-        const params = Object.assign({}, pane.params);
+        const cur = maCfgPanes();
+        const entry = cur.find(p => p.key === key);
+        if (!entry) { renderMaMenu(); return; }
+        const params = Object.assign({}, entry.params);
         const def = window.Panes && window.Panes.paneDef(key);
         const pd = def && (def.params || []).find(x => x.key === pkey);
         let v = Math.round(+pparam.value);
         if (pd) v = Math.max(pd.min, Math.min(pd.max, v));
         params[pkey] = v;
-        saveMaCfg(maCfgLines(), { key: pane.key || key, params });
+        saveMaCfg(maCfgLines(), cur.map(p => p.key === key ? { key: p.key, params, h: p.h } : p));
         renderMaMenu();
         return;
       }
@@ -6239,6 +6297,11 @@
     document.addEventListener('click', (e) => {
       const del = e.target.closest('[data-madel]');
       if (del) { delMaLine(+del.dataset.madel); return; }
+      // 副图上下重排（与相邻条目交换；首行无↑ / 末行无↓由菜单 disabled 表达）
+      const pup = e.target.closest('[data-paneup]');
+      if (pup) { movePane(pup.dataset.paneup, -1); return; }
+      const pdn = e.target.closest('[data-panedown]');
+      if (pdn) { movePane(pdn.dataset.panedown, 1); return; }
       const sw = e.target.closest('[data-macolor]');
       if (sw) {
         const [li, k] = sw.dataset.macolor.split(':').map(Number);
@@ -6564,12 +6627,27 @@
     // 默认指标配置 MA_CFG_DEFAULT 定义在模块作用域（state 之前）——
     // 它同时是 state.detailMACfg 的初值，init 里只负责用 localStorage 的存量配置覆盖它。
     const storedCfg = window.Store.get('maCfg', null);
-    state.detailMACfg = (storedCfg && Array.isArray(storedCfg.lines) && storedCfg.lines.length)
-      ? {
+    if (storedCfg && Array.isArray(storedCfg.lines) && storedCfg.lines.length) {
+      // 副图清单迁移（2026-11-01 单选 pane → ≤3 实例 panes）：读写两侧都过
+      // sanitizePaneList——旧 localStorage 一次读取自动升级（pane 包一层 [pane]），
+      // 脏键 / 超限 / 非法高度进不了 state，更进不了渲染
+      const san = (window.Panes && typeof window.Panes.sanitizePaneList === 'function')
+        ? window.Panes.sanitizePaneList
+        : (x) => (Array.isArray(x) ? x : []);
+      state.detailMACfg = {
         lines: storedCfg.lines,
-        pane: (storedCfg.pane && storedCfg.pane.key) ? storedCfg.pane : MA_CFG_DEFAULT.pane,
-      }
-      : MA_CFG_DEFAULT;
+        panes: Array.isArray(storedCfg.panes) ? san(storedCfg.panes)
+          : (storedCfg.pane && storedCfg.pane.key) ? san([storedCfg.pane])
+          : san(MA_CFG_DEFAULT.panes),
+      };
+    } else {
+      // 默认配置深拷贝：MA_CFG_DEFAULT 同时是 state.detailMACfg 的初值来源，
+      // 直接引用会让参数面板的写入污染默认值（maReset 注释同款理由）
+      state.detailMACfg = {
+        lines: MA_CFG_DEFAULT.lines.map(l => Object.assign({}, l)),
+        panes: MA_CFG_DEFAULT.panes.map(p => ({ key: p.key, params: Object.assign({}, p.params) })),
+      };
+    }
     state.breadthHist = window.Store.get('breadthHist', []);
     if (location.hash && location.hash !== '#') renderFromHash();
   }

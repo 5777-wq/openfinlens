@@ -237,6 +237,30 @@ test('js/app.js 必须接线图表类型（chartTypeV1 持久化 + setType 调�
   assert.ok(/sanitizeChartType\(/.test(app), 'app.js 没有消费 sanitizeChartType（脏值直灌图表侧）');
 });
 
+test('js/charts.js 必须保留多副图管理核心（setPanes 导出 + k-pane-div 拖拽条 + sanitizePaneList 消费 + onPanesChange 回调）', () => {
+  // 跨文件守卫（照 chartTypeV1 先例）：缺 setPanes 菜单点了图不变；缺 k-pane-div
+  // 分隔条则拖拽调高失效；缺 sanitizePaneList 消费则脏配置毒化渲染；
+  // 缺 onPanesChange 回调则拖高后 app 层不落盘、刷新即丢。
+  const charts = readFileSync(path.join(ROOT, 'js/charts.js'), 'utf8');
+  assert.ok(/setPanes,/.test(charts), 'charts.js 导出面缺 setPanes（菜单点了图不变）');
+  assert.ok(/k-pane-div/.test(charts), 'charts.js 缺 k-pane-div 分隔条（拖拽调高失效）');
+  assert.ok(/sanitizePaneList/.test(charts), 'charts.js 没有消费 sanitizePaneList（脏配置毒化渲染）');
+  assert.ok(/onPanesChange/.test(charts), 'charts.js 缺 onPanesChange 回调（拖高后 app 层不落盘）');
+});
+
+test('js/app.js 必须接线副图清单管理（maCfg panes 持久化 + setPanes 调用 + sanitizePaneList 消费 + paneup/panedown 接线 + onPanesChange 落 Store）', () => {
+  // 跨文件守卫（照 chartTypeV1 先例）：缺持久化清单刷新即丢；缺 setPanes 调用
+  // 菜单点了图不变；缺 sanitizePaneList 消费则 localStorage 脏清单直灌图表侧；
+  // 缺 paneup/panedown 接线则重排按钮失联；缺 onPanesChange→Store 则拖高刷新即丢。
+  const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
+  assert.ok(/state\.detailMACfg = \{ lines, panes/.test(app), 'app.js 缺 maCfg panes 持久化（副图清单刷新即丢）');
+  assert.ok(/setPanes\(/.test(app), 'app.js 没有接线 chart.setPanes（菜单点了图不变）');
+  assert.ok(/sanitizePaneList/.test(app), 'app.js 没有消费 sanitizePaneList（脏清单直灌图表侧）');
+  assert.ok(/data-paneup/.test(app), 'app.js 缺 data-paneup 接线（上移按钮失联）');
+  assert.ok(/data-panedown/.test(app), 'app.js 缺 data-panedown 接线（下移按钮失联）');
+  assert.ok(/onPanesChange[\s\S]{0,400}Store\.set\('maCfg'/.test(app), 'app.js 缺 onPanesChange→Store.set 落盘（拖高刷新即丢）');
+});
+
 test('charts.js 不得再自带一份均线调色板字面量', () => {
   const charts = readFileSync(path.join(ROOT, 'js/charts.js'), 'utf8');
   assert.ok(!/LINE_COLORS\s*=\s*\[/.test(charts), 'charts.js 又出现了 LINE_COLORS 字面量数组');

@@ -496,6 +496,13 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
    上边框把两块隔开（TradingView 的主图/副图之间就是一条细线）。 */
 .k-pane { display: block; width: 100%; height: 110px; margin-top: 0;
   border-top: 1px solid var(--border); }
+/* 副图容器：≤3 个副图 canvas 堆叠（多副图管理的宿主，见 js/charts.js buildPaneDom） */
+.k-pane-stack { display: block; }
+/* 副图分隔条：拖拽调高把手（9px 命中区；悬停/拖拽中提亮示意可拖）。
+   只 transition color 字段（家规 2），prefers-reduced-motion 全局块自动归零时长。 */
+.k-pane-div { height: 9px; cursor: ns-resize; touch-action: none;
+  transition: background-color var(--dur-fast) var(--ease-out); }
+.k-pane-div:hover, .k-pane-div.on { background-color: color-mix(in srgb, var(--accent-signature) 16%, transparent); }
 /* 该周期无数据时整块收起（不留"暂无数据"占位文案） */
 .chart-box.off { display: none; }
 
@@ -965,6 +972,13 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
 .ma-pane-row.on { color: var(--text); }
 .ma-pane-row.on span { font-weight: 600; }
 .ma-pane-row input[type="number"] { margin-left: 0; width: 48px; }
+/* 副图行的上下移按钮（.ma-line-row button 同款语言）；.ma-pane-row.on 之上的
+   提亮用 color 字段，禁用态半透明只降不升对比度 */
+.ma-pane-row button { width: 20px; height: 20px; line-height: 1; font-size: var(--fs-12);
+  padding: 0; color: var(--text-faint); background: transparent; border: 1px solid transparent;
+  border-radius: var(--r-sm); cursor: pointer; }
+.ma-pane-row button:hover:not(:disabled) { color: var(--accent-signature); border-color: var(--border); }
+.ma-pane-row button:disabled { opacity: 0.4; cursor: default; }
 /* 主图指标行：开关 / 类型 / 周期 / 色标 / 删除 */
 .ma-line-row { display: flex; align-items: center; gap: var(--sp-8); padding: var(--sp-4) 0; }
 .ma-line-row select { background: rgba(255,255,255,0.05); border: 1px solid var(--border);

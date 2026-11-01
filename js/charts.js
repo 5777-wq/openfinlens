@@ -65,8 +65,9 @@ const Charts = (() => {
     };
   }
 
-  // 蜡烛图 + 成交量 + MA
-  // options（可选第二参）：{ onDrawings, onToolEnd } —— 画线工具的持久化 / 退出回调。
+  // 蜡烛图 + 多副图管理 + MA
+  // options（可选第二参）：{ onDrawings, onToolEnd, onHideAll, onPanesChange }
+  // —— 画线工具的持久化 / 退出 / 隐藏全部回调 + 副图清单变化（拖拽调高）回调。
   // 不传时行为与旧版完全一致（createTrend 不动）。
   function createKline(el, options) {
     const L = LWC();
@@ -77,6 +78,9 @@ const Charts = (() => {
     // 右键菜单「隐藏全部画线」的上层回调：app 层记忆 + 按钮态同步。
     // 未传时菜单项仍可隐藏本图（临时态，不落盘）。
     const onHideAll = typeof opts.onHideAll === 'function' ? opts.onHideAll : null;
+    // 副图分隔条拖拽调高后的落盘回调（照 onDrawings 先例：图表侧只管画，持久化是 app 层的事）。
+    // 未传时拖拽仍生效（临时态，不落盘）。
+    const onPanesChange = typeof opts.onPanesChange === 'function' ? opts.onPanesChange : null;
     const { lineColors: LINE_COLORS } = themeColors();
     const chart = L.createChart(el, Object.assign(baseOptions(), { height: el.clientHeight || 420 }));
 
@@ -117,8 +121,8 @@ const Charts = (() => {
     const buildMainSeries = (t) => addSeries(chart, MAIN_KIND[t] || 'Candlestick', mainSeriesOptions(t));
     let candle = buildMainSeries('candle');
 
-    /* ---------- 副图指标窗（独立 canvas，自绘） ----------
-       TradingView 的模型：主图 + 一个独立的指标窗（成交量 / RSI / MACD）。
+    /* ---------- 副图指标窗（独立 canvas 自绘，≤3 个可管理） ----------
+       TradingView 的模型：主图 + 独立指标窗（成交量 / RSI / MACD / …），可多窗并存。
        为什么不用 lightweight-charts 的第二条 priceScale：vendor 是 4.2.3，
        没有 addPane（多窗格要 v5），而 4.x 的 priceScale 只能挂 left/right ——
        副图刻度会和主图价格轴挤在同一边。实测把 RSI 挂在隐藏的 'vol' scale 上时，
@@ -127,28 +131,106 @@ const Charts = (() => {
 
        成交量也走这条路径（原来是 lightweight-charts 的 vol series + 隐藏 scale），
        统一成一套绘制逻辑，副图形态才一致。 */
-    const paneCanvas = document.createElement('canvas');
-    paneCanvas.className = 'k-pane';
-    paneCanvas.setAttribute('role', 'img');
-    paneCanvas.setAttribute('aria-label', '副图指标');
-    // 副图高度写死：原来按 el.clientHeight 的 26% 算，而详情页还没展开时
-    // clientHeight 读到的不是主图高度，比例算出来的高度时对时不对。
-    // 固定 110px（主图 420 + 副图 110 ≈ TradingView 的主图/指标窗比例）。
+    // 副图高度缺省 110px（主图 420 + 副图 110 ≈ TradingView 的主图/指标窗比例）：
+    // 原来按 el.clientHeight 的 26% 算，而详情页还没展开时 clientHeight 读到的
+    // 不是主图高度，比例算出来的高度时对时不对。上下限与清单净化在 js/panes.js
+    // （PANE_H_DEF/MIN/MAX + sanitizePaneList），这里只消费。
     const PANE_H = 110;
-    paneCanvas.style.height = PANE_H + 'px';
-    // 副图 canvas 必须挂在**主图容器外面**（chart-box）——
+    // 副图容器必须挂在**主图容器外面**（chart-box）——
     // 放进 #klineChart 里会被 lightweight-charts 的定位规则卷进去，
     // 结果它浮到图表下方、压住下一个板块的标题。
     const paneHost = el.parentElement || el;
+    const paneStack = document.createElement('div');
+    paneStack.className = 'k-pane-stack';
     if (paneHost && paneHost.insertBefore) {
-      paneHost.insertBefore(paneCanvas, el.nextSibling);
+      paneHost.insertBefore(paneStack, el.nextSibling);
     } else {
-      el.appendChild(paneCanvas);
+      el.appendChild(paneStack);
     }
 
-    // 当前副图：PANE_DEFS 八键（vol / rsi / macd / vwap / atr / stochrsi / cci / dmi）
-    let paneKey = 'vol';
-    let paneParams = {};
+    // 当前副图清单（≤3 条，条目 { key, params, h, canvas }）：PANE_DEFS 八键
+    // （vol / rsi / macd / vwap / atr / stochrsi / cci / dmi）。增删 / 上下重排 /
+    // 分隔条拖高全部收敛到 panes 数组，setPanes 是唯一入口、buildPaneDom 负责重建。
+    let panes = [];
+
+    /* 由 panes 清单重建副图 DOM：每条一个 canvas + 一条拖拽分隔条。
+       全量重建最省心：增删/重排/高度都经 setPanes 收敛到这里，canvas 上的
+       监听与 ResizeObserver 也在这里逐个挂上（切清单时旧节点整体丢弃，
+       监听随节点一起消失，不会泄漏）。 */
+    function buildPaneDom() {
+      paneStack.textContent = '';      // 清空旧副图（含分隔条）
+      panes.forEach((entry) => {
+        const canvas = document.createElement('canvas');
+        canvas.className = 'k-pane';
+        canvas.setAttribute('role', 'img');
+        canvas.setAttribute('aria-label', '副图指标：' + paneTitle(entry));
+        canvas.style.height = entry.h + 'px';
+        /* 副图鼠标：hover 时副图画竖线，并把主图十字线吸附到对应 bar
+           （setCrosshairPosition，图例同步读数）；离开时清掉。
+           最近点超过 30px 就不联动——空白区硬吸附会给出假读数。
+           paneHoverX / mainCrossX / lastXMap 跨副图共享：同一个 x 竖线亮在所有副图上。 */
+        canvas.addEventListener('mousemove', (e) => {
+          const x = e && isFinite(e.offsetX) ? e.offsetX : null;
+          paneHoverX = x;
+          if (x !== null && lastXMap) {
+            let best = null, bestD = Infinity;
+            lastXMap.forEach((px, t) => {
+              const d = Math.abs(px - x);
+              if (d < bestD) { bestD = d; best = t; }
+            });
+            if (best !== null && bestD <= 30) {
+              const bar = lastKlines.find(k => k.time === best);
+              try { chart.setCrosshairPosition(bar ? bar.close : 0, best, candle); }
+              catch (err) { /* 老版本没有 setCrosshairPosition：只画副图竖线 */ }
+            }
+          }
+          schedulePaneRender();
+        });
+        canvas.addEventListener('mouseleave', () => {
+          paneHoverX = null;
+          try { chart.clearCrosshairPosition(); } catch (err) { /* ignore */ }
+          schedulePaneRender();
+        });
+        if (paneRO) paneRO.observe(canvas);
+        entry.canvas = canvas;
+        paneStack.appendChild(canvas);
+        // 分隔条：拖拽调高（钳制口径与 sanitizePaneList 一致），拖动中 .on 高亮；
+        // mousemove 事件驱动 + rAF 帧合并（schedulePaneRender 自带 40ms 兜底），零 setInterval
+        const div = document.createElement('div');
+        div.className = 'k-pane-div';
+        div.setAttribute('role', 'separator');
+        div.setAttribute('aria-label', '拖拽调整副图高度');
+        div.addEventListener('mousedown', (ev) => startPaneDrag(entry, div, ev));
+        paneStack.appendChild(div);
+      });
+    }
+
+    /* 分隔条拖拽调高：mousedown 记起点，document mousemove 实时改高度并重画，
+       mouseup 摘监听并经 onPanesChange 落盘（快照 {key,params,h}，app 层按 key 合并）。 */
+    function startPaneDrag(entry, div, ev) {
+      if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+      const startY = ev && isFinite(ev.clientY) ? ev.clientY : 0;
+      const startH = entry.h;
+      const hMin = (window.Panes && window.Panes.PANE_H_MIN) || 60;
+      const hMax = (window.Panes && window.Panes.PANE_H_MAX) || 220;
+      div.classList.add('on');
+      const onMove = (mv) => {
+        const dy = (mv && isFinite(mv.clientY) ? mv.clientY : startY) - startY;
+        const h = Math.max(hMin, Math.min(hMax, startH + dy));
+        if (h === entry.h) return;     // 没动就不重画
+        entry.h = h;
+        if (entry.canvas) entry.canvas.style.height = h + 'px';
+        schedulePaneRender();
+      };
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        div.classList.remove('on');
+        if (onPanesChange) onPanesChange(panes.map(p => ({ key: p.key, params: Object.assign({}, p.params), h: p.h })));
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    }
 
     /* 主图 → 副图的横坐标换算：直接问主图要每个时间点的 x（像素）。
        为什么不用「按序号等分」：主图 fitContent 之后首尾两根 bar 各留半个
@@ -183,7 +265,7 @@ const Charts = (() => {
     function runPaneRender() {
       if (!paneRaf) return;           // 另一条路径已经画过，别画两遍
       paneRaf = 0;
-      if (lastKlines.length) renderPane(lastKlines, themeColors());
+      if (lastKlines.length) renderPanes(lastKlines, themeColors());
       drawOverlay();                  // 画线 overlay 跟随主图重画（平移/缩放后坐标会变）
     }
     function schedulePaneRender() {
@@ -215,12 +297,13 @@ const Charts = (() => {
     }
 
     /* 副图标题（TradingView 每个副图左上角都有指标名 + 当前值）：
-       统一由 paneDef(paneKey) 拼 label + 参数逗号串（钳制公式与 panes.computePane 同式）——
+       统一由 paneDef(entry.key) 拼 label + 参数逗号串（钳制公式与 panes.computePane 同式）——
        vol→'成交量'、rsi→'RSI(14)'、macd→'MACD(12,26,9)' 输出与旧实现逐字相同，
        新键自动得 'VWAP' / 'ATR(14)' / 'StochRSI(14,3,3)' / 'CCI(20)' / 'DMI(14,14)'。 */
-    function paneTitle() {
-      const def = window.Panes && window.Panes.paneDef(paneKey);
+    function paneTitle(entry) {
+      const def = window.Panes && window.Panes.paneDef(entry && entry.key);
       if (!def) return '成交量';
+      const paneParams = (entry && entry.params) || {};
       if (!def.params || !def.params.length) return def.label;
       const parts = def.params.map((pr) => {
         const v = paneParams[pr.key] != null ? paneParams[pr.key] : pr.def;
@@ -229,51 +312,15 @@ const Charts = (() => {
       return def.label + '(' + parts.join(',') + ')';
     }
 
-    /* 按当前副图类型重画。数据来自 js/panes.js（纯计算、可单测），
-       几何来自 js/paneview.js（纯几何、可单测）。 */
-    function renderPane(klines, c) {
+    /* 按当前副图清单逐条重画。数据来自 js/panes.js（纯计算、可单测），
+       几何来自 js/paneview.js（纯几何、可单测）。
+       横向共享量（时间轴 / 轴宽 / 绘图区宽 / x 映射 / 步长）在循环外只算一次：
+       所有副图与主图横向必须严格对齐，逐条各算一遍既浪费，还可能在主图
+       重算的窗口期里拿到互相不一致的坐标。 */
+    function renderPanes(klines, c) {
       if (!window.Panes || !window.PaneView) return;
-      const pane = window.Panes.computePane(paneKey, klines, paneParams);
-      const series = [];
-      const bars = [];
-      if (paneKey === 'vol') {
-        const dirOf = new Map();
-        (klines || []).forEach(k => {
-          if (k && k.time != null) dirOf.set(k.time, k.close >= k.open ? 1 : -1);
-        });
-        const d = (pane.bars[0] ? pane.bars[0].data : []).map(x => ({
-          time: x.time, value: x.value, up: (dirOf.get(x.time) || 1) > 0,
-        }));
-        bars.push({ name: '成交量', color: c.up, data: d, kind: 'bar' });
-      } else {
-        // 通用线装配：除 vol 外统一按 pane.lines × PANE_LINE_SLOTS 槽位取 c.lineColors 令牌链
-        // （rsi→lineColors[1]、macd DIF/DEA→[2,5]，与旧实现逐字一致；槽位 5 在 --ma-0..5 令牌链内）。
-        const slots = PANE_LINE_SLOTS[paneKey] || [];
-        (pane.lines || []).forEach((l, i) => {
-          if (slots[i] === undefined) return;    // 槽位没接线就不画（宁可空白，不画错色）
-          series.push({ name: l.name, color: c.lineColors[slots[i] % c.lineColors.length], data: l.data });
-        });
-        // ⚠ MACD 柱的正负染色分支保留在通用线装配**之后**（评审钉死的装配顺序）：
-        // hist 走 bars 不走 lines，通用装配只管线；柱在这里按值符号染色（多头红 / 空头绿）。
-        const hist = paneKey === 'macd' && pane.bars[0] ? pane.bars[0].data : [];
-        if (hist.length) {
-          bars.push({
-            name: 'MACD', color: c.up, kind: 'bar',
-            data: hist.map(d => Object.assign({}, d, { up: d.value >= 0 })),
-          });
-        }
-      }
-
-      // 纵轴域按 paneDef(key).range 驱动：'pct' 固定 0~100+ticks（RSI/StochRSI）；
-      // 'free' 纯自适应不强制含零（VWAP 是价格域，0 基会把曲线压扁）；其余含零（成交量/非负指标）
-      const vals = [];
-      series.forEach(s => (s.data || []).forEach(d => { if (isFinite(d.value)) vals.push(d.value); }));
-      bars.forEach(s => (s.data || []).forEach(d => { if (isFinite(d.value)) vals.push(d.value); }));
-      const rangeMode = (window.Panes && window.Panes.paneDef(paneKey) || {}).range;
-      const domain = rangeMode === 'pct'
-        ? { min: 0, max: 100, ticks: [0, 25, 50, 75, 100] }
-        : window.PaneView.axis(vals, { includeZero: rangeMode !== 'free' });
-
+      lastXMap = null;                  // 先按"无副图"收敛：空清单 / 提前返回都不留旧映射
+      if (!panes.length) return;
       // 时间轴：主图与副图共用（横向必须对齐，否则读数对不上）
       const times = (klines || []).map(k => k.time);
       // 副图绘图区宽度 = 主图宽度 - 右侧价格轴宽度：
@@ -284,10 +331,10 @@ const Charts = (() => {
         const w = ps && typeof ps.width === 'function' ? ps.width() : 0;
         if (w > 10) axisW = w;
       } catch (e) { /* 老版本没有 width()，用默认 44 */ }
-      // 尺寸以副图 canvas 自身为准（它就在主图旁边，宽度同源）
-      const totalW = paneCanvas.clientWidth || el.clientWidth || 400;
+      // 尺寸以副图 canvas 自身为准（它就在主图旁边，宽度同源；各副图宽度一致）
+      const firstCanvas = panes.reduce((acc, p) => acc || p.canvas, null);
+      const totalW = (firstCanvas && firstCanvas.clientWidth) || el.clientWidth || 400;
       const plotW = Math.max(10, totalW - axisW);   // 副图绘图区（右侧留刻度区）
-      const h = paneCanvas.clientHeight || PANE_H;
       // 横坐标：向主图要真实像素位置（逐像素对齐 + 休市缺口）
       const xMap = mainChartX(times, plotW);
       lastXMap = xMap;                 // 副图 hover 反查时间 / 主图十字竖线都用它
@@ -298,51 +345,100 @@ const Charts = (() => {
         if (ts && typeof ts.barSpacing === 'function') step = ts.barSpacing();
       } catch (e) { /* ignore */ }
       if (!(step > 0)) step = times.length > 1 ? (plotW / (times.length - 1)) : 0;
-      // 线与柱**都要**进 layout：layout 才把数据点落到画布坐标上。
-      // 之前只把线传了进去，柱只参与了纵轴取值 ——
-      // 结果就是"纵轴有刻度、图上一根柱都没有"（成交量 / MACD 柱全空）。
-      const model = window.PaneView.layout(
-        series.map(s => ({ name: s.name, color: s.color, data: s.data, kind: 'line' }))
-          .concat(bars.map(b => ({ name: b.name, color: b.color, data: b.data, kind: 'bar' }))),
-        times, domain || { min: 0, max: 1, ticks: [] }, plotW, h, 6, xMap);
-      window.PaneView.draw(paneCanvas, {
-        lines: model.lines,
-        bars: model.bars,   // 用 layout 落位后的柱（原始 bars 只有数值，没坐标）
-      }, {
-        domain,
-        w: totalW,          // canvas 内部总宽（= 主图宽度）
-        axisRight: axisW,   // 右侧刻度区宽度 = 主图价格轴宽度（两块横向必须对齐）
-        step: step,          // 主图的 bar 间距（像素）：缺交易日的缺口靠它判定
-        barCount: times.length,
-        upColor: c.up, downColor: c.down,
-        gridColor: getComputedStyle(document.body).getPropertyValue('--chart-grid').trim() || 'rgba(0,0,0,0.07)',
-        textColor: getComputedStyle(document.body).getPropertyValue('--chart-text').trim() || '#8a8a92',
-        zeroColor: getComputedStyle(document.body).getPropertyValue('--chart-border').trim() || 'rgba(0,0,0,0.22)',
-        // 成交量纵轴用「亿/万」（共用 U.fmtVol 的口径，和图例里的量一个单位）
-        fmtTick: paneKey === 'vol'
-          ? (v) => (window.U && window.U.fmtVol ? window.U.fmtVol(v) : String(v))
-          : null,
-        // 标题里的当前值：成交量也走「亿/万」，指标值两位小数
-        fmtValue: paneKey === 'vol'
-          ? (v) => (window.U && window.U.fmtVol ? window.U.fmtVol(v) : String(v))
-          : null,
-        // 副图标题（指标名）+ 十字光标竖线（与主图联动，谁在上面用谁的 x）
-        title: paneTitle(),
-        crossX: paneHoverX !== null ? paneHoverX : mainCrossX,
-        pad: 6,
+
+      panes.forEach((entry) => {
+        const pane = window.Panes.computePane(entry.key, klines, entry.params);
+        const series = [];
+        const bars = [];
+        if (entry.key === 'vol') {
+          const dirOf = new Map();
+          (klines || []).forEach(k => {
+            if (k && k.time != null) dirOf.set(k.time, k.close >= k.open ? 1 : -1);
+          });
+          const d = (pane.bars[0] ? pane.bars[0].data : []).map(x => ({
+            time: x.time, value: x.value, up: (dirOf.get(x.time) || 1) > 0,
+          }));
+          bars.push({ name: '成交量', color: c.up, data: d, kind: 'bar' });
+        } else {
+          // 通用线装配：除 vol 外统一按 pane.lines × PANE_LINE_SLOTS 槽位取 c.lineColors 令牌链
+          // （rsi→lineColors[1]、macd DIF/DEA→[2,5]，与旧实现逐字一致；槽位 5 在 --ma-0..5 令牌链内）。
+          const slots = PANE_LINE_SLOTS[entry.key] || [];
+          (pane.lines || []).forEach((l, i) => {
+            if (slots[i] === undefined) return;    // 槽位没接线就不画（宁可空白，不画错色）
+            series.push({ name: l.name, color: c.lineColors[slots[i] % c.lineColors.length], data: l.data });
+          });
+          // ⚠ MACD 柱的正负染色分支保留在通用线装配**之后**（评审钉死的装配顺序）：
+          // hist 走 bars 不走 lines，通用装配只管线；柱在这里按值符号染色（多头红 / 空头绿）。
+          const hist = entry.key === 'macd' && pane.bars[0] ? pane.bars[0].data : [];
+          if (hist.length) {
+            bars.push({
+              name: 'MACD', color: c.up, kind: 'bar',
+              data: hist.map(d => Object.assign({}, d, { up: d.value >= 0 })),
+            });
+          }
+        }
+
+        // 纵轴域按 paneDef(key).range 驱动：'pct' 固定 0~100+ticks（RSI/StochRSI）；
+        // 'free' 纯自适应不强制含零（VWAP 是价格域，0 基会把曲线压扁）；其余含零（成交量/非负指标）
+        const vals = [];
+        series.forEach(s => (s.data || []).forEach(d => { if (isFinite(d.value)) vals.push(d.value); }));
+        bars.forEach(s => (s.data || []).forEach(d => { if (isFinite(d.value)) vals.push(d.value); }));
+        const rangeMode = (window.Panes && window.Panes.paneDef(entry.key) || {}).range;
+        const domain = rangeMode === 'pct'
+          ? { min: 0, max: 100, ticks: [0, 25, 50, 75, 100] }
+          : window.PaneView.axis(vals, { includeZero: rangeMode !== 'free' });
+        const h = (entry.canvas && entry.canvas.clientHeight) || entry.h || PANE_H;
+        // 线与柱**都要**进 layout：layout 才把数据点落到画布坐标上。
+        // 之前只把线传了进去，柱只参与了纵轴取值 ——
+        // 结果就是"纵轴有刻度、图上一根柱都没有"（成交量 / MACD 柱全空）。
+        const model = window.PaneView.layout(
+          series.map(s => ({ name: s.name, color: s.color, data: s.data, kind: 'line' }))
+            .concat(bars.map(b => ({ name: b.name, color: b.color, data: b.data, kind: 'bar' }))),
+          times, domain || { min: 0, max: 1, ticks: [] }, plotW, h, 6, xMap);
+        window.PaneView.draw(entry.canvas, {
+          lines: model.lines,
+          bars: model.bars,   // 用 layout 落位后的柱（原始 bars 只有数值，没坐标）
+        }, {
+          domain,
+          w: totalW,          // canvas 内部总宽（= 主图宽度）
+          axisRight: axisW,   // 右侧刻度区宽度 = 主图价格轴宽度（两块横向必须对齐）
+          step: step,          // 主图的 bar 间距（像素）：缺交易日的缺口靠它判定
+          barCount: times.length,
+          upColor: c.up, downColor: c.down,
+          gridColor: getComputedStyle(document.body).getPropertyValue('--chart-grid').trim() || 'rgba(0,0,0,0.07)',
+          textColor: getComputedStyle(document.body).getPropertyValue('--chart-text').trim() || '#8a8a92',
+          zeroColor: getComputedStyle(document.body).getPropertyValue('--chart-border').trim() || 'rgba(0,0,0,0.22)',
+          // 成交量纵轴用「亿/万」（共用 U.fmtVol 的口径，和图例里的量一个单位）
+          fmtTick: entry.key === 'vol'
+            ? (v) => (window.U && window.U.fmtVol ? window.U.fmtVol(v) : String(v))
+            : null,
+          // 标题里的当前值：成交量也走「亿/万」，指标值两位小数
+          fmtValue: entry.key === 'vol'
+            ? (v) => (window.U && window.U.fmtVol ? window.U.fmtVol(v) : String(v))
+            : null,
+          // 副图标题（指标名）+ 十字光标竖线（与主图联动，谁在上面用谁的 x）
+          title: paneTitle(entry),
+          crossX: paneHoverX !== null ? paneHoverX : mainCrossX,
+          pad: 6,
+        });
       });
     }
 
-    /* 外部设置：{ key, params } —— key 是副图类型，params 是该指标自己的参数。
-       ⚠ 参数变化（RSI 14→6）也要重画：只判 key 的话，改参数后图不动，
-       菜单上的数字与副图曲线就对不上了（2026-10-21 复查适配时发现）。 */
-    function setPane(v) {
-      const p = v || {};
-      const key = window.Panes && window.Panes.paneDef(p.key) ? p.key : 'vol';
-      const changed = key !== paneKey || JSON.stringify(paneParams || {}) !== JSON.stringify(p.params || {});
-      paneKey = key;
-      paneParams = p.params || {};
-      if (changed && lastKlines.length) schedulePaneRender();
+    /* 外部设置：[{ key, params, h }, ...] —— 清单经 sanitizePaneList 收敛
+       （脏键剔 / 同名去重留首 / 超 3 截断 / 高度钳 60~220），再按条目 [key,params,h]
+       逐项序列化比较判 changed：参数变化（RSI 14→6）、顺序变化（上下重排）、
+       高度变化（拖分隔条）都要重画——只判 key 的话图会停在旧形态
+       （2026-10-21 复查适配时发现，2026-11-01 扩为清单口径）。
+       变化时 DOM 全量重建（增删 / 重排都可能），零变化不碰 DOM 不重画。 */
+    function setPanes(list) {
+      const next = (window.Panes && typeof window.Panes.sanitizePaneList === 'function')
+        ? window.Panes.sanitizePaneList(list) : [];
+      const changed = JSON.stringify(panes.map(p => [p.key, p.params, p.h]))
+        !== JSON.stringify(next.map(p => [p.key, p.params, p.h]));
+      if (!changed) return;
+      panes = next;
+      buildPaneDom();
+      if (lastKlines.length) schedulePaneRender();
     }
 
     /* 主图平移/缩放 → 副图跟着重画：否则副图停在上一次的视野里，
@@ -353,31 +449,8 @@ const Charts = (() => {
     try { chart.timeScale().subscribeVisibleLogicalRangeChange(onRangeChange); }
     catch (e) { /* 老版本没有该订阅：退化为不跟随（拖动后仍可切周期/指标触发重画） */ }
 
-    /* 副图鼠标：hover 时副图画竖线，并把主图十字线吸附到对应 bar
-       （setCrosshairPosition，图例同步读数）；离开时清掉。
-       最近点超过 30px 就不联动——空白区硬吸附会给出假读数。 */
-    paneCanvas.addEventListener('mousemove', (e) => {
-      const x = e && isFinite(e.offsetX) ? e.offsetX : null;
-      paneHoverX = x;
-      if (x !== null && lastXMap) {
-        let best = null, bestD = Infinity;
-        lastXMap.forEach((px, t) => {
-          const d = Math.abs(px - x);
-          if (d < bestD) { bestD = d; best = t; }
-        });
-        if (best !== null && bestD <= 30) {
-          const bar = lastKlines.find(k => k.time === best);
-          try { chart.setCrosshairPosition(bar ? bar.close : 0, best, candle); }
-          catch (err) { /* 老版本没有 setCrosshairPosition：只画副图竖线 */ }
-        }
-      }
-      schedulePaneRender();
-    });
-    paneCanvas.addEventListener('mouseleave', () => {
-      paneHoverX = null;
-      try { chart.clearCrosshairPosition(); } catch (err) { /* ignore */ }
-      schedulePaneRender();
-    });
+    /* 副图鼠标监听（hover 竖线 + 主图十字吸附）随 canvas 在 buildPaneDom 里逐个挂载：
+       清单重建时旧节点连同监听一起丢弃，多副图共用同一份 paneHoverX/lastXMap 联动状态。 */
 
 
     /* ---------- 主图叠加指标（TradingView 模型：可任意增删） ----------
@@ -575,7 +648,7 @@ const Charts = (() => {
       lineSeries.forEach((s, i) => s.applyOptions({ color: slotColorOf(c, i), lineWidth: slotWidthOf(i) }));
       // 对比线同款重取令牌色（--ma-5 链）：创建时的闭包值换肤后会过期
       if (cmpSeries) cmpSeries.applyOptions({ color: c.lineColors[5] });
-      if (lastKlines.length) renderPane(lastKlines, c);
+      if (lastKlines.length) renderPanes(lastKlines, c);
       paintLegend(lastKlines.length - 1);
       drawOverlay();                  // 画线取色不在 LWC 管线里：换肤即时重取令牌色重画
     }
@@ -1408,7 +1481,7 @@ const Charts = (() => {
     function runResizeRender() {
       if (!resizeRaf) return;
       resizeRaf = 0;
-      if (lastKlines.length) renderPane(lastKlines, themeColors());
+      if (lastKlines.length) renderPanes(lastKlines, themeColors());
       drawOverlay();                  // 布局宽度变了：overlay 位图同步重设再画
     }
     function onResize() {
@@ -1425,7 +1498,8 @@ const Charts = (() => {
     let paneRO = null;
     if (typeof ResizeObserver === 'function') {
       paneRO = new ResizeObserver(onResize);
-      paneRO.observe(paneCanvas);   // observe 首次回调只会多画一次幂等帧，无害
+      // observe 逐 canvas 在 buildPaneDom 里挂（清单重建时新节点补挂、旧节点随 DOM 丢弃）；
+      // 首次回调只会多画一次幂等帧，无害
     }
     if (typeof window !== 'undefined' && window.addEventListener) {
       window.addEventListener('resize', onResize);
@@ -1436,7 +1510,7 @@ const Charts = (() => {
       // candle 用 getter：外部消费方（alerts.js 的价格线）在调用时读取——
       // setType 重指派闭包 candle 后自动跟随新主系列，无需外部重新 attach
       get candle() { return candle; },
-      setData, applyTheme, setMAVisible, setEvents, setPane, setInfo,
+      setData, applyTheme, setMAVisible, setEvents, setPanes, setInfo,
       // 画线：setDrawings 回灌（按标的）、setDrawTool 切换画线模式、
       // setHidden 「隐藏全部画线」开关（app 层持久化后经 applyDrawTool 回放）
       setDrawings, setDrawTool, setHidden,
@@ -1452,7 +1526,9 @@ const Charts = (() => {
         catch { /* chart 已销毁或老版本：忽略 */ }
         if (paneRO) { try { paneRO.disconnect(); } catch { /* ignore */ } paneRO = null; }
         try { chart.remove(); } catch { /* ignore */ }
-        try { if (paneCanvas && paneCanvas.parentNode) paneCanvas.parentNode.removeChild(paneCanvas); }
+        // 副图容器（内含全部副图 canvas 与分隔条）一起摘：
+        // 切标的/切周期会反复 createKline，漏摘就留下一堆空副图
+        try { if (paneStack && paneStack.parentNode) paneStack.parentNode.removeChild(paneStack); }
         catch { /* ignore */ }
         // 监听要一起摘：切标的会反复 createKline，漏摘就堆出一串 resize 回调
         if (typeof window !== 'undefined' && window.removeEventListener) {
@@ -1580,9 +1656,9 @@ const Charts = (() => {
       chart, setData, applyTheme: paint, setInfo,
       setMAVisible() { /* 分时无 MA */ },
       setEvents() { /* 分时不画日频事件标记 */ },
-      // 分时图只保留成交量副图（TradingView 的分时默认也是成交量副图）；
+      // 分时图只保留成交量副图（lightweight-charts 的隐藏 vol scale，见 paint()）；
       // 日频指标（RSI/MACD）只在日 K 上给，避免在分钟线上算出无意义的读数。
-      setPane() { /* 分时副图固定为成交量 */ },
+      setPanes() { /* 分时无副图管理 */ },
       remove() { try { chart.remove(); } catch { /* ignore */ } },
     };
   }

@@ -250,6 +250,39 @@
     return null;
   }
 
+  /* 副图管理（≤3 实例）的清单净化：用户/存储侧输入一律不可信——
+     脏键剔除、同名键去重只留首个、超上限截断、高度与参数钳制。
+     空清单合法（用户可移除全部副图，主图独占）。
+     ⚠ 全程不用 Set/Map：与文件内其余纯函数同一朴素数组风格，vm 单测上下文零依赖。 */
+  const PANES_MAX = 3;
+  const PANE_H_DEF = 110;
+  const PANE_H_MIN = 60;
+  const PANE_H_MAX = 220;
+
+  function sanitizePaneList(raw) {
+    if (!Array.isArray(raw)) return [];
+    const out = [];
+    for (let i = 0; i < raw.length && out.length < PANES_MAX; i++) {
+      const item = raw[i];
+      if (!item || typeof item !== 'object') continue;
+      const def = paneDef(item.key);
+      if (!def) continue;                          // 键不在 PANE_DEFS 白名单 → 剔
+      let dup = false;
+      for (let k = 0; k < out.length; k++) { if (out[k].key === item.key) { dup = true; break; } }
+      if (dup) continue;                           // 同名键去重只留首个
+      const params = {};
+      (def.params || []).forEach((p) => {
+        const v = item.params ? item.params[p.key] : undefined;
+        if (!isNum(v)) return;                     // 非数丢（computePane 内部自钳制不变，这里是双保险）
+        params[p.key] = Math.max(p.min, Math.min(p.max, Math.round(v)));
+      });
+      let h = Math.round(+item.h);
+      if (!isFinite(h)) h = PANE_H_DEF;            // 缺省/非数 → 110
+      out.push({ key: item.key, params, h: Math.max(PANE_H_MIN, Math.min(PANE_H_MAX, h)) });
+    }
+    return out;
+  }
+
   /* 副图指标 → 可绘制的序列组。
      klines: 原始 K 线数组（要带 time）
      返回 { lines: [{ name, color, data:[{time,value}] }], bars: [{time,value,color}] }
@@ -355,5 +388,6 @@
   global.Panes = {
     PANE_DEFS, paneDef, cleanCloses, emaSeries, rsiSeries, macdSeries, computePane, paneRange,
     vwapSeries, atrSeries, stochRsiSeries, cciSeries, dmiSeries,
+    PANES_MAX, PANE_H_DEF, PANE_H_MIN, PANE_H_MAX, sanitizePaneList,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

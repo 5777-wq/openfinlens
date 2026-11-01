@@ -311,13 +311,15 @@ await test('charts.js：主图平移/缩放副图必须跟随（订阅 visible r
   assert.ok(/unsubscribeVisibleLogicalRangeChange/.test(src), 'remove() 时必须解绑');
 });
 
-await test('charts.js：setPane 参数变化也要重画（RSI 14→6 图不能不动）', () => {
-  // 回归（2026-10-21 适配复查）：只判 key 变化 → 改 RSI 周期/MACD 快慢线后副图不刷新
+await test('charts.js：setPanes 参数/顺序/高度任一变化都要重画（RSI 14→6 图不能不动）', () => {
+  // 回归（2026-10-21 适配复查）：只判 key 变化 → 改 RSI 周期/MACD 快慢线后副图不刷新；
+  // 2026-11-01 扩为 ≤3 副图清单：参数/顺序/高度任一变化都必须重建 DOM 并重画
   const src = readFileSync(path.join(ROOT, 'js/charts.js'), 'utf8');
-  const i = src.indexOf('function setPane(');
-  assert.ok(i > 0, '没找到 setPane');
+  const i = src.indexOf('function setPanes(');
+  assert.ok(i > 0, '没找到 setPanes');
   const body = src.slice(i, i + 700);
-  assert.ok(/JSON\.stringify\(paneParams/.test(body), 'changed 判定必须包含 params 对比');
+  assert.ok(/JSON\.stringify/.test(body), 'changed 判定必须包含逐条目序列化对比（参数/顺序/高度变了图不能不动）');
+  assert.ok(/buildPaneDom\(\)/.test(body), '变化时必须经 buildPaneDom 重建副图 DOM（增删/重排都靠它）');
 });
 
 await test('charts.js：副图宽度监听用 ResizeObserver（布局变化不止 window.resize）', () => {
