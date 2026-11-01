@@ -65,10 +65,13 @@ await test('时段：Intl 实时部件 sane（真实时区换算）', () => {
   assert.ok(cn && us, 'Intl 部件不可为 null');
   assert.ok(cn.wd >= 0 && cn.wd <= 6 && cn.m >= 0 && cn.m < 1440, 'cn 部件越界');
   assert.ok(us.m >= 0 && us.m < 1440, 'us 部件越界');
-  // 上海与纽约的分钟差应反映时区差（12/13 小时，随 DST 浮动）
-  const diff = Math.abs(cn.m - us.m);
-  const wrapped = Math.min(diff, 1440 - diff);
-  assert.ok(wrapped === 12 * 60 || wrapped === 13 * 60, '沪纽时差异常: ' + wrapped / 60 + 'h');
+  // 上海与纽约的时差应反映时区差（12/13 小时，随 DST 浮动）。
+  // 两地可能分处两天（沪已次日/纽仍在当晚），必须带上星期差再对 1440 取模：
+  // 纯 min(diff,1440-diff) 的表盘环绕会把冬令时的 780(13h) 折成 660(11h) 而误报
+  //（2026-11-01 美国切冬令时当日首爆，应用管线实测无恙）。
+  const dayShift = (((cn.wd - us.wd) % 7) + 7) % 7;
+  const diff = (((dayShift * 1440 + cn.m - us.m) % 1440) + 1440) % 1440;
+  assert.ok(diff === 12 * 60 || diff === 13 * 60, '沪纽时差异常: ' + diff / 60 + 'h');
   // 无效 market / null parts → unknown 不抛
   assert.equal(S.statusOf('nope', { wd: 1, m: 600 }).code, 'unknown');
   assert.equal(S.statusOf('cn', null).code, 'unknown');
