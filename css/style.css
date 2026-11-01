@@ -955,6 +955,10 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
 .ma-menu input[type="number"]:focus { border-color: rgba(255,255,255,0.3); }
 .ma-menu input[type="number"]:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .ma-menu label input[type="checkbox"] { margin-right: 2px; }
+/* 价格标尺 / 对比标的弹层：复用 .ma-menu 语言（取值全走令牌，.cmp-search .search-input 先例） */
+.kcmp-menu { min-width: 240px; }
+.kcmp-menu .search-input { width: 100%; margin-bottom: var(--sp-4); }
+.kcmp-status { font-size: var(--fs-12); color: var(--text-faint); padding: var(--sp-4) 0 0; min-height: 1em; }
 /* 副图单选行：选中时整行高亮（radio 之外还要看得见选中态） */
 .ma-pane-row.on { color: var(--text); }
 .ma-pane-row.on span { font-weight: 600; }

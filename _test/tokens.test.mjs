@@ -187,6 +187,34 @@ test('js/app.js 必须保留 drawHideV1 持久化与 setHidden 接线（防隐�
   assert.ok(/setHidden\(/.test(app), 'app.js 没有接线 chart.setHidden（按钮点了图不隐藏）');
 });
 
+test('index.html 必须保留标尺与对比入口（scaleToggle/kcmpToggle + 三档 data-scale + 清除/状态行）', () => {
+  // 「标尺与对比」条目（TV-ROADMAP P0 图表核心第 4 条）的入口守卫：按钮被误删后
+  // 功能失联且不会有任何报错。title 必须含中文（红线 1）；data-scale 三档
+  // ∈ {normal,log,pct} 且互不重复（sanitizeScale 只认 'log'/'pct'，档位对不上等于切不中）。
+  const st = HTML.match(/<button[^>]*id="scaleToggle"[^>]*>/);
+  const kt = HTML.match(/<button[^>]*id="kcmpToggle"[^>]*>/);
+  assert.ok(st, 'index.html 找不到 id="scaleToggle" 按钮（标尺入口被误删）');
+  assert.ok(kt, 'index.html 找不到 id="kcmpToggle" 按钮（对比入口被误删）');
+  assert.ok(/title="[^"]*[\u4e00-\u9fa5][^"]*"/.test(st[0]), 'scaleToggle 缺中文 title：' + st[0]);
+  assert.ok(/title="[^"]*[\u4e00-\u9fa5][^"]*"/.test(kt[0]), 'kcmpToggle 缺中文 title：' + kt[0]);
+  const scales = [...HTML.matchAll(/data-scale="([^"]+)"/g)].map(m => m[1]);
+  assert.equal(JSON.stringify([...new Set(scales)].sort()), JSON.stringify(['log', 'normal', 'pct']),
+    'data-scale 三档必须恰为 normal/log/pct 各一（缺档/重复都会让标尺菜单切不中）：' + scales.join(','));
+  assert.ok(/id="kcmpClear"/.test(HTML), 'index.html 找不到 id="kcmpClear"（清除对比入口被误删）');
+  assert.ok(/id="kcmpStatus"/.test(HTML), 'index.html 找不到 id="kcmpStatus"（对比状态行被误删）');
+});
+
+test('js/app.js 必须接线标尺与对比（chartScaleV1 持久化 + setScale/rebaseCompare 调用 + klineFor 复用）', () => {
+  // 跨文件守卫（照 drawHideV1 先例）：缺持久化标尺刷新即丢；缺 setScale 接线
+  // 按钮点了图不变；缺 rebaseCompare 对比线没数据；缺 klineFor 复用则另起炉灶
+  // 破坏「详情页取数一律走分源管线 + in-flight 去重」的取数纪律。
+  const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
+  assert.ok(/chartScaleV1/.test(app), 'app.js 缺 chartScaleV1 持久化键（标尺刷新即丢）');
+  assert.ok(/setScale\(/.test(app), 'app.js 没有接线 chart.setScale（按钮点了图不变）');
+  assert.ok(/rebaseCompare\(/.test(app), 'app.js 没有调用 rebaseCompare（对比线没数据）');
+  assert.ok(/klineFor\(state\.cmpTarget/.test(app), 'app.js 对比取数必须复用 klineFor（不得另起炉灶）');
+});
+
 test('charts.js 不得再自带一份均线调色板字面量', () => {
   const charts = readFileSync(path.join(ROOT, 'js/charts.js'), 'utf8');
   assert.ok(!/LINE_COLORS\s*=\s*\[/.test(charts), 'charts.js 又出现了 LINE_COLORS 字面量数组');

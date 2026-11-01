@@ -1,6 +1,8 @@
 /* charts.js —— lightweight-charts 封装（K线 + 成交量副图 + 可配置均线组 + 分时）
    兼容 v3/v4（addCandlestickSeries）与 v5（addSeries(CandlestickSeries)）两套 API。
-   均线：MA5/10/20/60 + EMA12/26 六条槽位，setMAVisible(配置对象) 按 key 开关（详情页存 localStorage）。 */
+   均线：MA5/10/20/60 + EMA12/26 六条槽位，setMAVisible(配置对象) 按 key 开关（详情页存 localStorage）。
+   标尺与对比（K线）：setScale('normal'|'log'|'pct') 切价格标尺档位；
+   setCompare(cmp) 叠加第二条标的（rebaseCompare 归一化重定基，值落在主图价格单位）。 */
 
 const Charts = (() => {
   const LWC = () => window.LightweightCharts;
@@ -433,6 +435,12 @@ const Charts = (() => {
     // 展开后的槽位元信息（槽位 → {name, type, n}）：图例要按槽位显示，
     // 因为一个 BOLL 配置项占三条轨（上/中/下），按配置项显示会少两轨读数。
     let maSlotMeta = [];
+    // 对比叠加线（compare overlay，惰性创建）：cmpMap = tKey → 对比线值（图例反查）、
+    // cmpBase = 首点值（累计涨跌幅分母，统计口径）、cmpName = 图例读数前缀
+    let cmpSeries = null;
+    let cmpMap = null;
+    let cmpBase = null;
+    let cmpName = '';
     // 事件标记层（Event-on-Chart）：宏观/新闻/龙虎榜等事件画到对应日期K线上，
     // 点击 marker 通过 Bus 抛给详情页弹事件卡。数据结构见 js/events.js toChartEvent。
     let chartEvents = [];
@@ -465,6 +473,57 @@ const Charts = (() => {
       applyMarkers();
     }
 
+    /* ---- 价格标尺（普通/对数/百分比）：mode 'log'→1 / 'pct'→2 / 其余→0。
+       PriceScaleMode 数值常量 v3/v4/v5 稳定，照 setLog 先例 try/catch 老版本静默降级 ---- */
+    function setScale(mode) {
+      try {
+        const m = mode === 'log' ? 1 : mode === 'pct' ? 2 : 0;
+        chart.priceScale('right').applyOptions({ mode: m });
+      } catch { /* 旧版本无该 API：忽略即可 */ }
+    }
+
+    /* ---- 对比叠加（compare overlay）：rebase 后的序列画到一条虚线 Line series，
+       与蜡烛共用右价格轴；series 惰性创建、清空只 setData([]) 不销毁（均线池同款）---- */
+    function ensureCmpSeries() {
+      if (cmpSeries) return cmpSeries;
+      cmpSeries = addSeries(chart, 'Line', {
+        color: themeColors().lineColors[5],   // --ma-5 令牌链，零颜色字面量
+        lineWidth: 2,
+        lineStyle: 2,                          // LineStyle.Dashed：与均线实线区分
+        lastValueVisible: false,               // 不挤右轴（蜡烛自己的读数已在那里）
+        priceLineVisible: false,
+        crosshairMarkerVisible: true,          // 悬停可读数
+      });
+      return cmpSeries;
+    }
+
+    function setCompare(cmp) {
+      if (!cmp || !Array.isArray(cmp.points) || !cmp.points.length) {
+        // null / 空 points 一律收敛为「无对比」：清数据保 series
+        if (cmpSeries) cmpSeries.setData([]);
+        cmpMap = null;
+        cmpBase = null;
+        cmpName = '';
+        paintLegend(lastKlines.length - 1);
+        return;
+      }
+      ensureCmpSeries();
+      cmpName = typeof cmp.name === 'string' ? cmp.name : '';
+      cmpMap = new Map();
+      const clean = [];
+      cmp.points.forEach(p => {
+        if (!p || p.time === null || p.time === undefined) return;
+        const v = +p.value;
+        if (!isFinite(v)) return;
+        cmpMap.set(tKey(p.time), v);
+        clean.push({ time: p.time, value: v });
+      });
+      cmpBase = cmpMap.size ? cmpMap.values().next().value : null;
+      // 不调 fitContent：points ⊆ 主图时间集，时间轴零变化，保持用户当前视野
+      cmpSeries.setData(clean);
+      paintLegend(lastKlines.length - 1);
+    }
+
     if (typeof chart.subscribeClick === 'function' && window.Bus) {
       chart.subscribeClick((param) => {
         const key = param && param.time !== undefined ? tKey(param.time) : null;
@@ -481,6 +540,8 @@ const Charts = (() => {
       // 槽位数可变 → 取模（色板 6 色，槽位可到 8）。取色走 slotColorOf（用户指派优先）、
       // 线宽走 slotWidthOf——否则换肤会把用户选的色/线宽重置回槽位序号默认值。
       lineSeries.forEach((s, i) => s.applyOptions({ color: slotColorOf(c, i), lineWidth: slotWidthOf(i) }));
+      // 对比线同款重取令牌色（--ma-5 链）：创建时的闭包值换肤后会过期
+      if (cmpSeries) cmpSeries.applyOptions({ color: c.lineColors[5] });
       if (lastKlines.length) renderPane(lastKlines, c);
       paintLegend(lastKlines.length - 1);
       drawOverlay();                  // 画线取色不在 LWC 管线里：换肤即时重取令牌色重画
@@ -518,13 +579,22 @@ const Charts = (() => {
         if (!pt || pt.value === null || pt.value === undefined || !Number.isFinite(pt.value)) return '';
         return `<span style="color:${slotColorOf(c, i)}">${m.name} ${pt.value}</span>`;
       }).join('');
+      // 对比线读数：当前 bar 在对比序列有值时显示「对比名 累计涨跌幅」（基准 = 首点，统计口径、无建议语义）
+      let cmpHTML = '';
+      if (cmpMap && cmpMap.size && cmpBase) {
+        const cv = cmpMap.get(tKey(k.time));
+        if (cv !== undefined && isFinite(cv)) {
+          const pct = (cv / cmpBase - 1) * 100;
+          cmpHTML = `<span style="color:${c.lineColors[5]}">${escHtml(cmpName)} ${(pct >= 0 ? '+' : '') + pct.toFixed(2)}%</span>`;
+        }
+      }
       return `<span class="kl-time">${fmtLegendTime(k.time)}</span>` +
         `<span>开 <b style="color:${col}">${k.open}</b></span>` +
         `<span>高 <b style="color:${col}">${k.high}</b></span>` +
         `<span>低 <b style="color:${col}">${k.low}</b></span>` +
         `<span>收 <b style="color:${col}">${k.close}</b></span>` +
         (chg !== null ? `<span class="${chg >= 0 ? 'up' : 'down'}">${(chg >= 0 ? '+' : '') + chg.toFixed(2)}%</span>` : '') +
-        (k.volume ? `<span>量 <b>${fmtVolShort(k.volume)}</b></span>` : '') + ma;
+        (k.volume ? `<span>量 <b>${fmtVolShort(k.volume)}</b></span>` : '') + ma + cmpHTML;
     }
 
     function paintLegend(idx) {
@@ -1289,6 +1359,10 @@ const Charts = (() => {
       // 画线：setDrawings 回灌（按标的）、setDrawTool 切换画线模式、
       // setHidden 「隐藏全部画线」开关（app 层持久化后经 applyDrawTool 回放）
       setDrawings, setDrawTool, setHidden,
+      // getKlines：setData 过滤脏 bar 后的干净序列——app 层 rebase 用它与画布完全同源
+      getKlines: () => lastKlines,
+      // 标尺（普通/对数/百分比）与对比叠加（compare overlay）
+      setScale, setCompare,
       // 副图 canvas 挂在主图容器外面，销毁时必须一起摘掉，
       // 否则切标的/切周期会留下一堆空副图（每次 createKline 都新建一个）。
       remove() {
@@ -1592,6 +1666,57 @@ const Charts = (() => {
     return out;
   }
 
+  /* ---- 价格标尺档位归一（离线单测钉口径）：只认 'log'/'pct' 两个字面量，
+     其余（数字/undefined/null/'LOG' 大写/空串/中文）一律收敛 'normal'，
+     localStorage 读回的脏值进不了图表侧。 */
+  function sanitizeScale(v) {
+    return v === 'log' || v === 'pct' ? v : 'normal';
+  }
+
+  /* ---- 双标的归一化叠加（compare overlay）核心口径（离线单测钉口径）----
+     对比标的收盘序列重定基到主图价格单位，与蜡烛共用右价格轴（对数模式值恒正）。
+     输入两组 [{time, close}]（主图传 getKlines 的干净序列）；时间键归一（字符串日期
+     与伪 UTC 秒统一串键）建主图 close 反查 Map；**交集口径**只保留主图也有的时间
+     （防对比序列把 LWC 时间轴撑出幽灵 bar），以首个共同时间定基 factor = 主/对比基准
+     close；points 的 time 用主图原始 time（时间轴零变化）、value=+(cmpClose×factor).toFixed(4)；
+     脏输入（非数组/交集空/基准 close 非有限或 ≤0）→ points:[]，中段非正 close 跳点。 */
+  function rebaseCompare(mainKlines, cmpKlines) {
+    const empty = { points: [], factor: null, base: null };
+    if (!Array.isArray(mainKlines) || !Array.isArray(cmpKlines)) return empty;
+    // tKey 同款归一（createCompare L1496 先例）：字符串原样、业务日对象拼串、数字转串
+    const keyOf = (t) => typeof t === 'string' ? t
+      : (t && typeof t === 'object' && t.year) ? t.year + '-' + String(t.month).padStart(2, '0') + '-' + String(t.day).padStart(2, '0')
+      : String(t);
+    const mainMap = new Map();
+    for (let i = 0; i < mainKlines.length; i++) {
+      const k = mainKlines[i];
+      if (!k || k.time === null || k.time === undefined) continue;
+      const c = +k.close;
+      if (!isFinite(c)) continue;
+      mainMap.set(keyOf(k.time), { time: k.time, close: c });
+    }
+    if (!mainMap.size) return empty;
+    const points = [];
+    let factor = null;
+    let base = null;
+    for (let i = 0; i < cmpKlines.length; i++) {
+      const k = cmpKlines[i];
+      if (!k || k.time === null || k.time === undefined) continue;
+      const hit = mainMap.get(keyOf(k.time));
+      if (!hit) continue;                        // 交集口径：主图没有该时间不入 points
+      const c = +k.close;
+      if (!isFinite(c) || c <= 0) continue;      // 中段非正 close：跳过该点
+      if (factor === null) {
+        if (!isFinite(hit.close) || hit.close <= 0) return empty;   // 基准 ≤0 无从定基
+        factor = hit.close / c;
+        base = hit.close;
+      }
+      points.push({ time: hit.time, value: +(c * factor).toFixed(4) });
+    }
+    if (factor === null) return empty;
+    return { points, factor, base };
+  }
+
   /* ---- 画线工具纯函数（离线单测钉口径：_test/charts.test.mjs）----
      画线对象（存储口径）：{ tool, k1, p1[, k2, p2][, text], ci }
      · tool ∈ DRAW_TOOLS 六件；trend/rect/fib 是两点工具（必须另有合法 k2/p2），
@@ -1793,6 +1918,7 @@ const Charts = (() => {
   }
 
   return { createKline, createTrend, createCompare, calcMA, emaSeries, themeColors, retheme, legendBadge, slotStyles,
+    sanitizeScale, rebaseCompare,
     DRAW_TOOLS, sanitizeDrawing, sanitizeDrawings, sanitizeDrawStore, fibLevels,
     DRAW_HIT_TOL, segDist, drawTextBox, hitDrawing, hitTestDrawings, moveDrawing, clampBox };
 })();

@@ -125,6 +125,11 @@
     drawTool: null,            // 画线模式：Charts.DRAW_TOOLS 之一或 null（详情工具条切换，Esc 退出）
     // 「隐藏全部画线」：只藏不删（画线保留在 drawV1），持久化记忆（Store.get 自带 try/catch）
     drawHidden: !!Store.get('drawHideV1', false),
+    // 价格标尺 normal|log|pct（chartScaleV1 持久化；charts.js defer 且在前，顺序有保证）
+    chartScale: window.Charts.sanitizeScale(Store.get('chartScaleV1', 'normal')),
+    // 对比叠加：cmpTarget = 对比标的（会话级不落盘）；cmpSeq = 会话代号（同 chartGen 惯例）
+    cmpTarget: null,
+    cmpSeq: 0,
     // Movers 三榜的行载荷（data-symbol → 全市场行）：行不在 universe 轮询全集里，
     // 点击进详情需要 secid/market 映射，渲染时顺手登记
     moversRows: new Map(),
@@ -156,6 +161,8 @@
     'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats', 'detailGloss',
     'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle', 'intradaySeg',
     'maMenu', 'maLinesBox', 'maPaneBox', 'maAdd', 'maReset', 'drawHide',
+    // 价格标尺 + 对比叠加（详情工具条，与 maToggle 同一弹层语言）
+    'scaleToggle', 'scaleMenu', 'kcmpToggle', 'kcmpMenu', 'kcmpInput', 'kcmpResults', 'kcmpClear', 'kcmpStatus',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
     'globeStatus', 'mapLegend', 'mapStatusPts',
     'evGlobePane', 'evNewsPane', 'evPmPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
@@ -2123,7 +2130,10 @@
     if (!el.detailName) return;
     state.prevView = state.view === 'detail' ? state.prevView : state.tab;
     state.detail = target;
-    // 上个标的留下的分钟级周期在新市场没有数据源时回退日K，避免按钮亮着却白屏
+    // 换标的不继承上一个标的的对比线：对比会话整体重置（cmpSeq 作废在途对比请求）
+    state.cmpTarget = null;
+    ++state.cmpSeq;
+    if (el.kcmpStatus) el.kcmpStatus.textContent = '';    // 上个标的留下的分钟级周期在新市场没有数据源时回退日K，避免按钮亮着却白屏
     if (!intradayAvailable(target) && INTRADAY_PERIODS.includes(state.detailPeriod)) state.detailPeriod = 'day';
     if (el.intradaySeg) el.intradaySeg.hidden = !intradayAvailable(target);
     setView('detail');
@@ -2247,6 +2257,24 @@
     if (state.chart && state.chart.setHidden) state.chart.setHidden(state.drawHidden);
   }
 
+  /* 价格标尺：UI（radio checked/label.on）与图表侧都收敛到 applyScale；
+     saveScale 落 chartScaleV1 持久化 */
+  function applyScale() {
+    document.querySelectorAll('#scaleMenu [data-scale]').forEach(row => {
+      const on = row.dataset.scale === state.chartScale;
+      row.classList.toggle('on', on);
+      const radio = row.querySelector('input[type="radio"]');
+      if (radio) radio.checked = on;
+    });
+    if (state.chart && state.chart.setScale) state.chart.setScale(state.chartScale);
+  }
+
+  function saveScale(v) {
+    state.chartScale = window.Charts.sanitizeScale(v);
+    Store.set('chartScaleV1', state.chartScale);
+    applyScale();
+  }
+
   async function loadDetailChart() {
     const t = state.detail;
     if (!t) return;
@@ -2328,6 +2356,9 @@
       // 复用时每次都重灌，无串档窗口；跨周期锚不上的画线该条自动不画、仍保留在存储
       if (state.chart.setDrawings) state.chart.setDrawings(drawFor(t.symbol));
       applyDrawTool();
+      // 标尺每次重放当前档位（实例可能刚换 kind 或跨标的复用）；对比线重算（同标的切周期保持对比）
+      if (state.chart.setScale) state.chart.setScale(state.chartScale);
+      applyCompareOverlay(gen);
     }
     // 事件标记层：全球事件 + 龙虎榜按 symbol 落位（分时为 no-op）
     applyDetailEvents();
@@ -2335,6 +2366,14 @@
     if (window.AlertCenter) window.AlertCenter.attachChart(kind === 'kline' ? state.chart : null, t);
     // 分时下 MA 无意义（加密的 5 分钟 K 除外），禁用开关以免"看起来坏了"
     if (el.maToggle) el.maToggle.disabled = (kind === 'trend' && t.market !== 'crypto');
+    // 标尺/对比依赖主图蜡烛序列与右轴标尺：分时图诚实禁用（同 maToggle 口径），
+    // 顺手关掉还开着的弹层，不留"按钮灰了菜单还开着"的悬空态
+    if (el.scaleToggle) el.scaleToggle.disabled = kind === 'trend';
+    if (el.kcmpToggle) el.kcmpToggle.disabled = kind === 'trend';
+    if (kind === 'trend') {
+      if (el.scaleMenu) el.scaleMenu.hidden = true;
+      if (el.kcmpMenu) el.kcmpMenu.hidden = true;
+    }
   }
 
   // in-flight 去重：详情页 loadDetailChart 与 loadTechnical 并行时会同参请求两次日K，
@@ -2374,6 +2413,51 @@
       if (d.length) return d;
     }
     return [];
+  }
+
+  /* ---- 对比叠加（compare overlay，会话级不落盘）：零新增取数——候选来自
+     EastmoneySource.search（与顶栏搜索同源），K 线复用 klineFor（in-flight 去重 +
+     周期分源）。双 stale 守卫（gen 对齐 chartGen、seq 对齐 cmpSeq）防慢响应写回；
+     加密主图时间编码不同、跨市场无共同交易日都得到空 points，一律诚实空态（红线 4）。 */
+  async function applyCompareOverlay(gen) {
+    const t = state.detail;
+    if (!t) return;
+    const seq = state.cmpSeq;
+    const target = state.cmpTarget;
+    if (!target) {
+      // 无对比：图表侧与 UI 一并收敛（清除对比/换标的/从分时切回来的路径）
+      if (state.chart && state.chart.setCompare) state.chart.setCompare(null);
+      syncCompareUi('');
+      return;
+    }
+    syncCompareUi('加载对比数据…');
+    let rows = [];
+    try { rows = await klineFor(state.cmpTarget, state.detailPeriod); } catch { rows = []; }
+    // 等待期间切了图（chartGen）/换了标的/换了对比会话（cmpSeq）：一律丢弃
+    if (gen !== state.chartGen || state.detail !== t || seq !== state.cmpSeq) return;
+    // 主图序列取 setData 过滤脏 bar 后的干净序列（getKlines），与画布完全同源
+    const main = (state.chart && state.chart.getKlines) ? state.chart.getKlines() : [];
+    const rebased = window.Charts.rebaseCompare(main, rows);
+    if (!rebased.points.length) {
+      if (seq !== state.cmpSeq) return;    // 空态同样防旧会话覆盖
+      if (state.chart && state.chart.setCompare) state.chart.setCompare(null);
+      syncCompareUi('没有共同交易日');   // 诚实空态：跨市场无共同交易日/分钟级无交集
+      return;
+    }
+    if (seq !== state.cmpSeq) return;
+    if (state.chart && state.chart.setCompare) {
+      state.chart.setCompare({ name: target.name || target.code || '', points: rebased.points });
+    }
+    syncCompareUi('');
+  }
+
+  /* 对比 UI 三处收敛：toggle active（= 对比生效中，evtToggle 同款语义）、
+     清除按钮显隐、状态行文案（undefined = 保持现有文案不动） */
+  function syncCompareUi(statusText) {
+    const on = !!state.cmpTarget;
+    if (el.kcmpToggle) el.kcmpToggle.classList.toggle('active', on);
+    if (el.kcmpClear) el.kcmpClear.hidden = !on;
+    if (el.kcmpStatus && statusText !== undefined) el.kcmpStatus.textContent = statusText;
   }
 
 
@@ -5909,6 +5993,125 @@
       menu.hidden = !open;
       el.maToggle.classList.toggle('active', open);
     });
+
+    /* 价格标尺菜单：active = 菜单展开中（maToggle 同款）；打开时按当前档位回显 radio */
+    if (el.scaleToggle && el.scaleMenu) {
+      el.scaleToggle.addEventListener('click', () => {
+        const open = el.scaleMenu.hidden;
+        if (open) applyScale();
+        el.scaleMenu.hidden = !open;
+        el.scaleToggle.classList.toggle('active', open);
+      });
+    }
+    if (el.scaleMenu) {
+      el.scaleMenu.addEventListener('change', (e) => {
+        const row = e.target.closest('[data-scale]');
+        if (row) saveScale(row.dataset.scale);
+      });
+    }
+
+    /* 对比标的菜单：active = 对比生效中（evtToggle 同款，syncCompareUi 管）、菜单开合不动它。
+       候选复用东财 suggest（与顶栏搜索同源）；竞态守卫用本地代号（compareview 先例，
+       不与顶栏 searchGen 互踩） */
+    let cmpItems = [];
+    let cmpSel = -1;
+    let cmpSearchGen = 0;
+
+    // 候选渲染：复用通用 .sr-item/.sr-empty 类（css/style.css 通用候选样式）
+    function renderCmpResults(items, sel) {
+      if (!el.kcmpResults) return;
+      if (!items.length) {
+        el.kcmpResults.innerHTML = '<div class="sr-empty">没有匹配的标的</div>';
+        return;
+      }
+      el.kcmpResults.innerHTML = items.map((x, i) =>
+        `<div class="sr-item${i === sel ? ' sel' : ''}" data-kci="${i}" role="option" aria-selected="${i === sel}">
+          <span class="sr-name">${escapeHTML(x.name || x.code)}</span>
+          <span class="sr-code num">${escapeHTML(x.code)}</span>
+          <span class="sr-mkt">${escapeHTML(x.marketName || '')}</span>
+        </div>`).join('');
+    }
+
+    async function doCmpSearch(kw) {
+      if (!kw) { ++cmpSearchGen; cmpItems = []; cmpSel = -1; renderCmpResults([], -1); return; }
+      const gen = ++cmpSearchGen;
+      let list = [];
+      try { list = await window.EastmoneySource.search(kw); } catch { list = []; }
+      if (gen !== cmpSearchGen) return;   // 慢的旧响应不得覆盖新输入的结果
+      cmpItems = list || [];
+      cmpSel = -1;
+      renderCmpResults(cmpItems, cmpSel);
+    }
+    const doCmpSearchDebounced = debounce(doCmpSearch, 240);
+
+    // 选中候选 → 对比会话整体切换（照 pickSearch 的标的构型：EM:secid + tencent 反查）
+    function pickCmpTarget(x) {
+      // 无 secid 取不了 K 线：不做裸文本兜底，诚实提示（Enter 无选中项同此路径）
+      if (!x || !x.secid) {
+        if (el.kcmpStatus) el.kcmpStatus.textContent = '请从候选里选择一个标的';
+        return;
+      }
+      const picked = {
+        symbol: 'EM:' + x.secid, name: x.name, code: x.code,
+        market: marketFromSecid(x.secid), secid: x.secid, tencent: tencentOfSecid(x.secid),
+      };
+      if (state.detail && picked.symbol === state.detail.symbol) {
+        if (el.kcmpStatus) el.kcmpStatus.textContent = '与当前标的相同';
+        return;
+      }
+      ++state.cmpSeq;
+      state.cmpTarget = picked;
+      if (el.kcmpMenu) el.kcmpMenu.hidden = true;
+      if (el.kcmpInput) el.kcmpInput.value = '';
+      cmpItems = [];
+      cmpSel = -1;
+      syncCompareUi('');
+      applyCompareOverlay(state.chartGen);
+    }
+
+    if (el.kcmpToggle && el.kcmpMenu) {
+      el.kcmpToggle.addEventListener('click', () => {
+        const open = el.kcmpMenu.hidden;
+        el.kcmpMenu.hidden = !open;
+        if (open && el.kcmpInput) el.kcmpInput.focus();
+      });
+    }
+    if (el.kcmpInput) {
+      el.kcmpInput.addEventListener('input', (e) => doCmpSearchDebounced(e.target.value.trim()));
+      el.kcmpInput.addEventListener('keydown', (e) => {
+        const n = cmpItems.length;
+        if (e.key === 'ArrowDown' && n) { cmpSel = (cmpSel + 1) % n; renderCmpResults(cmpItems, cmpSel); e.preventDefault(); return; }
+        if (e.key === 'ArrowUp' && n) { cmpSel = (cmpSel - 1 + n) % n; renderCmpResults(cmpItems, cmpSel); e.preventDefault(); return; }
+        if (e.key === 'Escape') {
+          if (el.kcmpMenu) el.kcmpMenu.hidden = true;
+          return;
+        }
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        // Enter 无选中项不放行：无 secid 取不了 K 线（compareview 的裸文本兜底在这里不适用）
+        const pick = cmpSel >= 0 ? cmpItems[cmpSel] : null;
+        if (!pick) {
+          if (el.kcmpStatus) el.kcmpStatus.textContent = '请从候选里选择一个标的';
+          return;
+        }
+        pickCmpTarget(pick);
+      });
+    }
+    if (el.kcmpResults) {
+      el.kcmpResults.addEventListener('click', (e) => {
+        const row = e.target.closest('[data-kci]');
+        if (!row) return;
+        pickCmpTarget(cmpItems[+row.dataset.kci]);
+      });
+    }
+    if (el.kcmpClear) {
+      el.kcmpClear.addEventListener('click', () => {
+        ++state.cmpSeq;               // 作废在途对比请求
+        state.cmpTarget = null;
+        if (state.chart && state.chart.setCompare) state.chart.setCompare(null);
+        syncCompareUi('');
+      });
+    }
 
     // 勾选/改周期/改类型 → 立即应用并存 localStorage（周期 clamp 到 2~500）
     const applyMaLine = (i, patch) => {

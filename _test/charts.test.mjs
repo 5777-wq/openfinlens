@@ -412,6 +412,83 @@ test('clampBox：负坐标归 0、右下越界钳制、框大于区域归 0', ()
   assert.equal(J(C.clampBox(5, 5, 0, 0, 0, 0)), J({ x: 0, y: 0 }));              // 空区域不抛错
 });
 
+/* ---------------- sanitizeScale：价格标尺档位归一（K线「标尺与对比」条目） ---------------- */
+
+test('sanitizeScale：合法值原样往返（log/pct/normal）', () => {
+  assert.equal(C.sanitizeScale('log'), 'log');
+  assert.equal(C.sanitizeScale('pct'), 'pct');
+  assert.equal(C.sanitizeScale('normal'), 'normal');
+});
+
+test('sanitizeScale：脏值一律收敛 normal（数字/undefined/null/大写/空串/中文）', () => {
+  // localStorage 读回的脏值进不了图表侧：只认 'log'/'pct' 字面量，大写也不静默 toLowerCase
+  [1, 0, undefined, null, 'LOG', '', '百分比'].forEach(v => assert.equal(C.sanitizeScale(v), 'normal'));
+});
+
+/* ---------------- rebaseCompare：双标的归一化叠加的核心口径（重定基到主图价格单位、交集口径防幽灵 bar） ---------------- */
+
+test('rebaseCompare：同涨幅两序列重合（factor=2，末值=110 落在主图价格单位）', () => {
+  const main = [{ time: 'd1', close: 100 }, { time: 'd2', close: 105 }, { time: 'd3', close: 110 }];
+  const cmp = [{ time: 'd1', close: 50 }, { time: 'd2', close: 52.5 }, { time: 'd3', close: 55 }];
+  const r = C.rebaseCompare(main, cmp);
+  assert.equal(r.factor, 2);
+  assert.equal(r.base, 100);   // base = 主图基准 close（首个共同日）
+  assert.equal(J(r.points.map(p => p.time)), J(['d1', 'd2', 'd3']));
+  assert.equal(J(r.points.map(p => p.value)), J([100, 105, 110]));
+});
+
+test('rebaseCompare：差异走势（cmp 翻倍、main 1.5 倍 → 末值 200 反映在主图价格单位）', () => {
+  const main = [{ time: 'd1', close: 100 }, { time: 'd3', close: 150 }];
+  const cmp = [{ time: 'd1', close: 50 }, { time: 'd3', close: 100 }];
+  const r = C.rebaseCompare(main, cmp);
+  assert.equal(r.factor, 2);
+  assert.equal(J(r.points.map(p => p.value)), J([100, 200]));
+});
+
+test('rebaseCompare：首个共同时间为基准（main 自 t0、cmp 自 t1 → t1 是首点、t0 不入 points、factor 按该日算）', () => {
+  const main = [{ time: 'd1', close: 100 }, { time: 'd2', close: 110 }, { time: 'd3', close: 121 }];
+  const cmp = [{ time: 'd2', close: 50 }, { time: 'd3', close: 55 }];
+  const r = C.rebaseCompare(main, cmp);
+  assert.equal(r.factor, 110 / 50);   // 按首个共同日 d2 定基：主 110 / 对比 50
+  assert.equal(J(r.points.map(p => p.time)), J(['d2', 'd3']));
+  assert.equal(J(r.points.map(p => p.value)), J([110, 121]));   // 同涨幅 → 与主图重合
+});
+
+test('rebaseCompare：cmp 独有时间点剔除（交集口径防幽灵 bar）', () => {
+  const main = [{ time: 'd1', close: 100 }, { time: 'd2', close: 105 }];
+  const cmp = [
+    { time: 'd0', close: 40 },    // cmp 更早的上市段：主图没有 → 剔
+    { time: 'd1', close: 50 },
+    { time: 'd2', close: 55 },
+    { time: 'd9', close: 70 },    // 停牌差异日：主图没有 → 剔
+  ];
+  const r = C.rebaseCompare(main, cmp);
+  assert.equal(J(r.points.map(p => p.time)), J(['d1', 'd2']));
+  assert.equal(J(r.points.map(p => p.value)), J([100, 110]));
+});
+
+test('rebaseCompare：脏数据收敛（非数组/交集空/close 非有限/基准 ≤0 → points 空；中段非正 close 跳点）', () => {
+  const main = [{ time: 'd1', close: 100 }, { time: 'd2', close: 110 }];
+  assert.equal(C.rebaseCompare('not-array', []).points.length, 0);        // 主图非数组
+  assert.equal(C.rebaseCompare(main, 'not-array').points.length, 0);      // 对比非数组
+  assert.equal(C.rebaseCompare([], []).points.length, 0);                 // 交集为空
+  assert.equal(C.rebaseCompare(main, [{ time: 'd1' }]).points.length, 0);           // 基准 close 非有限
+  assert.equal(C.rebaseCompare(main, [{ time: 'd1', close: 0 }]).points.length, 0); // 对比基准 ≤0
+  assert.equal(C.rebaseCompare(   // 主图基准 close ≤0：无从定基 → 整体空
+    [{ time: 'd1', close: 0 }, { time: 'd2', close: 1 }],
+    [{ time: 'd1', close: 5 }, { time: 'd2', close: 5 }]).points.length, 0);
+  const r = C.rebaseCompare(   // 中段非正 close：该点跳过、其余照常（0 是脏价不是"归零"）
+    [{ time: 'd1', close: 100 }, { time: 'd2', close: 110 }, { time: 'd3', close: 120 }],
+    [{ time: 'd1', close: 50 }, { time: 'd2', close: 0 }, { time: 'd3', close: 60 }]);
+  assert.equal(J(r.points.map(p => p.time)), J(['d1', 'd3']));
+  assert.equal(J(r.points.map(p => p.value)), J([100, 120]));
+});
+
+test('导出守卫：sanitizeScale / rebaseCompare 必须挂到 Charts 导出面（对比叠加的纯函数口径）', () => {
+  assert.equal(typeof C.sanitizeScale, 'function', 'Charts 缺少导出 sanitizeScale');
+  assert.equal(typeof C.rebaseCompare, 'function', 'Charts 缺少导出 rebaseCompare');
+});
+
 test('导出守卫：画线交互纯函数必须全部挂到 Charts 导出面（含 DRAW_HIT_TOL=8）', () => {
   ['DRAW_HIT_TOL', 'segDist', 'drawTextBox', 'hitDrawing', 'hitTestDrawings', 'moveDrawing', 'clampBox']
     .forEach(k => assert.ok(k in C, 'Charts 缺少导出 ' + k));
