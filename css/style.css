@@ -939,6 +939,8 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
 .ma-wrap { position: relative; display: inline-block; }
 .ma-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
   min-width: 232px; padding: var(--sp-12) var(--sp-12);
+  /* 副图单选 3 行 → 8 行后弹层过高：窄屏限高滚动（纯静态属性，零颜色零动效） */
+  max-height: min(70vh, 560px); overflow-y: auto;
   background: var(--bg-card, #111); border: 1px solid rgba(255,255,255,0.14); border-radius: var(--r-md);
   box-shadow: var(--shadow-1); }
 .ma-sec + .ma-sec { margin-top: var(--sp-12); padding-top: var(--sp-12); border-top: 1px solid var(--border); }

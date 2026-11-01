@@ -95,14 +95,153 @@
     return { dif, dea, hist };
   }
 
+  /* 指标扩充五件（VWAP / ATR / StochRSI / CCI / DMI·ADX）：Wilder 平滑与 technical.js 同款（种子 = 前 n 项 SMA、此后加权递推）；
+     系列与输入等长、脏 bar / 预热段为 null，绝不产出 NaN。 */
+
+  /* VWAP 会话锚：字符串取前 10 位（日 K 串，js/sources/eastmoney.js:205）；伪 UTC 秒取 UTC 日期（分钟 K 墙钟日，:226）。 */
+  function dayAnchor(t) {
+    if (typeof t === 'string') return t.slice(0, 10);
+    if (typeof t !== 'number' || !isFinite(t)) return null;
+    const d = new Date(t * 1000), p2 = (x) => (x < 10 ? '0' + x : '' + x);
+    return d.getUTCFullYear() + '-' + p2(d.getUTCMonth() + 1) + '-' + p2(d.getUTCDate());
+  }
+
+  /* VWAP：tp=(h+l+c)/3，Σ(tp×v)/Σv 跨日重置（TradingView Session 锚口径）。量仅作权重、展示的是价格；无量/脏 bar 该点不画。 */
+  function vwapSeries(klines) {
+    const src = Array.isArray(klines) ? klines : [], out = new Array(src.length).fill(null);
+    let pv = 0, vv = 0, cur = null;
+    for (let i = 0; i < src.length; i++) {
+      const k = src[i];
+      if (!k || !isNum(k.high) || !isNum(k.low) || !isNum(k.close) || !isNum(k.volume) || k.volume <= 0) continue;
+      const a = dayAnchor(k.time);
+      if (a !== cur) { cur = a; pv = 0; vv = 0; }
+      const tp = (k.high + k.low + k.close) / 3;
+      pv += tp * k.volume; vv += k.volume;
+      out[i] = pv / vv;
+    }
+    return out;
+  }
+
+  /* ATR(n)：TR 自第 1 根起、种子 = 前 n 根 TR 的 SMA、此后 Wilder 递推（technical.atr 同口径）；值按有效 bar 原始下标落位。 */
+  function atrSeries(klines, n = 14) {
+    const src = Array.isArray(klines) ? klines : [], out = new Array(src.length).fill(null);
+    const ks = [], at = [];
+    src.forEach((k, i) => { if (k && isNum(k.high) && isNum(k.low) && isNum(k.close)) { ks.push(k); at.push(i); } });
+    if (!(n >= 1) || ks.length < n + 1) return out;
+    const trs = [];
+    for (let i = 1; i < ks.length; i++) trs.push(Math.max(ks[i].high - ks[i].low, Math.abs(ks[i].high - ks[i - 1].close), Math.abs(ks[i].low - ks[i - 1].close)));
+    let v = 0;
+    for (let i = 0; i < n; i++) v += trs[i];
+    out[at[n]] = v /= n;                      // 种子落在第 n+1 个有效 bar
+    for (let i = n; i < trs.length; i++) { v = (v * (n - 1) + trs[i]) / n; out[at[i + 1]] = v; }
+    return out;
+  }
+
+  /* 带 null 的 SMA：窗内全有效才算，否则该点 null（预热段自然为 null）。逐窗直加：滑动加减有浮点漂移（可溢出值域一个 ε）。 */
+  function smaPadded(series, w) {
+    const len = Array.isArray(series) ? series.length : 0, out = new Array(len).fill(null);
+    if (!len || !(w >= 1)) return out;
+    for (let i = w - 1; i < len; i++) {
+      let sum = 0, ok = true;
+      for (let j = i - w + 1; j <= i; j++) {
+        if (!isNum(series[j])) { ok = false; break; }
+        sum += series[j];
+      }
+      if (ok) out[i] = sum / w;
+    }
+    return out;
+  }
+
+  /* StochRSI(n,kS,dS)：RSI 的 n 窗随机化 raw=(rsi-最低)/(最高-最低)×100（平窗=50），K=raw 的 SMA(kS)、D=K 的 SMA(dS)。 */
+  function stochRsiSeries(closes, n = 14, kS = 3, dS = 3) {
+    const c = Array.isArray(closes) ? closes : [];
+    if (c.length < n * 2 + kS + dS - 2) return { k: [], d: [] };   // K/D 预热链放不下 → 空结构
+    const rsi = rsiSeries(c, n), raw = new Array(c.length).fill(null);
+    for (let i = n * 2 - 1; i < c.length; i++) {
+      let hh = -Infinity, ll = Infinity, ok = true;
+      for (let j = i - n + 1; j <= i; j++) {
+        if (!isNum(rsi[j])) { ok = false; break; }
+        if (rsi[j] > hh) hh = rsi[j]; if (rsi[j] < ll) ll = rsi[j];
+      }
+      if (ok) raw[i] = hh === ll ? 50 : (rsi[i] - ll) / (hh - ll) * 100;
+    }
+    const k = smaPadded(raw, kS);
+    return { k, d: smaPadded(k, dS) };
+  }
+
+  /* CCI(n)：tp 的 n 窗 SMA 与平均绝对偏差，cci=(tp-sma)/(0.015×md)；md=0 → 0。 */
+  function cciSeries(klines, n = 20) {
+    const src = Array.isArray(klines) ? klines : [], out = new Array(src.length).fill(null);
+    if (!(n >= 1)) return out;
+    const tp = src.map((k) => (k && isNum(k.high) && isNum(k.low) && isNum(k.close)) ? (k.high + k.low + k.close) / 3 : null);
+    for (let i = n - 1; i < src.length; i++) {
+      let sum = 0, ok = true;
+      for (let j = i - n + 1; j <= i; j++) {
+        if (!isNum(tp[j])) { ok = false; break; }
+        sum += tp[j];
+      }
+      if (!ok) continue;
+      const sma = sum / n; let dev = 0;
+      for (let j = i - n + 1; j <= i; j++) dev += Math.abs(tp[j] - sma);
+      const md = dev / n;
+      out[i] = md === 0 ? 0 : (tp[i] - sma) / (0.015 * md);
+    }
+    return out;
+  }
+
+  /* DMI(n,m)：+DM/-DM/TR 的 Wilder 平滑 → +DI/-DI 自第 n 个有效 bar 起效；DX 再平滑 → ADX 自第 n+m-1 个有效 bar 起效。 */
+  function dmiSeries(klines, n = 14, m = 14) {
+    const src = Array.isArray(klines) ? klines : [];
+    const out = { pdi: new Array(src.length).fill(null), mdi: new Array(src.length).fill(null), adx: new Array(src.length).fill(null) };
+    const ks = [], at = [];
+    src.forEach((k, i) => { if (k && isNum(k.high) && isNum(k.low) && isNum(k.close)) { ks.push(k); at.push(i); } });
+    if (!(n >= 1) || ks.length < n + 1) return out;   // ks.length < n+1 早退，ADX 由 dxs.length≥m 自守
+    const wilder = (arr, w) => {
+      const o = new Array(arr.length).fill(null);
+      if (!(w >= 1) || arr.length < w) return o;
+      let s = 0;
+      for (let i = 0; i < w; i++) s += arr[i];
+      let v = s / w;
+      o[w - 1] = v;
+      for (let i = w; i < arr.length; i++) { v = (v * (w - 1) + arr[i]) / w; o[i] = v; }
+      return o;
+    };
+    const trs = [], pds = [], mds = [];
+    for (let i = 1; i < ks.length; i++) {
+      const up = ks[i].high - ks[i - 1].high, dn = ks[i - 1].low - ks[i].low;
+      trs.push(Math.max(ks[i].high - ks[i].low, Math.abs(ks[i].high - ks[i - 1].close), Math.abs(ks[i].low - ks[i - 1].close)));
+      pds.push(up > dn && up > 0 ? up : 0); mds.push(dn > up && dn > 0 ? dn : 0);
+    }
+    const st = wilder(trs, n), sp = wilder(pds, n), sm = wilder(mds, n), dxs = [];
+    for (let i = 0; i < trs.length; i++) {
+      if (st[i] === null) continue;
+      const pdi = st[i] === 0 ? 0 : 100 * sp[i] / st[i], mdi = st[i] === 0 ? 0 : 100 * sm[i] / st[i];
+      out.pdi[at[i + 1]] = pdi; out.mdi[at[i + 1]] = mdi;
+      dxs.push(pdi + mdi === 0 ? 0 : 100 * Math.abs(pdi - mdi) / (pdi + mdi));
+    }
+    const adx = wilder(dxs, m);
+    for (let j = 0; j < adx.length; j++) { if (adx[j] !== null) out.adx[at[n + j]] = adx[j]; }   // dxs[j] ↔ 第 n+j 个有效 bar
+    return out;
+  }
+
   /* 副图指标清单：给设置项用（键 = 类型，label = 显示名，参数 = 可调周期） */
   const PANE_DEFS = [
     { key: 'vol', label: '成交量', params: [] },
-    { key: 'rsi', label: 'RSI', params: [{ key: 'n', label: '周期', def: 14, min: 2, max: 100 }] },
+    { key: 'rsi', label: 'RSI', range: 'pct', params: [{ key: 'n', label: '周期', def: 14, min: 2, max: 100 }] },
     { key: 'macd', label: 'MACD', params: [
       { key: 'fast', label: '快', def: 12, min: 2, max: 200 },
       { key: 'slow', label: '慢', def: 26, min: 3, max: 400 },
       { key: 'signal', label: '信号', def: 9, min: 2, max: 100 },
+    ] },
+    { key: 'vwap', label: 'VWAP', range: 'free', params: [] },
+    { key: 'atr', label: 'ATR', params: [{ key: 'n', label: '周期', def: 14, min: 2, max: 100 }] },
+    { key: 'stochrsi', label: 'StochRSI', range: 'pct', params: [
+      { key: 'n', label: '周期', def: 14, min: 2, max: 100 },
+      { key: 'k', label: 'K平滑', def: 3, min: 1, max: 100 }, { key: 'd', label: 'D平滑', def: 3, min: 1, max: 100 },
+    ] },
+    { key: 'cci', label: 'CCI', params: [{ key: 'n', label: '周期', def: 20, min: 2, max: 200 }] },
+    { key: 'dmi', label: 'DMI', params: [
+      { key: 'n', label: '周期', def: 14, min: 2, max: 100 }, { key: 'm', label: 'ADX平滑', def: 14, min: 1, max: 100 },
     ] },
   ];
 
@@ -122,6 +261,9 @@
     const out = { lines: [], bars: [] };
     if (!closes.length) return out;
     const timeAt = (i) => (klines[i] && klines[i].time != null ? klines[i].time : null);
+    // 等长序列配 time：closes 对齐的序列用 idx 反查原下标，klines 对齐的直接用 timeAt
+    const pick = (arr, tAt) => (arr || []).map((v, i) => ({ v, t: tAt(i) }))
+      .filter((x) => x.v != null && x.t != null).map((x) => ({ time: x.t, value: x.v }));
 
     if (key === 'vol') {
       const data = [];
@@ -162,6 +304,32 @@
       out.bars.push({ name: 'MACD', data: pick(m.hist) });
       return out;
     }
+    if (key === 'vwap') { out.lines.push({ name: 'VWAP', data: pick(vwapSeries(klines), timeAt) }); return out; }
+    if (key === 'atr') {
+      const n = Math.max(2, Math.min(100, Math.round(+p.n || 14)));
+      out.lines.push({ name: 'ATR' + n, data: pick(atrSeries(klines, n), timeAt) });
+      return out;
+    }
+    if (key === 'stochrsi') {
+      const n = Math.max(2, Math.min(100, Math.round(+p.n || 14)));
+      const s = stochRsiSeries(closes, n, Math.max(1, Math.min(100, Math.round(+p.k || 3))), Math.max(1, Math.min(100, Math.round(+p.d || 3))));
+      out.lines.push({ name: 'K', data: pick(s.k, (i) => timeAt(idx[i])) });
+      out.lines.push({ name: 'D', data: pick(s.d, (i) => timeAt(idx[i])) });
+      return out;
+    }
+    if (key === 'cci') {
+      const n = Math.max(2, Math.min(200, Math.round(+p.n || 20)));
+      out.lines.push({ name: 'CCI' + n, data: pick(cciSeries(klines, n), timeAt) });
+      return out;
+    }
+    if (key === 'dmi') {
+      const n = Math.max(2, Math.min(100, Math.round(+p.n || 14)));
+      const s = dmiSeries(klines, n, Math.max(1, Math.min(100, Math.round(+p.m || 14))));
+      out.lines.push({ name: '+DI', data: pick(s.pdi, timeAt) });
+      out.lines.push({ name: '-DI', data: pick(s.mdi, timeAt) });
+      out.lines.push({ name: 'ADX', data: pick(s.adx, timeAt) });
+      return out;
+    }
     return out;
   }
 
@@ -170,14 +338,15 @@
      没有数据 → null（调用方用默认边距）。 */
   function paneRange(key, pane) {
     if (!pane) return null;
-    if (key === 'rsi') return { min: 0, max: 100 };
+    const mode = (paneDef(key) || {}).range;   // 'pct' 固定 0~100（RSI/StochRSI）
+    if (key === 'rsi' || mode === 'pct') return { min: 0, max: 100 };
     const vals = [];
     (pane.lines || []).forEach(l => (l.data || []).forEach(d => { if (isNum(d.value)) vals.push(d.value); }));
     (pane.bars || []).forEach(l => (l.data || []).forEach(d => { if (isNum(d.value)) vals.push(d.value); }));
     if (!vals.length) return null;
     let lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
     if (key === 'macd') { lo = Math.min(lo, 0); hi = Math.max(hi, 0); }   // 含零轴
-    else lo = 0;                                                        // 成交量从 0 起
+    else if (mode !== 'free') lo = Math.min(lo, 0);                     // 成交量/非负指标含 0；vwap(free) 纯自适应
     if (hi === lo) hi = lo + 1;
     const pad = (hi - lo) * 0.08;
     return { min: lo - pad, max: hi + pad };
@@ -185,5 +354,6 @@
 
   global.Panes = {
     PANE_DEFS, paneDef, cleanCloses, emaSeries, rsiSeries, macdSeries, computePane, paneRange,
+    vwapSeries, atrSeries, stochRsiSeries, cciSeries, dmiSeries,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

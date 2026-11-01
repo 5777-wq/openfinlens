@@ -45,6 +45,13 @@ const Charts = (() => {
   /* 均线槽位回退色：正常取 CSS 的 --ma-0..5（单一来源），仅在变量缺失时兜底 */
   const MA_FALLBACK = ['#e8a33d', '#5b8def', '#1fc2db', '#b06ad4', '#e0559b', '#aab82e'];
 
+  /* 副图线装配槽位：PANE_DEFS 每键的 pane.lines[i] 取 --ma-{slot} 色令牌（与主图六槽同链）。
+     rsi→[1]、macd DIF/DEA→[2,5] 与旧实现逐字一致；OBV 未入选（量纲待裁决），panes.test 有全键覆盖守卫。 */
+  const PANE_LINE_SLOTS = {
+    // vol 走上方专用柱装配（按涨跌染色），表内登记空槽让守卫可断言全键覆盖
+    vol: [], rsi: [1], macd: [2, 5], vwap: [0], atr: [3], stochrsi: [1, 5], cci: [3], dmi: [1, 5, 2],
+  };
+
   function themeColors() {
     const s = getComputedStyle(document.body);
     const varOf = (name, fb) => (s.getPropertyValue(name) || '').trim() || fb;
@@ -139,7 +146,7 @@ const Charts = (() => {
       el.appendChild(paneCanvas);
     }
 
-    // 当前副图：'vol' | 'rsi' | 'macd'
+    // 当前副图：PANE_DEFS 八键（vol / rsi / macd / vwap / atr / stochrsi / cci / dmi）
     let paneKey = 'vol';
     let paneParams = {};
 
@@ -207,16 +214,19 @@ const Charts = (() => {
       schedulePaneRender();
     }
 
-    /* 副图标题（TradingView 每个副图左上角都有指标名 + 当前值） */
+    /* 副图标题（TradingView 每个副图左上角都有指标名 + 当前值）：
+       统一由 paneDef(paneKey) 拼 label + 参数逗号串（钳制公式与 panes.computePane 同式）——
+       vol→'成交量'、rsi→'RSI(14)'、macd→'MACD(12,26,9)' 输出与旧实现逐字相同，
+       新键自动得 'VWAP' / 'ATR(14)' / 'StochRSI(14,3,3)' / 'CCI(20)' / 'DMI(14,14)'。 */
     function paneTitle() {
-      if (paneKey === 'rsi') return 'RSI(' + (paneParams.n || 14) + ')';
-      if (paneKey === 'macd') {
-        const d = window.Panes && window.Panes.paneDef('macd');
-        const def = (k) => ((d && d.params || []).find(x => x.key === k) || {}).def;
-        return 'MACD(' + [paneParams.fast || def('fast') || 12,
-          paneParams.slow || def('slow') || 26, paneParams.signal || def('signal') || 9].join(',') + ')';
-      }
-      return '成交量';
+      const def = window.Panes && window.Panes.paneDef(paneKey);
+      if (!def) return '成交量';
+      if (!def.params || !def.params.length) return def.label;
+      const parts = def.params.map((pr) => {
+        const v = paneParams[pr.key] != null ? paneParams[pr.key] : pr.def;
+        return Math.max(pr.min, Math.min(pr.max, Math.round(+v || pr.def)));
+      });
+      return def.label + '(' + parts.join(',') + ')';
     }
 
     /* 按当前副图类型重画。数据来自 js/panes.js（纯计算、可单测），
@@ -235,15 +245,17 @@ const Charts = (() => {
           time: x.time, value: x.value, up: (dirOf.get(x.time) || 1) > 0,
         }));
         bars.push({ name: '成交量', color: c.up, data: d, kind: 'bar' });
-      } else if (paneKey === 'rsi') {
-        const l = pane.lines[0];
-        if (l) series.push({ name: l.name, color: c.lineColors[1 % c.lineColors.length], data: l.data });
-      } else if (paneKey === 'macd') {
-        const dif = pane.lines[0], dea = pane.lines[1];
-        const hist = pane.bars[0] ? pane.bars[0].data : [];
-        if (dif) series.push({ name: 'DIF', color: c.lineColors[2 % c.lineColors.length], data: dif.data });
-        if (dea) series.push({ name: 'DEA', color: c.lineColors[5 % c.lineColors.length], data: dea.data });
-        // MACD 柱按正负染色（多头红 / 空头绿）：符号由值本身决定
+      } else {
+        // 通用线装配：除 vol 外统一按 pane.lines × PANE_LINE_SLOTS 槽位取 c.lineColors 令牌链
+        // （rsi→lineColors[1]、macd DIF/DEA→[2,5]，与旧实现逐字一致；槽位 5 在 --ma-0..5 令牌链内）。
+        const slots = PANE_LINE_SLOTS[paneKey] || [];
+        (pane.lines || []).forEach((l, i) => {
+          if (slots[i] === undefined) return;    // 槽位没接线就不画（宁可空白，不画错色）
+          series.push({ name: l.name, color: c.lineColors[slots[i] % c.lineColors.length], data: l.data });
+        });
+        // ⚠ MACD 柱的正负染色分支保留在通用线装配**之后**（评审钉死的装配顺序）：
+        // hist 走 bars 不走 lines，通用装配只管线；柱在这里按值符号染色（多头红 / 空头绿）。
+        const hist = paneKey === 'macd' && pane.bars[0] ? pane.bars[0].data : [];
         if (hist.length) {
           bars.push({
             name: 'MACD', color: c.up, kind: 'bar',
@@ -252,13 +264,15 @@ const Charts = (() => {
         }
       }
 
-      // 纵轴域：成交量从 0 起；RSI 固定 0~100；MACD 含零轴
+      // 纵轴域按 paneDef(key).range 驱动：'pct' 固定 0~100+ticks（RSI/StochRSI）；
+      // 'free' 纯自适应不强制含零（VWAP 是价格域，0 基会把曲线压扁）；其余含零（成交量/非负指标）
       const vals = [];
       series.forEach(s => (s.data || []).forEach(d => { if (isFinite(d.value)) vals.push(d.value); }));
       bars.forEach(s => (s.data || []).forEach(d => { if (isFinite(d.value)) vals.push(d.value); }));
-      const domain = paneKey === 'rsi'
+      const rangeMode = (window.Panes && window.Panes.paneDef(paneKey) || {}).range;
+      const domain = rangeMode === 'pct'
         ? { min: 0, max: 100, ticks: [0, 25, 50, 75, 100] }
-        : window.PaneView.axis(vals, { includeZero: true });
+        : window.PaneView.axis(vals, { includeZero: rangeMode !== 'free' });
 
       // 时间轴：主图与副图共用（横向必须对齐，否则读数对不上）
       const times = (klines || []).map(k => k.time);

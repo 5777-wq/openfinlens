@@ -596,3 +596,33 @@ TV-ROADMAP 最靠前未勾项：P0 图表核心第 5 条「图表类型」。防
 - `js/charts.js`、`js/app.js`、`index.html`
 - `_test/charts.test.mjs`、`_test/tokens.test.mjs`
 - `docs/TV-ROADMAP.md`（勾选 P0 图表核心「图表类型」条目——条目文字不动，勾选依据=离线测试全绿+守卫钉死；浏览器内实切/实看属视觉冒烟留人工轮）、`docs/OPTIMIZER-LOG.md`（本条目）
+
+## 2026-11-01 12:06 · P0 图表核心：副图指标扩充五件——VWAP/ATR/StochRSI/CCI/DMI·ADX 进副图体系（OBV 待红线裁决另轮）
+
+### 目标
+TV-ROADMAP 最靠前未勾项：P0 图表核心第 6 条「指标扩充」。按已评审方案执行（解阻路径 a）：本轮五件 = VWAP / ATR / StochRSI / CCI / DMI·ADX；**OBV 摘除**——其以量为量纲，方案原 fmtVol 扩分支自证撞红线 2（TV-ROADMAP.md:19「不展示成交量数据」不可协商，原文同 .zcode/workflows/hourly-project-optimizer.dwf.ts:80），路线图 :19 禁与 :43 令的体系矛盾不宜由施工评审自裁，认可「拿不准就按不放行」。VWAP 评审已裁定展示的是价格序列、量仅作权重，与已上线多轮存续的量比（technical.js:143）同为「消费量而不展示量」口径，字面不触红线 2。防重复核查：grep js/ 无 vwap/stochrsi/cci/dmi 实现痕迹；technical.js:124 末值版 atr 画不了序列、职责不同不冲突；OPTIMIZER-LOG 无本条目施工记录。可行性：三层结构（panes.js 纯计算 / charts.js 自绘 / app.js 自动菜单+泛化处理器，app.js:5978-5989 菜单由 PANE_DEFS 自动渲染、:6195-6221 radio/参数处理器按 min/max 钳制均亲读核实）新增副图**零 app.js 改动**；分时图 setPane 空实现（charts.js:1571）不受影响。测试先行先红后绿。
+
+### 改动
+1. `js/panes.js`（+173/-3，纯 LF 保持，node 字节级拼接）：① 纯函数区新增五件 + dayAnchor/smaPadded 助手——`dayAnchor(t)`（VWAP 会话锚：字符串取前 10 位（日 K 串，js/sources/eastmoney.js:205）、伪 UTC 秒取 UTC 日期（分钟 K 墙钟日，js/sources/eastmoney.js:226））；`vwapSeries(klines)`（tp=(h+l+c)/3，Σ(tp×v)/Σv 跨日重置 = TradingView Session 锚口径；量仅作权重；无量/脏 bar 不进累计、该点不画）；`atrSeries(klines,n=14)`（TR 自第 1 根起、种子=前 n 根 TR 的 SMA、此后 Wilder 递推与 technical.atr 同口径，值按有效 bar 原始下标落位）；`stochRsiSeries(closes,n=14,kS=3,dS=3)`（RSI 的 n 窗随机化 raw、平窗=50，K=raw 的 SMA(kS)、D=K 的 SMA(dS)，值域 0~100）+ `smaPadded`（带 null 的 SMA，窗内全有效才算，**逐窗直加**——首版滑动加减实测浮点漂移可溢出值域一个 ε，见测试节）；`cciSeries(klines,n=20)`（tp 的 n 窗 SMA 与平均绝对偏差，md=0→0）；`dmiSeries(klines,n=14,m=14)`（+DM/-DM/TR 的 Wilder 平滑→+DI/-DI 自第 n 个有效 bar 起效，DX 再平滑→ADX 自第 n+m-1 个起效；ks.length<n+1 早退）。② PANE_DEFS 追加 5 条（vwap range:'free' / atr / stochrsi range:'pct' / cci / dmi，参数全带 def/min/max），既有 rsi 补 range:'pct'（vol/macd 零变化），OBV 不进清单。③ computePane 局部 pick 助手 + 5 个键分支（vol/rsi/macd 既有分支逐字不动）。④ paneRange 扩展：rsi 或 range==='pct'→固定 0~100；range==='free'→纯自适应不强制含零；其余 lo=min(lo,0)（vol/atr/cci/dmi 等价旧口径，cci 负值不裁剪，panes.test:158 三元式实测兼容）。⑤ 导出面追加五个新纯函数。
+2. `js/charts.js`（+36/-22，净 +14 ≤ ±40，全 CRLF 保持，node 字节级拼接五段小编辑）：① 模块作用域新增 `PANE_LINE_SLOTS`（vol:[] 登记空槽、rsi:[1]、macd:[2,5]、vwap:[0]、atr:[3]、stochrsi:[1,5]、cci:[3]、dmi:[1,5,2]，OBV 不在表内）——vol 空槽为守卫断言全键覆盖所补（渲染仍走专用柱分支，行为零变化）；② `paneTitle()` 泛化——删 rsi/macd/vol 三特例，统一由 paneDef 拼 label+参数逗号串（钳制与 computePane 同式），vol→'成交量'、rsi→'RSI(14)'、macd→'MACD(12,26,9)' 与旧实现逐字相同，新键自动得 'VWAP'/'ATR(14)'/'StochRSI(14,3,3)'/'CCI(20)'/'DMI(14,14)'；③ renderPane 通用线装配——除 vol 外按 pane.lines×槽位取 c.lineColors 令牌链（rsi→lineColors[1]、macd DIF/DEA→[2,5] 与旧码逐字一致，槽位 5 在 --ma-0..5 链内），**MACD 柱正负染色分支保留在通用装配之后**（评审点名风险，注释钉死先后）；④ 纵轴域改按 paneDef(key).range 驱动——'pct'→固定 0~100+ticks、'free'→includeZero:false（VWAP 价格域否则被 0 基压扁）、其余含零；⑤ :142 注释同步八键口径。fmtTick/fmtValue 未动。
+3. `css/style.css`（+2/-0，全 CRLF 保持只小段插入）：.ma-menu 规则块内补 `max-height: min(70vh, 560px); overflow-y: auto;`（副图单选 3 行→8 行后弹层过高窄屏溢出；纯静态滚动属性、零颜色零动画，.ma-menu 无 transition、hidden 直切）。
+4. `index.html`（+67/-67，纯 LF 保持）：业务资源 ?v=20261101k→?v=20261101l 全部 67 处（panes.js/charts.js 内容变更触发缓存失效，当日字母序单调递增；vendor 语义化版本 4.2.3/3.1.0/3.2.4/3.1.1 不动）。app.js 本轮零改动（git diff 0 行）。
+5. `_test/panes.test.mjs`（+213/-5，纯 LF 保持，先红后绿）：改写既有「指标清单」组为八键口径（键序互不重复、label 非空、range ∈ {pct,free,undefined}、params 的 def/min/max 齐全且 def 落域内、新键 paneDef 可达、obv 返回 null 登记未入选）；新增 12 组——vwapSeries 三组（恒定 tp、跨日重置含日界前后断言、脏/无量输入不进累计）、atrSeries 两组（恒定 TR + 脏 bar 原位落值、Wilder 递推手算 16/3→62/9→232/27 逐步核对）、stochRsiSeries 两组（单调上涨→K=D=50 含预热下标、随机序列 K/D 与手算 SMA 全序列核对+值域 [0,100]）、cciSeries 一组（恒定→0、上行→正、预热 null、n 超长全 null）、dmiSeries 一组（+DI>-DI、值域、+DI 第 n / ADX 第 n+m-1 有效 bar 起效、不足全 null）、computePane 集成一组（vwap1/atr1/stochrsi2/cci1/dmi3 条数、time 对齐、脏 bar 不出现、未知键空结构）、paneRange 一组（stochrsi 固定 0~100、vwap free 不含零、cci 负值不裁剪、atr 含零）、跨文件守卫一组（charts.js 的 PANE_LINE_SLOTS 必须覆盖 PANE_DEFS 全部八键，照 tokens.test 跨文件守卫先例）。
+
+### 测试
+- 红相（先红后绿）：`node _test/panes.test.mjs` → **14 passed / 13 failed**，失败恰为改写清单组 + 12 新组（P.vwapSeries is not a function 等），与预案逐条对照零意外项。
+- 施工后单跑：panes.test **27 passed / 0 failed**（15→27，+12 恰为新组）；charts.test **57 passed / 0 failed**（回归零破坏）；tokens.test **61 passed / 0 failed**（?v= 一致性与 vendor 守卫自然回归）。
+- 全量：`node _test/run-all.mjs --offline` → 共 43 组（离线 37 / 实网 6），执行 **37 组全部通过**（施工前基线同 37 组全绿，run-all.mjs 零改动）。未做实网验证（红线 11）。
+- 语法核验：`node --check js/panes.js`、`node --check js/charts.js` 通过。
+- 测试先行的实际收益：stochRsi 随机组首跑抓到 smaPadded 滑动加减的浮点漂移（实测 -1.42e-14 越出 [0,100] 下界）——实现改逐窗直加后全绿，属真缺陷非测试误报。
+- 行尾核验（node 逐字节）：js/panes.js CR=0/359 行（纯 LF）、_test/panes.test.mjs CR=0/390 行（纯 LF）、index.html CR=0/968 行（纯 LF）；js/charts.js CR=2044/裸 LF=0、css/style.css CR=2659/裸 LF=0（全 CRLF）；`git ls-files --eol` 仓库口径 i/lf（panes/test/index）/i/crlf（charts）与改前一致。施工方式说明：全程 node 字节级拼接（上轮记录过 Edit 工具会把 LF 文件整翻 CRLF 的坑，本轮规避）。
+- 预算：`git diff --numstat` 增删合计（不含留痕文档）panes.js 173/3 + panes.test 213/5 + charts.js 36/22 + style.css 2/0 + index.html 67/67（双计 134）= **588 行 ≤600 硬上限**。如实登记两处偏离方案预算：panes.js 173 超单文件预算 165 共 8 行（超因 = ① smaPadded 浮点漂移修复改逐窗直加 ② PANE_LINE_SLOTS 补 vol 空槽登记项，均为方案文本未预见的必要修正，未靠删断言/注释保预算）；panes.test 213 ≤220 ✓。
+- ?v= 守卫：20261101l 恰 67 处、20261101k 残留 0、vendor 四版本原样。
+- 红线核对：全中文注释与文案；分区卡片+折叠布局零改动；8 套皮肤零触碰（取色全走 --ma-0..5 令牌链、.ma-menu 追加无颜色属性）；无 setInterval；零新增动画/transition；零新增取数（红线 6 无涉）；五指标均统计口径、无买卖建议；新增行 grep Polymarket 命中 2 处均为 index.html 既有脚本标签的版本号 bump 机械结果、非新增品牌内容；省略号问句 0；.sh 未触碰；无开源代码移植（红线 9 无涉）。
+- **OBV 待裁决登记（解阻路径 b）**：OBV 以量为量纲，与红线 2（TV-ROADMAP.md:19「不展示成交量数据·不可协商」）的适用边界存在体系争议，留用户裁决——若裁定红线 2 不涵盖「免收费 K 线可算、量仅作输入的统计类指标」，另轮补齐 OBV（单键隔离：panes.js 一分支 + 一条 PANE_DEF + PANE_LINE_SLOTS 一行槽位，一行摘除/补回不牵连本轮五件）。
+- 如实声明边界：五新键的运行时实画（VWAP 跨日锚点形态、DMI 三线取色、.ma-menu 8 行弹层窄屏滚动、paneTitle 参数串显示）属视觉冒烟，按 TV-ROADMAP「视觉冒烟留人工轮次」惯例未自动化；本轮完成判定 = 纯函数单测（12 组）+ 跨文件守卫 + 离线全量全绿。**docs/TV-ROADMAP.md 本轮零改动**——条目「指标扩充」含 OBV 未全量达成不勾选，照间距骨架①先例。
+
+### 涉及文件
+- `js/panes.js`、`js/charts.js`、`css/style.css`、`index.html`
+- `_test/panes.test.mjs`
+- `docs/OPTIMIZER-LOG.md`（本条目）；`docs/TV-ROADMAP.md` 零改动（条目未全量达成不勾选）
