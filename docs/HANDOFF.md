@@ -1,5 +1,29 @@
 # 交接文档 · 持续开发流水线（写给下一个 Agent）
 
+> ## ⚠️ 2026-11-08 最新状态（优先读这一段，下面的旧交接已被部分取代）
+>
+> **已完成两件大事，工作区已提交为 `748c2aa`（未 push）：**
+> 1. **UI v2 推倒重来**：「NEXUS 深空终端」单一设计语言两模式（深空/日光），旧 8 套皮肤已删除。
+>    规格见 [`docs/UI-V2-SPEC.md`](UI-V2-SPEC.md)（令牌表/材质三模板/动效参数与 Telegram 出处/文件所有权）。
+>    分层：`css/style.css`（令牌单一事实源 + 兜底）→ `css/ui/01-shell|02-market|03-panels|04-motion.css`；
+>    `js/ui/navmap.js`（12 旧 key ↔ 5 一级的纯函数映射）、`js/ui/command.js`（⌘K 面板）、`js/ui/motion.js`（动效运行时）。
+> 2. **Agent 数据链路**：`api/v1/**`（11 端点 + openapi，统一信封 + stale 标注）、`mcp/server.mjs`（stdio，零依赖，11 工具）、
+>    `_scripts/build-api.mjs`（构建）、`_scripts/api-commit-guard.mjs`（语义无变化不提交）、`docs/API.md`、`mcp/README.md`。
+>
+> **接手必跑的四条验证（全绿才算没被改坏）：**
+> ```bash
+> node _test/run-all.mjs --offline     # 39 组离线全绿（含 api/navmap 两组新增）
+> node _qa/qa.mjs                      # 63 条（需先起 python -m http.server 8123）
+> node _qa/shell-check.mjs             # 48 条外壳专项
+> node _qa/motion-probe.mjs            # 12 条动效真值
+> ```
+> 探针说明见 [`_qa/README.md`](../_qa/README.md)，内含「无头不产帧」这个必踩的坑。
+>
+> **下轮别踩**：`css/ui/*` 只许消费 `style.css` 的令牌（tokens.test 扫全量，间距/字号/圆角/描边/涨跌色都是硬断言）；
+> 动 app.js 的 `.rv` 参数要同步 `04-motion.css` 的校准块；`#primaryNav [role=tab][aria-selected]` 与 `#primaryNav .nav-ink` 是动效层的契约，改导航要保留。
+> **待裁决**：详情页仍展示成交量/成交额，与路线图「不展示成交量」红线存在历史矛盾（本轮未动，需用户裁定）。
+
+
 > 生成于 2026-11-01，由「持续开发流水线」会话在用户叫停时写就。
 > 配额耗尽（智谱 start-plan，code 1005）+ 用户指示停止。本文档是接手者的完整上下文。
 
