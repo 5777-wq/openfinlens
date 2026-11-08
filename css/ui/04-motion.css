@@ -1,0 +1,381 @@
+/* ============================================================================
+   04-motion.css —— 动效层（Telegram-iOS 实测参数 → CSS）
+
+   契约：docs/UI-V2-SPEC.md §2「动效规格」。曲线/时长全部取 css/style.css :root
+   的令牌，本文件不新造节奏（--mo-* 只放"动效专用的蒙版色/位距"，不放时长曲线）。
+
+   出处（参数是事实，代码是自己写的）：
+   · 按压进快出慢   HighlightableButton.swift:13-18（按下瞬时赋值、松开 0.2s 淡出）
+   · 弹层出现       ContextControllerImpl.swift:574（d=104 → 2.1% 过冲 → --ease-panel）
+   · 弹层收起       ActionSheetController.swift:185（0.2s、不用弹簧 → --ease-exit）
+   · 小元素弹入     CheckNode.swift:192（d=88 → 6.5% 过冲 → --ease-spring）
+   · 招牌布局曲线   CAAnimationUtils.swift:186（0.38/0.7/0.125/1 → --ease-signature）
+   · 数字滚动       AnimatedCountLabelNode.swift:186-223（±0.6em、scale 1→.3、各 0.2s）
+   · 时长三层律     微交互 ≤0.2s / 弹层 0.4-0.5s / 收起永远比出现快
+
+   铁律：
+   1. 只动 transform / opacity / color / background-color / box-shadow（后者只做按压蒙版，
+      且只有 inset 形态——不占海拔档位，见 _test/tokens.test.mjs 阴影守卫）。
+   2. 不动 width/height/top/left（指示器用 transform 的 translateX+scaleX 表达位移与宽度）。
+   3. prefers-reduced-motion: reduce → 位移/弹簧/错峰/数字滚动全关，只留颜色（文件末尾一条兜底）。
+   4. 进/退拆两套：进 = 长时长 + 过冲贝塞尔 + transform-origin 指向触发点；
+      退 = 短时长 + 普通贝塞尔。display:none 切换的浮层用 @keyframes（transition 不触发）。
+
+   挂载：index.html 里 <link rel="stylesheet" href="css/ui/04-motion.css">（style.css 之后）。
+   ============================================================================ */
+
+/* ---------------------------------------------------------------- 本地令牌
+   只放"动效专用"的量：按压蒙版色（Telegram 的按压高亮 = 黑白 alpha 叠加，
+   暗色 rgba(255,255,255,.09) / 浅色 rgba(10,20,35,.06)，见 HighlightableButton）。 */
+:root {
+  --mo-press: rgba(255, 255, 255, 0.09);
+  --mo-press-lite: rgba(255, 255, 255, 0.06);   /* 大面积容器：同色但更轻，避免整卡发亮 */
+  --mo-sheen: rgba(255, 255, 255, 0.06);        /* 骨架微光 */
+  --mo-ink-h: 2px;
+  --mo-stagger: 40ms;                            /* 错峰 40ms（外推，SPEC §2） */
+  --mo-rise-y: 8px;                              /* 列表入场 8px */
+  --mo-reveal-y: 6px;                            /* 滚动进入 6px */
+  --mo-page-y: 4px;                              /* 页面切换 4px */
+}
+
+html[data-theme="daylight"] {
+  --mo-press: rgba(10, 20, 35, 0.06);
+  --mo-press-lite: rgba(10, 20, 35, 0.04);
+  --mo-sheen: rgba(10, 20, 35, 0.05);
+}
+
+/* ============================================================ 1. 按压反馈
+   灵魂：按下**瞬时**着色（transition:none），松开 0.2s 缓出。
+   语义等价于 HighlightableButton 的 "removeAnimation + 直接赋值 → 0.2s 淡出"。
+
+   白名单而不是全站 *：全站缩一遍会变成"到处弹"，数据密集区必须克制。
+   排除：输入类、拖拽分隔条（charts 的地盘）、[data-no-press]、draggable。 */
+body :is(button, [role="button"], .pressable, .tab, .pill, .chip, .bchip,
+    .qrow, .crow, .srow, .row, .sr-item, .icon-btn, .ask, .seg button,
+    .ma-menu label, .opt-row, .prow, .gcard, .link-node, .av-cell, .pm-tab):not([disabled]):not([data-no-press]):not([draggable="true"]):not(.k-pane-div) {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  /* 只配"松开"方向：0.2s 回弹。按下方向由下面的 :active 用 transition:none 掐掉。 */
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out),
+    transform var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out);
+}
+
+/* 按下：瞬时。:active 覆盖鼠标/键盘空格/触屏的原生按压；.is-press 是 JS 给触屏补的
+   60ms 高亮（滚动时 :active 常常不触发，靠它兜住"手指按下去有反馈"）。 */
+body :is(button, [role="button"], .pressable, .tab, .pill, .chip, .bchip,
+    .qrow, .crow, .srow, .row, .sr-item, .icon-btn, .ask, .seg button,
+    .ma-menu label, .opt-row, .prow, .gcard, .link-node, .av-cell, .pm-tab):not([disabled]):not([data-no-press]):not([draggable="true"]):not(.k-pane-div):is(:active, .is-press) {
+  background-color: var(--mo-press);
+  transform: scale(0.98);
+  transition: none;
+}
+
+/* 大面积容器（整卡/整行带实体底色）：只缩到 .995，别让一整块面板在指下"跳"。
+   .wcard / .pm-card 自带 --bg-card 实体底色，改 background-color 会把卡面抹掉，
+   所以改用 inset 蒙版——它画在底色之上、内容之下，正是 Telegram 的高亮叠层语义。 */
+body :is(.pm-card, .wcard, .event-item, .news-item):not([data-no-press]):is(:active, .is-press) {
+  background-color: var(--mo-press-lite);
+  transform: scale(0.995);
+  transition: none;          /* 按下必须瞬时：0.2s 缓入会让"手感"变成"慢慢陷进去" */
+}
+
+body :is(.pm-card, .wcard, .event-item):not([data-no-press]):is(:active, .is-press) {
+  box-shadow: inset 0 0 0 100vmax var(--mo-press-lite);
+}
+
+/* ============================================================ 2. 弹层 / 菜单 / 抽屉 / toast
+   进：transform .42s --ease-panel（2.1% 过冲）+ opacity .2s，origin 由 JS 指向触发点。
+   退：transform/opacity .2s --ease-exit —— 永远比出现快，且不用弹簧。
+
+   两套写法按"开关方式"分：
+   ① class 开关（.active/.open/.on）→ transition，进/退各写一条（谁的目标态生效，谁的
+      transition 生效，这是 CSS transition 的规则，天然做出"进慢退快"）；
+   ② hidden / style.display 开关 → @keyframes（display:none→block 不触发 transition）。 */
+
+/* ① 模态：遮罩 .2s，面板进 .42s 弹簧 / 退 .2s 缓出 */
+.modal-overlay {
+  transition: opacity var(--dur-2) var(--ease-exit), visibility var(--dur-2) var(--ease-exit);
+}
+.modal-overlay.active {
+  transition: opacity var(--dur-2) var(--ease-out), visibility var(--dur-2) var(--ease-out);
+}
+.modal-overlay .modal {
+  transform-origin: var(--mo-origin, 50% 50%);
+  transition: transform var(--dur-2) var(--ease-exit);
+}
+.modal-overlay.active .modal {
+  transition: transform var(--dur-4) var(--ease-panel);
+}
+/* JS 在关闭那一拍挂 .is-closing：给"退出"一个显式动画，animationend 后自己摘掉。
+   存在的意义是兜住 shell 覆盖出来的 base transition，保证"收起永远比出现快"。 */
+.modal-overlay.is-closing {
+  animation: moOverlayOut var(--dur-2) var(--ease-exit) both;
+}
+.modal-overlay.is-closing .modal {
+  animation: moPanelOut var(--dur-2) var(--ease-exit) both;
+}
+
+/* ② 下拉菜单（hidden 开关）：出现即播，不需要 transition */
+.ma-menu:not([hidden]),
+.board-drawer:not([hidden]),
+.cmp-search:not([hidden]) {
+  transform-origin: var(--mo-origin, 0 0);
+  animation:
+    moPanelIn var(--dur-4) var(--ease-panel),
+    moFadeIn var(--dur-2) var(--ease-out);
+}
+
+/* ② 科普浮层（gloss-tip 用 style.display 开关）：从鼠标位置长出来 */
+.gloss-tip {
+  transform-origin: var(--mo-origin, 50% 100%);
+  animation:
+    moTipIn var(--dur-4) var(--ease-panel),
+    moFadeIn var(--dur-2) var(--ease-out);
+}
+
+/* ① toast：进 .42s 面板弹簧 + .2s 淡入，退 .2s（比进快），不弹 */
+.ofl-toast {
+  transition:
+    opacity var(--dur-2) var(--ease-exit),
+    transform var(--dur-2) var(--ease-exit),
+    visibility var(--dur-2) var(--ease-exit);
+}
+.ofl-toast.on {
+  transition:
+    opacity var(--dur-2) var(--ease-out),
+    transform var(--dur-4) var(--ease-panel),
+    visibility var(--dur-2) var(--ease-out);
+}
+
+/* ① 搜索下拉：进 .42s 弹簧、退 .18s */
+.search-results {
+  transform-origin: var(--mo-origin, 100% 0);
+  transition:
+    opacity var(--dur-fast) var(--ease-exit),
+    transform var(--dur-fast) var(--ease-exit),
+    visibility var(--dur-fast) var(--ease-exit);
+}
+.search-results.active {
+  transition:
+    opacity var(--dur-2) var(--ease-out),
+    transform var(--dur-4) var(--ease-panel),
+    visibility var(--dur-2) var(--ease-out);
+}
+
+/* ② 命令面板（shell 的 #cmdPalette）：host 用 hidden 开关，is-open 在同一帧加。
+   面板从上方 6px 处弹入（origin 在顶部中心），收起 .2s 缓出并轻微下沉。 */
+.cmd-host .cmd-scrim {
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+.cmd-host.is-open .cmd-scrim { opacity: 1; }
+.cmd-host .cmd-panel {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.97);
+  transform-origin: 50% 0;
+  transition:
+    opacity var(--dur-2) var(--ease-exit),
+    transform var(--dur-2) var(--ease-exit);
+}
+.cmd-host.is-open .cmd-panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition:
+    opacity var(--dur-2) var(--ease-out),
+    transform var(--dur-4) var(--ease-panel);
+}
+
+/* 键帧：弹层出现（可被 transform-origin 引导的"从触发点长出"）。
+   opacity 单独交给第二条 moFadeIn（.2s），这里只管位移+过冲，两条动画各司其职。 */
+@keyframes moPanelIn {
+  from { transform: translateY(-6px) scale(0.95); }
+  to   { transform: translateY(0) scale(1); }
+}
+@keyframes moFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes moTipIn {
+  from { transform: translateY(4px) scale(0.96); }
+  to   { transform: translateY(0) scale(1); }
+}
+@keyframes moPanelOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(4px) scale(0.98); }
+}
+@keyframes moOverlayOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ============================================================ 3. 数字滚动
+   旧值：绝对定位副本，translateY(±0.6em) + scale(1→.3) 淡出；
+   新值：主节点原地 scale(.3→1) 进场（主节点文本即时更新，读屏与复制拿到的是新值）。
+   动画由 JS 的 WAAPI 驱动（两端各 .2s），这里只给"副本层"定几何。
+   position:relative 由 JS 在首滚时挂 .mo-roll（只为给副本当包含块，不改布局）。 */
+.mo-roll { position: relative; }
+.mo-roll-inline { display: inline-block; }
+
+.mo-roll-old {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  white-space: nowrap;
+  text-align: inherit;
+  font: inherit;
+  color: inherit;
+  opacity: 1;
+  will-change: transform, opacity;
+}
+
+/* ============================================================ 4. 列表错峰入场
+   translateY(8px)→0，.4s 招牌曲线，stagger 40ms，索引封顶 7→总长 ≤280ms，
+   超出 8 个子项不再累加（SPEC §2 "总长 ≤.3s"）。
+   用 backwards 而不是 both：延迟期先摆好起始态，动画结束后回归自然态（不残留 transform，
+   避免给内部 position:fixed 元素造出意外的包含块）。 */
+.mo-in-item {
+  animation: moRise var(--dur-4) var(--ease-signature) backwards;
+  animation-delay: calc(var(--mo-i, 0) * var(--mo-stagger));
+}
+
+@keyframes moRise {
+  from { opacity: 0; transform: translateY(var(--mo-rise-y)); }
+}
+
+/* ============================================================ 5. 滚动进入（once）
+   分工（重要）：app.js 已有一套 IO —— 给所有 .section/.pm-sec 挂 .rv，进入视口加 .rv-in
+   （js/app.js initReveal，改不了也不必改）。
+
+   ⚠️ 维护须知：app.js 的 .rv 由**本层校准时序**（14px/.55s → 6px/--dur-4/--ease-out，
+   见下方 @media 块）。若将来 app.js 改了 initReveal 的参数或换掉 .rv 类名，这里必须同步，
+   否则滚动进入的手感会退回旧值（或彻底失效）。改 app.js 的人请顺手看一眼本节。
+
+   本层只做两件事：
+   ① 把 app.js 落地的时序按 SPEC §2 校准：0.55s/14px → .4s/6px（本文件后加载，同特异性覆盖）；
+   ② 用 .mo-io 兜住"没有 .rv 覆盖"的新区块（.news-item / 独立 .pm-card 等），once 一次性。
+   两边绝不同时作用于同一节点（JS 里对有 .rv 祖先的节点直接跳过）。 */
+@media (prefers-reduced-motion: no-preference) {
+  .rv {
+    transform: translateY(var(--mo-reveal-y));
+    transition: opacity var(--dur-4) var(--ease-out), transform var(--dur-4) var(--ease-out);
+  }
+  .rv.rv-in { transform: none; }
+}
+
+.mo-io { opacity: 0; }
+.mo-io.mo-in {
+  opacity: 1;
+  animation: moReveal var(--dur-4) var(--ease-out);
+}
+/* JS 兜底：观察者没机会回调时（隐藏 tab 里初始化等），4s 后强制显形 */
+.mo-io.mo-force { opacity: 1; animation: none; }
+
+@keyframes moReveal {
+  from { opacity: 0; transform: translateY(var(--mo-reveal-y)); }
+}
+
+/* ============================================================ 6. 一级 tab 指示器
+   一枚 .nav-ink 在 #primaryNav 内滑动：transform: translateX(x) scaleX(s)，
+   .3s 招牌曲线。宽度用 scaleX 表达（不动 width，零 layout）。
+   静态兜底（宽高/圆角/颜色）归 shell；这里只补定位数学必需的三条。
+   JS 检测到 #primaryNav .nav-ink 已存在 → 接管（不新建）。 */
+.mo-ink-host { position: relative; }
+
+/* 兜底（零特异性，shell 的 .nav-ink 规则一律优先）：shell 还没来得及写壳样式时，
+   指示器也要能量出几何、看得见。position:absolute 是 scaleX 数学成立的前提。 */
+:where(.nav-ink[data-mo-ink]) {
+  position: absolute;
+  display: block;
+  bottom: 0;
+  height: var(--mo-ink-h);
+  border-radius: 999px;
+  background: var(--accent-signature);
+}
+
+.nav-ink[data-mo-ink] {
+  left: 0;
+  width: 100%;
+  transform-origin: 0 50%;
+  transform: translateX(var(--mo-ink-x, 0px)) scaleX(var(--mo-ink-s, 0));
+  transition: transform var(--dur-3) var(--ease-signature);
+  pointer-events: none;
+  will-change: transform;
+}
+/* 首帧定位 / 容器宽度变化后重排：不做动画，直接落位 */
+.nav-ink.mo-ink-static { transition: none; }
+
+/* ============================================================ 7. 骨架微光
+   .sk 原本是呼吸（skPulse）；这里叠一道扫光，挂在 ::after，两个动画互不覆盖。
+   只动 transform（合成层），不做 background-position 动画。 */
+.sk { position: relative; overflow: hidden; }
+.sk::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--mo-sheen), transparent);
+  transform: translateX(-100%);
+  animation: moSheen 1.35s var(--ease-in-out) infinite;
+  pointer-events: none;
+}
+
+@keyframes moSheen {
+  to { transform: translateX(100%); }
+}
+
+/* ============================================================ 8. 页面切换
+   一级 tab 切换：内容区 opacity + translateY(4px) 180ms。
+   要盖过 style.css 的 .view.active{animation:viewRise .32s}（0,2,0）→ body 前缀提到 (0,2,1)。
+   用 View Transitions 接管时（html.mo-vt），关掉这条 class 动画，避免快照里重复播一遍。 */
+body .view.active {
+  animation: moPageIn var(--dur-fast) var(--ease-out);
+}
+html.mo-vt body .view.active { animation: none; }
+/* View Transitions 跑完后的那一枚视图：本轮不再补 CSS 入场（否则会二次淡入） */
+body .view.active.mo-vt-skip { animation: none; }
+
+@keyframes moPageIn {
+  from { opacity: 0; transform: translateY(var(--mo-page-y)); }
+}
+
+/* View Transitions 的兜底样式：只有在 JS 真的调 startViewTransition 时才生效 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--dur-fast);
+  animation-timing-function: var(--ease-out);
+}
+
+/* ============================================================ 9. reduced-motion 兜底
+   "位移/弹簧/错峰/数字滚动全关，只保留颜色变化"——一条 @media 全兜住。
+   style.css 里已有全局 animation/transition 时长归零；这里再显式关掉位移与副本，
+   因为"时长压到 0.001s"对 translateY 仍有 1 帧的跳变，而数字副本会留下残字。 */
+@media (prefers-reduced-motion: reduce) {
+  .mo-io, .mo-io.mo-in { opacity: 1; animation: none; }
+  .mo-in-item { animation: none; }
+  .mo-roll-old { display: none; }
+  .sk::after { animation: none; opacity: 0; }
+  .nav-ink[data-mo-ink] { transition: none; }
+  body .view.active { animation: none; }
+  .ma-menu:not([hidden]),
+  .board-drawer:not([hidden]),
+  .cmp-search:not([hidden]),
+  .gloss-tip { animation: none; }
+  .modal-overlay.is-closing,
+  .modal-overlay.is-closing .modal { animation: none; }
+  /* 按压只留颜色，不留形变 */
+  body :is(button, [role="button"], .pressable, .tab, .pill, .chip, .bchip,
+      .qrow, .crow, .srow, .row, .sr-item, .icon-btn, .ask, .seg button,
+      .ma-menu label, .opt-row, .prow, .gcard, .link-node, .av-cell, .pm-tab):not([disabled]):not([data-no-press]):is(:active, .is-press) {
+    transform: none;
+  }
+  body :is(.pm-card, .wcard, .event-item, .news-item):is(:active, .is-press) {
+    transform: none;
+  }
+}

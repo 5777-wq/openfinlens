@@ -334,9 +334,10 @@ window.CompareView = (() => {
       row.map((v, j) => {
         if (i === j) return '<span class="cmp-corr cmp-corr-diag">1.00</span>';
         if (v === null || v === undefined) return '<span class="cmp-corr cmp-dim">--</span>';
-        // 强度用品牌色透明度表达（不用涨跌色：相关性没有涨跌方向）
-        const a = Math.min(0.42, Math.abs(v) * 0.42).toFixed(3);
-        return `<span class="cmp-corr" style="background:rgba(var(--accent-rgb),${a})">${v.toFixed(2)}</span>`;
+        // 强度用**中性石板色**的透明度表达：相关性没有涨跌方向（不用涨跌色），
+        // 也不该用品牌强调色做整格填充（强调色只留给当前态与图表主指标线）。
+        const a = Math.min(0.55, Math.abs(v) * 0.55).toFixed(3);
+        return `<span class="cmp-corr" style="background:rgba(146,176,214,${a})">${v.toFixed(2)}</span>`;
       }).join('') + '</div>').join('');
     el.corr.innerHTML = head + body +
       `<p class="cmp-hint">按 ${corr.days} 个公共交易日计算（各市场休市日不同，只取都有数据的日子）</p>`;

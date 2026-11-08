@@ -47,6 +47,28 @@ docs/                      本文档 + WorldMonitor 分析
 
 **UI/数据/地图/状态解耦规则**（继承既有架构）：网络调用只存在于 `sources/`；业务逻辑只存在于 `engine/` 与模型文件；`app.js` 只做编排与渲染；组件（渲染函数）不持业务判断。
 
+## 1b. 界面分层（2026-11 · UI v2「NEXUS 深空终端」）
+
+```
+css/style.css         令牌单一事实源（:root 两模式）+ 旧结构兜底
+css/ui/01-shell.css   外壳：顶栏 / 一级+二级导航 / 命令面板 / 设置 / 页脚
+css/ui/02-market.css  行情区：hero / 指数卡 / 行情行 / 跑马条 / 热力图外壳 / 图表外壳 / 详情
+css/ui/03-panels.css  面板区：事件 / 预测市场 / 席位 13F / 持仓 / 基金 / 期权 / 宏观 / 科普
+css/ui/04-motion.css  动效：按压 / 弹层 / 数字滚动 / 错峰 / 指示器 / reduced-motion 兜底
+js/ui/navmap.js       纯函数：12 个旧 tab key ↔ 5 个一级入口 + 深链解析/构建
+js/ui/command.js      ⌘K 命令面板（键盘全流程、焦点陷阱复用 focus-trap）
+js/ui/motion.js       运行时动效层（事件委托 + MutationObserver + IntersectionObserver，不改 app.js）
+```
+
+**规则**：`css/ui/*` 只消费 `style.css` 的令牌，不许写死颜色/间距/字号；加载顺序即覆盖顺序；
+`_test/tokens.test.mjs` 扫「style.css + css/ui/*.css」全量，所以新层的规则逃不出守卫。
+**为什么保留旧 style.css**：它是令牌的唯一事实源，同时给尚未迁移到新层的零星组件兜底；
+纯增量覆盖能把「推倒重来」的风险压到可回滚——任何一层删掉，站点仍能跑。
+
+**信息架构**：一级 5 个（市场/事件/资产/基金/洞察），二级沿用原板块；`state.tab` 的 12 个 key
+一个没变（深链 `#tab=cn`、`tabscope` 自定义顺序、`zones` 分区判定、`marketscope` 归属全部照旧），
+映射集中在 `js/ui/navmap.js` 并被 `_test/navmap.test.mjs` 钉死。
+
 ## 2. 后端架构（现状 + 触发条件）
 
 - **现在**：GitHub Actions 定时任务即"后端"——`_scripts/collect-events.mjs`（GDELT+新浪7x24，每 5 分钟）、`_scripts/collect-13f.mjs`（SEC 13F 多家机构，每 6 小时）→ 产物为静态 JSON（`data/`）→ Pages 分发。采集脚本复用 `js/events.js` 的同一套 normalize/dedupe 逻辑（node 直载），**采集与浏览器共享数据模型**。
@@ -55,6 +77,21 @@ docs/                      本文档 + WorldMonitor 分析
   2. 需要 AI 摘要上线（密钥必须在服务端）；
   3. 需要 RSS 中继（上游封锁静态 IP）。
   届时按 WM 的 gateway 思想做单文件 Worker：路由表 + CORS + 缓存头 + 错误映射，**不引入 proto/生成代码**（JSDoc 契约 + JSON 足够）。
+
+## 2b. Agent 数据链路（2026-11 新增）
+
+静态站也要能被 agent 消费，于是把「数据」整理成两层接口：
+
+- **静态 REST**：`_scripts/build-api.mjs` 把 `data/**`、`js/data/*.js` 与实时源编译成 `api/v1/**`
+  （11 个端点 + `api/openapi.json`），统一信封 `{ok,data,meta}`，`meta.stale` 诚实标注新鲜度。
+  产物随采集一起提交，GitHub Pages 直接分发，无密钥、无 CORS 配置。
+- **MCP server**：`mcp/server.mjs`（stdio + JSON-RPC 2.0，零依赖）把同一批数据暴露成 11 个工具；
+  实时抓取的 URL 与解析复用 `js/sources/*.js` 的口径（通过 vm + 假 window 加载），
+  抓不到就回退静态快照并标 `stale`，`isError` 用中文错误体而不是抛栈。
+- **构建卫生**：`_scripts/api-commit-guard.mjs` 在提交前把「语义无变化」的产物还原回 HEAD
+  （`generatedAt` 每轮都变，不守卫就会每小时产生一次 1.6MB 噪声提交）。
+
+契约见 `docs/API.md`，MCP 接入见 `mcp/README.md`，守卫在 `_test/api.test.mjs`（23 项）。
 
 ## 3. 数据库结构（现状：无库）
 

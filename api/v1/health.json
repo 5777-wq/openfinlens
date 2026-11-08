@@ -1,0 +1,123 @@
+{
+  "ok": true,
+  "data": {
+    "status": "degraded",
+    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "durationMs": 3268,
+    "mode": "live",
+    "staleDatasets": [
+      "events.global",
+      "prediction.markets"
+    ],
+    "datasets": [
+      {
+        "id": "index",
+        "path": "api/v1/index.json",
+        "lastBuilt": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-08T15:02:37.542Z",
+        "count": 11,
+        "ms": 0,
+        "stale": false
+      },
+      {
+        "id": "manifest",
+        "path": "api/v1/manifest.json",
+        "lastBuilt": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-08T15:02:37.542Z",
+        "count": 11,
+        "ms": 0,
+        "stale": false
+      },
+      {
+        "id": "universe",
+        "path": "api/v1/universe.json",
+        "lastBuilt": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-08T15:02:37.542Z",
+        "count": 194,
+        "ms": 0,
+        "stale": false
+      },
+      {
+        "id": "quotes.latest",
+        "path": "api/v1/quotes/latest.json",
+        "lastBuilt": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-08T15:02:38.255Z",
+        "count": 194,
+        "ms": 691,
+        "stale": false
+      },
+      {
+        "id": "klines.catalog",
+        "path": "api/v1/markets/klines.json",
+        "lastBuilt": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-08T00:00:00.000Z",
+        "count": 19,
+        "ms": 1762,
+        "stale": false
+      },
+      {
+        "id": "klines.symbol",
+        "path": "api/v1/klines/{symbol}.json",
+        "lastBuilt": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-08T00:00:00.000Z",
+        "count": 19,
+        "ms": 1762,
+        "stale": false
+      },
+      {
+        "id": "events.global",
+        "path": "api/v1/events/global.json",
+        "lastBuilt": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-01T02:41:58.364Z",
+        "count": 54,
+        "ms": 3,
+        "stale": true
+      },
+      {
+        "id": "prediction.markets",
+        "path": "api/v1/prediction/markets.json",
+        "lastBuilt": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-01T02:42:39.263Z",
+        "count": 30,
+        "ms": 2,
+        "stale": true
+      },
+      {
+        "id": "institutions.holdings",
+        "path": "api/v1/institutions/holdings.json",
+        "lastBuilt": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-01T01:27:30.715Z",
+        "count": 4,
+        "ms": 6,
+        "stale": false
+      },
+      {
+        "id": "macro.series",
+        "path": "api/v1/macro/series.json",
+        "lastBuilt": "2026-11-08T15:02:37.542Z",
+        "asof": "2025-01-01T00:00:00.000Z",
+        "count": 44,
+        "ms": 776,
+        "stale": false
+      },
+      {
+        "id": "health",
+        "path": "api/v1/health.json",
+        "lastBuilt": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-08T15:02:37.542Z",
+        "count": 11,
+        "ms": 0,
+        "stale": false
+      }
+    ]
+  },
+  "meta": {
+    "dataset": "health",
+    "asof": "2026-11-08T15:02:37.542Z",
+    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "source": "构建脚本自检",
+    "stale": false,
+    "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
+    "note": "status=degraded 表示至少一个数据集已过期；具体原因看 staleDatasets 与各数据集的 meta.note。"
+  }
+}

@@ -10,7 +10,7 @@
 
 [![license](https://img.shields.io/badge/license-MIT-000?style=flat-square)](LICENSE)
 [![release](https://img.shields.io/github/v/release/5777-wq/openfinlens?style=flat-square&label=release)](https://github.com/5777-wq/openfinlens/releases)
-![tests](https://img.shields.io/badge/tests-28%E7%BB%84%C2%B7%E7%A6%BB%E7%BA%BF276%E6%9D%A1-2ebd85?style=flat-square)
+![tests](https://img.shields.io/badge/tests-45%E7%BB%84%C2%B7%E7%A6%BB%E7%BA%BF39%E7%BB%84-2ebd85?style=flat-square)
 
 <img src="assets/shot-overview.png" alt="OpenFinLens 首屏：全球市场" width="100%">
 
@@ -71,7 +71,43 @@ GDELT + 新浪 7x24 每 5 分钟采集一次，按类别落在自绘世界地图
 | 自选与搜索 | 跨市场收藏，中文 / 代码 / 拼音搜索，键盘切换 tab，URL 即分享 |
 | 降级策略 | 主源失败走备源，备源失败走 localStorage 缓存，最差情况是「降级角标 + 旧数据」，不弹窗报错 |
 
-宽屏（≥1280px）自动两栏密排，行情 10 秒轮询，红涨绿跌可切换。默认「瑞士」白主题，共 8 套设计语言皮肤一键切换（图表同步换色）。
+宽屏（≥1280px）自动两栏密排，行情 10 秒轮询，红涨绿跌可切换。界面是单一设计语言 **NEXUS 深空终端**（深空 / 日光两个模式，图表同步换色）。
+
+## 界面语言 v2 · NEXUS 深空终端
+
+2026-11 推倒重来的一轮 UI 重构：旧的 8 套皮肤（瑞士 / 包豪斯 / 黏土 / 孟菲斯 / 报纸 / 极光 / OLED / 暗色）全部删除，换成一**套**设计语言的两个模式——**深空**（默认）与 **日光**。
+
+- **一套令牌**：底色五层、文字四级、描边三级、唯一强调色（青 `#35e1ff` + 副色蓝 `#4f7cff`）、圆角三档、间距七档、字号五档，全部定义在 `css/style.css` 的 `:root`，由 `_test/tokens.test.mjs` 逐条守着（间距不许离格、字号不许低于 12px、红绿不许外溢到非涨跌元素）。
+- **画布优先**：数据裸排，卡片是"光面"不是盒子——1px 冷光描边 + 顶部内高光 + 极弱刻度网格，深空模式禁用阴影（黑影叠黑底等于没画），日光模式才用真实投影承接海拔。
+- **信息架构 12 → 5**：一级只剩「市场 / 事件 / 资产 / 基金 / 洞察」，每个一级下面是原来的板块（市场=全部·A股·港股·美股·加密·宏观·期权）。内部 `state.tab` 的钥匙一个没改，所以 `#tab=cn` 这类老深链、按板块自定义顺序、分区判定全部照旧。
+- **⌘K / Ctrl+K 命令面板**：中文名 / 拼音首字母 / 代码 / 功能名直达，键盘全流程（↑↓ 选择、↵ 执行、Esc 关闭）。
+- **动效按 Telegram-iOS 开源实现的实测参数翻译**（[`docs/UI-V2-SPEC.md`](docs/UI-V2-SPEC.md) 有逐条出处）：按压"进快出慢"（按下瞬时着色、松开 0.2s 淡出）、弹层 0.42s 弹簧（2.1% 过冲）而收起只要 0.2s、数字变化是"旧值位移淡出 + 新值放大进场"而不是走马灯、列表错峰 40ms、页面切换用 View Transitions。全部只动 `transform/opacity/color`，并且 `prefers-reduced-motion` 下自动收敛成纯颜色反馈。
+
+分层在 `css/ui/`（`01-shell` 外壳 / `02-market` 行情 / `03-panels` 面板 / `04-motion` 动效），每层只消费令牌，旧 `css/style.css` 退化为「令牌单一事实源 + 旧结构兜底」。设计契约见 [`docs/UI-V2-SPEC.md`](docs/UI-V2-SPEC.md)。
+
+## 给 Agent 的数据链路（REST + MCP）
+
+除了给人看，这个仓库也把数据整理成了**机器可读的接口**——任何 agent（Claude Code、Cursor、自写脚本）不用密钥就能调。
+
+**1) 静态 REST（GitHub Pages 直接 GET）**
+
+```bash
+curl -s https://5777-wq.github.io/openfinlens/api/v1/manifest.json   # 有哪些数据集、字段、新鲜度
+curl -s https://5777-wq.github.io/openfinlens/api/v1/quotes/latest.json
+curl -s https://5777-wq.github.io/openfinlens/api/v1/events/global.json
+```
+
+统一信封 `{ ok, data, meta }`，`meta` 必含 `dataset / asof / generatedAt / source / stale / license`。一共 11 个端点：`index`、`manifest`、`universe`、`quotes/latest`、`markets/klines`、`klines/{symbol}`、`events/global`、`prediction/markets`、`institutions/holdings`、`macro/series`、`health`。`/api/v1/health.json` 一眼看出哪个数据集过期了（`status: ok | degraded`）。OpenAPI 3.1 描述在 `api/openapi.json`。
+
+**2) MCP server（stdio，零依赖）**
+
+```bash
+claude mcp add openfinlens -- node "/绝对路径/openfinlens/mcp/server.mjs"
+```
+
+11 个工具：`list_datasets`、`get_manifest`、`get_health`、`search_symbols`（中文名/拼音/代码）、`get_quotes`、`get_klines`、`get_events`、`get_prediction_markets`、`get_institution_holdings`、`get_macro_series`、`get_fund_profile`。行情与 K 线优先实时抓公开源，抓不到自动回退静态快照并标 `stale`，绝不编造数字。详见 [`docs/API.md`](docs/API.md) 与 [`mcp/README.md`](mcp/README.md)。
+
+数据新鲜度由采集流水线负责：`.github/workflows/collect.yml` 每轮采集后会跑 `_scripts/build-api.mjs` 重建 `api/v1/**`，并用 `_scripts/api-commit-guard.mjs` 做「语义没变就不提交」的守卫（避免 `generatedAt` 把每轮都变成一次 1.6MB 提交）。
 
 ## 快速开始
 

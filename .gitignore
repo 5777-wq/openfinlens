@@ -25,3 +25,8 @@ backup-*.bundle
 
 # 美股监控(Meridian)是独立仓库 5777-wq/us-stock-monitor，有自己的 .git，防止外层误 gitlink
 美股监控/
+# 截图/探针产物（工具脚本进仓库，图片不进：一次矩阵就是几十 MB）
+_qa/*.png
+_qa/qa/
+_qa/shot-*.png
+_qa/qa-report.json

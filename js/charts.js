@@ -2111,10 +2111,66 @@ const Charts = (() => {
     };
   }
 
+  /* ---- 多图布局档位归一（离线单测钉口径）：只认 '1x1'/'1x2'/'2x2' 三字面量，
+     其余（数字/undefined/null/'1X2' 大写/空串/中文/对象）一律收敛 '1x1'，
+     localStorage 读回的脏值进不了布局侧（sanitizeScale 同口径）。 */
+  const MULTI_LAYOUTS = ['1x1', '1x2', '2x2'];
+  function sanitizeMultiLayout(v) {
+    return MULTI_LAYOUTS.indexOf(v) >= 0 ? v : '1x1';
+  }
+
+  /* ---- 副格符号补位（离线单测钉口径）：剔除等于 current 与重复项、保原序取前 n、
+     不足补 ''；n 非数/≤0/候选非数组 → []；脏符号（非串/空串/超 32 字符）剔除。
+     app 层用它从自选给新副格补默认标的。 */
+  function pickCellSymbols(n, current, candidates) {
+    const N = Math.round(+n);
+    if (!Array.isArray(candidates) || !Number.isFinite(N) || N <= 0) return [];
+    const out = [];
+    for (let i = 0; i < candidates.length && out.length < N; i++) {
+      const s = candidates[i];
+      if (typeof s !== 'string' || !s || s.length > 32) continue;
+      if (s === current || out.indexOf(s) >= 0) continue;
+      out.push(s);
+    }
+    while (out.length < N) out.push('');
+    return out;
+  }
+
+  /* ---- 副格符号清单净化（离线单测钉口径）：非数组→[]、逐项净化（非串/空串/超
+     32 字符剔除）、去重、上限 3（2×2 至多 3 个副格）。空串会被剔——落盘清单里
+     空位不占座，下次加载时再由 pickCellSymbols 重新补位（app 层语义）。 */
+  function sanitizeCellSymbols(raw) {
+    if (!Array.isArray(raw)) return [];
+    const out = [];
+    for (let i = 0; i < raw.length && out.length < 3; i++) {
+      const s = raw[i];
+      if (typeof s !== 'string' || !s || s.length > 32) continue;
+      if (out.indexOf(s) >= 0) continue;
+      out.push(s);
+    }
+    return out;
+  }
+
+  /* ---- 多图同步定位（离线单测钉口径）----
+     按 param.logical 逻辑下标对齐而非时间——跨市场日历不同（A股/美股节假日错位、
+     加密 7×24），时间集不保证相交；逻辑下标确定性对齐 bar 位置。
+     idx=Math.floor(logical)；非数组/空/非有限/负/越界 → null（调用方诚实降级
+     clearCrosshairPosition）；命中 → {time, price:close}——时间与价格都取自
+     目标图自身序列，setCrosshairPosition(price,time,series) 两参语义自洽
+     （第二参 vendor 内部做时间→下标查找，传时间不传像素坐标）。 */
+  function crossAt(klines, logical) {
+    if (!Array.isArray(klines) || !klines.length) return null;
+    const idx = Math.floor(+logical);
+    if (!Number.isFinite(idx) || idx < 0 || idx >= klines.length) return null;
+    const k = klines[idx];
+    return k ? { time: k.time, price: k.close } : null;
+  }
+
   return { createKline, createTrend, createCompare, calcMA, emaSeries, themeColors, retheme, legendBadge, slotStyles,
     sanitizeScale, rebaseCompare, sanitizeChartType, CHART_TYPES, heikinAshi,
     DRAW_TOOLS, sanitizeDrawing, sanitizeDrawings, sanitizeDrawStore, fibLevels,
-    DRAW_HIT_TOL, segDist, drawTextBox, hitDrawing, hitTestDrawings, moveDrawing, clampBox };
+    DRAW_HIT_TOL, segDist, drawTextBox, hitDrawing, hitTestDrawings, moveDrawing, clampBox,
+    sanitizeMultiLayout, pickCellSymbols, sanitizeCellSymbols, crossAt };
 })();
 
 window.Charts = Charts;

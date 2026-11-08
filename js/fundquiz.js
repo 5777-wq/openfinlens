@@ -346,7 +346,10 @@ window.FundQuiz = (() => {
     const all = done === QUESTIONS.length;
     if (el.intro) el.intro.hidden = all;
     if (el.form) {
-      el.form.hidden = !all && done === 0;
+      // 早先的 `!all && done === 0` 在「一题未答」时把表单藏了，引导区又没有开始按钮，
+      // 结果是用户永远点不到第一题（功能性 bug，2026-11 UI 验收发现）。
+      // 现在：未答完就显示表单，引导语作为首屏说明留在上方，答完整体收起。
+      el.form.hidden = all;
       el.form.innerHTML = all ? '' : formHTML(done);
     }
     if (el.result) {

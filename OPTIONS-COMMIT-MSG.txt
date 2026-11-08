@@ -1,0 +1,45 @@
+feat(options): 期权板块 P0 —— 中金所 T 型报价 + 加密期权（零 key 纯直连）
+
+按 docs/research/options-sources.md 调研落地（workflow 施工 + 独立评审 + 冒烟）。
+安全复核：Mimosa 正式扫描封印 sha256:4aec031c（15 条 finding 全 medium、
+均为存量误报；option 数据链 0 条）。L3 快扫的 ssrf 启发式将本链判 high 拦截，
+与正式封印扫描结论冲突；已经用户裁定按封印扫描放行。
+
+数据层 js/sources/option.js（window.OptionSource）
+· 唯一链入口 chain({kind, month})：加密 uly 分流 cryptoChain、中金所品种分流
+  cffexChain；两条实现函数模块私有（导出面最小化——外部拿不到任何直接含
+  网络请求的函数，UI 与测试都走公共入口）。
+· 中金所 IO/MO/HO：命名规则枚举（monthsOf 纯函数：当月/下月/随后两季月，
+  第 3 个周五 15 点滚动）+ 东财 push2delay 批量报价（一次 ulist 数十合约，
+  实测回显 CORS；clist 对 m:221 拒连，不用）；行权价网格探针式保留有报价档。
+· 加密：OKX instruments+tickers 主源 / Deribit book_summary 兜底（均回显 ACAO）。
+· 入参纵深防御两层：正则白名单闸门（KIND/ULY/MONTH/SECID 四道）+ 查表/数字重建
+  （kind/uly 映射模块常量、month 经 parseInt 重建）；EM/OKX/Deribit 全部
+  URL 对象组装（searchParams.set，参数值不进入地址字符串拼接）；
+  Cache TTL 盘中 30s/闭市 10min；SourceState 'option' 登记；
+  全空返回 null 诚实空态。
+
+界面层
+· 顶栏「期权」tab（tabscope 三参体系：顺序/显隐可配、OPTIONS_ON=false 不建 DOM）
+· T 型报价表：左认购右认沽、行权价降序、整表一次 innerHTML、签名增量守卫
+· OPTIONS_ON 合规开关照抄 CRYPTO_ON 模式（?options=off 持久 / on 恢复默认开、
+  界面无入口）；加密标的双开关管辖（CRYPTO_ON 关则归位 IO 并从 kind 条隐藏）
+· 风险横幅常驻 + PCR 描述性统计（只报数不下结论）
+· 流畅度纪律：tab 未开零请求、30s 心跳仅期权视图内、零 rAF（setTimeout 兜底）
+· loadOptionChain 调用点白名单采用 symSafe 惯例（拷贝→校验→只传拷贝）
+
+评审修复（workflow 独立评审 4 发现）
+· [high] 中金所首拉死锁：optMonths 空环 → month 兜底 monthsOf(kind)[0]（纯函数）
+· [medium] renderOptionChain 月过滤补 isCryptoUly 守卫（中金所行无 expiry，误滤成 0 行假空态）
+· [low] setOptMonth 中金所分支补 renderOptControls（月 pill 即时反馈，不等网络）
+· [low] 版本号回退修正：按单调递增惯例 bump 至 20261025a，再至 20261025b
+
+冒烟追加修复（IAB 实测发现）
+· 首拉/切 kind 后默认月不写回 optMonth：月条全灰、加密表混合全到期月
+  （同 strike 重复多行）→ 链到位后写回默认月（中金所 monthsOf[0]、
+  加密最近到期月），月份条高亮与表数据一致。
+
+测试：新增 option 12 条（vm 沙箱：月份滚动/网格/secid 白名单/解析/OKX→Deribit
+降级/诚实空态，全部经公共入口 chain 黑盒测）；tabscope +N；tokens 34 全绿
+（65+1 处 ?v= 同值）；离线全量 35 组通过。冒烟：IO 2611 首拉高亮 23 行、
+2612 换链、BTC 2610 默认月 62 行无重复、options=off tab 从 DOM 移除、on 恢复。

@@ -70,6 +70,15 @@ const W = vm.runInContext('window', ctx);
 
 /* ================= treemap ================= */
 
+/* 期望色不再写死：直接读 css/style.css 的令牌（UI v2 换了调色板，写死必然漂）。 */
+const TOK = (() => { const m = new Map();
+  for (const mm of readFileSync(path.join(ROOT, 'css/style.css'), 'utf8').matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+    if (!m.has(mm[1])) m.set(mm[1], mm[2].trim());
+  }
+  return m; })();
+const rgbOf = (tok) => { const h = TOK.get(tok) || ''; const n = parseInt(String(h).replace('#', ''), 16);
+  return `rgb(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255})`; };
+
 test('squarify: 覆盖面积守恒（总面积误差 < 0.5%）', () => {
   const items = Array.from({ length: 500 }, (_, i) => ({ name: 'n' + i, value: Math.random() * 1000 + 1 }));
   const W_ = 1200, H_ = 560;
@@ -139,13 +148,14 @@ test('squarify: 空输入 / 零尺寸不抛异常', () => {
 
 test('pctColor: 红涨绿跌 + null 兜底 + ±3% 封顶', () => {
   W.Treemap.refreshColors();
-  assert.equal(W.Treemap.pctColor(null), '#222');
-  assert.equal(W.Treemap.pctColor(NaN), '#222');
+  // 中性面不再写死 #222/#333：从 --bg-elevated 令牌取（日光模式下色带必须跟着变浅）
+  assert.equal(W.Treemap.pctColor(null), rgbOf('--bg-elevated'));
+  assert.equal(W.Treemap.pctColor(NaN), rgbOf('--bg-elevated'));
   const up3 = W.Treemap.pctColor(3), up10 = W.Treemap.pctColor(10);
   assert.equal(up3, up10, '±3% 封顶');
-  assert.equal(up3, 'rgb(255,92,92)', '涨到顶=--up');
-  assert.equal(W.Treemap.pctColor(-10), 'rgb(46,189,133)', '跌到顶=--down');
-  assert.equal(W.Treemap.pctColor(0), 'rgb(51,51,51)', '0% = 中性灰');
+  assert.equal(up3, rgbOf('--up'), '涨到顶=--up');
+  assert.equal(W.Treemap.pctColor(-10), rgbOf('--down'), '跌到顶=--down');
+  assert.equal(W.Treemap.pctColor(0), rgbOf('--bg-elevated'), '0% = 中性面（--bg-elevated）');
 });
 
 /* ================= utils 格式化 ================= */

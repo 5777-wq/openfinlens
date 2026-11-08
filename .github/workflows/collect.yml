@@ -193,6 +193,20 @@ jobs:
           bash "$RUNNER_TEMP/ofl-collect.sh" academy-terms \
             data/academy-terms.json 360 _scripts/collect-academy-terms.mjs
 
+      - name: 构建 Agent API 产物（api/v1/**）
+        # Agent 数据链路（REST + MCP）：把 data/ 与实时源编译成静态 JSON 端点。
+        # 采集失败不影响本步（continue-on-error）：能抓到就更新实时行情，抓不到就沿用
+        # 上一次提交的快照并标 stale=true —— 宁缺毋假，绝不让 API 端点返回编造的数字。
+        # 产物提交进仓库，Pages 直接分发，任何 agent/脚本无 key 即可 GET。
+        continue-on-error: true
+        env:
+          OFL_TIMEOUT: "420"
+        run: |
+          # 阈值 30 分钟：行情快照够新，又不至于每 10 分钟造一次提交。
+          bash "$RUNNER_TEMP/ofl-collect.sh" api-build api/v1/health.json 30 _scripts/build-api.mjs
+          # 语义守卫：只有数据真的变了才让 api/ 进提交（否则 generatedAt 会把每轮都变成一次 1.6MB 提交）
+          node _scripts/api-commit-guard.mjs
+
       - name: 提交前的数据契约闸门
         id: gate
         # 闸门必须挡在 push 前面。
@@ -218,6 +232,8 @@ jobs:
           # polymarket-history.json 是概率走势的数据源，polymarket-i18n.json 是翻译缓存
           # （没有缓存就是每轮重复请求翻译接口），两者缺一则对应功能退化
           git add data/events/global-events.json data/events/polymarket.json data/events/polymarket-history.json data/events/polymarket-i18n.json data/actors data/academy-terms.json js/data/academy-assets.js
+          # Agent API 产物随采集一起提交：agent 侧读到的永远是最近一轮的真实数据
+          git add api/v1 api/openapi.json
           if git diff --cached --quiet; then
             echo "no changes"
           else

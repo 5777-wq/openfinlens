@@ -1,0 +1,393 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenFinLens 静态数据 API",
+    "version": "1.0.0",
+    "description": "纯静态、只读、无需访问密钥的全球金融数据 API。所有端点返回 { ok, data, meta } 统一信封；数据滞后时 meta.stale=true。GitHub Pages 可直接 GET。",
+    "license": {
+      "name": "MIT",
+      "url": "https://github.com/5777-wq/openfinlens/blob/main/LICENSE"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://5777-wq.github.io/openfinlens/",
+      "description": "生产（GitHub Pages）"
+    },
+    {
+      "url": "http://127.0.0.1:8000/",
+      "description": "本地静态服务器（仓库根目录）"
+    }
+  ],
+  "tags": [
+    {
+      "name": "data",
+      "description": "业务数据集"
+    },
+    {
+      "name": "meta",
+      "description": "索引、清单与自检"
+    }
+  ],
+  "paths": {
+    "/api/v1/index.json": {
+      "get": {
+        "operationId": "index",
+        "summary": "根索引",
+        "description": "列出全部数据集、各自路径、更新时间与滞后状态，是 Agent 的第一入口。",
+        "tags": [
+          "meta"
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/manifest.json": {
+      "get": {
+        "operationId": "manifest",
+        "summary": "机器可读清单",
+        "description": "每个数据集的 id/标题/路径/字段定义/样例/数据截止时间，供 Agent 生成调用参数。",
+        "tags": [
+          "meta"
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/universe.json": {
+      "get": {
+        "operationId": "universe",
+        "summary": "标的宇宙",
+        "description": "代码、名称、市场、分组、拼音首字母与别名，用于把用户口语解析成标准 symbol。",
+        "tags": [
+          "data"
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/latest.json": {
+      "get": {
+        "operationId": "quotes_latest",
+        "summary": "行情快照",
+        "description": "构建时抓取的行情快照，带 asof 与 stale；抓取失败时沿用上次快照并诚实标注。",
+        "tags": [
+          "data"
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/markets/klines.json": {
+      "get": {
+        "operationId": "klines_catalog",
+        "summary": "K 线目录",
+        "description": "可用 K 线标的清单、周期与行数，指向 api/v1/klines/{symbol}.json。",
+        "tags": [
+          "data"
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/klines/{symbol}.json": {
+      "get": {
+        "operationId": "klines_symbol",
+        "summary": "单标的 K 线",
+        "description": "日/周/月 K 线（时间与开高低收），每个标的一个文件；路径里的 {symbol} 取目录中的代码。",
+        "tags": [
+          "data"
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "description": "标的代码，取值见 api/v1/markets/klines.json 的 symbols[].symbol",
+            "schema": {
+              "type": "string",
+              "examples": [
+                "sh000001",
+                "usAAPL",
+                "BTCUSDT"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/events/global.json": {
+      "get": {
+        "operationId": "events_global",
+        "summary": "全球事件",
+        "description": "全球宏观/地缘事件，附分类、国家、0-100 严重度与关联标的。",
+        "tags": [
+          "data"
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/prediction/markets.json": {
+      "get": {
+        "operationId": "prediction_markets",
+        "summary": "预测市场概率",
+        "description": "事件与档位两层结构，probability 为 0-1 隐含概率；不含平台标识与链接。",
+        "tags": [
+          "data"
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/institutions/holdings.json": {
+      "get": {
+        "operationId": "institutions_holdings",
+        "summary": "机构持仓",
+        "description": "SEC 13F 机构季度持仓、规则化因子 ETF 全量持仓、基金合计持仓的加减仓榜。",
+        "tags": [
+          "data"
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/macro/series.json": {
+      "get": {
+        "operationId": "macro_series",
+        "summary": "宏观序列",
+        "description": "世界银行年度指标（GDP/增长/通胀/失业/债务/经常账户），附 FRED 口径目录。",
+        "tags": [
+          "data"
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health.json": {
+      "get": {
+        "operationId": "health",
+        "summary": "链路自检",
+        "description": "各数据集最近构建时间、条数、耗时与 stale 状态。",
+        "tags": [
+          "meta"
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Envelope": {
+        "type": "object",
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "description": "是否成功；本 API 的静态产物恒为 true"
+          },
+          "data": {
+            "description": "数据集业务内容，形状见 manifest 对应条目的 fields/sample"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "additionalProperties": true
+      },
+      "Meta": {
+        "type": "object",
+        "required": [
+          "dataset",
+          "asof",
+          "generatedAt",
+          "source",
+          "stale",
+          "license",
+          "note"
+        ],
+        "properties": {
+          "dataset": {
+            "type": "string",
+            "description": "数据集 id"
+          },
+          "asof": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "数据截止时间（ISO 8601 或日期串）；未知为 null"
+          },
+          "generatedAt": {
+            "type": "string",
+            "description": "构建时间（ISO 8601）"
+          },
+          "source": {
+            "type": "string",
+            "description": "数据来源说明"
+          },
+          "stale": {
+            "type": "boolean",
+            "description": "是否滞后或降级"
+          },
+          "license": {
+            "type": "string",
+            "description": "数据许可与使用边界"
+          },
+          "note": {
+            "type": "string",
+            "description": "口径与注意事项"
+          }
+        },
+        "additionalProperties": true
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "ok",
+          "error"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

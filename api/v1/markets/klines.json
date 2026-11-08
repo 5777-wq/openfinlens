@@ -1,0 +1,497 @@
+{
+  "ok": true,
+  "data": {
+    "count": 19,
+    "periods": [
+      "day",
+      "week",
+      "month"
+    ],
+    "symbols": [
+      {
+        "symbol": "sh000001",
+        "name": "上证指数",
+        "market": "cn",
+        "path": "api/v1/klines/sh000001.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "sz399001",
+        "name": "深证成指",
+        "market": "cn",
+        "path": "api/v1/klines/sz399001.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "sz399006",
+        "name": "创业板指",
+        "market": "cn",
+        "path": "api/v1/klines/sz399006.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "sh000688",
+        "name": "科创50",
+        "market": "cn",
+        "path": "api/v1/klines/sh000688.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "hkHSI",
+        "name": "恒生指数",
+        "market": "hk",
+        "path": "api/v1/klines/hkHSI.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "hkHSTECH",
+        "name": "恒生科技",
+        "market": "hk",
+        "path": "api/v1/klines/hkHSTECH.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "usDJI",
+        "name": "道琼斯",
+        "market": "us",
+        "path": "api/v1/klines/usDJI.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "usIXIC",
+        "name": "纳斯达克",
+        "market": "us",
+        "path": "api/v1/klines/usIXIC.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "usINX",
+        "name": "标普500",
+        "market": "us",
+        "path": "api/v1/klines/usINX.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "sh600519",
+        "name": "贵州茅台",
+        "market": "cn",
+        "path": "api/v1/klines/sh600519.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "sz300750",
+        "name": "宁德时代",
+        "market": "cn",
+        "path": "api/v1/klines/sz300750.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "sh601318",
+        "name": "中国平安",
+        "market": "cn",
+        "path": "api/v1/klines/sh601318.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "sz002594",
+        "name": "比亚迪",
+        "market": "cn",
+        "path": "api/v1/klines/sz002594.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "hk00700",
+        "name": "腾讯控股",
+        "market": "hk",
+        "path": "api/v1/klines/hk00700.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "hk09988",
+        "name": "阿里巴巴",
+        "market": "hk",
+        "path": "api/v1/klines/hk09988.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "usAAPL",
+        "name": "苹果",
+        "market": "us",
+        "path": "api/v1/klines/usAAPL.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "usNVDA",
+        "name": "英伟达",
+        "market": "us",
+        "path": "api/v1/klines/usNVDA.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "usTSLA",
+        "name": "特斯拉",
+        "market": "us",
+        "path": "api/v1/klines/usTSLA.json",
+        "asof": "2026-11-06",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-06",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-06",
+            "stale": false
+          }
+        }
+      },
+      {
+        "symbol": "BTCUSDT",
+        "name": "比特币",
+        "market": "crypto",
+        "path": "api/v1/klines/BTCUSDT.json",
+        "asof": "2026-11-08",
+        "stale": false,
+        "periods": {
+          "day": {
+            "count": 160,
+            "asof": "2026-11-08",
+            "stale": false
+          },
+          "week": {
+            "count": 104,
+            "asof": "2026-11-02",
+            "stale": false
+          },
+          "month": {
+            "count": 60,
+            "asof": "2026-11-01",
+            "stale": false
+          }
+        }
+      }
+    ]
+  },
+  "meta": {
+    "dataset": "klines.catalog",
+    "asof": "2026-11-08T00:00:00.000Z",
+    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "source": "腾讯 ifzq / 东方财富 push2his / 币安 klines",
+    "stale": false,
+    "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
+    "note": "每个标的的完整日/周/月序列在 api/v1/klines/{symbol}.json；MCP 的 get_klines 会优先实时抓取，失败再回退这些文件。"
+  }
+}

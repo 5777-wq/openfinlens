@@ -1,0 +1,30 @@
+{
+  "name": "openfinlens-mcp",
+  "version": "1.0.0",
+  "description": "OpenFinLens 全球金融数据 MCP server：stdio + JSON-RPC 2.0，零第三方依赖",
+  "type": "module",
+  "main": "./server.mjs",
+  "bin": {
+    "openfinlens-mcp": "./server.mjs"
+  },
+  "files": [
+    "server.mjs",
+    "lib",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "node server.mjs",
+    "offline": "node server.mjs --offline"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "keywords": [
+    "mcp",
+    "finance",
+    "market-data",
+    "openfinlens"
+  ],
+  "license": "MIT",
+  "private": true
+}

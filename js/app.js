@@ -133,6 +133,14 @@
     // 对比叠加：cmpTarget = 对比标的（会话级不落盘）；cmpSeq = 会话代号（同 chartGen 惯例）
     cmpTarget: null,
     cmpSeq: 0,
+    // 多图布局（P1 工作台）：layout/sync/cells 三键持久化（charts.js defer 且在前，
+    // 顺序有保证）；charts=[主格,...副格] 句柄注册表（会话态不落盘）；gen 同 chartGen 惯例
+    multiLayout: window.Charts.sanitizeMultiLayout(Store.get('multiLayoutV1', '1x1')),
+    multiSync: !!Store.get('multiSyncV1', true),
+    multiCells: window.Charts.sanitizeCellSymbols(Store.get('multiCellsV1', [])),
+    multiCharts: [],
+    multiGen: 0,
+    multiPeriod: null,
     // Movers 三榜的行载荷（data-symbol → 全市场行）：行不在 universe 轮询全集里，
     // 点击进详情需要 secid/market 映射，渲染时顺手登记
     moversRows: new Map(),
@@ -161,12 +169,16 @@
     'moodSub', 'moodScore', 'moodBand', 'moodFill', 'breadthGrid', 'distWrap', 'distSub', 'moodSpark', 'heroStrip', 'moodCrypto', 'moodUS',
     'searchInput', 'searchResults', 'settingsBtn', 'settingsModal', 'settingsClose',
     'segUpdown', 'segRefresh', 'segTheme', 'swDegraded', 'swAcademy', 'academyLink', 'sourceStatus', 'updatedLine', 'tabCfg',
+    // UI v2 外壳：一级栏 + 滑动指示器 + 二级条宿主 + 顶栏实时状态 + 命令面板入口 + 一键还原
+    'primaryNav', 'navInk', 'subbar', 'liveLabel', 'cmdOpen', 'settingsReset',
     'detailName', 'detailCode', 'detailPrice', 'detailChg', 'detailStar', 'detailStats', 'detailGloss',
     'detailBack', 'klineChart', 'chartBox', 'detailInsight', 'maToggle', 'intradaySeg',
     'maMenu', 'maLinesBox', 'maPaneBox', 'maAdd', 'maReset', 'drawHide',
     // 价格标尺 + 对比叠加（详情工具条，与 maToggle 同一弹层语言）
     'scaleToggle', 'scaleMenu', 'kcmpToggle', 'kcmpMenu', 'kcmpInput', 'kcmpResults', 'kcmpClear', 'kcmpStatus',
     'ktypeToggle', 'ktypeMenu',
+    // 多图布局 + 联动开关（详情工具条，与标尺/类型同一弹层语言）
+    'layoutToggle', 'layoutMenu', 'syncToggle',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
     'globeStatus', 'mapLegend', 'mapStatusPts',
     'evGlobePane', 'evNewsPane', 'evPmPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
@@ -854,7 +866,8 @@
       }
     }
     if (!list.length) {
-      box.innerHTML = '<div class="empty-hint">在任意卡片右上角点 ★ 收藏，这里就会出现你的自选（带走势图）</div>';
+      box.innerHTML = '<div class="empty-hint">在任意卡片右上角点 ★ 收藏，这里就会出现你的自选（带走势图）'
+        + '<a class="empty-cta" href="#tab=all">去市场总览 →</a></div>';
       return;
     }
     box.innerHTML = list.map(({ item, q }) => wcardHTML(item, q)).join('');
@@ -1214,7 +1227,8 @@
     // 合规开关关闭：加密标的从列表隐藏（自选数据本身保留，开关打开即恢复）
     const items = window.Store.watchlist.all().filter(it => CRYPTO_ON || !/USDT$/i.test(it.symbol));
     if (!items.length) {
-      el.watchWall.innerHTML = '<div class="empty-hint">点击卡片右上角 ★ 添加自选</div>';
+      el.watchWall.innerHTML = '<div class="empty-hint">还没有自选标的'
+        + '<a class="empty-cta" href="#tab=all">去市场总览挑几只 →</a></div>';
       return;
     }
     refreshWatchSet();
@@ -2224,6 +2238,9 @@
     // 提醒价格线挂在旧图表系列上，图表销毁必须解绑
     if (window.AlertCenter) window.AlertCenter.attachChart(null);
     el.klineChart.innerHTML = '';
+    // 副格与注册表一并清场（kind 切换/空数据/离开详情统一走这里；
+    // loadDetailChart 尾部 loadMultiCells 会按当前布局重建）
+    destroyMultiCells();
   }
 
   /* ---- 画线持久化（2026-10-31）：键 = 标的 symbol（跨市场唯一，同自选口径），值 = 画线数组 ----
@@ -2299,6 +2316,230 @@
     applyType();
   }
 
+  /* ================= 多图布局（P1 工作台：1×1 / 1×2 / 2×2 网格 + 同步） =================
+     关键裁定（防后人推翻）：
+     · 同步按 param.logical 逻辑下标对齐而非时间——跨市场日历不同（A股/美股节假日
+       错位、加密 7×24），时间集不保证相交；逻辑下标确定性对齐 bar 位置；
+     · 副格 = 轻量 K 线：createKline 无回调 + setMAVisible(false)——无均线/副图/
+       画线持久化/对比/提醒线/事件标记，仅 setData+setInfo；主格保留全部既有能力；
+     · 重入守卫：广播前 multiSyncing++、finally 自减，订阅处理器首行早退——vendor
+       程序化 set 是否同步触发订阅者两种行为下都安全（值幂等 + 守卫防递归）。 */
+
+  // 副格加密周期映射（loadDetailChart 的 CRYPTO_IV 同款口径：加密 24h 交易无分时概念）
+  const MULTI_CRYPTO_IV = { min: '5m', m5: '5m', m15: '15m', m60: '1h', week: '1w', month: '1M' };
+  let multiSyncing = 0;   // 同步广播重入计数器（模块级：主/副格共用）
+
+  // 格头下拉选项：自选 ∪ 当前主标的（CRYPTO_ON 关时滤加密，与自选渲染同一过滤口径）
+  function cellOptions() {
+    const t = state.detail;
+    const out = window.Store.watchlist.all()
+      .filter(w => CRYPTO_ON || !/USDT$/i.test(w.symbol))
+      .map(w => ({ symbol: w.symbol, name: w.name || w.symbol }));
+    const cur = t ? t.symbol : '';
+    if (cur && !out.some(o => o.symbol === cur)) out.push({ symbol: cur, name: t.name || t.code || cur });
+    return out;
+  }
+
+  function applyMultiLayout() {
+    loadMultiCells();          // 内部按当前布局清场/补建/装配（grid=false 时只清场）
+    applyMultiLayoutUi();
+  }
+
+  // 布局菜单 radio 回显 + 联动按钮三态（active/aria-pressed/disabled=布局为 1x1）
+  function applyMultiLayoutUi() {
+    document.querySelectorAll('#layoutMenu [data-layout]').forEach(row => {
+      const on = row.dataset.layout === state.multiLayout;
+      row.classList.toggle('on', on);
+      const radio = row.querySelector('input[type="radio"]');
+      if (radio) radio.checked = on;
+    });
+    if (el.syncToggle) {
+      const off = state.multiLayout === '1x1';
+      el.syncToggle.disabled = off;
+      el.syncToggle.classList.toggle('active', !!state.multiSync && !off);
+      el.syncToggle.setAttribute('aria-pressed', String(!!state.multiSync && !off));
+    }
+  }
+
+  function saveMultiLayout(v) {
+    state.multiLayout = window.Charts.sanitizeMultiLayout(v);
+    Store.set('multiLayoutV1', state.multiLayout);
+    applyMultiLayout();
+  }
+
+  function saveMultiSync(v) {
+    state.multiSync = !!v;
+    Store.set('multiSyncV1', state.multiSync);
+    applyMultiLayoutUi();
+  }
+
+  // 副格 DOM：1×2→1 格、2×2→3 格，直接挂 chartBox（grid 子元素 = .kcell）。
+  // 幂等：已有多少补多少（前面先 destroyMultiCells 即等价全量重建）。
+  function buildMultiCells() {
+    const need = state.multiLayout === '1x2' ? 1 : state.multiLayout === '2x2' ? 3 : 0;
+    const have = el.chartBox.querySelectorAll('.kcell[data-mcell]').length;
+    const opts = cellOptions();
+    for (let i = have; i < need; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'kcell';
+      cell.dataset.mcell = String(i);
+      const head = document.createElement('div');
+      head.className = 'kcell-head';
+      const sel = document.createElement('select');
+      sel.className = 'kcell-sel';
+      sel.dataset.mcellsel = String(i);
+      sel.setAttribute('aria-label', '副格' + (i + 1) + '的标的');
+      sel.innerHTML = opts.map(o =>
+        '<option value="' + escapeHTML(o.symbol) + '">' + escapeHTML(o.name) + '</option>').join('');
+      head.appendChild(sel);
+      const promo = document.createElement('button');
+      promo.type = 'button';
+      promo.className = 'kcell-promo';
+      promo.textContent = '设为主图';
+      promo.title = '把该副格的标的切换为主图显示';
+      promo.dataset.mcpromo = String(i);
+      head.appendChild(promo);
+      cell.appendChild(head);
+      const box = document.createElement('div');
+      box.className = 'kcell-chart';
+      cell.appendChild(box);
+      el.chartBox.appendChild(cell);
+    }
+  }
+
+  // 副格清场：销毁注册表里的副格实例（主格归 disposeChart 管）+ 摘格子 DOM。
+  // gen 自增让在途副格请求醒来即作废（同 chartGen 惯例）。
+  function destroyMultiCells() {
+    ++state.multiGen;
+    (state.multiCharts || []).forEach((c, idx) => {
+      if (idx === 0 || !c || !c.h) return;
+      try { c.h.remove(); } catch { /* ignore */ }
+    });
+    state.multiCharts = [];
+    if (el.chartBox) el.chartBox.querySelectorAll('.kcell[data-mcell]').forEach(n => n.remove());
+  }
+
+  // 同步订阅（每实例挂一次，随 chart.remove 销毁）：十字线 + 缩放范围双向广播，
+  // 注册表内任一图变化，其余全部跟随（主→副、副→主、副→副都走这里）。
+  function attachSync(h) {
+    try {
+      h.chart.subscribeCrosshairMove((param) => {
+        if (multiSyncing > 0 || !state.multiSync) return;
+        multiSyncing++;
+        try {
+          state.multiCharts.forEach(T => {
+            if (!T.h || T.h === h || !T.h.chart) return;
+            if (!param || param.time === undefined || param.time === null) {
+              try { T.h.chart.clearCrosshairPosition(); } catch { /* ignore */ }
+              return;
+            }
+            // 定位逻辑在 Charts.crossAt（纯函数、有单测）：按逻辑下标取目标图自身
+            // 序列的 time/close，null = 越界/空数据 → 诚实降级清十字线
+            const hit = window.Charts.crossAt(T.h.getKlines(), param.logical);
+            try {
+              if (!hit) T.h.chart.clearCrosshairPosition();
+              else T.h.chart.setCrosshairPosition(hit.price, hit.time, T.h.candle);
+            } catch { /* 老版本无该 API */ }
+          });
+        } finally { multiSyncing--; }
+      });
+      h.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+        if (multiSyncing > 0 || !range || !state.multiSync) return;
+        multiSyncing++;
+        try {
+          state.multiCharts.forEach(T => {
+            if (!T.h || T.h === h || !T.h.chart) return;
+            try { T.h.chart.timeScale().setVisibleLogicalRange(range); } catch { /* ignore */ }
+          });
+        } finally { multiSyncing--; }
+      });
+    } catch { /* 老版本无该订阅：退化为不同步 */ }
+  }
+
+  // 副格数据装配：主图 kind==='kline' 才建（分时无逻辑下标同步的锚，分钟下标广播给
+  // 日K副格会错乱——从根上消除）；每次干净重建（方案口径「重建」：销毁旧实例再装配，
+  // 不跨轮复用——中途 stale 退出也不留已摘除未销毁的实例与监听）。
+  async function loadMultiCells() {
+    const t = state.detail;
+    // 副格有效周期：非加密 period='min' 且 kind 已是 kline 只有一种来源——分时取数
+    // 失败回退日K（loadDetailChart 的兜底分支），副格跟随主图实际口径保持同周期对齐
+    const effPeriod = () => (state.detailPeriod === 'min' && t.market !== 'crypto') ? 'day' : state.detailPeriod;
+    const grid = !!t && !!state.chart && state.chartKind === 'kline' && state.multiLayout !== '1x1';
+    // 布局 class 只在网格真正生效时挂（分时主图带 1×2 class 会把主图挤成半宽）
+    el.chartBox.classList.toggle('layout-1x2', grid && state.multiLayout === '1x2');
+    el.chartBox.classList.toggle('layout-2x2', grid && state.multiLayout === '2x2');
+    if (!grid) { destroyMultiCells(); return; }
+    const period = effPeriod();
+    destroyMultiCells();
+    buildMultiCells();
+    const gen = ++state.multiGen;
+    const stale = () => gen !== state.multiGen || state.detail !== t
+      || state.chartKind !== 'kline' || effPeriod() !== period;
+    state.multiPeriod = period;
+    const need = state.multiLayout === '1x2' ? 1 : 3;
+    // 每格符号：落盘清单优先（空位不占座），缺位按自选补（过滤主标的与重复）
+    const syms = [];
+    const blanks = [];
+    for (let i = 0; i < need; i++) {
+      if (state.multiCells[i]) syms.push(state.multiCells[i]);
+      else { syms.push(''); blanks.push(i); }
+    }
+    if (blanks.length) {
+      const pool = cellOptions().map(o => o.symbol).filter(s => syms.indexOf(s) < 0);
+      const picks = window.Charts.pickCellSymbols(blanks.length, t.symbol, pool);
+      blanks.forEach((idx, k) => { syms[idx] = picks[k] || ''; });
+      state.multiCells = window.Charts.sanitizeCellSymbols(syms);
+      Store.set('multiCellsV1', state.multiCells);
+    }
+    const pbtn = document.querySelector('[data-period].active');
+    const ptxt = pbtn ? pbtn.textContent.trim() : '';
+    const subs = [];
+    for (let i = 0; i < need; i++) {
+      const cellEl = el.chartBox.querySelector('.kcell[data-mcell="' + i + '"]');
+      const box = cellEl ? cellEl.querySelector('.kcell-chart') : null;
+      const sel = cellEl ? cellEl.querySelector('select') : null;
+      if (sel) sel.value = syms[i] || '';
+      if (!box) continue;
+      const sym = syms[i] || '';
+      const target = sym ? targetFromSymbol(sym) : null;
+      if (!target) {
+        // 空符号/解析失败：诚实空态（家规 4），不留半装实例
+        box.classList.add('kcell-empty');
+        box.textContent = '从上方下拉里选一个自选标的';
+        subs.push({ sym: sym, period: period, h: null });
+        continue;
+      }
+      box.classList.remove('kcell-empty');
+      box.textContent = '';
+      const h = window.Charts.createKline(box);   // 轻量 K 线：无回调（无画线持久化）
+      if (!h) { subs.push({ sym: sym, period: period, h: null }); continue; }
+      h.setMAVisible(false);                      // 副格无均线（「轻量 K 线」声明的前提）
+      attachSync(h);                              // 同步订阅挂一次，随 chart.remove 销毁
+      let rows = [];
+      try {
+        rows = target.market === 'crypto'
+          ? await window.BinanceSource.getKline(target.binance || target.code, MULTI_CRYPTO_IV[period] || '1d', 320)
+          : await klineFor(target, period);       // 复用 in-flight 去重管线，零新增端点
+      } catch { rows = []; }
+      if (stale()) {
+        try { h.remove(); } catch { /* ignore */ }   // 本轮实例不遗孤（监听随销毁摘净）
+        return;
+      }
+      h.setData(Array.isArray(rows) ? rows : []);
+      if (h.setInfo) h.setInfo({ code: target.code || sym, period: ptxt });
+      subs.push({ sym: sym, period: period, h: h });
+    }
+    state.multiCharts = [{ sym: t.symbol, period: period, h: state.chart }].concat(subs);
+  }
+
+  // 副格「设为主图」：候选来自自选∪主标的，构造上必然可解析；失败仅出现在自选被
+  // 并发移除的竞态窗口——不动 UI 不猜（该格空态已如实呈现），加密合规由 openDetail 自带守卫
+  function promoteCell(sym) {
+    const target = sym ? targetFromSymbol(sym) : null;
+    if (!target) return;
+    openDetail(target);
+  }
+
   async function loadDetailChart() {
     const t = state.detail;
     if (!t) return;
@@ -2360,6 +2601,8 @@
         },
       });
       state.chartKind = kind;
+      // 主格同步订阅挂一次（随 chart.remove 销毁；分时实例不挂——无逻辑下标锚）
+      if (kind === 'kline' && state.chart) attachSync(state.chart);
     }
     if (!state.chart) { el.chartBox.classList.add('off'); return; }
     // 图表角落常显「代码 · 周期」徽标：周期文案取当前 active 周期按钮的字
@@ -2409,10 +2652,18 @@
     if (el.scaleToggle) el.scaleToggle.disabled = kind === 'trend';
     if (el.kcmpToggle) el.kcmpToggle.disabled = kind === 'trend';
     if (el.ktypeToggle) el.ktypeToggle.disabled = kind === 'trend';
+    // 布局/联动同样分时下无意义（副格同步按逻辑下标对齐 K 线，分时主图无线可对）：
+    // 照上面三行同款诚实禁用 + 收弹层；分时分支副格一并清场
+    if (el.layoutToggle) el.layoutToggle.disabled = kind === 'trend';
+    if (el.syncToggle) el.syncToggle.disabled = kind === 'trend' || state.multiLayout === '1x1';
     if (kind === 'trend') {
       if (el.scaleMenu) el.scaleMenu.hidden = true;
       if (el.kcmpMenu) el.kcmpMenu.hidden = true;
       if (el.ktypeMenu) el.ktypeMenu.hidden = true;
+      if (el.layoutMenu) el.layoutMenu.hidden = true;
+      destroyMultiCells();
+    } else {
+      await loadMultiCells();   // 尾部重建副格（同符号同周期复用实例，不重拉）
     }
   }
 
@@ -4214,51 +4465,158 @@
     applyTabCfg();
   }
 
-  /* 按配置重排顶栏。隐藏的板块不渲染（不是加 display:none——
-     那样它还在 Tab 序里、还会被数字快捷键选中）。 */
-  function applyTabCfg() {
-    const nav = el.tabs;
-    if (!nav || !window.TabScope) return;
-    const keys = window.TabScope.visibleTabs(tabCfg(), CRYPTO_ON, OPTIONS_ON);
-    // 按 DOM 现有顺序建索引，重排时只移动真实存在的按钮
-    const nodes = Array.from(nav.querySelectorAll('.tab'));
-    const byTab = {};
-    nodes.forEach(n => { byTab[n.dataset.tab] = n; });
-    keys.forEach(k => {
-      const n = byTab[k];
-      if (n) nav.appendChild(n);   // appendChild = 移到末尾
-    });
-    nodes.forEach(n => {
-      if (keys.indexOf(n.dataset.tab) < 0 && n.parentNode === nav) nav.removeChild(n);
-    });
-    // 当前 tab 被藏了 → 回到「全部」
-    if (keys.indexOf(state.tab) < 0 && state.view === 'market') {
-      setTab('all', { animate: false });
-    }
-    renderTabCfgUI();
-    syncRovingTab(nav);   // 板块被隐藏/重排后，roving tabindex 要重新对一次
+  /* ==================== 一级 / 二级导航（UI v2 · 12 → 5） ====================
+     一级（市场/事件/资产/基金/洞察）是 5 个胶囊按钮 + 一枚滑动的 .nav-ink 指示器；
+     二级是原来那 12 个按钮，收成一条 segmented control，只显示当前一级的子项，
+     且只在子项 ≥2 时出现（单子项不为了"有导航"而造导航）。
+
+     为什么 state.tab 不改成一级 key：深链（#tab=cn）、js/tabscope.js、js/zones.js、
+     js/marketscope.js 与既有测试全都以这 12 个旧 key 为契约。一级只是展示层分组，
+     映射在 js/ui/navmap.js（纯函数、可离线单测），这里只把结论落到 DOM。
+
+     tabscope 的「顺序与显隐自定义」原样保留：顺序仍按用户配置排（同级内生效），
+     隐藏的板块不渲染进 DOM（不是 display:none——那样它还在 Tab 序里、
+     还会被数字快捷键选中）。 */
+
+  const TAB_NODES = {};        // 12 个二级按钮的常驻引用（隐藏时只是暂时移出 DOM）
+  let lastSubOfPrimary = {};   // 每个一级上次停留的子项：从事件页回市场时回到 A股 而不是「全部」
+
+  function NM() { return window.Navmap || null; }
+
+  function cacheTabNodes() {
+    if (Object.keys(TAB_NODES).length || !el.tabs) return;
+    Array.prototype.forEach.call(el.tabs.querySelectorAll('.tab'), n => { TAB_NODES[n.dataset.tab] = n; });
   }
 
-  /* 设置弹层里的顶栏板块配置列表 */
+  function primaryButtons() {
+    return el.primaryNav ? Array.prototype.slice.call(el.primaryNav.querySelectorAll('[data-primary]')) : [];
+  }
+
+  /* 一级栏的滑动指示器：只写自定义属性，位移由 CSS 的 transform 完成
+     （合成层动画，不触发布局）。motion 层若接管，会给元素写内联 transform/width，
+     内联优先级更高，两边不打架。 */
+  function moveNavInk(primary) {
+    const ink = el.navInk;
+    if (!ink) return;
+    const btns = primaryButtons();
+    const i = Math.max(0, btns.findIndex(b => b.dataset.primary === primary));
+    ink.style.setProperty('--ink-i', String(i));
+    ink.style.setProperty('--ink-n', String(btns.length || 1));
+  }
+
+  /* 外壳度量：顶栏在窄屏会折成两行，--topbar-h 只是下限（56/92px 的约定值）。
+     二级条、跑马条、内容留白都要跟**真实**高度对齐，否则 3~5px 的错位会一直存在
+     （实测 390px 下 topbar 95px vs 约定 92px）。量一次写进 --shell-topbar-real，
+     两层 CSS 都读它；ResizeObserver 兜住字体加载/横竖屏切换。 */
+  function syncShellMetrics() {
+    const bar = document.querySelector('.topbar');
+    if (!bar) return;
+    const h = Math.round(bar.getBoundingClientRect().height);
+    if (h > 0) document.documentElement.style.setProperty('--shell-topbar-real', h + 'px');
+  }
+  let shellMetricsObs = null;
+  function watchShellMetrics() {
+    syncShellMetrics();
+    if (shellMetricsObs || !('ResizeObserver' in window)) return;
+    const bar = document.querySelector('.topbar');
+    if (!bar) return;
+    shellMetricsObs = new ResizeObserver(() => syncShellMetrics());
+    shellMetricsObs.observe(bar);
+  }
+
+  /* 把当前 state.tab 落到两级导航上：一级胶囊状态 + 二级条显隐/顺序 + roving tabindex */
+  function syncNavDom() {
+    const map = NM();
+    const nav = el.tabs;
+    if (!map || !nav) return;
+    cacheTabNodes();
+    const keys = window.TabScope ? window.TabScope.visibleTabs(tabCfg(), CRYPTO_ON, OPTIONS_ON) : map.ALL_TABS;
+    // 当前 tab 被用户藏掉了 → 回到「全部」（否则顶栏没有任何当前态）
+    if (keys.indexOf(state.tab) < 0 && state.view === 'market') { setTab('all', { animate: false }); return; }
+    const primary = map.tabToPrimary(state.tab) || map.DEFAULT_PRIMARY;
+    const kids = map.childrenOf(primary);
+    const visible = keys.filter(k => kids.indexOf(k) >= 0);
+
+    // 二级条：属于当前一级的按 tabscope 顺序移到末尾，其余用 hidden 收起。
+    // 不把节点摘出 DOM：document.getElementById('tab-cn') 这类引用在别处
+    // （人肉排查、外部脚本、深链修复）不能因为切了个一级就变成 null；
+    // hidden 元素同样不进 Tab 序、不参与方向键（getClientRects 为空）。
+    visible.forEach(k => { const node = TAB_NODES[k]; if (node) { node.hidden = false; nav.appendChild(node); } });
+    Object.keys(TAB_NODES).forEach(k => { if (visible.indexOf(k) < 0) TAB_NODES[k].hidden = true; });
+    // 二级按钮的选中态/aria（读屏与测试都读 aria-selected，不只读 .active）
+    Array.prototype.forEach.call(nav.querySelectorAll('.tab'), b => {
+      const on = b.dataset.tab === state.tab;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', String(on));
+      b.setAttribute('tabindex', on ? '0' : '-1');
+    });
+
+    // 一级按钮状态（aria-selected = 读屏唯一能读到的"当前在哪一级"）
+    primaryButtons().forEach(b => {
+      const on = b.dataset.primary === primary;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', String(on));
+      b.setAttribute('tabindex', on ? '0' : '-1');
+      if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    moveNavInk(primary);
+
+    // 二级条只在子项 ≥2 时出现；隐藏时给 body 打标记（.main 留白与跑马条位置读它）
+    const showSub = visible.length >= 2;
+    if (el.subbar) el.subbar.hidden = !showSub;
+    document.body.classList.toggle('has-subbar', showSub);
+    syncShellMetrics();   // 顶栏折行/字体到位后的真实高度同步给 CSS（二级条定位读它）
+    if (showSub) syncRovingTab(nav);   // 板块被隐藏/重排后，roving tabindex 要重新对一次
+  }
+
+  /* 按配置重排顶栏 / 二级条。隐藏的板块不渲染（不是 display:none——
+     那样它还在 Tab 序里、还会被数字快捷键选中）。 */
+  function applyTabCfg() {
+    if (!NM() || !el.tabs) return;
+    cacheTabNodes();
+    renderTabCfgUI();
+    syncNavDom();
+  }
+
+  /* 点一级：回到这个一级上次停留的子项（没有就落到默认子项）；
+     用户藏掉的子项不选（否则点「市场」会切到一个不在二级条里的页）。 */
+  function navToPrimary(p) {
+    const map = NM();
+    if (!map) { setTab(p); return; }
+    const keys = window.TabScope ? window.TabScope.visibleTabs(tabCfg(), CRYPTO_ON, OPTIONS_ON) : map.ALL_TABS;
+    const kids = map.childrenOf(p).filter(k => keys.indexOf(k) >= 0);
+    const remembered = lastSubOfPrimary[p];
+    const target = (remembered && kids.indexOf(remembered) >= 0) ? remembered : (kids[0] || map.defaultTabOf(p));
+    setTab(target);
+  }
+
+  /* 设置弹层里的顶栏板块配置列表：按一级分组（两级 IA 要在设置里也看得见），
+     组内仍保留「显隐 + 顺序」两个能力——功能一个都不删。 */
   function renderTabCfgUI() {
     const box = el.tabCfg;
-    if (!box || !window.TabScope) return;
-    const cfg = tabCfg();
-    const n = window.TabScope.normalize(cfg, CRYPTO_ON, OPTIONS_ON);
+    const map = NM();
+    if (!box || !window.TabScope || !map) return;
+    const n = window.TabScope.normalize(tabCfg(), CRYPTO_ON, OPTIONS_ON);
     const hidden = n.hidden;
-    box.innerHTML = n.order.map((k, i) => {
+    const rowOf = (k) => {
       const isAll = k === 'all';
       const off = hidden.indexOf(k) >= 0;
-      return `<div class="tab-cfg-row${isAll ? ' fixed' : ''}">
-        <label class="tab-cfg-name">
-          <input type="checkbox" data-tabcfg-hide="${k}"${off ? '' : ' checked'}${isAll ? ' disabled' : ''}>
-          <span>${window.TabScope.labelOf(k)}</span>
-        </label>
-        <span class="tab-cfg-move">
-          <button type="button" data-tabcfg-move="${k}" data-dir="-1"${isAll || i <= 1 ? ' disabled' : ''} aria-label="上移">↑</button>
-          <button type="button" data-tabcfg-move="${k}" data-dir="1"${isAll || i >= n.order.length - 1 ? ' disabled' : ''} aria-label="下移">↓</button>
-        </span>
-      </div>`;
+      const sibs = map.childrenOf(map.tabToPrimary(k));
+      const si = sibs.indexOf(k);
+      return '<div class="tab-cfg-row' + (isAll ? ' fixed' : '') + '">'
+        + '<label class="tab-cfg-name">'
+        + '<input type="checkbox" data-tabcfg-hide="' + k + '"' + (off ? '' : ' checked') + (isAll ? ' disabled' : '') + '>'
+        + '<span>' + window.TabScope.labelOf(k) + '</span>'
+        + '</label>'
+        + '<span class="tab-cfg-move">'
+        + '<button type="button" data-tabcfg-move="' + k + '" data-dir="-1"' + (isAll || si <= 0 ? ' disabled' : '') + ' aria-label="上移">↑</button>'
+        + '<button type="button" data-tabcfg-move="' + k + '" data-dir="1"' + (isAll || si >= sibs.length - 1 ? ' disabled' : '') + ' aria-label="下移">↓</button>'
+        + '</span>'
+        + '</div>';
+    };
+    box.innerHTML = map.PRIMARY_DEFS.map(p => {
+      return '<fieldset class="tab-cfg-group"><legend class="tab-cfg-group-t">' + p.label + '</legend>'
+        + p.children.map(rowOf).join('') + '</fieldset>';
     }).join('');
   }
 
@@ -4432,30 +4790,38 @@
       return;
     }
     const mTab = h.match(/#tab=([a-z]+)/);
-    if (mTab && VIEW_OF_TAB[mTab[1]]) {
-      // 基金对比的深链带自己的参数（f/start/end/g/n/a/log）→ 交给视图自己解析后取数，
-      // 直接 setTab 会按"上次选择"渲染，用户点开分享链接看到的就不是那条曲线了
-      if (mTab[1] === 'compare') {
-        if (state.view !== 'compare') { if (state.view === 'actor') leaveActor(); leaveDetail(); }
-        el.tabs.querySelectorAll('.tab').forEach(b => {
-          const on = b.dataset.tab === 'compare';
-          b.classList.toggle('active', on);
-          b.setAttribute('aria-selected', String(on));
-        });
-        state.tab = 'compare';
-        setView('compare');
-        window.CompareView.applyHash(h);
-        applyCmpModeFromHash(h);
-        renderStatus();
+    if (mTab) {
+      /* UI v2 深链兼容：三种形态都认——
+         · #tab=cn（旧深链，子项 key 直接当 tab）
+         · #tab=market&sub=cn（新格式）
+         · #tab=market（新格式，只有一级 → 落到它的默认子项）
+         解析交给 js/ui/navmap.js（纯函数、有单测）。旧别名（news/voices/funds/mood）
+         优先：它们不在 navmap 的 12 个 key 里，由 setTab 自己的 TAB_ALIAS 继续兜住
+         （news/voices 还要设快讯子面板，不能在这里拦掉）。 */
+      const parsed = window.Navmap ? window.Navmap.parseHash(h) : null;
+      const tabKey = TAB_ALIAS[mTab[1]] || (parsed ? parsed.tab : mTab[1]);
+      if (VIEW_OF_TAB[tabKey]) {
+        // 基金对比的深链带自己的参数（f/start/end/g/n/a/log）→ 交给视图自己解析后取数，
+        // 直接 setTab 会按"上次选择"渲染，用户点开分享链接看到的就不是那条曲线了
+        if (tabKey === 'compare') {
+          if (state.view !== 'compare') { if (state.view === 'actor') leaveActor(); leaveDetail(); }
+          syncNavDom();
+          state.tab = 'compare';
+          setView('compare');
+          window.CompareView.applyHash(h);
+          applyCmpModeFromHash(h);
+          renderStatus();
+          return;
+        }
+        // actor 视图不能进这个短路：openActor 不改 state.tab，从档案后退到 #tab=xx 时
+        // tab 未变但 view 还是 actor，必须落下去执行 leaveActor + setTab，否则后退失效
+        if (state.view !== 'detail' && state.view !== 'actor' && state.tab === tabKey) return;
+        if (state.view === 'actor') leaveActor();
+        leaveDetail();
+        // 别名原样传给 setTab（它负责 eventsSub=news 等副作用）；其余走解析结果
+        setTab(TAB_ALIAS[mTab[1]] ? mTab[1] : tabKey, { push: false });
         return;
       }
-      // actor 视图不能进这个短路：openActor 不改 state.tab，从档案后退到 #tab=xx 时
-      // tab 未变但 view 还是 actor，必须落下去执行 leaveActor + setTab，否则后退失效
-      if (state.view !== 'detail' && state.view !== 'actor' && state.tab === mTab[1]) return;
-      if (state.view === 'actor') leaveActor();
-      leaveDetail();
-      setTab(mTab[1], { push: false });
-      return;
     }
     const mActor = h.match(/#actor=([^&]+)/);
     if (mActor) {
@@ -4590,20 +4956,19 @@
     }
     if (state.view === 'actor' && (VIEW_OF_TAB[tab] || 'market') !== 'actor') leaveActor();
     state.tab = tab;
-    el.tabs.querySelectorAll('.tab').forEach(b => {
-      const on = b.dataset.tab === tab;
-      b.classList.toggle('active', on);
-      b.setAttribute('aria-selected', String(on));   // 屏幕阅读器需要知道当前选中项
-      b.setAttribute('tabindex', on ? '0' : '-1');    // roving tabindex：同一时刻只占一个 Tab 位
-    });
-    // 移动端 10 个 tab 横向滚动，程序化切换后把激活项滚回视野内
+    if (NM()) lastSubOfPrimary[NM().tabToPrimary(tab)] = tab;   // 记住每个一级上次的子项
+    syncNavDom();   // 一级胶囊 + 二级条显隐/顺序 + 12 个按钮的 .active/aria 一起对
     const activeBtn = el.tabs.querySelector('.tab.active');
     const view = VIEW_OF_TAB[tab] || 'market';
     /* 面板名跟着当前 tab 走：六个市场 tab 共用 #view-market，
-       面板原来写死 aria-label="全球市场"，切到 A股 后读屏还在念"全球市场"。 */
+       面板原来写死 aria-label="全球市场"，切到 A股 后读屏还在念"全球市场"。
+       二级条隐藏时（单子项一级）指向一级按钮——否则 aria-labelledby
+       会指向一个不在 DOM 里的 id，读屏念不出面板名。 */
     const panel = $('view-' + view);
-    if (panel && activeBtn && activeBtn.id) panel.setAttribute('aria-labelledby', activeBtn.id);
-    if (activeBtn && activeBtn.scrollIntoView) {
+    const primaryBtn = el.primaryNav ? el.primaryNav.querySelector('[data-primary].active') : null;
+    const labelNode = (el.subbar && !el.subbar.hidden) ? activeBtn : (primaryBtn || activeBtn);
+    if (panel && labelNode && labelNode.id) panel.setAttribute('aria-labelledby', labelNode.id);
+    if (activeBtn && !(el.subbar && el.subbar.hidden) && activeBtn.scrollIntoView) {
       try { activeBtn.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduceMotion() ? 'auto' : 'smooth' }); }
       catch { /* 旧浏览器不支持 options 形参 */ }
     }
@@ -5023,8 +5388,6 @@
     seg.querySelectorAll('button').forEach(b => {
       const on = !!isOn(b);
       b.classList.toggle('active', on);
-      // 随机换肤是一次性动作（不是"当前是哪一档"的状态），不给 aria-pressed
-      if (b.dataset.theme === 'random') return;
       b.setAttribute('aria-pressed', String(on));
     });
   }
@@ -5039,24 +5402,26 @@
     // 科普入口（白话金融）：设置里可关——关掉后浮层、顶栏链接、详情页链接一起消失
     if (window.AcademyGate) window.AcademyGate.apply(s.academy !== false);
     applyTheme(s.theme);
+    syncLiveStat(s);
     // 红涨绿跌切换会改 --up-rgb/--down-rgb，价格闪烁的颜色缓存要失效
     invalidateFlashColors();
   }
 
-  /* ==================== 界面皮肤（data-theme 变量组，保留终端排版换气质） ==================== */
-
-  // 8 套：4 套原始 + 4 套设计语言层（瑞士/包豪斯/纸感/孟菲斯）。'random' 不在列表里——点击单独走抽签
-  const THEMES = ['dark', 'aurora', 'oled', 'paper', 'swiss', 'bauhaus', 'clay', 'memphis'];
+  /* ==================== 界面模式（UI v2：一套语言、两个模式） ====================
+     旧 8 套皮肤（dark/aurora/oled/paper/swiss/bauhaus/clay/memphis）与「随机换肤」
+     已按 docs/UI-V2-SPEC.md §1 删除：nexus = 深空（默认）/ daylight = 日光。
+     存量 localStorage 里可能是旧皮肤名（含 'random'、空值、脏值）——
+     applyTheme 一律 sanitize 到 nexus；css/style.css 里已经没有那些主题块，
+     停在旧值上会得到一块没有令牌可用的页面（老用户白屏/发灰）。 */
+  const THEMES = ['nexus', 'daylight'];
   let themeTimer = 0;
-  let lastTheme = null;   // 防随机换肤抽到与当前相同的皮肤
 
-  // 皮肤的外围同步：原生控件明暗 + 移动端状态栏色。与换肤同值早退时也要跑
-  // （首帧静态 data-theme="swiss" 与存量设置同值时，applyTheme 会走到早退分支）
+  // 外围同步：原生控件明暗 + 移动端状态栏色。与换肤同值早退时也要跑
   function syncThemeChrome(t) {
     const root = document.documentElement;
-    // 明暗归属跟皮肤走：表单控件/滚动条的原生渲染要和底色一致（浅色5套/深色3套）
-    root.style.colorScheme = ['paper', 'swiss', 'bauhaus', 'clay', 'memphis'].includes(t) ? 'light' : 'dark';
-    // 移动端状态栏/标题栏颜色跟随皮肤。等 450ms 换肤过渡走完再读底色，
+    // 明暗归属跟模式走：表单控件/滚动条的原生渲染要和底色一致
+    root.style.colorScheme = t === 'daylight' ? 'light' : 'dark';
+    // 移动端状态栏/标题栏颜色跟随模式。等 450ms 换肤过渡走完再读底色，
     // 否则 rAF 时刻读到的是过渡前的旧色（实测滞后一步）
     setTimeout(() => {
       const meta = document.querySelector('meta[name="theme-color"]');
@@ -5067,49 +5432,40 @@
     }, 500);
   }
 
-  /* 任何一个弹层/下拉正开着吗？
-     Esc 的语义是「关掉最上面那层」，所以只要还有一层没关，Esc 就不该继续往下退。
-     之前只把 settingsModal 与 searchResults 列进守卫，漏了到价提醒弹层与分享弹层——
-     结果在提醒弹层里按 Esc，弹层关了、整个详情页也跟着退回列表，K 线上下文全丢。 */
-  function anyModalOpen() {
-    const share = document.getElementById('shareOverlay');
-    return !!(
-      (el.settingsModal && el.settingsModal.classList.contains('active'))
-      || (el.alertModal && el.alertModal.classList.contains('active'))
-      || (el.searchResults && el.searchResults.classList.contains('active'))
-      || (share && !share.hidden)
-    );
+  /* 顶栏实时状态：显示当前轮询间隔。改刷新节奏要立刻看得见，
+     而不是等下一轮行情回来才变（用户会以为设置没生效）。 */
+  function syncLiveStat(s) {
+    if (!el.liveLabel) return;
+    const sec = (s && s.refresh) || window.Store.settings.get().refresh || 10;
+    el.liveLabel.textContent = sec + 's';
   }
 
   function applyTheme(t) {
-    if (!THEMES.includes(t)) t = 'swiss';   // 非法存量值回落到默认主题（与 store.js 默认一致）
+    if (THEMES.indexOf(t) < 0) t = 'nexus';   // 旧皮肤名 / random / 脏值 → 深空
     if (el.segTheme) {
-      // 随机按钮只有 hover/focus 态，不进 active（它是一次性动作，不是皮肤身份）
+      // 只有两个模式按钮，没有一次性动作按钮了（随机换肤已删除）
       syncSegPressed(el.segTheme, b => b.dataset.theme === t);
     }
     const root = document.documentElement;
     if (root.dataset.theme === t) { syncThemeChrome(t); return; }
-    // 苹果式无级换肤：切换瞬间给全元素短暂挂颜色过渡类，450ms 后摘掉
+    // 无级换肤：切换瞬间给全元素短暂挂颜色过渡类，450ms 后摘掉
     if (!reduceMotion()) {
       root.classList.add('theming');
       clearTimeout(themeTimer);
       themeTimer = setTimeout(() => root.classList.remove('theming'), 450);
     }
     root.dataset.theme = t;
-    lastTheme = t;
     syncThemeChrome(t);
-    // 价格闪烁用的 --up-rgb/--down-rgb 缓存要失效（换肤可能改涨跌色）
+    // 价格闪烁用的 --up-rgb/--down-rgb 缓存要失效（模式切换可能改涨跌色）
     invalidateFlashColors();
-    // 图例色块是内联背景色（跟着 treemap 的涨/跌色走），换肤后要重画一遍
+    // 图例色块是内联背景色（跟着 treemap 的涨/跌色走），换模式后要重画一遍
     renderHeatLegend();
     // lightweight-charts 不吃 CSS 变量：已打开的图表增量重读主题色
     if (state.chart) window.Charts.retheme(state.chart);
-  }
-
-  function randomTheme() {
-    // 8 选 1；不与当前相同（连点两次至少能看到一次真换）
-    const pool = THEMES.filter(t => t !== lastTheme);
-    applyTheme(pool[Math.floor(Math.random() * pool.length)]);
+    // 多图注册表里的副格一并换肤（canvas 同样不吃变量；主格=state.chart 已在上面处理）
+    (state.multiCharts || []).forEach(c => {
+      if (c && c.h && c.h !== state.chart) window.Charts.retheme(c.h);
+    });
   }
 
   /* 滚动显现（阶跃/Kimi/Apple 官网式）：区块进入视口才淡入上浮，hidden 面板在
@@ -5137,6 +5493,10 @@
     if (state.heat) drawHeat();
     renderHeatLegend();      // 图例色块是内联背景色，红绿一换也得跟着换
     if (state.chart) state.chart.applyTheme();
+    // 多图副格的红绿染色跟着换（主格=state.chart 已在上面处理）
+    (state.multiCharts || []).forEach(c => {
+      if (c && c.h && c.h !== state.chart && c.h.applyTheme) c.h.applyTheme();
+    });
     if (state.view === 'watch') renderWatchlist();
     if (state.view === 'chain') renderChains();
     if (state.tab === 'cn') renderMood();   // 情绪小节在 A股板块内，色带跟随红绿模式
@@ -5553,11 +5913,18 @@
       });
     }
 
-    // tab
+    // 二级 tab（12 个旧按钮，运行时按一级显隐/重排）
     el.tabs.addEventListener('click', (e) => {
       const b = e.target.closest('.tab');
       if (b) setTab(b.dataset.tab);
     });
+    // 一级栏：点一下就切到该一级（回到上次停留的子项，没有就默认子项）
+    if (el.primaryNav) {
+      el.primaryNav.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-primary]');
+        if (b) navToPrimary(b.dataset.primary);
+      });
+    }
     // ARIA tabs 的方向键：←→ 切换、Home/End 跳首尾（委托在 document 上，动态生成的 tablist 也一样生效）
     document.addEventListener('keydown', onTablistKeydown);
     // 期权 T 型报价：标的/到期月的点击都委托在面板根上（面板常驻 DOM，这里绑一次）
@@ -6085,6 +6452,48 @@
       });
     }
 
+    /* 多图布局菜单：active = 菜单展开中（scaleToggle 同款）；打开时按当前布局回显 */
+    if (el.layoutToggle && el.layoutMenu) {
+      el.layoutToggle.addEventListener('click', () => {
+        const open = el.layoutMenu.hidden;
+        if (open) applyMultiLayoutUi();
+        el.layoutMenu.hidden = !open;
+        el.layoutToggle.classList.toggle('active', open);
+      });
+    }
+    if (el.layoutMenu) {
+      el.layoutMenu.addEventListener('change', (e) => {
+        const row = e.target.closest('[data-layout]');
+        if (row) saveMultiLayout(row.dataset.layout);
+      });
+    }
+    /* 联动开关：aria-pressed pill（drawHide 同款语言）；布局 1×1 时 disabled 由
+       applyMultiLayoutUi 统一收敛，这里只翻转记忆 */
+    if (el.syncToggle) {
+      el.syncToggle.addEventListener('click', () => saveMultiSync(!state.multiSync));
+    }
+    /* 副格格头（buildMultiCells 动态建）：下拉换标的 / 设为主图，走 chartBox 委托 */
+    if (el.chartBox) {
+      el.chartBox.addEventListener('change', (e) => {
+        const sel = e.target.closest('[data-mcellsel]');
+        if (!sel) return;
+        const i = +sel.dataset.mcellsel;
+        const arr = state.multiCells.slice();
+        while (arr.length <= i) arr.push('');
+        arr[i] = sel.value;
+        // sanitizeCellSymbols 会剔空串/去重——落盘清单可能压缩，重灌让 UI 以落盘为准
+        state.multiCells = window.Charts.sanitizeCellSymbols(arr);
+        Store.set('multiCellsV1', state.multiCells);
+        loadMultiCells();
+      });
+      el.chartBox.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-mcpromo]');
+        if (!btn) return;
+        const c = (state.multiCharts || [])[+btn.dataset.mcpromo + 1];
+        promoteCell(c ? c.sym : '');
+      });
+    }
+
     /* 对比标的菜单：active = 对比生效中（evtToggle 同款，syncCompareUi 管）、菜单开合不动它。
        候选复用东财 suggest（与顶栏搜索同源）；竞态守卫用本地代号（compareview 先例，
        不与顶栏 searchGen 互踩） */
@@ -6343,6 +6752,21 @@
       });
     }
 
+    /* 移动端画线组折叠（ui-shell）：≤700px 时六件画线工具收进 #kDrawGroup，
+       点「画线 ▾」才展开。桌面端按钮仍平铺、这个开关由 CSS 隐藏。
+       六个 [data-draw] 始终在 DOM 里——键盘、aria 与 tokens/charts 测试都照常找得到。 */
+    {
+      const kMore = $('kToolbarMore');
+      const kGroup = $('kDrawGroup');
+      if (kMore && kGroup) {
+        kMore.addEventListener('click', () => {
+          const open = kGroup.classList.toggle('open');
+          kMore.setAttribute('aria-expanded', String(open));
+          kMore.textContent = open ? '画线 ▴' : '画线 ▾';
+        });
+      }
+    }
+
     // 搜索
     el.searchInput.addEventListener('input', (e) => doSearch(e.target.value.trim()));
     el.searchInput.addEventListener('keydown', (e) => {
@@ -6412,12 +6836,24 @@
     });
     el.segTheme.addEventListener('click', (e) => {
       const b = e.target.closest('button');
-      if (!b) return;
-      // 随机换肤按钮：data-theme="random"，不进设置存储（刷新就重抽，不持久化）
-      if (b.dataset.theme === 'random') { randomTheme(); return; }
-      window.Store.settings.set({ theme: b.dataset.theme });
+      if (!b || !b.dataset.theme) return;
+      window.Store.settings.set({ theme: b.dataset.theme });   // 只有 nexus / daylight
       applySettings();
     });
+    // 一键还原：模式/涨跌/刷新/降级/科普/板块顺序一起回出厂值（用户不用逐项找回来）
+    if (el.settingsReset) {
+      el.settingsReset.addEventListener('click', () => {
+        window.Store.settings.set({ updown: 'red', refresh: 10, showDegraded: true, theme: THEMES[0], academy: true });
+        window.Store.set('tabCfg', { order: [], hidden: [] });
+        applySettings();
+        applyTabCfg();
+        onUpdownChanged();
+        schedule('quotes', quotesTick, refreshMs);
+        scheduleMood();
+        renderStatus();
+        closeModal();   // 关掉弹层，让用户直接看到还原后的界面
+      });
+    }
     el.swDegraded.addEventListener('click', () => {
       const cur = window.Store.settings.get().showDegraded;
       window.Store.settings.set({ showDegraded: !cur });
@@ -6446,8 +6882,16 @@
       el.tabCfg.addEventListener('click', (e) => {
         const b = e.target.closest('[data-tabcfg-move]');
         if (!b) return;
+        const k = b.dataset.tabcfgMove;
         const cur = tabCfg();
-        const order = window.TabScope.move(cur.order, b.dataset.tabcfgMove, +b.dataset.dir);
+        const norm = window.TabScope.normalize(cur, CRYPTO_ON, OPTIONS_ON);
+        const i = norm.order.indexOf(k);
+        const j = i + (+b.dataset.dir);
+        const map = NM();
+        // 分组展示后，"和另一个一级的第一个子项换位"在界面上不可见——直接不响应
+        if (!map || i < 0 || j < 0 || j >= norm.order.length) return;
+        if (map.tabToPrimary(norm.order[j]) !== map.tabToPrimary(k)) return;
+        const order = window.TabScope.move(norm.order, k, +b.dataset.dir);
         saveTabCfg({ order, hidden: cur.hidden });
       });
     }
@@ -6479,6 +6923,7 @@
     // 顶栏板块按用户配置重排/隐藏：必须在 renderFromHash 之前——
     // 否则深链指向一个被隐藏的板块时，hash 解析完才发现那个 tab 根本不在顶栏里。
     applyTabCfg();
+    watchShellMetrics();   // 顶栏真实高度（窄屏两行）写进 CSS 变量，二级条/跑马条读它
     // 全站 tablist 的 roving tabindex：同一时刻每个 tablist 里只有一个 tab 在 Tab 序里
     syncAllRovingTabs();
     initReveal();
@@ -6692,6 +7137,109 @@
       return null;
     },
     marketOfSecid,
+  };
+
+  /* ==================== 外壳命令入口（js/ui/command.js 消费） ====================
+     UI v2 的 ⌘K 命令面板要「通过已有入口执行动作」，而不是自己重写一套状态机。
+     这里只把导航/模式/刷新/快照这几件事的既有实现暴露成一个小而稳的接口：
+       setTab(tab)          等价于点一下对应 tab（内部走 setTab，深链与别名规则一致）
+       navToPrimary(p)      等价于点一级（回到该一级上次的子项）
+       openIndicator(name)  打开指标菜单；给了 name 就顺手勾上那条
+       setTheme / toggleTheme  两个模式之间切换（写 Store + applySettings，持久化）
+       refresh()            立刻抓一轮行情（等同等到下一个轮询 tick）
+       exportSnapshot()     导出 JSON 快照（设置/自选/情绪历史/当前视图）
+       searchSymbols(kw)    复用页面已有的东财搜索（代码/中文名/拼音）
+       openSymbol(item)     按搜索结果打开详情（复用 targetFromHashSymbol）
+       getState()           当前 tab / 一级 / 模式，供面板显示与分组
+     只暴露这些，不要在这里堆业务逻辑——否则命令面板会变成第二个 app.js。 */
+  function openIndicator(name) {
+    const menu = el.maMenu;
+    if (!menu || !el.maToggle) return false;
+    if (menu.hidden) el.maToggle.click();   // 复用真实入口：回显当前配置 + 切展开态
+    const want = String(name || '').trim().toLowerCase();
+    if (!want) return true;
+    const pane = menu.querySelector('input[data-pane="' + want + '"]');
+    if (pane) {
+      if (!pane.checked) { pane.checked = true; pane.dispatchEvent(new Event('change', { bubbles: true })); }
+      return true;
+    }
+    // MA 行没有 name 属性：按行内下拉的文字找（"MA5" / "RSI" / "MACD"…）
+    const line = Array.prototype.slice.call(menu.querySelectorAll('[data-maline]')).find(cb => {
+      const row = cb.closest('.ma-line-row');
+      return !!row && row.textContent.toLowerCase().indexOf(want) >= 0;
+    });
+    if (line && !line.checked) { line.checked = true; line.dispatchEvent(new Event('change', { bubbles: true })); }
+    return true;   // 名字不认识也至少把菜单打开了（不是静默失败）
+  }
+
+  window.AppNav = {
+    setTab(tab, opts) { if (typeof tab === 'string' && tab) setTab(tab, opts); return state.tab; },
+    navToPrimary(p) { if (typeof p === 'string' && p) navToPrimary(p); return state.tab; },
+    openIndicator(name) { return openIndicator(name); },
+    setTheme(mode) {
+      const t = THEMES.indexOf(mode) >= 0 ? mode : THEMES[0];
+      window.Store.settings.set({ theme: t });
+      applySettings();
+      return t;
+    },
+    toggleTheme() {
+      const cur = document.documentElement.dataset.theme === 'daylight' ? 'daylight' : 'nexus';
+      return this.setTheme(cur === 'nexus' ? 'daylight' : 'nexus');
+    },
+    refresh() { quotesTick(); renderStatus(); return true; },
+    exportSnapshot() {
+      const map = NM();
+      try {
+        const snap = {
+          app: 'OpenFinLens',
+          exportedAt: new Date().toISOString(),
+          mode: document.documentElement.dataset.theme || 'nexus',
+          updown: document.body.dataset.updown || 'red',
+          tab: state.tab,
+          primary: map ? map.tabToPrimary(state.tab) : null,
+          hash: location.hash || '',
+          settings: window.Store.settings.get(),
+          tabCfg: tabCfg(),
+          watchlist: window.Store.watchlist.all(),
+          breadthHist: (state.breadthHist || []).slice(-30),
+        };
+        const blob = new Blob([JSON.stringify(snap, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'openfinlens-snapshot-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        return true;
+      } catch (e) { return false; }
+    },
+    searchSymbols(kw) {
+      if (!kw || !window.EastmoneySource || !window.EastmoneySource.search) return Promise.resolve([]);
+      return Promise.resolve(window.EastmoneySource.search(kw))
+        .then(list => (Array.isArray(list) ? list : []))
+        .catch(() => []);   // 离线/被墙：命令面板退回本地词典，不弹错
+    },
+    openSymbol(item) {
+      if (!item) return false;
+      const sym = item.symbol || (item.secid ? 'EM:' + item.secid : '');
+      if (!sym) return false;
+      const t = targetFromHashSymbol(sym);
+      // 搜索结果的 name/code 比 hash 推断更准（EM:1.600519 推断出来只是数字）
+      if (item.name) t.name = item.name;
+      if (item.code) t.code = item.code;
+      openDetail(t);
+      return true;
+    },
+    getState() {
+      const map = NM();
+      return {
+        tab: state.tab,
+        primary: map ? map.tabToPrimary(state.tab) : null,
+        theme: document.documentElement.dataset.theme || 'nexus',
+        refresh: window.Store.settings.get().refresh,
+      };
+    },
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

@@ -577,5 +577,65 @@ test('data-ktype 菜单：index.html 的入口全部 ∈ Charts.CHART_TYPES 且�
   assert.equal(new Set(used).size, 5, '图表类型档位互不重复');
 });
 
+/* ---------------- 多图布局（P1 工作台）：档位归一 / 副格符号 / 同步定位 ---------------- */
+
+test('sanitizeMultiLayout：三档字面量原样往返；脏值一律收敛 1x1（数字/undefined/null/大写/空串/中文/对象）', () => {
+  ['1x1', '1x2', '2x2'].forEach(v => assert.equal(C.sanitizeMultiLayout(v), v));
+  // localStorage 读回的脏值进不了布局侧：只认三字面量，'1X2' 大写也不静默 toLowerCase
+  [1, 0, undefined, null, '1X2', '2X2', '', '四宫格', {}, ['1x2']].forEach(v =>
+    assert.equal(C.sanitizeMultiLayout(v), '1x1'));
+});
+
+test('pickCellSymbols：过滤 current 与重复项、保原序取前 n；候选不足补空串', () => {
+  assert.equal(J(C.pickCellSymbols(2, 'QQQ', ['SPY', 'QQQ', 'SPY', 'AAPL'])), J(['SPY', 'AAPL']));
+  assert.equal(J(C.pickCellSymbols(1, 'QQQ', ['QQQ', 'SPY'])), J(['SPY']));
+  assert.equal(J(C.pickCellSymbols(3, 'QQQ', ['SPY'])), J(['SPY', '', '']));
+  assert.equal(J(C.pickCellSymbols(2, 'QQQ', [])), J(['', '']));
+});
+
+test('pickCellSymbols：n 非数/≤0/候选非数组 → []；脏符号（非串/空串/超 32 字符）剔除', () => {
+  [NaN, undefined, null, 0, -1, 'x'].forEach(n =>
+    assert.equal(J(C.pickCellSymbols(n, 'QQQ', ['SPY'])), J([])));
+  assert.equal(J(C.pickCellSymbols(2, 'QQQ', 'not-array')), J([]));
+  assert.equal(J(C.pickCellSymbols(2, 'QQQ', ['SPY', 123, null, '', 'x'.repeat(33), 'AAPL'])),
+    J(['SPY', 'AAPL']));
+});
+
+test('sanitizeCellSymbols：非数组→[]、脏项剔除、去重、超 3 截断、合法值原样', () => {
+  assert.equal(J(C.sanitizeCellSymbols('not-array')), J([]));
+  assert.equal(J(C.sanitizeCellSymbols(null)), J([]));
+  assert.equal(J(C.sanitizeCellSymbols(['SPY', 1, '', 'x'.repeat(33), 'SPY', 'AAPL', 'MSFT', 'TSLA'])),
+    J(['SPY', 'AAPL', 'MSFT']));
+  assert.equal(J(C.sanitizeCellSymbols(['SPY', 'AAPL'])), J(['SPY', 'AAPL']));
+});
+
+test('crossAt：整数 logical 命中（time/close 逐字段全等）；小数向下取整', () => {
+  const klines = [
+    { time: 'd0', close: 10 }, { time: 'd1', close: 11 }, { time: 'd2', close: 12 },
+  ];
+  assert.equal(J(C.crossAt(klines, 0)), J({ time: 'd0', price: 10 }));
+  assert.equal(J(C.crossAt(klines, 1)), J({ time: 'd1', price: 11 }));
+  assert.equal(J(C.crossAt(klines, 2.7)), J({ time: 'd2', price: 12 }));   // floor(2.7)=2
+});
+
+test('crossAt：负数/越界/非有限/非数组/空数组 → null（诚实降级 clearCrosshairPosition）', () => {
+  const klines = [{ time: 'd0', close: 10 }];
+  assert.equal(C.crossAt(klines, -0.5), null);
+  assert.equal(C.crossAt(klines, 1), null);        // == length 越界
+  assert.equal(C.crossAt(klines, 99), null);
+  assert.equal(C.crossAt(klines, NaN), null);
+  assert.equal(C.crossAt(klines, undefined), null);
+  assert.equal(C.crossAt(klines, Infinity), null);
+  assert.equal(C.crossAt('not-array', 0), null);
+  assert.equal(C.crossAt([], 0), null);
+});
+
+test('导出守卫：多图布局四件套必须挂到 Charts 导出面且互不缺', () => {
+  ['sanitizeMultiLayout', 'pickCellSymbols', 'sanitizeCellSymbols', 'crossAt'].forEach(k =>
+    assert.ok(k in C, 'Charts 缺少导出 ' + k));
+  assert.equal(typeof C.crossAt, 'function');
+  assert.equal(typeof C.pickCellSymbols, 'function');
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

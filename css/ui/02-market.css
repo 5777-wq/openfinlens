@@ -1,0 +1,920 @@
+/* ============================================================
+   OpenFinLens · UI v2「NEXUS 深空终端」· 行情区视觉层
+   ------------------------------------------------------------
+   所有者：market（唯一可写文件）。只消费 css/style.css 里的令牌：
+   不新增变量、不写死颜色/间距/字号/圆角、不改 class 名。
+
+   覆盖范围
+     1 首屏 hero        .hero / .hero-cell / .hero-value / .hero-chg / .rbar
+     2 指数卡墙          #globeBar / .gcard / .gcell
+     3 行情行 hairline   .card-grid / .qrow / .qrow-head / .qr-* / .star
+     4 吸顶跑马条        .tape / .tape-cell / .tp-*
+     5 市场简报带        .brief-* / .b-up / .b-down / .b-flat
+     6 热力图外壳        .heat-* / #heatCanvas / .ht-*
+     7 自选卡            .wgrid / .wcard / .watch-* / .ws-*
+     8 图表外壳          .chart-box / #klineChart / .kcell / .k-pane* / .k-legend
+                         / .ma-*（指标菜单）/ .k-toolbar 图标按钮组
+     9 详情页            .detail-* / .back-btn / #detailStar
+    10 情绪与宽度        .thermo-* / .breadth-grid / .bd-* / .dist-*
+
+   三模板（全站只有这三种卡，见 docs/UI-V2-SPEC.md §1.8）
+     · 大卡   hero：--r-lg + 光面 + 内高光
+     · 标准卡 指数卡 / 自选卡 / 图表外壳 / 浮层：--r-md（浮层 r-lg）
+     · 裸排   行情行 / 跑马条：只要 hairline，不要盒子
+
+   深空模式禁用阴影（--shadow-1/2 = none），海拔只靠 1px 描边 + 顶部内高光；
+   日光模式把海拔交给 --shadow-1 —— 两条覆盖都写在各自段落末尾，
+   不给「深空看着立住、日光一片白」留缝。
+   动效只做静态态与状态间的颜色/底色过渡，曲线与时长走 --dur-* / --ease-*。
+   ============================================================ */
+
+/* ============================================================ 1. 首屏 hero
+   一屏唯一的大字：32px mono tabular。四格共享一条基线（同 padding、同内容宽度），
+   因为四条走势线走「对齐模式」（同一 x = 同一天，见 js/spark.js），
+   任何一格 padding 不同都会让同一天落在不同横坐标上。 */
+.hero-cap {
+  display: flex; align-items: center; gap: var(--sp-8);
+  font-family: var(--font-mono); font-size: var(--fs-12); letter-spacing: 0.14em;
+  color: var(--text-tertiary); text-transform: uppercase; margin-bottom: var(--sp-8);
+}
+.hero {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--border); border-radius: var(--r-lg);
+  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  overflow: hidden; margin-bottom: var(--sp-12);
+}
+.hero-cell {
+  position: relative; min-width: 0; cursor: pointer;
+  padding: var(--sp-16) var(--sp-16) var(--sp-16) var(--sp-24);
+  border-left: 1px solid var(--border);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.hero-cell:first-child { border-left: none; }
+.hero-cell:hover { background-color: var(--bg-hover); }
+.hero-cell:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+/* 等待数据 / 空态：一整格没有数字时不要留一块白（旧版是「——」悬在中间） */
+.hero-cell .hero-value + .hero-chg { min-height: 18px; }
+
+.hero-label {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-8);
+  font-size: var(--fs-12); letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-tertiary); min-height: 18px;
+}
+.hero-label > span:last-child { color: var(--text-faint); font-family: var(--font-mono); flex: none; }
+.hl-row { display: inline-flex; align-items: center; gap: var(--sp-8); min-width: 0; }
+.hl-nm {
+  display: inline-flex; align-items: center; min-width: 0; overflow: hidden;
+  white-space: nowrap; text-overflow: ellipsis;
+}
+.hero-label .flag { flex: none; }
+
+/* 主数字：32 / mono / tabular；小数位由 JS 定，CSS 只管对齐，负号不缩进 */
+.hero-value {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--fs-32); font-weight: 500; letter-spacing: -0.02em; line-height: 1.1;
+  margin-top: var(--sp-12); color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* 涨跌行：13px mono。方向色只来自 --text-rise/--text-fall，绝不外溢到其它元素 */
+.hero-chg {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--fs-13); margin-top: var(--sp-8); color: var(--text-secondary);
+  white-space: nowrap;
+}
+.hero-chg.up { color: var(--text-rise); }
+.hero-chg.down { color: var(--text-fall); }
+
+/* 走势线与日内区间条：hero 里 40px、自选卡里 30px（下方 .wcard 段再收一次）。
+   [hidden] 必须让位：JS 在某条序列取不到日线时给 canvas 挂 hidden（"不画 = 诚实"），
+   但作者样式里的 display:block 会压过 UA 的 [hidden]，于是留一条 40px 的空槽。 */
+.hero-cell .spark { display: block; width: 100%; height: 40px; margin-top: var(--sp-12); }
+.hero-cell .spark[hidden], .wcard .spark[hidden] { display: none; }
+.hero-cell .rbar { margin-top: var(--sp-8); }
+.rbar { display: flex; align-items: center; gap: var(--sp-8); margin-top: var(--sp-8); cursor: help; }
+.rbar .rb-lo, .rbar .rb-hi {
+  font-family: var(--font-mono); font-size: var(--fs-12); font-style: normal;
+  color: var(--text-faint); white-space: nowrap; flex: none;
+}
+.rbar .rb-track {
+  position: relative; flex: 1; height: 4px;
+  background: var(--bg-sunken); border-radius: 999px;
+}
+.rbar .rb-track > b {
+  position: absolute; top: -2px; width: 7px; height: 7px; margin-left: -3.5px;
+  border-radius: 50%; background: var(--up);
+}
+
+/* 日光：卡片抬起来必须靠真实投影（深空白影不可见，日光白底白影同样不可见） */
+html[data-theme="daylight"] .hero { box-shadow: var(--shadow-1); }
+
+/* ============================================================ 2. 指数卡墙（全球指数）
+   标准卡模板：--r-md + 1px 描边 + 光面。旧的「表格线」拼法（border-right + nth-child
+   复位）全部作废——6 张卡是一个网格，不是一个表；网格读作一组卡而不是一行单元格。 */
+#globeBar {
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--sp-8); margin-top: var(--sp-8); border: 0;
+}
+#globeBar .gcard {
+  min-width: 0; cursor: pointer;
+  padding: var(--sp-12) var(--sp-12) var(--sp-12);
+  border: 1px solid var(--border); border-right: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+#globeBar .gcard:hover { border-color: var(--border-hover); background-color: var(--bg-hover); }
+#globeBar .gcard:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+/* 名称区固定两行高度：长短名混排（富时100 / KOSPI）不许让同排三个数字高低差 */
+#globeBar .gcard .hero-label {
+  min-height: 32px; align-items: flex-start; line-height: 1.35;
+  letter-spacing: 0.1em; overflow: hidden;
+}
+#globeBar .gcard .hero-label > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+#globeBar .gcard .hero-value { font-size: var(--fs-20); margin-top: var(--sp-8); letter-spacing: -0.01em; }
+#globeBar .gcard .hero-chg { font-size: var(--fs-12); margin-top: var(--sp-4); }
+/* 加载中的占位格：不画空卡，只留一句说明 */
+#globeBar .gcell {
+  grid-column: 1 / -1; padding: var(--sp-16) var(--sp-16);
+  border: 1px dashed var(--border); border-radius: var(--r-md);
+  font-size: var(--fs-12); color: var(--text-tertiary); text-align: center;
+}
+html[data-theme="daylight"] #globeBar .gcard { box-shadow: var(--shadow-1); }
+
+/* 窄屏：hero 从 4 格折成 2×2，指数卡 6 列 → 3 列 → 2 列。
+   折行后必须补回格线（border-left / border-top），否则四格会糊成一块无边界的大色块。 */
+@media (max-width: 900px) {
+  .hero { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero-cell { padding: var(--sp-12) var(--sp-12) var(--sp-12) var(--sp-16); }
+  .hero-cell:nth-child(odd) { border-left: none; }
+  .hero-cell:nth-child(n+3) { border-top: 1px solid var(--border); }
+  #globeBar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  /* 32px 的 8 位数字在 179px 宽的格里放不下，降到 20 档（仍是 mono tabular） */
+  .hero-value { font-size: var(--fs-20); }
+  #globeBar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* 390px 上「旗标 + 名称 + 疑问号 + 代码」四件挤在 151px 里，代码会把名称挤成
+     「纳斯达…」——代码是二级元数据，让位给名称（详情页仍能看到完整代码）。 */
+  .hero-cell .hero-label { letter-spacing: 0.06em; }
+  /* 只收 hero 格的代码；gcard 的 .hero-label 里只有一个 span（就是名称），
+     用裸选择器会连名称一起藏掉——这是踩过的坑，别简化。 */
+  .hero-cell .hero-label > span:last-child { display: none; }
+}
+
+/* ============================================================ 3. 吸顶跑马条
+   TradingView ticker 的终端版：吸在顶栏下沿，玻璃底 + 1px 下描边。
+   左右两端做遮罩渐隐——条是「无限延伸的指数流」，硬边缘会让人以为内容被裁掉了。
+   （移动端由 app.js/CSS 隐藏：顶栏折两行，fixed 条对不齐，--tape-h 归零。） */
+.tape {
+  position: fixed; top: var(--topbar-h); left: 0; right: 0; height: var(--tape-h);
+  display: flex; align-items: stretch;
+  overflow-x: auto; scrollbar-width: none;
+  background: var(--bg-glass);
+  backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border-bottom: 1px solid var(--border);
+  z-index: 90;
+  /* 遮罩不是颜色：这里的两端黑只表示「不淡出的范围」，不参与主题 */
+  -webkit-mask-image: linear-gradient(90deg, #0000 0, #000 var(--sp-24), #000 calc(100% - var(--sp-48)), #0000 100%);
+          mask-image: linear-gradient(90deg, #0000 0, #000 var(--sp-24), #000 calc(100% - var(--sp-48)), #0000 100%);
+}
+.tape::-webkit-scrollbar { display: none; }
+.tape-cell {
+  display: inline-flex; align-items: center; gap: var(--sp-8);
+  padding: 0 var(--sp-16);
+  border-right: 1px solid var(--border-soft);
+  font-size: var(--fs-12); white-space: nowrap; flex: 0 0 auto;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.tape-cell:first-child { padding-left: var(--sp-32); }
+.tape-cell:last-child { border-right: 0; }
+.tape-cell:hover { background-color: var(--bg-hover); }
+.tape-cell:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+.tp-name { color: var(--text-tertiary); }
+.tp-price {
+  color: var(--text); font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+}
+.tp-pct { min-width: 56px; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* ============================================================ 4. 市场简报带
+   首屏先给答案：这不卡片，是「仪表条」——左标签 / 中间连续分布尺 / 右端数字。
+   条身做成凹陷面（--bg-sunken + 1px 描边），与下面三张光面卡形成「读数 vs 卡片」的层级差。
+   条是「尺」不是「块」：细轨道 + 渐变填充，涨的宽度就是涨的占比。 */
+.brief {
+  display: flex; flex-direction: column;
+  padding: 0 var(--sp-16);
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--bg-sunken);
+  margin-bottom: var(--sp-16);
+}
+.brief-row {
+  display: grid; grid-template-columns: 160px minmax(120px, 1fr) auto;
+  align-items: center; gap: var(--sp-16);
+  padding: var(--sp-12) 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.brief-row:last-child { border-bottom: 0; }
+.brief-k {
+  display: flex; align-items: baseline; gap: var(--sp-8); min-width: 0;
+  font-family: var(--font-mono); font-size: var(--fs-12); letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-tertiary); white-space: nowrap;
+}
+/* 计数贴标签：12px mono，但用 --text-tertiary 而不是 --text-faint（faint 在深空对 bg 只有 4.3:1） */
+.brief-c {
+  font-family: var(--font-mono); font-size: var(--fs-12); letter-spacing: 0;
+  color: var(--text-tertiary);
+}
+.brief-bar {
+  display: flex; height: 6px; border-radius: 999px; overflow: hidden;
+  background: var(--bg-elevated);
+}
+.brief-bar > i { display: block; height: 100%; }
+.brief-bar > .b-up { background: linear-gradient(90deg, var(--up-bg), var(--up)); }
+.brief-bar > .b-down { background: linear-gradient(90deg, var(--down-bg), var(--down)); }
+.brief-bar > .b-flat { background: var(--text-faint); }
+/* 右端数字：mono tabular，端点即数值；结论（均值/情绪）升一档到 15 才是这一行的主角 */
+.brief-v {
+  display: inline-flex; align-items: baseline; gap: var(--sp-4);
+  font-family: var(--font-mono); font-size: var(--fs-12);
+  font-variant-numeric: tabular-nums; color: var(--text-tertiary); white-space: nowrap;
+}
+.brief-v b { font-weight: 600; color: var(--text-secondary); }
+.brief-v b.up { color: var(--text-rise); }
+.brief-v b.down { color: var(--text-fall); }
+.brief-v b.flat { color: var(--text-tertiary); }
+.brief-v b.lead { font-size: var(--fs-15); font-weight: 600; color: var(--text); }
+.brief-v b.lead.up { color: var(--text-rise); }
+.brief-v b.lead.down { color: var(--text-fall); }
+.brief-tail {
+  font-size: var(--fs-12); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-faint);
+}
+.brief-flat { display: inline-flex; align-items: baseline; gap: var(--sp-4); }
+/* 窄屏：三段网格（160+120+数字）放不进 358px，整行堆叠，条身独占一行 */
+@media (max-width: 640px) {
+  .brief-row { grid-template-columns: 1fr; gap: var(--sp-8); padding: var(--sp-12) 0; }
+  .brief-bar { width: 100%; }
+  .brief-v { white-space: normal; flex-wrap: wrap; }
+}
+
+/* ============================================================ 5. 行情行（hairline 表）
+   裸排模板：没有卡片盒子，只有 1px 行分隔线。行情行是页面里最密的一块，
+   盒子里再套盒子只会让 44px 的行高被边框吃掉两像素。
+   三件事必须守住：
+     ① 行高 44px（移动端触控下限），名称与代码合并成一行，否则两行名 + 代码 = 51px；
+     ② 数字列固定宽 + 右对齐 + tabular，价格跳动时列不左右抖；
+     ③ 悬停只换底色，不做位移、不做阴影（深空禁影，位移在密排表里是噪音）。 */
+.card-grid { display: block; }
+.qrow-head,
+.qrow {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) 104px 96px 96px 112px 32px;
+  gap: var(--sp-12); align-items: center;
+  padding: 0 var(--sp-8) 0 var(--sp-4);
+}
+.qrow-head {
+  padding-bottom: var(--sp-8);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-12); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-faint);
+}
+.qrow-head span { text-align: right; }
+.qrow-head .qh-name { text-align: left; }
+.qrow {
+  min-height: 44px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; position: relative;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.qrow:hover { background-color: var(--bg-hover); }
+.qrow:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+.qrow:last-child { border-bottom-color: var(--border-soft); }
+
+/* 名称区：名称 + 代码同一行（代码退到名称右侧，仍可读、不抢名称）
+   logo / 旗标 / 疑问号都是 inline-flex 子项，min-width:0 让长名能省略。 */
+.qr-name-wrap { display: flex; align-items: baseline; gap: var(--sp-8); min-width: 0; }
+.qr-name {
+  display: flex; align-items: center; gap: var(--sp-8); min-width: 0;
+  font-size: var(--fs-13); font-weight: 500; line-height: 1.3;
+}
+.qr-nm {
+  display: inline-flex; align-items: center; gap: var(--sp-4);
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.qr-code {
+  flex: none; margin-top: 0;
+  font-family: var(--font-mono); font-size: var(--fs-12); letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+/* 数字列：固定宽 + 右对齐 + tabular。价格 13/500 是这一行的主值，
+   涨跌、涨跌幅、成交额都退一档（12）。 */
+.qr-price {
+  text-align: right; font-size: var(--fs-13); font-weight: 500;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.qr-chg, .qr-pct, .qr-amt {
+  text-align: right; font-size: var(--fs-12);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.qr-pct { font-weight: 600; }
+.qr-amt { color: var(--text-tertiary); }
+.star {
+  width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
+  color: var(--text-faint); font-size: var(--fs-12);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.star:hover { color: var(--accent-signature); }
+.star.on { color: var(--accent-signature); }
+
+/* Movers 三榜：与行情行同一套语言（44px、右对齐、tabular），列头 12 大写字距 */
+.mv-col-head {
+  font-size: var(--fs-12); letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-tertiary); padding: var(--sp-8) var(--sp-8);
+  border-bottom: 1px solid var(--border);
+}
+.mv-row {
+  display: flex; align-items: center; gap: var(--sp-12); width: 100%;
+  min-height: 44px; padding: 0 var(--sp-8);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-12); text-align: left; min-width: 0; cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.mv-row:hover { background-color: var(--bg-hover); }
+.mv-rank { flex: 0 0 18px; color: var(--text-faint); font-family: var(--font-mono); }
+.mv-name { flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: var(--sp-8); }
+.mv-nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-13); }
+.mv-code { font-size: var(--fs-12); color: var(--text-faint); flex: none; }
+.mv-price { flex: 0 0 auto; color: var(--text-secondary); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.mv-metric {
+  flex: 0 0 72px; text-align: right; font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums; font-weight: 600;
+}
+
+/* 窄屏：只留「名称 / 现价 / 涨跌幅 / 星标」四列——390px 上四列已经 346px，
+   再加涨跌与成交额必然横向溢出。列头同步砍到四列，否则数字列对不上自己的标题。 */
+@media (max-width: 860px) {
+  .qrow-head,
+  .qrow { grid-template-columns: minmax(0, 1fr) 88px 80px 44px; gap: var(--sp-8); }
+  .qrow .qr-chg, .qrow .qr-amt,
+  .qrow-head span:nth-child(3), .qrow-head span:nth-child(5) { display: none; }
+  /* 名称与代码改回上下两行：四列布局里名称区只剩 ~106px，
+     与代码抢宽度会把「创业板指」截成「创业」。竖排后名称吃满整列。 */
+  .qr-name-wrap { flex-direction: column; align-items: flex-start; gap: 0; }
+  .qr-code { line-height: 1.3; }
+  .qrow { min-height: 52px; }
+  .star { width: 44px; height: 44px; }   /* 触控目标 ≥44px */
+  .mv-row { min-height: 48px; }
+}
+
+/* ============================================================ 6. 热力图外壳
+   色带本身在 js/treemap.js 里（pctColor：中性 #333 → --up/--down，涨跌双极、无彩虹），
+   CSS 管的是「装它的框」：1px 描边 + --r-md 圆角 + 凹陷底，让 canvas 像一块仪表盘
+   而不是浮在页面上的黑矩形。图例是色阶说明 + 区间筛选器，必须能点得到（≥24px 命中区）。 */
+.heat-toolbar {
+  display: flex; align-items: center; gap: var(--sp-12); flex-wrap: wrap;
+  margin-bottom: var(--sp-12);
+}
+.heat-wrap {
+  position: relative; padding: var(--sp-8);
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--bg-card);
+  overflow: hidden;
+}
+#heatCanvas {
+  display: block; width: 100%; height: 480px;
+  border-radius: var(--r-sm);
+  outline: none;
+}
+#heatCanvas:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+.heat-sk { position: absolute; inset: var(--sp-8); z-index: 2; border-radius: var(--r-sm); }
+.heat-empty {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  color: var(--text-tertiary); font-size: var(--fs-12);
+  background: var(--bg-card); z-index: 2;
+}
+/* 图例 = 一段色阶 + 两端刻度。做成一个描边小控件，与 toolbar 上的按钮同海拔。 */
+.heat-legend {
+  display: inline-flex; align-items: center; gap: 2px;
+  margin-left: auto; padding: var(--sp-4);
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--bg-sunken);
+}
+.heat-band {
+  position: relative; width: 14px; height: 10px; padding: 0; border: 0; cursor: pointer;
+  border-radius: 0; opacity: 0.92;
+  transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+/* 13×10 的色块手指点不准：用透明 ::before 把命中区撑到 ≥24px 高 */
+.heat-band::before { content: ''; position: absolute; inset: -8px -2px; }
+.heat-band:hover { opacity: 1; transform: scaleY(1.35); }
+.heat-band:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.heat-band.off { opacity: 0.16; }
+.heat-legend-marks { display: inline-flex; gap: var(--sp-12); margin-left: var(--sp-8); }
+.heat-legend b {
+  font-size: var(--fs-12); font-weight: 400; color: var(--text-tertiary);
+  font-family: var(--font-mono);
+}
+.heat-mkt-tag {
+  font-size: var(--fs-12); font-weight: 600; color: var(--text);
+  letter-spacing: 0.04em; padding: var(--sp-4) 0;
+}
+.heat-mkt-tag::before {
+  content: ''; display: inline-block; width: 5px; height: 5px;
+  margin-right: var(--sp-8); border-radius: 50%;
+  background: var(--accent-signature); vertical-align: 1px;
+}
+.heat-mkt-switch { display: inline-flex; align-items: center; gap: var(--sp-8); }
+.heat-mkt-switch[hidden], .heat-mkt-tag[hidden] { display: none; }
+#heatReset {
+  font-family: var(--font-mono); font-size: var(--fs-12);
+  padding: var(--sp-4) var(--sp-8); border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--text-secondary);
+  transition: opacity var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out),
+    visibility var(--dur-fast);
+}
+#heatReset:hover { border-color: var(--border-hover); color: var(--text); }
+#heatReset[hidden] { display: inline-block; opacity: 0; visibility: hidden; pointer-events: none; }
+
+/* 悬停读数浮层：玻璃面 + --r-lg（浮层是最高海拔的一档），深空靠描边与模糊立住 */
+.heat-tip {
+  position: absolute; top: 0; left: 0; pointer-events: none;
+  transform: translate3d(var(--tip-x, 0), var(--tip-y, 0), 0); z-index: 30;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+  will-change: transform;
+}
+.heat-tip.active { opacity: 1; }
+.heat-tip > .ht-inner {
+  padding: var(--sp-8) var(--sp-12); min-width: 130px;
+  background: var(--bg-glass); backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid var(--border-hover); border-radius: var(--r-lg);
+}
+.ht-name { font-size: var(--fs-12); font-weight: 600; margin-bottom: 2px; color: var(--text); }
+.ht-row {
+  font-size: var(--fs-12); color: var(--text-secondary);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+}
+/* 画布上的角标（来源署名 / 操作提示）：贴在深色画布上，只能靠 --text-tertiary 保对比 */
+.heat-hint {
+  position: absolute; right: var(--sp-16); bottom: var(--sp-16);
+  font-size: var(--fs-12); color: var(--text-tertiary); letter-spacing: 0.06em;
+  pointer-events: none; transition: opacity var(--dur-slow) var(--ease-out);
+}
+.heat-hint.faded { opacity: 0; }
+.heat-logo {
+  position: absolute; left: var(--sp-16); bottom: var(--sp-16);
+  display: flex; align-items: center; gap: var(--sp-8);
+  font-family: var(--font-mono); font-size: var(--fs-12); letter-spacing: 0.18em;
+  color: var(--text-faint); pointer-events: none;
+}
+.heat-logo .logo-dot { width: 5px; height: 5px; }
+
+/* 表格视图（canvas 的可读等价物）：与行情行同一套 hairline + 右对齐数字 */
+.heat-table { margin-top: var(--sp-16); }
+.heat-table-head {
+  font-size: var(--fs-12); color: var(--text-tertiary);
+  margin-bottom: var(--sp-12); line-height: 1.6;
+}
+.heat-table-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--sp-32); }
+.heat-grid { width: 100%; border-collapse: collapse; font-size: var(--fs-12); }
+.heat-grid caption {
+  text-align: left; font-size: var(--fs-12); letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-tertiary); padding: var(--sp-8);
+  border-bottom: 1px solid var(--border);
+}
+.heat-grid th, .heat-grid td {
+  text-align: left; padding: var(--sp-8); border-bottom: 1px solid var(--border-soft);
+}
+.heat-grid thead th {
+  font-size: var(--fs-12); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-tertiary); font-weight: 500;
+}
+.heat-grid tbody th { font-weight: 500; }
+.heat-grid td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.ht-link { color: var(--text); border-bottom: 1px solid transparent; text-align: left; }
+.ht-link:hover { color: var(--accent-signature); border-bottom-color: currentColor; }
+@media (max-width: 960px) {
+  .heat-table-cols { grid-template-columns: 1fr; gap: var(--sp-24); }
+  .heat-legend { margin-left: 0; }
+  #heatCanvas { height: 360px; }
+}
+
+/* ============================================================ 7. 自选卡
+   标准卡模板（--r-md）。旧的 wgrid 是「1px 网格拼贴」：gap:1px + 背景当分隔线，
+   读起来是一张表而不是一组卡；现在每张卡自带描边，卡与卡之间只留 8px 空气。
+   悬停抬升**只用描边变化**（深空禁阴影，位移在密排网格里会让整行跳）。 */
+.wgrid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-8); margin-top: var(--sp-16);
+  background: none; border: 0;
+}
+.wcard {
+  position: relative; min-width: 0; cursor: pointer;
+  padding: var(--sp-16);
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.wcard:hover { border-color: var(--border-hover); background-color: var(--bg-hover); }
+.wcard:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.wcard .hero-label {
+  font-size: var(--fs-12); letter-spacing: 0.1em; color: var(--text-tertiary);
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-8);
+}
+.wcard .hero-label span:first-child {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.wcard .hero-value { font-size: var(--fs-20); margin-top: var(--sp-8); letter-spacing: -0.01em; }
+.wcard .hero-chg { font-size: var(--fs-12); margin-top: var(--sp-4); }
+.wcard .spark { display: block; width: 100%; height: 30px; margin-top: var(--sp-8); }
+/* 空态：两句提示（还没收藏 / 数据没到）都整行跨满，且不要那张"半个格子"的深底——
+   #watchGrid 里注入的是 .empty-hint（旧规则只给 .empty 做了跨列），
+   这里把两种空态收敛成同一套：整行 + 虚线 + 无底。 */
+.wgrid > .empty,
+.wgrid > .empty-hint {
+  grid-column: 1 / -1;
+  padding: var(--sp-16) var(--sp-24);
+  border: 1px dashed var(--border); border-left: 1px dashed var(--border);
+  border-radius: var(--r-md); background: transparent;
+  color: var(--text-tertiary); text-align: left;
+  font-size: var(--fs-12); line-height: 1.6;
+}
+/* 自选页汇总条：同一套 hairline 语言，数字 mono tabular */
+.watch-summary {
+  display: flex; align-items: baseline; gap: var(--sp-16); flex-wrap: wrap;
+  padding: var(--sp-16) 0; margin-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-13);
+}
+.ws-label {
+  font-size: var(--fs-12); letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.ws-dim {
+  margin-left: auto; font-size: var(--fs-12); color: var(--text-tertiary);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+}
+.watch-sortbar { display: flex; gap: var(--sp-8); margin-bottom: var(--sp-16); flex-wrap: wrap; }
+html[data-theme="daylight"] .wcard { box-shadow: var(--shadow-1); }
+html[data-theme="daylight"] .wcard:hover { box-shadow: var(--shadow-2); }
+@media (max-width: 1100px) { .wgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 860px) {
+  .wgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wcard { padding: var(--sp-12); }
+}
+
+/* ============================================================ 8. 图表外壳（K 线工作台）
+   外壳是一张标准卡（--r-md + 1px 描边），里面三层：工具条 / 主图 / 副图堆叠。
+   工具条改成「按钮组」而不是一排文字：每个控件 32×32（图标类）或 32 高（文字类），
+   默认透明描边，hover 才亮起描边——20 多个控件平铺时，框线全亮等于没有层级。 */
+.chart-box {
+  padding: var(--sp-12);
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--bg-card);
+  min-height: 300px;
+}
+#klineChart { position: relative; width: 100%; height: 420px; }
+.kcell { min-width: 0; }
+.kcell-head { display: flex; align-items: center; gap: var(--sp-4); margin-bottom: var(--sp-8); }
+.kcell-sel {
+  max-width: 60%; padding: var(--sp-4) var(--sp-8);
+  background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--text); font-size: var(--fs-12);
+}
+.kcell-promo {
+  padding: var(--sp-4) var(--sp-8);
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--text-tertiary); font-size: var(--fs-12);
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.kcell-promo:hover { color: var(--text); border-color: var(--border-hover); }
+.kcell-empty {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 300px; border: 1px dashed var(--border); border-radius: var(--r-sm);
+  color: var(--text-tertiary); font-size: var(--fs-13);
+}
+/* 副图：与主图之间只留一条 hairline；分隔条是 9px 拖拽带，静默时是一条线，
+   hover/拖拽时那条线变成强调色（1px，不做整块高亮——高亮块会盖住副图刻度）。 */
+.k-pane { height: 110px; border-top: 1px solid var(--border-soft); }
+.k-pane-stack { display: block; }
+.k-pane-div {
+  position: relative; height: 9px; background-color: var(--bg-sunken);
+  cursor: ns-resize; touch-action: none;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.k-pane-div::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 4px; height: 1px;
+  background: var(--border);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.k-pane-div:hover { background-color: var(--bg-hover); }
+.k-pane-div:hover::before,
+.k-pane-div.on::before { background: var(--accent-signature); }
+.k-pane-div.on { background-color: rgba(var(--accent-rgb), 0.08); }
+/* 十字光标读数：常显在图表左上角，mono tabular；压到 12 档，绝不与主图数字抢读 */
+.k-legend {
+  position: absolute; top: var(--sp-8); left: var(--sp-8); z-index: 5; pointer-events: none;
+  display: flex; flex-wrap: wrap; gap: var(--sp-4) var(--sp-12);
+  max-width: calc(100% - var(--sp-16));
+  font-family: var(--font-mono); font-size: var(--fs-12);
+  font-variant-numeric: tabular-nums; color: var(--text-tertiary);
+}
+.k-legend b { font-weight: 500; }
+.kl-time { color: var(--text-secondary); }
+.kl-dim { color: var(--text-faint); }
+.kl-sym { color: var(--text-secondary); font-weight: 600; padding-right: var(--sp-4); }
+
+/* 详情页工具条（元素同时带 .heat-toolbar，将来由 shell 补 .k-toolbar）：
+   所有控件统一 32px 高、--r-sm、默认无描边，hover 起描边，选中态用强调色描边。
+   下划线型选中态在这里作废——工具条是按钮组，不是 tab 栏。 */
+#view-detail .heat-toolbar,
+.k-toolbar {
+  display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap;
+  padding: var(--sp-8) 0; margin-bottom: var(--sp-8);
+  border-bottom: 1px solid var(--border-soft);
+}
+#view-detail .heat-toolbar .pill,
+.k-toolbar .pill {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-4);
+  min-height: 32px; min-width: 32px; padding: var(--sp-4) var(--sp-8);
+  border: 1px solid transparent; border-radius: var(--r-sm);
+  color: var(--text-tertiary); font-size: var(--fs-12);
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+#view-detail .heat-toolbar .pill::after,
+.k-toolbar .pill::after { display: none; }
+#view-detail .heat-toolbar .pill:hover,
+.k-toolbar .pill:hover { color: var(--text); border-color: var(--border-hover); background-color: var(--bg-hover); }
+#view-detail .heat-toolbar .pill.active,
+.k-toolbar .pill.active {
+  color: var(--text); border-color: var(--accent-signature);
+  background-color: rgba(var(--accent-rgb), 0.08);
+}
+/* 图标型控件（画线六件 + 隐藏画线）：纯字形，32×32 方按钮 */
+#view-detail .heat-toolbar .draw-btn,
+.k-toolbar .draw-btn {
+  padding: 0; width: 32px; min-width: 32px;
+  font-family: var(--font-mono); font-size: var(--fs-15); line-height: 1;
+  color: var(--text-tertiary);
+}
+#view-detail .heat-toolbar .draw-btn:hover,
+.k-toolbar .draw-btn:hover { color: var(--text); }
+#view-detail .heat-toolbar .draw-btn[aria-pressed="true"],
+.k-toolbar .draw-btn[aria-pressed="true"] {
+  color: var(--accent-signature); border-color: var(--accent-signature);
+}
+#view-detail .heat-toolbar .pill:focus-visible,
+.k-toolbar .pill:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+/* 指标菜单 / 标尺 / 类型 / 布局 / 对比：玻璃浮层，--r-lg（弹层是最高一档海拔） */
+.ma-menu {
+  top: calc(100% + var(--sp-8)); left: 0; z-index: 60;
+  min-width: 240px; padding: var(--sp-12);
+  max-height: min(70vh, 560px); overflow-y: auto;
+  background: var(--bg-glass);
+  backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid var(--border-hover); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+}
+.ma-sec + .ma-sec { margin-top: var(--sp-12); padding-top: var(--sp-12); border-top: 1px solid var(--border-soft); }
+.ma-sec-t {
+  font-size: var(--fs-12); letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-tertiary); margin-bottom: var(--sp-8);
+}
+.ma-menu label {
+  display: flex; align-items: center; gap: var(--sp-8);
+  padding: var(--sp-4) 0; font-size: var(--fs-12); color: var(--text-secondary); cursor: pointer;
+  border-radius: var(--r-sm);
+}
+.ma-menu label:hover { color: var(--text); background-color: var(--bg-hover); }
+.ma-pane-row { border-radius: var(--r-sm); padding: var(--sp-4) var(--sp-8); }
+.ma-pane-row.on { color: var(--text); }
+.ma-add {
+  width: 100%; margin-top: var(--sp-8); padding: var(--sp-8) 0;
+  font-size: var(--fs-12); color: var(--text-secondary);
+  border: 1px dashed var(--border); border-radius: var(--r-sm);
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.ma-add:hover { color: var(--text); border-color: var(--border-hover); }
+.ma-empty { font-size: var(--fs-12); color: var(--text-tertiary); padding: var(--sp-4) 0; }
+/* 菜单里的输入框（对比标的搜索 / 周期数值）：与行情区同款凹陷底 */
+.ma-menu input[type="number"],
+.ma-menu .search-input,
+.kcell-sel {
+  background: var(--bg-sunken);
+  border-color: var(--border);
+}
+@media (max-width: 700px) {
+  .chart-box.layout-1x2, .chart-box.layout-2x2 { grid-template-columns: 1fr; }
+  /* 移动端工具条：32px 方按钮低于触控下限，统一抬到 44px（只抬高度与命中区） */
+  #view-detail .heat-toolbar .pill,
+  .k-toolbar .pill { min-height: 44px; min-width: 44px; }
+  #view-detail .heat-toolbar .draw-btn,
+  .k-toolbar .draw-btn { width: 44px; min-width: 44px; }
+  #klineChart { height: 320px; }
+  .kcell-chart { height: 320px; }
+  .layout-2x2 #klineChart, .layout-2x2 .kcell-chart { height: 260px; }
+  #view-detail .heat-toolbar, .k-toolbar { gap: var(--sp-4); }
+  .k-legend { max-width: calc(100% - var(--sp-16)); }
+}
+
+/* ============================================================ 9. 详情页头 + KPI
+   层级只有三层：12 大写字距标签 / 20 标题 / 32 主数字。
+   标题与主数字之间用一条 hairline 分开，理由是「上面是谁、下面是数据」：
+   详情页最常见的误读是把 KPI 当成标题的一部分。 */
+.detail-head {
+  display: flex; align-items: baseline; gap: var(--sp-16); flex-wrap: wrap;
+  padding-bottom: var(--sp-16); margin-bottom: var(--sp-16);
+  border-bottom: 1px solid var(--border);
+}
+.back-btn {
+  align-self: center; min-height: 32px; padding: var(--sp-4) var(--sp-12);
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  font-size: var(--fs-12); color: var(--text-secondary);
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.back-btn:hover { color: var(--text); border-color: var(--border-hover); }
+.detail-name { font-size: var(--fs-20); font-weight: 600; letter-spacing: -0.01em; }
+.detail-code {
+  font-family: var(--font-mono); font-size: var(--fs-12);
+  color: var(--text-tertiary); letter-spacing: 0.04em;
+}
+.detail-price {
+  margin-left: auto; font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--fs-32); font-weight: 500; letter-spacing: -0.02em; line-height: 1;
+}
+.detail-chg {
+  display: inline-flex; align-items: baseline; gap: var(--sp-8);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--fs-15); padding-bottom: 2px;
+}
+.detail-gloss {
+  font-size: var(--fs-12); color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border); padding-bottom: 1px;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.detail-gloss:hover { color: var(--text); border-bottom-color: var(--border-strong); }
+#detailStar {
+  align-self: center; width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--text-tertiary); font-size: var(--fs-13);
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+#detailStar:hover { color: var(--accent-signature); border-color: var(--border-hover); }
+#detailStar.on { color: var(--accent-signature); border-color: var(--accent-signature); }
+/* KPI 网格：自动铺，窄屏自然折行；标签 12 大写、数值 15 mono tabular */
+.detail-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: var(--sp-12) var(--sp-16);
+  padding-bottom: var(--sp-16); margin-bottom: var(--sp-24);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: var(--fs-12); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.detail-stats b {
+  display: block; margin-top: var(--sp-4);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--fs-15); font-weight: 500; letter-spacing: -0.01em;
+  color: var(--text);
+}
+@media (max-width: 640px) {
+  .detail-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-12) var(--sp-8); }
+  .detail-price { font-size: var(--fs-20); }
+  .detail-chg { font-size: var(--fs-13); }
+  #detailStar { width: 44px; height: 44px; }
+}
+
+/* ============================================================ 10. 情绪与市场宽度
+   两块读数语言：温度计（一根轨道 + 一个刻度）与宽度四格（KPI 网格）。
+   它们都在「情绪」分区里出现，和首屏简报带是同一套仪表语言：
+   标签 12 大写 / 数字 mono tabular / 分隔靠 hairline，不用盒子套盒子。 */
+.mood-top { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: var(--sp-24); margin-bottom: var(--sp-24); }
+.thermo-card {
+  padding: var(--sp-16);
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--bg-sunken);
+}
+.thermo-label {
+  font-size: var(--fs-12); letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.thermo-score {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--fs-32); font-weight: 500; letter-spacing: -0.03em;
+  line-height: 1.05; margin-top: var(--sp-8); color: var(--text);
+}
+.thermo-band { font-size: var(--fs-13); margin-top: var(--sp-4); font-family: var(--font-mono); }
+.thermo-track {
+  position: relative; height: 6px; margin-top: var(--sp-12); overflow: hidden;
+  border-radius: 999px; opacity: 0.5;
+  background: linear-gradient(90deg,
+    var(--down) 0%, var(--down) 26%,
+    var(--accent-signature) 40%, var(--accent-signature) 60%,
+    var(--up) 74%, var(--up) 100%);
+}
+.thermo-fill {
+  position: absolute; inset: 0;
+  /* 填充 = 已经「点亮」的那一段：用 --text 而不是白色，深空里提亮、日光里压暗，
+     两个模式都能看出刻度走到了哪儿（白色在日光下等于没画）。 */
+  background: var(--text); opacity: 0.18;
+  transform-origin: left center; transform: scaleX(0);
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+.thermo-scale {
+  display: flex; justify-content: space-between; margin-top: var(--sp-8);
+  font-family: var(--font-mono); font-size: var(--fs-12); color: var(--text-tertiary);
+}
+.thermo-note {
+  font-size: var(--fs-12); color: var(--text-tertiary);
+  margin-top: var(--sp-16); font-family: var(--font-mono); line-height: 1.5;
+}
+/* 宽度四格：bare 表格语言（hairline 分隔），不是四张卡 */
+.breadth-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0;
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--bg-card);
+  overflow: hidden;
+}
+.bd-cell { padding: var(--sp-16); border-left: 1px solid var(--border-soft); min-width: 0; }
+.bd-cell:first-child { border-left: 0; }
+.bd-label {
+  font-size: var(--fs-12); letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.bd-value {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--fs-20); font-weight: 500; letter-spacing: -0.01em;
+  line-height: 1.2; margin-top: var(--sp-8); color: var(--text);
+}
+.bd-sub {
+  font-family: var(--font-mono); font-size: var(--fs-12);
+  color: var(--text-faint); margin-top: var(--sp-4);
+}
+/* 涨跌幅分布柱：顶部圆角、贴底——柱状图不是胶囊，只取上两角 */
+.dist-wrap {
+  display: flex; align-items: flex-end; gap: var(--sp-8);
+  min-height: 170px; padding: var(--sp-24) var(--sp-4) 0;
+  border-bottom: 1px solid var(--border); overflow-x: auto;
+}
+.dist-col {
+  flex: 1 1 0; min-width: 60px;
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-8);
+}
+.dist-bar-area { width: 100%; height: 104px; display: flex; align-items: flex-end; justify-content: center; }
+.dist-bar {
+  width: 100%; height: 104px;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  transform-origin: bottom center; transform: scaleY(0);
+  transition: transform var(--dur-med) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.dist-count {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--fs-12); font-weight: 500; color: var(--text-secondary);
+}
+.dist-label {
+  font-family: var(--font-mono); font-size: var(--fs-12);
+  color: var(--text-faint); white-space: nowrap;
+}
+.spark-box { padding: var(--sp-24) 0 0; }
+.spark-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--sp-12); flex-wrap: wrap; margin-bottom: var(--sp-12);
+}
+.spark-title {
+  font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+.spark-range {
+  font-family: var(--font-mono); font-size: var(--fs-12);
+  color: var(--text-tertiary); font-variant-numeric: tabular-nums;
+}
+.spark-svg { display: block; width: 100%; height: 64px; }
+.spark-empty {
+  font-family: var(--font-mono); font-size: var(--fs-12);
+  color: var(--text-tertiary); padding: var(--sp-8) 0;
+}
+html[data-theme="daylight"] .breadth-grid { box-shadow: var(--shadow-1); }
+@media (max-width: 860px) {
+  .mood-top { grid-template-columns: 1fr; gap: var(--sp-16); }
+  .breadth-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bd-cell:nth-child(odd) { border-left: 0; }
+  .bd-cell:nth-child(n+3) { border-top: 1px solid var(--border-soft); }
+}
+
+/* ============================================================ 11. 窄屏兜底：板块头折行
+   390px 下 .section-head 是 flex 且副标题很长（"5572 个标的 · 面积=市值 · …"），
+   flex 会把标题压到 min-content——"热力图"三个字被竖排成三行。
+   这里让板块头在窄屏折成两行：标题 + 细线在第一行，副标题独占第二行。
+   （同类问题在其它视图也存在，那段归 shell/lead 的全局 .section-head，已报。） */
+@media (max-width: 640px) {
+  #view-market .section-head { flex-wrap: wrap; row-gap: var(--sp-4); }
+  #view-market .section-title { flex: none; white-space: nowrap; }
+  #view-market .section-sub { flex: 1 1 100%; }
+}

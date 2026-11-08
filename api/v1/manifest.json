@@ -1,0 +1,969 @@
+{
+  "ok": true,
+  "data": {
+    "version": "v1",
+    "base": "api/v1",
+    "datasets": [
+      {
+        "id": "index",
+        "title": "根索引",
+        "description": "列出全部数据集、各自路径、更新时间与滞后状态，是 Agent 的第一入口。",
+        "path": "api/v1/index.json",
+        "kind": "meta",
+        "fields": [
+          {
+            "name": "version",
+            "type": "string",
+            "unit": null,
+            "desc": "API 版本号"
+          },
+          {
+            "name": "generatedAt",
+            "type": "string",
+            "unit": null,
+            "desc": "构建时间（ISO 8601）"
+          },
+          {
+            "name": "count",
+            "type": "integer",
+            "unit": "个",
+            "desc": "数据集数量"
+          },
+          {
+            "name": "datasets",
+            "type": "array",
+            "unit": null,
+            "desc": "数据集摘要列表（id/title/path/asof/stale/count）"
+          },
+          {
+            "name": "entrypoints",
+            "type": "object",
+            "unit": null,
+            "desc": "manifest/health/openapi 的入口路径"
+          }
+        ],
+        "sample": {
+          "version": "v1",
+          "generatedAt": "2026-11-08T15:02:37.542Z",
+          "count": 11,
+          "datasets": [
+            {
+              "id": "quotes.latest",
+              "title": "行情快照",
+              "path": "api/v1/quotes/latest.json",
+              "stale": false
+            }
+          ],
+          "entrypoints": {
+            "manifest": "api/v1/manifest.json",
+            "health": "api/v1/health.json",
+            "openapi": "api/openapi.json"
+          }
+        },
+        "asof": "2026-11-08T15:02:37.542Z",
+        "stale": false,
+        "count": 11,
+        "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
+        "note": ""
+      },
+      {
+        "id": "manifest",
+        "title": "机器可读清单",
+        "description": "每个数据集的 id/标题/路径/字段定义/样例/数据截止时间，供 Agent 生成调用参数。",
+        "path": "api/v1/manifest.json",
+        "kind": "meta",
+        "fields": [
+          {
+            "name": "version",
+            "type": "string",
+            "unit": null,
+            "desc": "API 版本号"
+          },
+          {
+            "name": "generatedAt",
+            "type": "string",
+            "unit": null,
+            "desc": "构建时间（ISO 8601）"
+          },
+          {
+            "name": "base",
+            "type": "string",
+            "unit": null,
+            "desc": "静态 API 根路径"
+          },
+          {
+            "name": "datasets",
+            "type": "array",
+            "unit": null,
+            "desc": "数据集定义列表（含 fields/sample）"
+          }
+        ],
+        "sample": {
+          "version": "v1",
+          "generatedAt": "2026-11-08T15:02:37.542Z",
+          "base": "api/v1",
+          "datasets": [
+            {
+              "id": "quotes.latest",
+              "title": "行情快照",
+              "path": "api/v1/quotes/latest.json",
+              "kind": "data"
+            }
+          ]
+        },
+        "asof": "2026-11-08T15:02:37.542Z",
+        "stale": false,
+        "count": 11,
+        "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
+        "note": ""
+      },
+      {
+        "id": "universe",
+        "title": "标的宇宙",
+        "description": "代码、名称、市场、分组、拼音首字母与别名，用于把用户口语解析成标准 symbol。",
+        "path": "api/v1/universe.json",
+        "kind": "data",
+        "fields": [
+          {
+            "name": "symbol",
+            "type": "string",
+            "unit": null,
+            "desc": "标准标的代码（其它端点的入参）"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "unit": null,
+            "desc": "中文名称"
+          },
+          {
+            "name": "market",
+            "type": "string",
+            "unit": null,
+            "desc": "市场：cn/hk/us/global/crypto/fx/commodity/macro"
+          },
+          {
+            "name": "kind",
+            "type": "string",
+            "unit": null,
+            "desc": "品类：index/stock/crypto/fx/commodity/rate"
+          },
+          {
+            "name": "group",
+            "type": "string",
+            "unit": null,
+            "desc": "页面分组（与 universe.js 的 group 一致）"
+          },
+          {
+            "name": "code",
+            "type": "string",
+            "unit": null,
+            "desc": "交易所代码（去掉市场前缀）"
+          },
+          {
+            "name": "secid",
+            "type": "string",
+            "unit": null,
+            "desc": "东财 secid，仅东财源标的非空"
+          },
+          {
+            "name": "pinyin",
+            "type": "string",
+            "unit": null,
+            "desc": "中文名的拼音首字母串"
+          },
+          {
+            "name": "aliases",
+            "type": "array",
+            "unit": null,
+            "desc": "别名列表（中文简称/代码/常见口语）"
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "unit": null,
+            "desc": "取数源：tencent/eastmoney/binance"
+          }
+        ],
+        "sample": {
+          "symbol": "sh600028",
+          "name": "中国石化",
+          "market": "cn",
+          "group": "cn",
+          "kind": "stock",
+          "code": "600028",
+          "secid": null,
+          "source": "tencent",
+          "pinyin": "zgsh",
+          "aliases": [
+            "600028",
+            "sh600028",
+            "zgsh",
+            "中国石化",
+            "中石化"
+          ]
+        },
+        "asof": "2026-11-08T15:02:37.542Z",
+        "stale": false,
+        "count": 194,
+        "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
+        "note": "symbol 是其它端点与 MCP 工具的标准入参；aliases 含中文名、代码、拼音首字母与常见口语别名；secid 仅东财源使用。"
+      },
+      {
+        "id": "quotes.latest",
+        "title": "行情快照",
+        "description": "构建时抓取的行情快照，带 asof 与 stale；抓取失败时沿用上次快照并诚实标注。",
+        "path": "api/v1/quotes/latest.json",
+        "kind": "data",
+        "fields": [
+          {
+            "name": "symbol",
+            "type": "string",
+            "unit": null,
+            "desc": "标准标的代码"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "unit": null,
+            "desc": "上游返回的名称"
+          },
+          {
+            "name": "market",
+            "type": "string",
+            "unit": null,
+            "desc": "市场分组"
+          },
+          {
+            "name": "kind",
+            "type": "string",
+            "unit": null,
+            "desc": "品类"
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "unit": "价格",
+            "desc": "最新价"
+          },
+          {
+            "name": "prevClose",
+            "type": "number",
+            "unit": "价格",
+            "desc": "昨收"
+          },
+          {
+            "name": "open",
+            "type": "number",
+            "unit": "价格",
+            "desc": "今开"
+          },
+          {
+            "name": "high",
+            "type": "number",
+            "unit": "价格",
+            "desc": "最高"
+          },
+          {
+            "name": "low",
+            "type": "number",
+            "unit": "价格",
+            "desc": "最低"
+          },
+          {
+            "name": "change",
+            "type": "number",
+            "unit": "价格",
+            "desc": "涨跌额"
+          },
+          {
+            "name": "changePct",
+            "type": "number",
+            "unit": "%",
+            "desc": "涨跌幅（百分数）"
+          },
+          {
+            "name": "quoteAt",
+            "type": "integer",
+            "unit": "ms",
+            "desc": "上游行情时刻的毫秒时间戳（美股为 null）"
+          },
+          {
+            "name": "updatedAt",
+            "type": "integer",
+            "unit": "ms",
+            "desc": "抓取时刻的毫秒时间戳"
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "unit": null,
+            "desc": "取数源标识"
+          }
+        ],
+        "sample": {
+          "symbol": "sh600028",
+          "name": "中国石化",
+          "market": "cn",
+          "kind": "stock",
+          "price": 5.8,
+          "prevClose": 5.7,
+          "open": 5.7,
+          "high": 5.84,
+          "low": 5.59,
+          "change": 0.1,
+          "changePct": 1.75,
+          "quoteAt": 1793952896000,
+          "updatedAt": 1794150157788,
+          "source": "tencent"
+        },
+        "asof": "2026-11-08T15:02:38.255Z",
+        "stale": false,
+        "count": 194,
+        "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
+        "note": "实时抓取的行情快照；quoteAt 是上游行情时刻，updatedAt 是抓取时刻。只含价格与涨跌字段。"
+      },
+      {
+        "id": "klines.catalog",
+        "title": "K 线目录",
+        "description": "可用 K 线标的清单、周期与行数，指向 api/v1/klines/{symbol}.json。",
+        "path": "api/v1/markets/klines.json",
+        "kind": "data",
+        "fields": [
+          {
+            "name": "count",
+            "type": "integer",
+            "unit": "个",
+            "desc": "可用标的数量"
+          },
+          {
+            "name": "periods",
+            "type": "array",
+            "unit": null,
+            "desc": "周期枚举：day/week/month"
+          },
+          {
+            "name": "symbols",
+            "type": "array",
+            "unit": null,
+            "desc": "标的清单（symbol/name/market/path/periods/asof/stale）"
+          }
+        ],
+        "sample": {
+          "count": 19,
+          "periods": [
+            "day",
+            "week",
+            "month"
+          ],
+          "symbols": [
+            {
+              "symbol": "sh000001",
+              "name": "上证指数",
+              "market": "cn",
+              "path": "api/v1/klines/sh000001.json",
+              "asof": "2026-11-06",
+              "stale": false,
+              "periods": {
+                "day": {
+                  "count": 160,
+                  "asof": "2026-11-06",
+                  "stale": false
+                },
+                "week": {
+                  "count": 104,
+                  "asof": "2026-11-06",
+                  "stale": false
+                },
+                "month": {
+                  "count": 60,
+                  "asof": "2026-11-06",
+                  "stale": false
+                }
+              }
+            }
+          ]
+        },
+        "asof": "2026-11-08T00:00:00.000Z",
+        "stale": false,
+        "count": 19,
+        "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
+        "note": "每个标的的完整日/周/月序列在 api/v1/klines/{symbol}.json；MCP 的 get_klines 会优先实时抓取，失败再回退这些文件。"
+      },
+      {
+        "id": "klines.symbol",
+        "title": "单标的 K 线",
+        "description": "日/周/月 K 线（时间与开高低收），每个标的一个文件；路径里的 {symbol} 取目录中的代码。",
+        "path": "api/v1/klines/{symbol}.json",
+        "kind": "data",
+        "fields": [
+          {
+            "name": "symbol",
+            "type": "string",
+            "unit": null,
+            "desc": "标准标的代码"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "unit": null,
+            "desc": "中文名称"
+          },
+          {
+            "name": "market",
+            "type": "string",
+            "unit": null,
+            "desc": "市场分组"
+          },
+          {
+            "name": "periods",
+            "type": "object",
+            "unit": null,
+            "desc": "按周期分组：day/week/month → { interval, count, rows[{time,open,high,low,close}], asof, stale, source }"
+          }
+        ],
+        "sample": {
+          "symbol": "sh000001",
+          "name": "上证指数",
+          "market": "cn",
+          "periods": {
+            "day": {
+              "interval": "day",
+              "count": 160,
+              "asof": "2026-11-06",
+              "stale": false,
+              "source": "tencent/eastmoney/binance（经 js/sources 适配器）",
+              "rows": [
+                {
+                  "time": "2026-03-13",
+                  "open": 4117.57,
+                  "high": 4134.08,
+                  "low": 4086.85,
+                  "close": 4095.45
+                }
+              ]
+            }
+          }
+        },
+        "asof": "2026-11-08T00:00:00.000Z",
+        "stale": false,
+        "count": 19,
+        "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
+        "note": "",
+        "files": [
+          "api/v1/klines/sh000001.json",
+          "api/v1/klines/sz399001.json",
+          "api/v1/klines/sz399006.json",
+          "api/v1/klines/sh000688.json",
+          "api/v1/klines/hkHSI.json",
+          "api/v1/klines/hkHSTECH.json",
+          "api/v1/klines/usDJI.json",
+          "api/v1/klines/usIXIC.json",
+          "api/v1/klines/usINX.json",
+          "api/v1/klines/sh600519.json",
+          "api/v1/klines/sz300750.json",
+          "api/v1/klines/sh601318.json",
+          "api/v1/klines/sz002594.json",
+          "api/v1/klines/hk00700.json",
+          "api/v1/klines/hk09988.json",
+          "api/v1/klines/usAAPL.json",
+          "api/v1/klines/usNVDA.json",
+          "api/v1/klines/usTSLA.json",
+          "api/v1/klines/BTCUSDT.json"
+        ]
+      },
+      {
+        "id": "events.global",
+        "title": "全球事件",
+        "description": "全球宏观/地缘事件，附分类、国家、0-100 严重度与关联标的。",
+        "path": "api/v1/events/global.json",
+        "kind": "data",
+        "fields": [
+          {
+            "name": "id",
+            "type": "string",
+            "unit": null,
+            "desc": "事件稳定 id"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "unit": null,
+            "desc": "分类：central_bank/macro/trade/conflict/geopolitics 等"
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "unit": null,
+            "desc": "标题"
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "unit": null,
+            "desc": "快讯来源"
+          },
+          {
+            "name": "sourceUrl",
+            "type": "string",
+            "unit": null,
+            "desc": "来源主页链接"
+          },
+          {
+            "name": "publishedAt",
+            "type": "string",
+            "unit": null,
+            "desc": "发布时间（ISO 8601）"
+          },
+          {
+            "name": "country",
+            "type": "string",
+            "unit": null,
+            "desc": "国家/地区中文名；定位不到时为 null"
+          },
+          {
+            "name": "lat",
+            "type": "number",
+            "unit": "度",
+            "desc": "纬度；定位不到时为 null"
+          },
+          {
+            "name": "lng",
+            "type": "number",
+            "unit": "度",
+            "desc": "经度；定位不到时为 null"
+          },
+          {
+            "name": "severity",
+            "type": "integer",
+            "unit": "0-100",
+            "desc": "严重度（由 importance 映射，不是上游原始字段）"
+          },
+          {
+            "name": "importance",
+            "type": "string",
+            "unit": null,
+            "desc": "上游规则评分：high/med/low"
+          },
+          {
+            "name": "relatedSymbols",
+            "type": "array",
+            "unit": null,
+            "desc": "关联标的代码列表"
+          },
+          {
+            "name": "relatedAssets",
+            "type": "array",
+            "unit": null,
+            "desc": "关联资产类别列表"
+          }
+        ],
+        "sample": {
+          "id": "特朗普称会邀请泽连斯基参加二十国集团领导人峰会 美国总统特朗普10月31日在佛罗里达州海湖庄园对媒体表示 他会邀请乌克兰总统泽连斯基参加将于12月举行的二十国集团领导人峰会 特朗普已邀请俄罗斯总统普京出席将于12月在佛罗里达州迈阿密举行的二十国集团领导人峰会 在被问及是否也会邀请泽连斯基时 特朗普回答道 我会的 没问题 美国国务卿鲁比奥10月31日在美国亚特兰大举行的二十国集团外长会闭幕记者会上说 俄方尚未确认普京是否参会||1793500516000",
+          "category": "geopolitics",
+          "title": "【特朗普称会邀请泽连斯基参加二十国集团领导人峰会】美国总统特朗普10月31日在佛罗里达州海湖庄园对媒体表示，他会邀请乌克兰总统泽连斯基参加将于12月举行的二十国集团领导人峰会。 特朗普已邀请俄罗斯总统普京出席将于12月在佛罗里达州迈阿密举行的二十国集团领导人峰会。 在被问及是否也会邀请泽连斯基时，特朗普回答道：“我会的，没问题。” 美国国务卿鲁比奥10月31日在美国亚特兰大举行的二十国集团外长会闭幕记者会上说，俄方尚未确认普京是否参会。（新华社）",
+          "source": "新浪财经7x24",
+          "sourceUrl": "https://finance.sina.com.cn/7x24/",
+          "publishedAt": "2026-11-01T02:35:16.000Z",
+          "country": "乌克兰",
+          "lat": 50.45,
+          "lng": 30.52,
+          "severity": 30,
+          "importance": "low",
+          "relatedSymbols": [],
+          "relatedAssets": []
+        },
+        "asof": "2026-11-01T02:41:58.364Z",
+        "stale": true,
+        "count": 54,
+        "license": "GDELT 免费开放数据（gdeltproject.org）· 新浪财经7x24 公开快讯；坐标为本项目关键词地理定位，精度为国家/地区级",
+        "note": "severity 是把上游 importance 映射成 0-100 的展示口径；坐标为关键词地理定位，精度为国家/地区级，定位不到时为 null。 含第三方平台品牌字样的 1 条快讯按合规口径未纳入。 上游采集任务多轮未更新，数据可能滞后。"
+      },
+      {
+        "id": "prediction.markets",
+        "title": "预测市场概率",
+        "description": "事件与档位两层结构，probability 为 0-1 隐含概率；不含平台标识与链接。",
+        "path": "api/v1/prediction/markets.json",
+        "kind": "data",
+        "fields": [
+          {
+            "name": "id",
+            "type": "string",
+            "unit": null,
+            "desc": "事件 id"
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "unit": null,
+            "desc": "英文标题"
+          },
+          {
+            "name": "titleZh",
+            "type": "string",
+            "unit": null,
+            "desc": "中文标题；未翻译时为 null"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "unit": null,
+            "desc": "类别：election/geopolitics/crypto/economy 等"
+          },
+          {
+            "name": "partition",
+            "type": "boolean",
+            "unit": null,
+            "desc": "是否为多档互斥事件"
+          },
+          {
+            "name": "endDate",
+            "type": "integer",
+            "unit": "ms",
+            "desc": "事件截止时间"
+          },
+          {
+            "name": "updatedAt",
+            "type": "integer",
+            "unit": "ms",
+            "desc": "上游更新时间"
+          },
+          {
+            "name": "outcomeCount",
+            "type": "integer",
+            "unit": "个",
+            "desc": "档位总数"
+          },
+          {
+            "name": "outcomes",
+            "type": "array",
+            "unit": null,
+            "desc": "档位列表（id/label/labelZh/probability/change24h）"
+          },
+          {
+            "name": "rest",
+            "type": "object",
+            "unit": null,
+            "desc": "未列出的剩余档位聚合（probability/count）"
+          }
+        ],
+        "sample": {
+          "id": "ev:1262243",
+          "title": "Which Senate Swing States will Republicans win?",
+          "titleZh": "共和党将赢得哪些参议院摇摆州？",
+          "category": "election",
+          "partition": true,
+          "endDate": 1793750340000,
+          "updatedAt": 1793500825630,
+          "outcomeCount": 128,
+          "outcomes": [
+            {
+              "id": "pm:6274257",
+              "label": "None",
+              "labelZh": "无",
+              "probability": 0.255,
+              "change24h": 1
+            },
+            {
+              "id": "pm:6274182",
+              "label": "IA",
+              "labelZh": null,
+              "probability": 0.106,
+              "change24h": -2.4
+            },
+            {
+              "id": "pm:6274077",
+              "label": "IA, KS",
+              "labelZh": null,
+              "probability": 0.105,
+              "change24h": -3
+            },
+            {
+              "id": "pm:6274191",
+              "label": "KS",
+              "labelZh": "ks",
+              "probability": 0.044,
+              "change24h": 1.1
+            },
+            {
+              "id": "pm:6273577",
+              "label": "All 7",
+              "labelZh": "全部7",
+              "probability": 0.04,
+              "change24h": 2.5
+            },
+            {
+              "id": "pm:6274108",
+              "label": "IA, OH",
+              "labelZh": null,
+              "probability": 0.018,
+              "change24h": 1.1
+            }
+          ],
+          "rest": {
+            "probability": 0.547,
+            "count": 122
+          }
+        },
+        "asof": "2026-11-01T02:42:39.263Z",
+        "stale": true,
+        "count": 30,
+        "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
+        "note": "probability 为 0-1 的隐含事件概率；outcomes 只保留档位标签与概率，不含平台标识、链接与交易功能。 采集任务多轮未更新，概率可能滞后。"
+      },
+      {
+        "id": "institutions.holdings",
+        "title": "机构持仓",
+        "description": "SEC 13F 机构季度持仓、规则化因子 ETF 全量持仓、基金合计持仓的加减仓榜。",
+        "path": "api/v1/institutions/holdings.json",
+        "kind": "data",
+        "fields": [
+          {
+            "name": "asOf",
+            "type": "string",
+            "unit": null,
+            "desc": "本数据集最新构建时间"
+          },
+          {
+            "name": "institutions",
+            "type": "array",
+            "unit": null,
+            "desc": "13F 机构列表（含 holdings/exits、reportDate、lagDays）"
+          },
+          {
+            "name": "etf",
+            "type": "object",
+            "unit": null,
+            "desc": "规则化因子 ETF 全量持仓与交集（funds/overlap）"
+          },
+          {
+            "name": "fundHoldings",
+            "type": "object",
+            "unit": null,
+            "desc": "基金合计持仓的加仓/减仓榜（topAdd/topTrim）"
+          }
+        ],
+        "sample": {
+          "asOf": "2026-11-01T01:27:30.715Z",
+          "institutions": [
+            {
+              "slug": "berkshire",
+              "name": "伯克希尔·哈撒韦",
+              "reportDate": "2026-06-30",
+              "lagDays": 45,
+              "holdingsCount": 29
+            }
+          ],
+          "etf": {
+            "asOf": "2026-10-29",
+            "published": "2026-10-29",
+            "lagDays": 2,
+            "funds": [
+              {
+                "key": "spmo",
+                "ticker": "SPMO",
+                "zh": "标普500动量"
+              }
+            ],
+            "overlap": {
+              "keys": [
+                "spmo",
+                "splv"
+              ],
+              "labels": {
+                "spmo": "标普500动量",
+                "splv": "标普500低波"
+              }
+            }
+          },
+          "fundHoldings": {
+            "reportDate": "2026-09-30",
+            "reportDateName": "2026年三季报",
+            "lagDays": 32,
+            "topAdd": [
+              {
+                "code": "688825",
+                "name": "长鑫科技",
+                "secucode": "688825.SH",
+                "reportDate": "2026-09-30",
+                "fundCount": 1700,
+                "holdShares": 991569624,
+                "holdValue": 54328099698.9597,
+                "freeRatio": 22.02001025,
+                "chg": "增仓",
+                "chgShares": 991569624,
+                "chgRatio": 100,
+                "chgValue": 54328099698.9597
+              }
+            ],
+            "topTrim": [
+              {
+                "code": "603986",
+                "name": "兆易创新",
+                "secucode": "603986.SH",
+                "reportDate": "2026-09-30",
+                "fundCount": 434,
+                "holdShares": 52165839,
+                "holdValue": 18461490422.1,
+                "freeRatio": 7.77760765,
+                "chg": "减仓",
+                "chgShares": -59642333,
+                "chgRatio": -53.34,
+                "chgValue": -21107421648.699997
+              }
+            ]
+          }
+        },
+        "asof": "2026-11-01T01:27:30.715Z",
+        "stale": false,
+        "count": 4,
+        "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
+        "note": "13F 报告期末到提交日实测滞后 34~45 天，每家机构的 lagDays 已单列；ETF 是规则化因子产品的被动持仓，不是基金经理主观判断；基金合计持仓含被动申赎，加减仓不能读成主动判断。"
+      },
+      {
+        "id": "macro.series",
+        "title": "宏观序列",
+        "description": "世界银行年度指标（GDP/增长/通胀/失业/债务/经常账户），附 FRED 口径目录。",
+        "path": "api/v1/macro/series.json",
+        "kind": "data",
+        "fields": [
+          {
+            "name": "count",
+            "type": "integer",
+            "unit": "条",
+            "desc": "序列数量"
+          },
+          {
+            "name": "catalog",
+            "type": "array",
+            "unit": null,
+            "desc": "指标目录（key/code/label/unit）"
+          },
+          {
+            "name": "series",
+            "type": "array",
+            "unit": null,
+            "desc": "序列列表（id/country/indicator/points[{date,value}]）"
+          },
+          {
+            "name": "fred",
+            "type": "object",
+            "unit": null,
+            "desc": "FRED 口径目录与可用性说明"
+          }
+        ],
+        "sample": {
+          "count": 44,
+          "catalog": [
+            {
+              "key": "gdp",
+              "code": "NY.GDP.MKTP.CD",
+              "label": "GDP",
+              "unit": "总量（万亿美元）",
+              "source": "世界银行"
+            }
+          ],
+          "series": [
+            {
+              "id": "WB:US:gdp",
+              "name": "美国·GDP",
+              "country": "美国",
+              "iso": "US",
+              "indicator": "gdp",
+              "indicatorLabel": "GDP",
+              "unit": "总量（万亿美元）",
+              "freq": "年",
+              "source": "世界银行公开数据",
+              "points": [
+                {
+                  "date": "2024",
+                  "value": 29298013000000
+                },
+                {
+                  "date": "2025",
+                  "value": 30769700000000
+                }
+              ]
+            }
+          ],
+          "fred": {
+            "available": false,
+            "reason": "前端不内置访问密钥；如需 FRED 序列，请在部署环境自行注入或走代理。",
+            "series": [
+              {
+                "id": "DGS10",
+                "name": "美国10年期国债收益率"
+              }
+            ]
+          }
+        },
+        "asof": "2025-01-01T00:00:00.000Z",
+        "stale": false,
+        "count": 44,
+        "license": "世界银行公开数据（CC BY 4.0）；仅用于信息展示。",
+        "note": "世界银行年度指标，最新非空年份为准；不同国家的发布滞后 1 年属正常。FRED 序列因前端不内置访问密钥默认未启用，只给出口径目录。"
+      },
+      {
+        "id": "health",
+        "title": "链路自检",
+        "description": "各数据集最近构建时间、条数、耗时与 stale 状态。",
+        "path": "api/v1/health.json",
+        "kind": "meta",
+        "fields": [
+          {
+            "name": "status",
+            "type": "string",
+            "unit": null,
+            "desc": "ok / degraded"
+          },
+          {
+            "name": "generatedAt",
+            "type": "string",
+            "unit": null,
+            "desc": "自检生成时间"
+          },
+          {
+            "name": "durationMs",
+            "type": "integer",
+            "unit": "ms",
+            "desc": "本轮构建总耗时"
+          },
+          {
+            "name": "datasets",
+            "type": "array",
+            "unit": null,
+            "desc": "各数据集 lastBuilt/count/ms/stale"
+          }
+        ],
+        "sample": {
+          "status": "ok",
+          "generatedAt": "2026-11-08T15:02:37.542Z",
+          "durationMs": 0,
+          "datasets": [
+            {
+              "id": "quotes.latest",
+              "lastBuilt": "2026-11-08T15:02:37.542Z",
+              "count": 1,
+              "ms": 0,
+              "stale": false
+            }
+          ]
+        },
+        "asof": "2026-11-08T15:02:37.542Z",
+        "stale": false,
+        "count": 11,
+        "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
+        "note": ""
+      }
+    ]
+  },
+  "meta": {
+    "dataset": "manifest",
+    "asof": "2026-11-08T15:02:37.542Z",
+    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "source": "本项目构建产物（data/** 与 js/data/universe.js）",
+    "stale": false,
+    "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
+    "note": "fields 描述每个数据集条目级字段；sample 是与字段一一对应的示例对象。路径含 {symbol} 的数据集在 files 里列出全部具体文件。"
+  }
+}

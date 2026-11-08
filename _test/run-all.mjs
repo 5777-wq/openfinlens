@@ -14,6 +14,7 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 const offlineOnly = process.argv.includes('--offline');
 
 const groups = [
+  { file: 'navmap.test.mjs', net: false },  // UI v2 信息架构：12 旧 key → 5 一级的映射 / 深链往返 / 兜底
   { file: 'tokens.test.mjs', net: false },  // 设计令牌一致性/均线色距/发布卫生（读真实源文件）
   { file: 'logic.test.mjs', net: false },
   { file: 'utils.test.mjs', net: false },      // 格式化器边界：空串/纯空白/NaN/±Infinity 一律算缺失（不许显示 0.00）
@@ -49,6 +50,7 @@ const groups = [
   { file: 'engine.test.mjs', net: false },  // 语义引擎：新闻标准化/去重/分类/聚类/AI闸门/影响边
   { file: 'actors.test.mjs', net: false },  // Actor/Activity 模型（席位聚合/合并/口径）
   { file: 'seeds.test.mjs', net: false },   // 采集产物体检（全球事件/伯克希尔13F 种子 JSON）
+  { file: 'api.test.mjs', net: false },     // API 链路：统一信封/manifest/openapi/合规 + MCP 协议冒烟（离线）
   { file: 'breadth.test.mjs', net: true },  // 结构断言为主，但取数需联网
   { file: 'detail.test.mjs', net: true },
   // 降级链拆两组：离线组（静态 JSON 源 + 缓存 + 诚实空态，零外网）进 CI；

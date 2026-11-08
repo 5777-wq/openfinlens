@@ -1,0 +1,614 @@
+/* ============================================================
+   css/ui/01-shell.css —— UI v2 外壳层（唯一样式归属：shell）
+   ------------------------------------------------------------
+   管什么：顶栏（品牌 / 一级导航 / 命令按钮 / 状态 / 设置）、二级 segmented
+           control、命令面板、设置弹层、页头小节头、页脚、toast、滚动条、
+           选区、骨架屏。
+   不管什么：行情区（02-market.css）、面板区（03-panels.css）、动效曲线
+             （04-motion.css）、令牌定义（css/style.css）。
+
+   纪律（docs/UI-V2-SPEC.md）：
+   · 只消费令牌，不写死 hex；间距只走 --sp-*，字号只走 --fs-*，圆角只走
+     --r-sm/md/lg/pill；深空禁阴影，海拔=1px 描边 + 极弱内高光 + 模糊光斑。
+   · 强调色只出现在「当前态 / 可交互高亮 / 焦点环 / 品牌」，不用红绿
+     （红绿只表示涨跌）。
+   · 只有一条当前态表达：一级栏 = 滑动胶囊指示器，二级栏 = 胶囊底。
+     不叠下划线（旧的 .tab.active::after 已在这里显式关掉）。
+   ============================================================ */
+
+/* ---------- 顶栏骨架 ---------- */
+.topbar {
+  gap: var(--sp-24);
+  justify-content: flex-start;
+}
+
+/* 品牌：光点 + 等宽字距的 wordmark。光点用强调色（唯一允许出现的位置之一） */
+.logo { position: relative; }
+.logo .logo-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-signature);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.16), 0 0 14px rgba(var(--accent-rgb), 0.55);
+  flex: 0 0 auto;
+}
+.logo .logo-word { letter-spacing: 0.18em; }
+.logo:hover .logo-word { color: var(--text); }
+.logo:hover .logo-dot { box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.26), 0 0 20px rgba(var(--accent-rgb), 0.65); }
+
+/* ---------- 一级导航：5 个等宽胶囊 + 一枚滑动高亮 ---------- */
+.primary-nav {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  flex: 0 1 auto;
+  height: 34px;
+  margin: 0 auto;                 /* 品牌与动作区之间居中 */
+  padding: 3px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  isolation: isolate;
+}
+
+.nav-primary {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--sp-16);
+  border-radius: 999px;
+  font-size: var(--fs-12);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  transition: color var(--dur-2) var(--ease-out);
+}
+.nav-primary:hover { color: var(--text-secondary); }
+.nav-primary.active { color: var(--text); }
+/* 按压反馈：进快出慢（进 = 无过渡，出 = 默认过渡） */
+.nav-primary:active { transform: scale(0.98); transition: none; }
+.nav-primary:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+/* 滑动高亮：静态兜底只用 transform（合成层，不触发布局）。
+   motion 层接管时会给同一枚元素写内联 transform / width（内联优先），
+   两者的数学各自独立，不会互相覆盖出硬跳。 */
+.nav-ink {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  height: auto;
+  z-index: 0;
+  width: calc((100% - 6px) / var(--ink-n, 5));
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.13);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transform: translateX(calc(var(--ink-i, 0) * 100%));
+  transform-origin: 0 50%;
+  transition: transform var(--dur-3) var(--ease-signature);
+  pointer-events: none;
+}
+
+/* ---------- 顶栏右侧动作 ---------- */
+.topbar-actions { margin-left: auto; gap: var(--sp-12); flex: 0 0 auto; }
+.topbar-link { font-size: var(--fs-12); }
+
+/* 命令按钮：顶栏里最"可发现"的入口，做成带描边的小胶囊 */
+.cmd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  height: 30px;
+  padding: 0 var(--sp-8) 0 var(--sp-8);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-secondary);
+  font-size: var(--fs-12);
+  white-space: nowrap;
+  transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out),
+              background-color var(--dur-2) var(--ease-out);
+}
+.cmd-btn:hover { color: var(--text); border-color: var(--border-hover); background: var(--bg-hover); }
+.cmd-btn-key {
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  letter-spacing: 0.02em;
+  color: var(--text-tertiary);
+  padding: 2px var(--sp-4);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: var(--bg-sunken);
+}
+.cmd-btn:hover .cmd-btn-key { color: var(--text-secondary); border-color: var(--border); }
+.cmd-btn[aria-expanded="true"] { color: var(--text); border-color: rgba(var(--accent-rgb), 0.5); }
+
+/* 实时状态：一盏呼吸灯 + 当前轮询间隔（刷新节奏改了要立刻看得见） */
+.live-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  height: 30px;
+  padding: 0 var(--sp-8);
+  color: var(--text-tertiary);
+  font-size: var(--fs-12);
+}
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-signature);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.12);
+  animation: shellLive 2.6s var(--ease-in-out) infinite;
+}
+.live-label { color: var(--text-tertiary); font-size: var(--fs-12); letter-spacing: 0.04em; }
+@keyframes shellLive {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.86); }
+}
+
+/* 顶栏搜索：比 v1 收窄，把中间让给一级栏 */
+.topbar .search-input { width: 176px; height: 30px; padding: 0 var(--sp-8) 0 var(--sp-24); }
+.topbar .search-icon { left: var(--sp-8); }
+
+/* ---------- 二级条（segmented control） ----------
+   高度做成外壳局部尺寸变量：布局留白要引用它（padding 家族里不许出现 px 字面量），
+   它不是设计令牌，只是这一层的尺寸事实。 */
+:root { --shell-subbar-h: 44px; }
+.subbar {
+  position: fixed;
+  top: var(--shell-topbar-real, var(--topbar-h));
+  left: 0;
+  right: 0;
+  z-index: 99;
+  height: var(--shell-subbar-h);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-32);
+  background: var(--topbar-bg);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  border-bottom: 1px solid var(--border);
+}
+.subbar[hidden] { display: none; }
+.subbar-inner { display: flex; align-items: center; gap: var(--sp-12); max-width: 1180px; width: 100%; margin: 0 auto; min-width: 0; }
+
+/* 12 个旧按钮收成一条胶囊 segmented control（内容与 aria 完全沿用旧版） */
+.tabs.subnav-tabs {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  padding: 2px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.tabs.subnav-tabs::-webkit-scrollbar { display: none; }
+.subnav-tabs .tab {
+  position: relative;
+  padding: var(--sp-4) var(--sp-12);
+  border-radius: 999px;
+  font-size: var(--fs-12);
+  letter-spacing: 0.02em;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  min-height: 0;   /* 旧版给 .tab 的 40px 触控高度在这里会把胶囊撑破 */
+  transition: color var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+}
+/* 只有一条当前态：胶囊底。旧的下划线在这里显式关掉，避免两条指示器打架 */
+.tabs.subnav-tabs .tab::after,
+.tabs.subnav-tabs .tab.active::after { display: none; content: none; }
+/* 不属于当前一级的按钮用 hidden 收起：640px 媒体块里的 display:inline-flex 会盖掉
+   [hidden] 的默认 display:none，这里补一条更高权重的规则 */
+.subnav-tabs .tab[hidden] { display: none; }
+.subnav-tabs .tab:hover { color: var(--text-secondary); background: rgba(var(--accent-rgb), 0.06); }
+.subnav-tabs .tab.active {
+  color: var(--text);
+  background: rgba(var(--accent-rgb), 0.10);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.28);
+}
+.subnav-tabs .tab:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+/* 有二级条时：跑马条与内容整体下移同样的高度（保持"没有双滚动条、没有遮挡"） */
+body.has-subbar .tape { top: calc(var(--shell-topbar-real, var(--topbar-h)) + var(--shell-subbar-h)); }
+body.has-subbar .main {
+  padding-top: calc(var(--shell-topbar-real, var(--topbar-h)) + var(--tape-h) + var(--shell-subbar-h) + var(--sp-32));
+}
+
+/* ---------- 小节头：标题绝不被长副标题挤成竖排 ----------
+   .section-head 是 flex；390px 下副标题一长，标题被压到 min-content
+   （一列一个字）。修法是把副标题整体换行，而不是拆标题。 */
+.section-head { flex-wrap: wrap; }
+.section-head .section-title { flex: none; white-space: nowrap; }
+.section-head .section-sub { min-width: 0; flex: 1 1 auto; }
+
+/* ---------- 图表工具条：移动端画线组折叠 ----------
+   桌面端 .k-draw-group 用 display:contents，六个按钮仍是 .k-toolbar 的直接 flex 项；
+   ≤700px 才收进「画线 ▾」开关后面（六个 [data-draw] 始终在 DOM 里）。
+   选择器带 .k-toolbar 前缀：02-market.css 里 `.pill { display: inline-flex }`
+   会把单类名的 display:none 顶掉（它在本文件之后加载）。 */
+#view-detail .k-toolbar #kToolbarMore { display: none; }
+.k-draw-group { display: contents; }
+@media (max-width: 700px) {
+  #view-detail .k-toolbar #kToolbarMore {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .k-draw-group { display: none; }
+  .k-draw-group.open { display: inline-flex; flex-wrap: wrap; gap: var(--sp-4); }
+}
+
+/* ---------- 移动端安全网：数据表不许撑开布局视口 ----------
+   产业链热度表的 .crow 是 8 列固定宽度（44+130+150+90+…），390px 下内容宽 ~646，
+   会把移动端布局视口从 390 撑到 662——整页被横向放大、顶栏只剩左半截。
+   这里给表体自己的横向滚动（数据表横滚是合理交互），列宽重构仍归 panels/style.css。
+   03-panels.css 在本文件之后加载，那边的规则天然覆盖这条兜底。 */
+@media (max-width: 700px) {
+  .chain-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .chain-table .crow { min-width: 640px; }
+}
+
+/* ---------- 页头：小节头（不是报纸头版） ---------- */
+.page-head {
+  align-items: center;
+  padding-bottom: var(--sp-8);
+  border-bottom: 1px solid var(--border-soft);
+  margin-bottom: var(--sp-24);
+}
+.page-head .page-title { letter-spacing: 0.18em; }
+.page-sub { letter-spacing: 0.02em; }
+
+/* ---------- 命令面板 ---------- */
+.cmd-host {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+}
+.cmd-host[hidden] { display: none; }
+.cmd-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 5, 9, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-out);
+}
+.cmd-panel {
+  position: relative;
+  width: min(680px, calc(100vw - var(--sp-32)));
+  max-height: min(72vh, 620px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-glass);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+  overflow: hidden;
+  transform-origin: 50% 0;
+  transform: translateY(-8px) scale(0.985);
+  opacity: 0;
+  transition: transform var(--dur-4) var(--ease-panel), opacity var(--dur-2) var(--ease-out);
+}
+/* 打开态：遮罩淡入 + 面板弹簧位移（motion 层会给同一组选择器更精确的曲线，
+   这里保留一份兜底，保证没有 04-motion.css 时也不硬跳） */
+.cmd-host.is-open .cmd-scrim { opacity: 1; }
+.cmd-host.is-open .cmd-panel { transform: translateY(0) scale(1); opacity: 1; }
+/* 收起比出现快，且不用弹簧（走 --ease-exit） */
+.cmd-host:not(.is-open) .cmd-panel {
+  transform: translateY(-4px) scale(0.99);
+  opacity: 0;
+  transition: transform var(--dur-2) var(--ease-exit), opacity var(--dur-2) var(--ease-exit);
+}
+
+.cmd-field {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  padding: var(--sp-16) var(--sp-16);
+  border-bottom: 1px solid var(--border);
+}
+.cmd-glyph {
+  font-family: var(--font-mono);
+  font-size: var(--fs-15);
+  color: var(--accent-signature);
+}
+.cmd-input {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--fs-15);
+  letter-spacing: 0.01em;
+}
+.cmd-input::placeholder { color: var(--text-faint); }
+.cmd-field:focus-within { border-color: rgba(var(--accent-rgb), 0.42); }
+.cmd-kbd,
+.cmd-hint kbd {
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+  padding: 2px var(--sp-4);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: var(--bg-sunken);
+  white-space: nowrap;
+}
+
+.cmd-scroll { overflow-y: auto; overscroll-behavior: contain; padding: var(--sp-8); }
+.cmd-list { display: flex; flex-direction: column; gap: 2px; }
+.cmd-group-label {
+  padding: var(--sp-8) var(--sp-8) var(--sp-4);
+  font-size: var(--fs-12);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.cmd-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  padding: var(--sp-8) var(--sp-12);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  transition: background-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out),
+              border-color var(--dur-2) var(--ease-out);
+}
+.cmd-item:hover { background: rgba(var(--accent-rgb), 0.06); color: var(--text); }
+.cmd-item.sel {
+  background: rgba(var(--accent-rgb), 0.10);
+  border-color: rgba(var(--accent-rgb), 0.32);
+  color: var(--text);
+}
+.cmd-item-tag {
+  flex: 0 0 auto;
+  min-width: 44px;
+  padding: 2px var(--sp-8);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-12);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+.cmd-item-label { flex: 1; min-width: 0; font-size: var(--fs-13); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmd-item-meta {
+  flex: 0 1 auto;
+  max-width: 46%;
+  font-family: var(--font-mono);
+  font-size: var(--fs-12);
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cmd-empty { padding: var(--sp-24) var(--sp-16); text-align: center; color: var(--text-tertiary); font-size: var(--fs-12); }
+.cmd-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-16);
+  padding: var(--sp-8) var(--sp-16);
+  border-top: 1px solid var(--border);
+  background: var(--bg-sunken);
+}
+.cmd-hint { display: inline-flex; align-items: center; gap: var(--sp-4); font-size: var(--fs-12); color: var(--text-tertiary); }
+.cmd-hint-end { margin-left: auto; color: var(--text-faint); }
+
+/* ---------- 设置弹层 ---------- */
+.modal-overlay { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.modal {
+  border: 1px solid var(--border-hover);
+  border-radius: var(--r-lg);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-2);
+}
+.modal h2 { font-size: var(--fs-12); letter-spacing: 0.2em; color: var(--text-tertiary); }
+.setting-row { padding: var(--sp-16) 0; border-bottom: 1px solid var(--border-soft); }
+.setting-row:last-of-type { border-bottom: none; }
+.setting-label { font-size: var(--fs-13); color: var(--text); }
+.setting-hint { font-size: var(--fs-12); color: var(--text-tertiary); }
+/* 模式两枚按钮的选中语言与「涨跌配色 / 刷新间隔」完全一致（同一套 .seg 语义），
+   只在宽度上放宽一点——「深空 / 日光」是设置里最常点的两个词 */
+.seg-mode { padding: 2px; }
+.seg-mode button { border-radius: var(--r-sm); padding: var(--sp-4) var(--sp-16); }
+
+/* 顶栏板块自定义：按一级分组（fieldset 默认边框在深空里是一道噪音，去掉） */
+.tab-cfg { gap: var(--sp-8); }
+.tab-cfg-group { border: none; margin: 0; padding: 0; min-width: 0; }
+.tab-cfg-group + .tab-cfg-group { margin-top: var(--sp-8); }
+.tab-cfg-group-t {
+  padding: 0 0 var(--sp-4);
+  font-size: var(--fs-12);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.modal-close {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: var(--fs-13);
+  padding: var(--sp-8) var(--sp-16);
+}
+.modal-close:hover { border-color: var(--border-hover); background: var(--bg-hover); }
+
+/* ---------- 页脚 ---------- */
+.footer { color: var(--text-faint); font-size: var(--fs-12); line-height: 1.7; }
+.footer .foot-links a { font-size: var(--fs-12); }
+.footer a:hover { color: var(--accent-signature); }
+
+/* ---------- toast（到价提醒等一次性反馈） ---------- */
+.ofl-toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--sp-32);
+  transform: translate(-50%, 8px);
+  z-index: 260;
+  max-width: calc(100vw - var(--sp-48));
+  padding: var(--sp-12) var(--sp-16);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+  color: var(--text);
+  font-size: var(--fs-13);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out), visibility var(--dur-2);
+}
+.ofl-toast.on { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+
+/* ---------- 滚动条 / 选区 ---------- */
+html { scrollbar-width: thin; scrollbar-color: var(--border-hover) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: var(--r-sm);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); background-clip: padding-box; }
+::selection { background: rgba(var(--accent-rgb), 0.28); color: var(--text); }
+
+/* ---------- 骨架屏 ---------- */
+.sk {
+  background: linear-gradient(90deg, var(--border-soft), var(--border), var(--border-soft));
+  background-size: 220% 100%;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+}
+.sk-card { border-radius: var(--r-md); }
+.sk-row { border-radius: var(--r-sm); }
+
+/* ---------- 窄屏：顶栏两行、一级栏横向滚动、二级条吸顶 ---------- */
+@media (max-width: 1100px) {
+  .topbar .search-input { width: 132px; }
+  .cmd-btn-label { display: none; }
+}
+@media (max-width: 960px) {
+  .topbar .search-wrap { display: none; }   /* 搜索仍有 ⌘K 面板这条入口，不丢功能 */
+  .topbar { gap: var(--sp-16); padding: 0 var(--sp-16); }
+  .subbar { padding: 0 var(--sp-16); }
+  .primary-nav { height: 32px; }
+  .nav-primary { padding: 0 var(--sp-12); }
+}
+@media (max-width: 640px) {
+  /* 第一行：品牌 + 动作；第二行：一级栏（横向滚动 + 边缘渐隐） */
+  .primary-nav {
+    order: 3;
+    flex: 0 0 100%;
+    height: 34px;
+    margin: var(--sp-4) 0 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 92%, transparent 100%);
+    mask-image: linear-gradient(90deg, #000 92%, transparent 100%);
+  }
+  .primary-nav::-webkit-scrollbar { display: none; }
+  .nav-primary { padding: 0 var(--sp-8); }
+  .live-stat { display: none; }
+  .topbar-actions { margin-left: auto; gap: var(--sp-8); }
+  .subbar { top: var(--shell-topbar-real, var(--topbar-h)); }
+  body.has-subbar .tape { top: calc(var(--shell-topbar-real, var(--topbar-h)) + var(--shell-subbar-h)); }
+  body.has-subbar .main {
+    padding-top: calc(var(--shell-topbar-real, var(--topbar-h)) + var(--tape-h) + var(--shell-subbar-h) + var(--sp-24));
+  }
+  .cmd-host { padding-top: var(--sp-16); }
+  .cmd-panel { width: calc(100vw - var(--sp-16)); max-height: 82vh; }
+  .cmd-item-meta { display: none; }
+  .cmd-hint-end { display: none; }
+  .cmd-foot { gap: var(--sp-12); }
+  .page-head { align-items: flex-start; }
+}
+
+/* ---------- 减动效：位移与过渡全压平（保留颜色反馈） ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .nav-ink,
+  .nav-primary,
+  .subnav-tabs .tab,
+  .cmd-panel,
+  .cmd-scrim,
+  .cmd-item,
+  .cmd-btn,
+  .ofl-toast,
+  .live-dot {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+  .cmd-panel,
+  .cmd-host:not(.is-open) .cmd-panel,
+  .cmd-host.is-open .cmd-panel { transform: none; }
+  .ofl-toast { transform: translate(-50%, 0); }
+}
+
+/* 空态引导动作：光有说明文字的空态等于死路，给一个能点的下一步。
+   视觉上用描边胶囊（不是实心强调块）：它是引导，不是页面主操作。 */
+.empty-cta {
+  display: inline-flex; align-items: center; gap: var(--sp-4);
+  margin-left: var(--sp-8); padding: var(--sp-4) var(--sp-12);
+  border: 1px solid var(--border-hover); border-radius: var(--r-pill);
+  color: var(--accent-signature); font-size: var(--fs-12); text-decoration: none;
+  white-space: nowrap; vertical-align: baseline;
+  transition: background-color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+}
+.empty-cta:hover { background: var(--accent-soft); border-color: var(--accent-signature); }
+.empty-cta:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .empty-cta { margin-left: 0; margin-top: var(--sp-8); }
+}
+
+/* ============================================================ v2 收口：分段控件与开关
+   旧 .seg 的选中态是"文字色 12% 蒙版 + 2px 强调色下划线"（杂志/Tab 语言）。
+   v2 的当前态只有一个表达：强调色描边 + 8% 底 —— 与一级导航、图表工具栏、选中卡片同源。
+   开关做成胶囊（--r-pill），因为它是"持续状态"而不是"可点的方按钮"。 */
+.seg { border-radius: var(--r-md); padding: 3px; gap: 3px; background: var(--bg-sunken); }
+.seg button { border-radius: var(--r-sm); }
+.seg button.active {
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.45);
+  color: var(--accent-signature);
+  background: var(--accent-soft);
+}
+.seg-lg button.active { color: var(--accent-signature); background: var(--accent-soft); }
+.switch, .switch::after { border-radius: var(--r-pill); }
+
+/* ============================================================ v2 收口：移动端品牌标识
+   旧 P0★ 在 ≤640px 把品牌文字整段藏掉，只剩一颗 6px 圆点——看起来像没加载完，
+   不像品牌标识。v2 只有 5 个一级入口，顶栏右侧也瘦了，够放一个短字标：
+   481–640px 显示字标（字距收紧）；≤480px 退回"点 + 光环"的品牌标，但把它做大到 10px
+   并加一圈极弱光环，读起来是一枚 mark 而不是一颗残留圆点。 */
+@media (max-width: 640px) {
+  .topbar .logo .logo-word { display: inline; letter-spacing: 0.12em; }
+}
+@media (max-width: 480px) {
+  .topbar .logo .logo-word { display: none; }
+  .topbar .logo .logo-dot {
+    width: 10px; height: 10px;
+    /* 光环用 outline 而不是 box-shadow：shadow 令牌只允许 --shadow-1/2 两档（tokens.test 守卫） */
+    outline: 3px solid rgba(var(--accent-rgb), 0.18); outline-offset: 1px;
+  }
+}

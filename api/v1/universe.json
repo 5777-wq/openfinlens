@@ -1,0 +1,3371 @@
+{
+  "ok": true,
+  "data": {
+    "count": 194,
+    "markets": [
+      {
+        "id": "cn",
+        "label": "A股",
+        "description": "沪深京上市公司与 A 股指数"
+      },
+      {
+        "id": "hk",
+        "label": "港股",
+        "description": "港交所上市公司与恒生系列指数"
+      },
+      {
+        "id": "us",
+        "label": "美股",
+        "description": "纽交所/纳斯达克/美交所标的与美股指数"
+      },
+      {
+        "id": "global",
+        "label": "全球指数",
+        "description": "日经、DAX、富时、CAC、KOSPI、SENSEX 等"
+      },
+      {
+        "id": "crypto",
+        "label": "加密货币",
+        "description": "币安 USDT 交易对"
+      },
+      {
+        "id": "fx",
+        "label": "外汇",
+        "description": "主要货币对与美元指数"
+      },
+      {
+        "id": "commodity",
+        "label": "大宗商品",
+        "description": "黄金、白银、铜、原油、天然气、玉米"
+      },
+      {
+        "id": "macro",
+        "label": "宏观利率",
+        "description": "主要经济体国债收益率"
+      }
+    ],
+    "kinds": [
+      {
+        "id": "index",
+        "label": "指数"
+      },
+      {
+        "id": "stock",
+        "label": "个股"
+      },
+      {
+        "id": "crypto",
+        "label": "加密货币"
+      },
+      {
+        "id": "fx",
+        "label": "外汇"
+      },
+      {
+        "id": "commodity",
+        "label": "商品"
+      },
+      {
+        "id": "rate",
+        "label": "利率"
+      }
+    ],
+    "symbols": [
+      {
+        "symbol": "sh600028",
+        "name": "中国石化",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "600028",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zgsh",
+        "aliases": [
+          "600028",
+          "sh600028",
+          "zgsh",
+          "中国石化",
+          "中石化"
+        ]
+      },
+      {
+        "symbol": "sh600030",
+        "name": "中信证券",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "600030",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zxzq",
+        "aliases": [
+          "600030",
+          "sh600030",
+          "zxzq",
+          "中信",
+          "中信证券"
+        ]
+      },
+      {
+        "symbol": "sh600036",
+        "name": "招商银行",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "600036",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zsyh",
+        "aliases": [
+          "600036",
+          "sh600036",
+          "zsyh",
+          "招商银行",
+          "招行"
+        ]
+      },
+      {
+        "symbol": "sh600276",
+        "name": "恒瑞医药",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "600276",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "hryy",
+        "aliases": [
+          "600276",
+          "hryy",
+          "sh600276",
+          "恒瑞医药"
+        ]
+      },
+      {
+        "symbol": "sh600519",
+        "name": "贵州茅台",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "600519",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "gzmt",
+        "aliases": [
+          "600519",
+          "gzmt",
+          "maotai",
+          "sh600519",
+          "茅台",
+          "贵州茅台"
+        ]
+      },
+      {
+        "symbol": "sh600900",
+        "name": "长江电力",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "600900",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "cjdl",
+        "aliases": [
+          "600900",
+          "cjdl",
+          "sh600900",
+          "长江电力",
+          "长电"
+        ]
+      },
+      {
+        "symbol": "sh601012",
+        "name": "隆基绿能",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "601012",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "ljln",
+        "aliases": [
+          "601012",
+          "ljln",
+          "sh601012",
+          "隆基绿能"
+        ]
+      },
+      {
+        "symbol": "sh601088",
+        "name": "中国神华",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "601088",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zgsh",
+        "aliases": [
+          "601088",
+          "sh601088",
+          "zgsh",
+          "中国神华"
+        ]
+      },
+      {
+        "symbol": "sh601138",
+        "name": "工业富联",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "601138",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "gyfl",
+        "aliases": [
+          "601138",
+          "gyfl",
+          "sh601138",
+          "工业富联"
+        ]
+      },
+      {
+        "symbol": "sh601288",
+        "name": "农业银行",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "601288",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "nyyh",
+        "aliases": [
+          "601288",
+          "nyyh",
+          "sh601288",
+          "农业银行",
+          "农行"
+        ]
+      },
+      {
+        "symbol": "sh601318",
+        "name": "中国平安",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "601318",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zgpa",
+        "aliases": [
+          "601318",
+          "pingan",
+          "sh601318",
+          "zgpa",
+          "中国平安",
+          "平安"
+        ]
+      },
+      {
+        "symbol": "sh601398",
+        "name": "工商银行",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "601398",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "gsyh",
+        "aliases": [
+          "601398",
+          "gsyh",
+          "sh601398",
+          "工商银行",
+          "工行"
+        ]
+      },
+      {
+        "symbol": "sh601857",
+        "name": "中国石油",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "601857",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zgsy",
+        "aliases": [
+          "601857",
+          "sh601857",
+          "zgsy",
+          "中国石油",
+          "中石油"
+        ]
+      },
+      {
+        "symbol": "sh601888",
+        "name": "中国中免",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "601888",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zgzm",
+        "aliases": [
+          "601888",
+          "sh601888",
+          "zgzm",
+          "中国中免"
+        ]
+      },
+      {
+        "symbol": "sh601899",
+        "name": "紫金矿业",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "601899",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zjky",
+        "aliases": [
+          "601899",
+          "sh601899",
+          "zjky",
+          "紫金",
+          "紫金矿业"
+        ]
+      },
+      {
+        "symbol": "sh601988",
+        "name": "中国银行",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "601988",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zgyh",
+        "aliases": [
+          "601988",
+          "sh601988",
+          "zgyh",
+          "中国银行",
+          "中行"
+        ]
+      },
+      {
+        "symbol": "sh603288",
+        "name": "海天味业",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "603288",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "htwy",
+        "aliases": [
+          "603288",
+          "htwy",
+          "sh603288",
+          "海天味业"
+        ]
+      },
+      {
+        "symbol": "sh688981",
+        "name": "中芯国际",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "688981",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zxgj",
+        "aliases": [
+          "688981",
+          "sh688981",
+          "zxgj",
+          "中芯",
+          "中芯国际"
+        ]
+      },
+      {
+        "symbol": "sz000002",
+        "name": "万科A",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "000002",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "wka",
+        "aliases": [
+          "000002",
+          "sz000002",
+          "wka",
+          "万科",
+          "万科A"
+        ]
+      },
+      {
+        "symbol": "sz000333",
+        "name": "美的集团",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "000333",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "mdjt",
+        "aliases": [
+          "000333",
+          "mdjt",
+          "sz000333",
+          "美的集团"
+        ]
+      },
+      {
+        "symbol": "sz000725",
+        "name": "京东方A",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "000725",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "jdfa",
+        "aliases": [
+          "000725",
+          "jdfa",
+          "sz000725",
+          "京东方",
+          "京东方A"
+        ]
+      },
+      {
+        "symbol": "sz000858",
+        "name": "五粮液",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "000858",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "wly",
+        "aliases": [
+          "000858",
+          "sz000858",
+          "wly",
+          "五粮液"
+        ]
+      },
+      {
+        "symbol": "sz002415",
+        "name": "海康威视",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "002415",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "hkws",
+        "aliases": [
+          "002415",
+          "hkws",
+          "sz002415",
+          "海康威视"
+        ]
+      },
+      {
+        "symbol": "sz002475",
+        "name": "立讯精密",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "002475",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "lxjm",
+        "aliases": [
+          "002475",
+          "lxjm",
+          "sz002475",
+          "立讯精密"
+        ]
+      },
+      {
+        "symbol": "sz002594",
+        "name": "比亚迪",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "002594",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "byd",
+        "aliases": [
+          "002594",
+          "byd",
+          "sz002594",
+          "比亚迪"
+        ]
+      },
+      {
+        "symbol": "sz300059",
+        "name": "东方财富",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "300059",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "dfcf",
+        "aliases": [
+          "300059",
+          "dfcf",
+          "sz300059",
+          "东方财富",
+          "东财"
+        ]
+      },
+      {
+        "symbol": "sz300750",
+        "name": "宁德时代",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "300750",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "ndsd",
+        "aliases": [
+          "300750",
+          "ndsd",
+          "ningde",
+          "sz300750",
+          "宁德时代",
+          "宁王"
+        ]
+      },
+      {
+        "symbol": "sz300760",
+        "name": "迈瑞医疗",
+        "market": "cn",
+        "group": "cn",
+        "kind": "stock",
+        "code": "300760",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "mryl",
+        "aliases": [
+          "300760",
+          "mryl",
+          "sz300760",
+          "迈瑞医疗"
+        ]
+      },
+      {
+        "symbol": "EM:101.GC00Y",
+        "name": "COMEX黄金",
+        "market": "commodity",
+        "group": "commodity",
+        "kind": "commodity",
+        "code": "GC00Y",
+        "secid": "101.GC00Y",
+        "source": "eastmoney",
+        "pinyin": "comexhj",
+        "aliases": [
+          "COMEX黄金",
+          "EM:101.GC00Y",
+          "GC00Y",
+          "comexhj",
+          "gc",
+          "gold",
+          "黄金"
+        ]
+      },
+      {
+        "symbol": "EM:101.HG00Y",
+        "name": "COMEX铜",
+        "market": "commodity",
+        "group": "commodity",
+        "kind": "commodity",
+        "code": "HG00Y",
+        "secid": "101.HG00Y",
+        "source": "eastmoney",
+        "pinyin": "comext",
+        "aliases": [
+          "COMEX铜",
+          "EM:101.HG00Y",
+          "HG00Y",
+          "comext"
+        ]
+      },
+      {
+        "symbol": "EM:101.SI00Y",
+        "name": "COMEX白银",
+        "market": "commodity",
+        "group": "commodity",
+        "kind": "commodity",
+        "code": "SI00Y",
+        "secid": "101.SI00Y",
+        "source": "eastmoney",
+        "pinyin": "comexby",
+        "aliases": [
+          "COMEX白银",
+          "EM:101.SI00Y",
+          "SI00Y",
+          "comexby",
+          "silver",
+          "白银"
+        ]
+      },
+      {
+        "symbol": "EM:102.CL00Y",
+        "name": "NYMEX原油",
+        "market": "commodity",
+        "group": "commodity",
+        "kind": "commodity",
+        "code": "CL00Y",
+        "secid": "102.CL00Y",
+        "source": "eastmoney",
+        "pinyin": "nymexyy",
+        "aliases": [
+          "CL00Y",
+          "EM:102.CL00Y",
+          "NYMEX原油",
+          "cl",
+          "nymexyy",
+          "oil",
+          "原油"
+        ]
+      },
+      {
+        "symbol": "EM:102.NG00Y",
+        "name": "天然气",
+        "market": "commodity",
+        "group": "commodity",
+        "kind": "commodity",
+        "code": "NG00Y",
+        "secid": "102.NG00Y",
+        "source": "eastmoney",
+        "pinyin": "trq",
+        "aliases": [
+          "EM:102.NG00Y",
+          "NG00Y",
+          "gas",
+          "trq",
+          "天然气"
+        ]
+      },
+      {
+        "symbol": "EM:103.ZC00Y",
+        "name": "玉米连续",
+        "market": "commodity",
+        "group": "commodity",
+        "kind": "commodity",
+        "code": "ZC00Y",
+        "secid": "103.ZC00Y",
+        "source": "eastmoney",
+        "pinyin": "ymlx",
+        "aliases": [
+          "EM:103.ZC00Y",
+          "ZC00Y",
+          "ymlx",
+          "玉米连续"
+        ]
+      },
+      {
+        "symbol": "AAVEUSDT",
+        "name": "AAVE",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "AAVEUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "aave",
+        "aliases": [
+          "AAVE",
+          "AAVEUSDT",
+          "aave"
+        ]
+      },
+      {
+        "symbol": "ADAUSDT",
+        "name": "ADA",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ADAUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "ada",
+        "aliases": [
+          "ADA",
+          "ADAUSDT",
+          "ada"
+        ]
+      },
+      {
+        "symbol": "ALGOUSDT",
+        "name": "ALGO",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ALGOUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "algo",
+        "aliases": [
+          "ALGO",
+          "ALGOUSDT",
+          "algo"
+        ]
+      },
+      {
+        "symbol": "ANKRUSDT",
+        "name": "ANKR",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ANKRUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "ankr",
+        "aliases": [
+          "ANKR",
+          "ANKRUSDT",
+          "ankr"
+        ]
+      },
+      {
+        "symbol": "APTUSDT",
+        "name": "APT",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "APTUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "apt",
+        "aliases": [
+          "APT",
+          "APTUSDT",
+          "apt"
+        ]
+      },
+      {
+        "symbol": "ARBUSDT",
+        "name": "ARB",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ARBUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "arb",
+        "aliases": [
+          "ARB",
+          "ARBUSDT",
+          "arb"
+        ]
+      },
+      {
+        "symbol": "ARKMUSDT",
+        "name": "ARKM",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ARKMUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "arkm",
+        "aliases": [
+          "ARKM",
+          "ARKMUSDT",
+          "arkm"
+        ]
+      },
+      {
+        "symbol": "ATOMUSDT",
+        "name": "ATOM",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ATOMUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "atom",
+        "aliases": [
+          "ATOM",
+          "ATOMUSDT",
+          "atom"
+        ]
+      },
+      {
+        "symbol": "AVAXUSDT",
+        "name": "AVAX",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "AVAXUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "avax",
+        "aliases": [
+          "AVAX",
+          "AVAXUSDT",
+          "avax"
+        ]
+      },
+      {
+        "symbol": "AXSUSDT",
+        "name": "AXS",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "AXSUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "axs",
+        "aliases": [
+          "AXS",
+          "AXSUSDT",
+          "axs"
+        ]
+      },
+      {
+        "symbol": "BATUSDT",
+        "name": "BAT",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "BATUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "bat",
+        "aliases": [
+          "BAT",
+          "BATUSDT",
+          "bat"
+        ]
+      },
+      {
+        "symbol": "BCHUSDT",
+        "name": "BCH",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "BCHUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "bch",
+        "aliases": [
+          "BCH",
+          "BCHUSDT",
+          "bch"
+        ]
+      },
+      {
+        "symbol": "BLURUSDT",
+        "name": "BLUR",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "BLURUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "blur",
+        "aliases": [
+          "BLUR",
+          "BLURUSDT",
+          "blur"
+        ]
+      },
+      {
+        "symbol": "BNBUSDT",
+        "name": "币安币",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "BNBUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "bab",
+        "aliases": [
+          "BNBUSDT",
+          "bab",
+          "bnb",
+          "币安币"
+        ]
+      },
+      {
+        "symbol": "BONKUSDT",
+        "name": "BONK",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "BONKUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "bonk",
+        "aliases": [
+          "BONK",
+          "BONKUSDT",
+          "bonk"
+        ]
+      },
+      {
+        "symbol": "BTCUSDT",
+        "name": "比特币",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "BTCUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "btb",
+        "aliases": [
+          "BTCUSDT",
+          "btb",
+          "btc",
+          "大饼",
+          "比特币"
+        ]
+      },
+      {
+        "symbol": "CELOUSDT",
+        "name": "CELO",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "CELOUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "celo",
+        "aliases": [
+          "CELO",
+          "CELOUSDT",
+          "celo"
+        ]
+      },
+      {
+        "symbol": "CHZUSDT",
+        "name": "CHZ",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "CHZUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "chz",
+        "aliases": [
+          "CHZ",
+          "CHZUSDT",
+          "chz"
+        ]
+      },
+      {
+        "symbol": "COMPUSDT",
+        "name": "COMP",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "COMPUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "comp",
+        "aliases": [
+          "COMP",
+          "COMPUSDT",
+          "comp"
+        ]
+      },
+      {
+        "symbol": "CRVUSDT",
+        "name": "CRV",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "CRVUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "crv",
+        "aliases": [
+          "CRV",
+          "CRVUSDT",
+          "crv"
+        ]
+      },
+      {
+        "symbol": "DOGEUSDT",
+        "name": "狗狗币",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "DOGEUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "b",
+        "aliases": [
+          "DOGEUSDT",
+          "b",
+          "doge",
+          "狗狗币"
+        ]
+      },
+      {
+        "symbol": "DOTUSDT",
+        "name": "DOT",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "DOTUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "dot",
+        "aliases": [
+          "DOT",
+          "DOTUSDT",
+          "dot"
+        ]
+      },
+      {
+        "symbol": "DYDXUSDT",
+        "name": "DYDX",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "DYDXUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "dydx",
+        "aliases": [
+          "DYDX",
+          "DYDXUSDT",
+          "dydx"
+        ]
+      },
+      {
+        "symbol": "EGLDUSDT",
+        "name": "EGLD",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "EGLDUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "egld",
+        "aliases": [
+          "EGLD",
+          "EGLDUSDT",
+          "egld"
+        ]
+      },
+      {
+        "symbol": "ENJUSDT",
+        "name": "ENJ",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ENJUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "enj",
+        "aliases": [
+          "ENJ",
+          "ENJUSDT",
+          "enj"
+        ]
+      },
+      {
+        "symbol": "EOSUSDT",
+        "name": "EOS",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "EOSUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "eos",
+        "aliases": [
+          "EOS",
+          "EOSUSDT",
+          "eos"
+        ]
+      },
+      {
+        "symbol": "ETCUSDT",
+        "name": "ETC",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ETCUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "etc",
+        "aliases": [
+          "ETC",
+          "ETCUSDT",
+          "etc"
+        ]
+      },
+      {
+        "symbol": "ETHUSDT",
+        "name": "以太坊",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ETHUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "",
+        "aliases": [
+          "ETHUSDT",
+          "eth",
+          "以太坊"
+        ]
+      },
+      {
+        "symbol": "FILUSDT",
+        "name": "FIL",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "FILUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "fil",
+        "aliases": [
+          "FIL",
+          "FILUSDT",
+          "fil"
+        ]
+      },
+      {
+        "symbol": "FLOKIUSDT",
+        "name": "FLOKI",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "FLOKIUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "floki",
+        "aliases": [
+          "FLOKI",
+          "FLOKIUSDT",
+          "floki"
+        ]
+      },
+      {
+        "symbol": "FLOWUSDT",
+        "name": "FLOW",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "FLOWUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "flow",
+        "aliases": [
+          "FLOW",
+          "FLOWUSDT",
+          "flow"
+        ]
+      },
+      {
+        "symbol": "FTMUSDT",
+        "name": "FTM",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "FTMUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "ftm",
+        "aliases": [
+          "FTM",
+          "FTMUSDT",
+          "ftm"
+        ]
+      },
+      {
+        "symbol": "GALAUSDT",
+        "name": "GALA",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "GALAUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "gala",
+        "aliases": [
+          "GALA",
+          "GALAUSDT",
+          "gala"
+        ]
+      },
+      {
+        "symbol": "GMXUSDT",
+        "name": "GMX",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "GMXUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "gmx",
+        "aliases": [
+          "GMX",
+          "GMXUSDT",
+          "gmx"
+        ]
+      },
+      {
+        "symbol": "GRTUSDT",
+        "name": "GRT",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "GRTUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "grt",
+        "aliases": [
+          "GRT",
+          "GRTUSDT",
+          "grt"
+        ]
+      },
+      {
+        "symbol": "HBARUSDT",
+        "name": "HBAR",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "HBARUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "hbar",
+        "aliases": [
+          "HBAR",
+          "HBARUSDT",
+          "hbar"
+        ]
+      },
+      {
+        "symbol": "ICPUSDT",
+        "name": "ICP",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ICPUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "icp",
+        "aliases": [
+          "ICP",
+          "ICPUSDT",
+          "icp"
+        ]
+      },
+      {
+        "symbol": "IMXUSDT",
+        "name": "IMX",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "IMXUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "imx",
+        "aliases": [
+          "IMX",
+          "IMXUSDT",
+          "imx"
+        ]
+      },
+      {
+        "symbol": "INJUSDT",
+        "name": "INJ",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "INJUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "inj",
+        "aliases": [
+          "INJ",
+          "INJUSDT",
+          "inj"
+        ]
+      },
+      {
+        "symbol": "IOTAUSDT",
+        "name": "IOTA",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "IOTAUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "iota",
+        "aliases": [
+          "IOTA",
+          "IOTAUSDT",
+          "iota"
+        ]
+      },
+      {
+        "symbol": "JUPUSDT",
+        "name": "JUP",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "JUPUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "jup",
+        "aliases": [
+          "JUP",
+          "JUPUSDT",
+          "jup"
+        ]
+      },
+      {
+        "symbol": "KAVAUSDT",
+        "name": "KAVA",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "KAVAUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "kava",
+        "aliases": [
+          "KAVA",
+          "KAVAUSDT",
+          "kava"
+        ]
+      },
+      {
+        "symbol": "LDOUSDT",
+        "name": "LDO",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "LDOUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "ldo",
+        "aliases": [
+          "LDO",
+          "LDOUSDT",
+          "ldo"
+        ]
+      },
+      {
+        "symbol": "LINKUSDT",
+        "name": "LINK",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "LINKUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "link",
+        "aliases": [
+          "LINK",
+          "LINKUSDT",
+          "link"
+        ]
+      },
+      {
+        "symbol": "LTCUSDT",
+        "name": "LTC",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "LTCUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "ltc",
+        "aliases": [
+          "LTC",
+          "LTCUSDT",
+          "ltc"
+        ]
+      },
+      {
+        "symbol": "MANAUSDT",
+        "name": "MANA",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "MANAUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "mana",
+        "aliases": [
+          "MANA",
+          "MANAUSDT",
+          "mana"
+        ]
+      },
+      {
+        "symbol": "MINAUSDT",
+        "name": "MINA",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "MINAUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "mina",
+        "aliases": [
+          "MINA",
+          "MINAUSDT",
+          "mina"
+        ]
+      },
+      {
+        "symbol": "MKRUSDT",
+        "name": "MKR",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "MKRUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "mkr",
+        "aliases": [
+          "MKR",
+          "MKRUSDT",
+          "mkr"
+        ]
+      },
+      {
+        "symbol": "NEARUSDT",
+        "name": "NEAR",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "NEARUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "near",
+        "aliases": [
+          "NEAR",
+          "NEARUSDT",
+          "near"
+        ]
+      },
+      {
+        "symbol": "ONEUSDT",
+        "name": "ONE",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ONEUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "one",
+        "aliases": [
+          "ONE",
+          "ONEUSDT",
+          "one"
+        ]
+      },
+      {
+        "symbol": "OPUSDT",
+        "name": "OP",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "OPUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "op",
+        "aliases": [
+          "OP",
+          "OPUSDT",
+          "op"
+        ]
+      },
+      {
+        "symbol": "ORDIUSDT",
+        "name": "ORDI",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ORDIUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "ordi",
+        "aliases": [
+          "ORDI",
+          "ORDIUSDT",
+          "ordi"
+        ]
+      },
+      {
+        "symbol": "PEPEUSDT",
+        "name": "PEPE",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "PEPEUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "pepe",
+        "aliases": [
+          "PEPE",
+          "PEPEUSDT",
+          "pepe"
+        ]
+      },
+      {
+        "symbol": "PYTHUSDT",
+        "name": "PYTH",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "PYTHUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "pyth",
+        "aliases": [
+          "PYTH",
+          "PYTHUSDT",
+          "pyth"
+        ]
+      },
+      {
+        "symbol": "QNTUSDT",
+        "name": "QNT",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "QNTUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "qnt",
+        "aliases": [
+          "QNT",
+          "QNTUSDT",
+          "qnt"
+        ]
+      },
+      {
+        "symbol": "RENDERUSDT",
+        "name": "RENDER",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "RENDERUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "render",
+        "aliases": [
+          "RENDER",
+          "RENDERUSDT",
+          "render"
+        ]
+      },
+      {
+        "symbol": "ROSEUSDT",
+        "name": "ROSE",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ROSEUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "rose",
+        "aliases": [
+          "ROSE",
+          "ROSEUSDT",
+          "rose"
+        ]
+      },
+      {
+        "symbol": "RUNEUSDT",
+        "name": "RUNE",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "RUNEUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "rune",
+        "aliases": [
+          "RUNE",
+          "RUNEUSDT",
+          "rune"
+        ]
+      },
+      {
+        "symbol": "RVNUSDT",
+        "name": "RVN",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "RVNUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "rvn",
+        "aliases": [
+          "RVN",
+          "RVNUSDT",
+          "rvn"
+        ]
+      },
+      {
+        "symbol": "SANDUSDT",
+        "name": "SAND",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "SANDUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "sand",
+        "aliases": [
+          "SAND",
+          "SANDUSDT",
+          "sand"
+        ]
+      },
+      {
+        "symbol": "SEIUSDT",
+        "name": "SEI",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "SEIUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "sei",
+        "aliases": [
+          "SEI",
+          "SEIUSDT",
+          "sei"
+        ]
+      },
+      {
+        "symbol": "SHIBUSDT",
+        "name": "SHIB",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "SHIBUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "shib",
+        "aliases": [
+          "SHIB",
+          "SHIBUSDT",
+          "shib"
+        ]
+      },
+      {
+        "symbol": "SKLUSDT",
+        "name": "SKL",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "SKLUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "skl",
+        "aliases": [
+          "SKL",
+          "SKLUSDT",
+          "skl"
+        ]
+      },
+      {
+        "symbol": "SNXUSDT",
+        "name": "SNX",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "SNXUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "snx",
+        "aliases": [
+          "SNX",
+          "SNXUSDT",
+          "snx"
+        ]
+      },
+      {
+        "symbol": "SOLUSDT",
+        "name": "索拉纳",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "SOLUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "ln",
+        "aliases": [
+          "SOLUSDT",
+          "ln",
+          "sol",
+          "索拉纳"
+        ]
+      },
+      {
+        "symbol": "STORJUSDT",
+        "name": "STORJ",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "STORJUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "storj",
+        "aliases": [
+          "STORJ",
+          "STORJUSDT",
+          "storj"
+        ]
+      },
+      {
+        "symbol": "STXUSDT",
+        "name": "STX",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "STXUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "stx",
+        "aliases": [
+          "STX",
+          "STXUSDT",
+          "stx"
+        ]
+      },
+      {
+        "symbol": "SUIUSDT",
+        "name": "SUI",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "SUIUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "sui",
+        "aliases": [
+          "SUI",
+          "SUIUSDT",
+          "sui"
+        ]
+      },
+      {
+        "symbol": "THETAUSDT",
+        "name": "THETA",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "THETAUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "theta",
+        "aliases": [
+          "THETA",
+          "THETAUSDT",
+          "theta"
+        ]
+      },
+      {
+        "symbol": "TIAUSDT",
+        "name": "TIA",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "TIAUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "tia",
+        "aliases": [
+          "TIA",
+          "TIAUSDT",
+          "tia"
+        ]
+      },
+      {
+        "symbol": "TRXUSDT",
+        "name": "TRX",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "TRXUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "trx",
+        "aliases": [
+          "TRX",
+          "TRXUSDT",
+          "trx"
+        ]
+      },
+      {
+        "symbol": "UNIUSDT",
+        "name": "UNI",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "UNIUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "uni",
+        "aliases": [
+          "UNI",
+          "UNIUSDT",
+          "uni"
+        ]
+      },
+      {
+        "symbol": "VETUSDT",
+        "name": "VET",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "VETUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "vet",
+        "aliases": [
+          "VET",
+          "VETUSDT",
+          "vet"
+        ]
+      },
+      {
+        "symbol": "WAVESUSDT",
+        "name": "WAVES",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "WAVESUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "waves",
+        "aliases": [
+          "WAVES",
+          "WAVESUSDT",
+          "waves"
+        ]
+      },
+      {
+        "symbol": "WIFUSDT",
+        "name": "WIF",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "WIFUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "wif",
+        "aliases": [
+          "WIF",
+          "WIFUSDT",
+          "wif"
+        ]
+      },
+      {
+        "symbol": "WLDUSDT",
+        "name": "WLD",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "WLDUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "wld",
+        "aliases": [
+          "WLD",
+          "WLDUSDT",
+          "wld"
+        ]
+      },
+      {
+        "symbol": "XLMUSDT",
+        "name": "XLM",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "XLMUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "xlm",
+        "aliases": [
+          "XLM",
+          "XLMUSDT",
+          "xlm"
+        ]
+      },
+      {
+        "symbol": "XRPUSDT",
+        "name": "瑞波币",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "XRPUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "rb",
+        "aliases": [
+          "XRPUSDT",
+          "rb",
+          "瑞波",
+          "瑞波币"
+        ]
+      },
+      {
+        "symbol": "ZILUSDT",
+        "name": "ZIL",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ZILUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "zil",
+        "aliases": [
+          "ZIL",
+          "ZILUSDT",
+          "zil"
+        ]
+      },
+      {
+        "symbol": "ZRXUSDT",
+        "name": "ZRX",
+        "market": "crypto",
+        "group": "crypto",
+        "kind": "crypto",
+        "code": "ZRXUSDT",
+        "secid": null,
+        "source": "binance",
+        "pinyin": "zrx",
+        "aliases": [
+          "ZRX",
+          "ZRXUSDT",
+          "zrx"
+        ]
+      },
+      {
+        "symbol": "EM:100.UDI",
+        "name": "美元指数",
+        "market": "fx",
+        "group": "fx",
+        "kind": "fx",
+        "code": "UDI",
+        "secid": "100.UDI",
+        "source": "eastmoney",
+        "pinyin": "myzs",
+        "aliases": [
+          "EM:100.UDI",
+          "UDI",
+          "dxy",
+          "myzs",
+          "美元指数"
+        ]
+      },
+      {
+        "symbol": "EM:119.EURUSD",
+        "name": "欧元美元",
+        "market": "fx",
+        "group": "fx",
+        "kind": "fx",
+        "code": "EURUSD",
+        "secid": "119.EURUSD",
+        "source": "eastmoney",
+        "pinyin": "oymy",
+        "aliases": [
+          "EM:119.EURUSD",
+          "EURUSD",
+          "oymy",
+          "欧元美元"
+        ]
+      },
+      {
+        "symbol": "EM:119.GBPUSD",
+        "name": "英镑美元",
+        "market": "fx",
+        "group": "fx",
+        "kind": "fx",
+        "code": "GBPUSD",
+        "secid": "119.GBPUSD",
+        "source": "eastmoney",
+        "pinyin": "ybmy",
+        "aliases": [
+          "EM:119.GBPUSD",
+          "GBPUSD",
+          "ybmy",
+          "英镑美元"
+        ]
+      },
+      {
+        "symbol": "EM:119.USDHKD",
+        "name": "美元港币",
+        "market": "fx",
+        "group": "fx",
+        "kind": "fx",
+        "code": "USDHKD",
+        "secid": "119.USDHKD",
+        "source": "eastmoney",
+        "pinyin": "mygb",
+        "aliases": [
+          "EM:119.USDHKD",
+          "USDHKD",
+          "mygb",
+          "美元港币"
+        ]
+      },
+      {
+        "symbol": "EM:119.USDJPY",
+        "name": "美元日元",
+        "market": "fx",
+        "group": "fx",
+        "kind": "fx",
+        "code": "USDJPY",
+        "secid": "119.USDJPY",
+        "source": "eastmoney",
+        "pinyin": "myry",
+        "aliases": [
+          "EM:119.USDJPY",
+          "USDJPY",
+          "myry",
+          "美元日元"
+        ]
+      },
+      {
+        "symbol": "EM:133.USDCNH",
+        "name": "美元离岸人民币",
+        "market": "fx",
+        "group": "fx",
+        "kind": "fx",
+        "code": "USDCNH",
+        "secid": "133.USDCNH",
+        "source": "eastmoney",
+        "pinyin": "mylarmb",
+        "aliases": [
+          "EM:133.USDCNH",
+          "USDCNH",
+          "mylarmb",
+          "美元离岸人民币"
+        ]
+      },
+      {
+        "symbol": "hk00005",
+        "name": "汇丰控股",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "00005",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "hfkg",
+        "aliases": [
+          "00005",
+          "hfkg",
+          "hk00005",
+          "汇丰控股"
+        ]
+      },
+      {
+        "symbol": "hk00016",
+        "name": "新鸿基地产",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "00016",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "xhjdc",
+        "aliases": [
+          "00016",
+          "hk00016",
+          "xhjdc",
+          "新鸿基地产"
+        ]
+      },
+      {
+        "symbol": "hk00027",
+        "name": "银河娱乐",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "00027",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "yhyl",
+        "aliases": [
+          "00027",
+          "hk00027",
+          "yhyl",
+          "银河娱乐"
+        ]
+      },
+      {
+        "symbol": "hk00291",
+        "name": "华润啤酒",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "00291",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "hrpj",
+        "aliases": [
+          "00291",
+          "hk00291",
+          "hrpj",
+          "华润啤酒"
+        ]
+      },
+      {
+        "symbol": "hk00386",
+        "name": "中国石油化工",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "00386",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zgsyhg",
+        "aliases": [
+          "00386",
+          "hk00386",
+          "zgsyhg",
+          "中国石油化工"
+        ]
+      },
+      {
+        "symbol": "hk00700",
+        "name": "腾讯控股",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "00700",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "txkg",
+        "aliases": [
+          "00700",
+          "hk00700",
+          "tencent",
+          "txkg",
+          "腾讯",
+          "腾讯控股"
+        ]
+      },
+      {
+        "symbol": "hk00857",
+        "name": "中国石油股份",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "00857",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zgsygf",
+        "aliases": [
+          "00857",
+          "hk00857",
+          "zgsygf",
+          "中国石油股份"
+        ]
+      },
+      {
+        "symbol": "hk00883",
+        "name": "中国海洋石油",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "00883",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zghysy",
+        "aliases": [
+          "00883",
+          "hk00883",
+          "zghysy",
+          "中国海洋石油"
+        ]
+      },
+      {
+        "symbol": "hk00939",
+        "name": "建设银行",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "00939",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "jsyh",
+        "aliases": [
+          "00939",
+          "hk00939",
+          "jsyh",
+          "建设银行"
+        ]
+      },
+      {
+        "symbol": "hk00941",
+        "name": "中国移动",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "00941",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zgyd",
+        "aliases": [
+          "00941",
+          "hk00941",
+          "zgyd",
+          "中国移动"
+        ]
+      },
+      {
+        "symbol": "hk01024",
+        "name": "快手",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "01024",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "ks",
+        "aliases": [
+          "01024",
+          "hk01024",
+          "ks",
+          "快手"
+        ]
+      },
+      {
+        "symbol": "hk01113",
+        "name": "长实集团",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "01113",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "csjt",
+        "aliases": [
+          "01113",
+          "csjt",
+          "hk01113",
+          "长实集团"
+        ]
+      },
+      {
+        "symbol": "hk01299",
+        "name": "友邦保险",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "01299",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "ybbx",
+        "aliases": [
+          "01299",
+          "hk01299",
+          "ybbx",
+          "友邦保险"
+        ]
+      },
+      {
+        "symbol": "hk01398",
+        "name": "工商银行",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "01398",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "gsyh",
+        "aliases": [
+          "01398",
+          "gsyh",
+          "hk01398",
+          "工商银行"
+        ]
+      },
+      {
+        "symbol": "hk01810",
+        "name": "小米集团",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "01810",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "xmjt",
+        "aliases": [
+          "01810",
+          "hk01810",
+          "xmjt",
+          "小米",
+          "小米集团"
+        ]
+      },
+      {
+        "symbol": "hk02020",
+        "name": "安踏体育",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "02020",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "atty",
+        "aliases": [
+          "02020",
+          "atty",
+          "hk02020",
+          "安踏体育"
+        ]
+      },
+      {
+        "symbol": "hk02318",
+        "name": "中国平安",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "02318",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zgpa",
+        "aliases": [
+          "02318",
+          "hk02318",
+          "zgpa",
+          "中国平安"
+        ]
+      },
+      {
+        "symbol": "hk03690",
+        "name": "美团",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "03690",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "mt",
+        "aliases": [
+          "03690",
+          "hk03690",
+          "mt",
+          "美团"
+        ]
+      },
+      {
+        "symbol": "hk03988",
+        "name": "中国银行",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "03988",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "zgyh",
+        "aliases": [
+          "03988",
+          "hk03988",
+          "zgyh",
+          "中国银行"
+        ]
+      },
+      {
+        "symbol": "hk06618",
+        "name": "京东健康",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "06618",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "jdjk",
+        "aliases": [
+          "06618",
+          "hk06618",
+          "jdjk",
+          "京东健康"
+        ]
+      },
+      {
+        "symbol": "hk06862",
+        "name": "海底捞",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "06862",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "hdl",
+        "aliases": [
+          "06862",
+          "hdl",
+          "hk06862",
+          "海底捞"
+        ]
+      },
+      {
+        "symbol": "hk09618",
+        "name": "京东集团",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "09618",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "jdjt",
+        "aliases": [
+          "09618",
+          "hk09618",
+          "jdjt",
+          "京东",
+          "京东集团"
+        ]
+      },
+      {
+        "symbol": "hk09988",
+        "name": "阿里巴巴",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "09988",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "albb",
+        "aliases": [
+          "09988",
+          "albb",
+          "alibaba",
+          "hk09988",
+          "阿里",
+          "阿里巴巴"
+        ]
+      },
+      {
+        "symbol": "hk09999",
+        "name": "网易",
+        "market": "hk",
+        "group": "hk",
+        "kind": "stock",
+        "code": "09999",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "wy",
+        "aliases": [
+          "09999",
+          "hk09999",
+          "wy",
+          "网易"
+        ]
+      },
+      {
+        "symbol": "EM:100.FCHI",
+        "name": "法国CAC40",
+        "market": "global",
+        "group": "index",
+        "kind": "index",
+        "code": "FCHI",
+        "secid": "100.FCHI",
+        "source": "eastmoney",
+        "pinyin": "fgcac40",
+        "aliases": [
+          "EM:100.FCHI",
+          "FCHI",
+          "fgcac40",
+          "法国CAC40"
+        ]
+      },
+      {
+        "symbol": "EM:100.FTSE",
+        "name": "英国富时100",
+        "market": "global",
+        "group": "index",
+        "kind": "index",
+        "code": "FTSE",
+        "secid": "100.FTSE",
+        "source": "eastmoney",
+        "pinyin": "ygfs100",
+        "aliases": [
+          "EM:100.FTSE",
+          "FTSE",
+          "ygfs100",
+          "英国富时100"
+        ]
+      },
+      {
+        "symbol": "EM:100.GDAXI",
+        "name": "德国DAX",
+        "market": "global",
+        "group": "index",
+        "kind": "index",
+        "code": "GDAXI",
+        "secid": "100.GDAXI",
+        "source": "eastmoney",
+        "pinyin": "dgdax",
+        "aliases": [
+          "EM:100.GDAXI",
+          "GDAXI",
+          "dgdax",
+          "德国DAX"
+        ]
+      },
+      {
+        "symbol": "EM:100.KS11",
+        "name": "韩国KOSPI",
+        "market": "global",
+        "group": "index",
+        "kind": "index",
+        "code": "KS11",
+        "secid": "100.KS11",
+        "source": "eastmoney",
+        "pinyin": "hgkospi",
+        "aliases": [
+          "EM:100.KS11",
+          "KS11",
+          "hgkospi",
+          "韩国KOSPI"
+        ]
+      },
+      {
+        "symbol": "EM:100.N225",
+        "name": "日经225",
+        "market": "global",
+        "group": "index",
+        "kind": "index",
+        "code": "N225",
+        "secid": "100.N225",
+        "source": "eastmoney",
+        "pinyin": "rj225",
+        "aliases": [
+          "EM:100.N225",
+          "N225",
+          "rj225",
+          "日经225"
+        ]
+      },
+      {
+        "symbol": "EM:100.SENSEX",
+        "name": "印度SENSEX",
+        "market": "global",
+        "group": "index",
+        "kind": "index",
+        "code": "SENSEX",
+        "secid": "100.SENSEX",
+        "source": "eastmoney",
+        "pinyin": "ydsensex",
+        "aliases": [
+          "EM:100.SENSEX",
+          "SENSEX",
+          "ydsensex",
+          "印度SENSEX"
+        ]
+      },
+      {
+        "symbol": "hkHSI",
+        "name": "恒生指数",
+        "market": "hk",
+        "group": "index",
+        "kind": "index",
+        "code": "HSI",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "hszs",
+        "aliases": [
+          "HSI",
+          "hkHSI",
+          "hsi",
+          "hszs",
+          "恒指",
+          "恒生指数"
+        ]
+      },
+      {
+        "symbol": "hkHSTECH",
+        "name": "恒生科技",
+        "market": "hk",
+        "group": "index",
+        "kind": "index",
+        "code": "HSTECH",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "hskj",
+        "aliases": [
+          "HSTECH",
+          "hkHSTECH",
+          "hskj",
+          "hstech",
+          "恒生科技",
+          "恒科"
+        ]
+      },
+      {
+        "symbol": "sh000001",
+        "name": "上证指数",
+        "market": "cn",
+        "group": "index",
+        "kind": "index",
+        "code": "000001",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "szzs",
+        "aliases": [
+          "000001",
+          "sh000001",
+          "szzs",
+          "上证",
+          "上证指数",
+          "大盘",
+          "沪指"
+        ]
+      },
+      {
+        "symbol": "sh000688",
+        "name": "科创50",
+        "market": "cn",
+        "group": "index",
+        "kind": "index",
+        "code": "000688",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "kc50",
+        "aliases": [
+          "000688",
+          "kc50",
+          "sh000688",
+          "科创",
+          "科创50"
+        ]
+      },
+      {
+        "symbol": "sz399001",
+        "name": "深证成指",
+        "market": "cn",
+        "group": "index",
+        "kind": "index",
+        "code": "399001",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "szcz",
+        "aliases": [
+          "399001",
+          "sz399001",
+          "szcz",
+          "深成指",
+          "深指",
+          "深证成指"
+        ]
+      },
+      {
+        "symbol": "sz399006",
+        "name": "创业板指",
+        "market": "cn",
+        "group": "index",
+        "kind": "index",
+        "code": "399006",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "cybz",
+        "aliases": [
+          "399006",
+          "cybz",
+          "sz399006",
+          "创业板",
+          "创业板指",
+          "创指"
+        ]
+      },
+      {
+        "symbol": "usDJI",
+        "name": "道琼斯",
+        "market": "us",
+        "group": "index",
+        "kind": "index",
+        "code": "DJI",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "dqs",
+        "aliases": [
+          "DJI",
+          "dqs",
+          "usDJI",
+          "道指",
+          "道琼斯"
+        ]
+      },
+      {
+        "symbol": "usINX",
+        "name": "标普500",
+        "market": "us",
+        "group": "index",
+        "kind": "index",
+        "code": "INX",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "bp500",
+        "aliases": [
+          "INX",
+          "bp500",
+          "sp500",
+          "spx",
+          "usINX",
+          "标普",
+          "标普500"
+        ]
+      },
+      {
+        "symbol": "usIXIC",
+        "name": "纳斯达克",
+        "market": "us",
+        "group": "index",
+        "kind": "index",
+        "code": "IXIC",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "nsdk",
+        "aliases": [
+          "IXIC",
+          "nasdaq",
+          "nsdk",
+          "usIXIC",
+          "纳指",
+          "纳斯达克"
+        ]
+      },
+      {
+        "symbol": "EM:171.CN10Y",
+        "name": "中债10年",
+        "market": "macro",
+        "group": "macro",
+        "kind": "rate",
+        "code": "CN10Y",
+        "secid": "171.CN10Y",
+        "source": "eastmoney",
+        "pinyin": "zz10n",
+        "aliases": [
+          "CN10Y",
+          "EM:171.CN10Y",
+          "cn10y",
+          "zz10n",
+          "中债10年",
+          "中十债"
+        ]
+      },
+      {
+        "symbol": "EM:171.CN2Y",
+        "name": "中债2年",
+        "market": "macro",
+        "group": "macro",
+        "kind": "rate",
+        "code": "CN2Y",
+        "secid": "171.CN2Y",
+        "source": "eastmoney",
+        "pinyin": "zz2n",
+        "aliases": [
+          "CN2Y",
+          "EM:171.CN2Y",
+          "zz2n",
+          "中债2年"
+        ]
+      },
+      {
+        "symbol": "EM:171.CN30Y",
+        "name": "中债30年",
+        "market": "macro",
+        "group": "macro",
+        "kind": "rate",
+        "code": "CN30Y",
+        "secid": "171.CN30Y",
+        "source": "eastmoney",
+        "pinyin": "zz30n",
+        "aliases": [
+          "CN30Y",
+          "EM:171.CN30Y",
+          "zz30n",
+          "中债30年"
+        ]
+      },
+      {
+        "symbol": "EM:171.CN5Y",
+        "name": "中债5年",
+        "market": "macro",
+        "group": "macro",
+        "kind": "rate",
+        "code": "CN5Y",
+        "secid": "171.CN5Y",
+        "source": "eastmoney",
+        "pinyin": "zz5n",
+        "aliases": [
+          "CN5Y",
+          "EM:171.CN5Y",
+          "zz5n",
+          "中债5年"
+        ]
+      },
+      {
+        "symbol": "EM:171.DE10Y",
+        "name": "德债10年",
+        "market": "macro",
+        "group": "macro",
+        "kind": "rate",
+        "code": "DE10Y",
+        "secid": "171.DE10Y",
+        "source": "eastmoney",
+        "pinyin": "dz10n",
+        "aliases": [
+          "DE10Y",
+          "EM:171.DE10Y",
+          "dz10n",
+          "德债10年"
+        ]
+      },
+      {
+        "symbol": "EM:171.JP10Y",
+        "name": "日债10年",
+        "market": "macro",
+        "group": "macro",
+        "kind": "rate",
+        "code": "JP10Y",
+        "secid": "171.JP10Y",
+        "source": "eastmoney",
+        "pinyin": "rz10n",
+        "aliases": [
+          "EM:171.JP10Y",
+          "JP10Y",
+          "rz10n",
+          "日债10年"
+        ]
+      },
+      {
+        "symbol": "EM:171.US10Y",
+        "name": "美债10年",
+        "market": "macro",
+        "group": "macro",
+        "kind": "rate",
+        "code": "US10Y",
+        "secid": "171.US10Y",
+        "source": "eastmoney",
+        "pinyin": "mz10n",
+        "aliases": [
+          "EM:171.US10Y",
+          "US10Y",
+          "mz10n",
+          "us10y",
+          "美债10年",
+          "美十债"
+        ]
+      },
+      {
+        "symbol": "EM:171.US2Y",
+        "name": "美债2年",
+        "market": "macro",
+        "group": "macro",
+        "kind": "rate",
+        "code": "US2Y",
+        "secid": "171.US2Y",
+        "source": "eastmoney",
+        "pinyin": "mz2n",
+        "aliases": [
+          "EM:171.US2Y",
+          "US2Y",
+          "mz2n",
+          "美债2年"
+        ]
+      },
+      {
+        "symbol": "EM:171.US30Y",
+        "name": "美债30年",
+        "market": "macro",
+        "group": "macro",
+        "kind": "rate",
+        "code": "US30Y",
+        "secid": "171.US30Y",
+        "source": "eastmoney",
+        "pinyin": "mz30n",
+        "aliases": [
+          "EM:171.US30Y",
+          "US30Y",
+          "mz30n",
+          "美债30年"
+        ]
+      },
+      {
+        "symbol": "EM:171.US3M",
+        "name": "美债3月",
+        "market": "macro",
+        "group": "macro",
+        "kind": "rate",
+        "code": "US3M",
+        "secid": "171.US3M",
+        "source": "eastmoney",
+        "pinyin": "mz3y",
+        "aliases": [
+          "EM:171.US3M",
+          "US3M",
+          "mz3y",
+          "美债3月"
+        ]
+      },
+      {
+        "symbol": "EM:171.US5Y",
+        "name": "美债5年",
+        "market": "macro",
+        "group": "macro",
+        "kind": "rate",
+        "code": "US5Y",
+        "secid": "171.US5Y",
+        "source": "eastmoney",
+        "pinyin": "mz5n",
+        "aliases": [
+          "EM:171.US5Y",
+          "US5Y",
+          "mz5n",
+          "美债5年"
+        ]
+      },
+      {
+        "symbol": "usAAPL",
+        "name": "苹果",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "AAPL",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "pg",
+        "aliases": [
+          "AAPL",
+          "apple",
+          "pg",
+          "usAAPL",
+          "苹果"
+        ]
+      },
+      {
+        "symbol": "usAMD",
+        "name": "超威半导体",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "AMD",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "cwbdt",
+        "aliases": [
+          "AMD",
+          "amd",
+          "cwbdt",
+          "usAMD",
+          "超威半导体"
+        ]
+      },
+      {
+        "symbol": "usAMZN",
+        "name": "亚马逊",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "AMZN",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "ymx",
+        "aliases": [
+          "AMZN",
+          "usAMZN",
+          "ymx",
+          "亚马逊"
+        ]
+      },
+      {
+        "symbol": "usAVGO",
+        "name": "博通",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "AVGO",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "bt",
+        "aliases": [
+          "AVGO",
+          "bt",
+          "usAVGO",
+          "博通"
+        ]
+      },
+      {
+        "symbol": "usBA",
+        "name": "波音",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "BA",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "y",
+        "aliases": [
+          "BA",
+          "usBA",
+          "y",
+          "波音"
+        ]
+      },
+      {
+        "symbol": "usCOIN",
+        "name": "Coinbase",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "COIN",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "coinbase",
+        "aliases": [
+          "COIN",
+          "Coinbase",
+          "coinbase",
+          "usCOIN"
+        ]
+      },
+      {
+        "symbol": "usDIS",
+        "name": "迪士尼",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "DIS",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "dsn",
+        "aliases": [
+          "DIS",
+          "dsn",
+          "usDIS",
+          "迪士尼"
+        ]
+      },
+      {
+        "symbol": "usGOOG",
+        "name": "谷歌",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "GOOG",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "gg",
+        "aliases": [
+          "GOOG",
+          "gg",
+          "google",
+          "usGOOG",
+          "谷歌"
+        ]
+      },
+      {
+        "symbol": "usINTC",
+        "name": "英特尔",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "INTC",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "yte",
+        "aliases": [
+          "INTC",
+          "usINTC",
+          "yte",
+          "英特尔"
+        ]
+      },
+      {
+        "symbol": "usJPM",
+        "name": "摩根大通",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "JPM",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "mgdt",
+        "aliases": [
+          "JPM",
+          "mgdt",
+          "usJPM",
+          "摩根大通"
+        ]
+      },
+      {
+        "symbol": "usMETA",
+        "name": "Meta",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "META",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "meta",
+        "aliases": [
+          "META",
+          "Meta",
+          "meta",
+          "usMETA"
+        ]
+      },
+      {
+        "symbol": "usMSFT",
+        "name": "微软",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "MSFT",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "wr",
+        "aliases": [
+          "MSFT",
+          "usMSFT",
+          "wr",
+          "微软"
+        ]
+      },
+      {
+        "symbol": "usMU",
+        "name": "美光科技",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "MU",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "mgkj",
+        "aliases": [
+          "MU",
+          "mgkj",
+          "usMU",
+          "美光科技"
+        ]
+      },
+      {
+        "symbol": "usNFLX",
+        "name": "奈飞",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "NFLX",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "nf",
+        "aliases": [
+          "NFLX",
+          "nf",
+          "usNFLX",
+          "奈飞"
+        ]
+      },
+      {
+        "symbol": "usNVDA",
+        "name": "英伟达",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "NVDA",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "ywd",
+        "aliases": [
+          "NVDA",
+          "nvidia",
+          "usNVDA",
+          "ywd",
+          "英伟达"
+        ]
+      },
+      {
+        "symbol": "usORCL",
+        "name": "甲骨文",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "ORCL",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "jgw",
+        "aliases": [
+          "ORCL",
+          "jgw",
+          "usORCL",
+          "甲骨文"
+        ]
+      },
+      {
+        "symbol": "usPFE",
+        "name": "辉瑞",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "PFE",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "hr",
+        "aliases": [
+          "PFE",
+          "hr",
+          "usPFE",
+          "辉瑞"
+        ]
+      },
+      {
+        "symbol": "usPLTR",
+        "name": "Palantir",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "PLTR",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "palantir",
+        "aliases": [
+          "PLTR",
+          "Palantir",
+          "palantir",
+          "usPLTR"
+        ]
+      },
+      {
+        "symbol": "usQCOM",
+        "name": "高通",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "QCOM",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "gt",
+        "aliases": [
+          "QCOM",
+          "gt",
+          "usQCOM",
+          "高通"
+        ]
+      },
+      {
+        "symbol": "usTSLA",
+        "name": "特斯拉",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "TSLA",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "tsl",
+        "aliases": [
+          "TSLA",
+          "tesla",
+          "tsl",
+          "usTSLA",
+          "特斯拉"
+        ]
+      },
+      {
+        "symbol": "usTSM",
+        "name": "台积电",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "TSM",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "tjd",
+        "aliases": [
+          "TSM",
+          "tjd",
+          "usTSM",
+          "台积电"
+        ]
+      },
+      {
+        "symbol": "usV",
+        "name": "Visa",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "V",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "visa",
+        "aliases": [
+          "V",
+          "Visa",
+          "usV",
+          "visa"
+        ]
+      },
+      {
+        "symbol": "usWMT",
+        "name": "沃尔玛",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "WMT",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "wem",
+        "aliases": [
+          "WMT",
+          "usWMT",
+          "wem",
+          "沃尔玛"
+        ]
+      },
+      {
+        "symbol": "usXOM",
+        "name": "埃克森美孚",
+        "market": "us",
+        "group": "us",
+        "kind": "stock",
+        "code": "XOM",
+        "secid": null,
+        "source": "tencent",
+        "pinyin": "aksmf",
+        "aliases": [
+          "XOM",
+          "aksmf",
+          "usXOM",
+          "埃克森美孚"
+        ]
+      }
+    ]
+  },
+  "meta": {
+    "dataset": "universe",
+    "asof": "2026-11-08T15:02:37.542Z",
+    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "source": "js/data/universe.js（与页面共用的标的常量表）",
+    "stale": false,
+    "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
+    "note": "symbol 是其它端点与 MCP 工具的标准入参；aliases 含中文名、代码、拼音首字母与常见口语别名；secid 仅东财源使用。"
+  }
+}

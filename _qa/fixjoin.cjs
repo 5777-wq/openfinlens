@@ -1,0 +1,11 @@
+const fs = require('fs');
+const p = 'D:/57的vibe coding内容/global-fin-dashboard/_test/tokens.test.mjs';
+let t = fs.readFileSync(p, 'utf8');
+const idx = t.indexOf("...uiFiles.map(f => readFileSync(path.join(ROOT, f), 'utf8'))].join(");
+if (idx < 0) throw new Error('未找到目标');
+const open = t.indexOf("'", idx);
+const close = t.indexOf("');", open);
+const replacement = ".join('\\u000a');";
+t = t.slice(0, idx) + "...uiFiles.map(f => readFileSync(path.join(ROOT, f), 'utf8'))]" + replacement + t.slice(close + 2);
+fs.writeFileSync(p, t, 'utf8');
+console.log(t.slice(idx, idx + 120));

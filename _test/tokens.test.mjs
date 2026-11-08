@@ -22,7 +22,13 @@ const assert = {
   equal: (a, b, m) => { if (a !== b) throw new Error((m || '不相等') + `：${a} !== ${b}`); },
 };
 
-const CSS = readFileSync(path.join(ROOT, 'css/style.css'), 'utf8');
+/* v2：设计语言分层在 css/ui/ 下（tokens 仍在 style.css，是令牌单一事实源）。
+   本组断言一律扫「style.css + css/ui/*.css」全量，否则新层的规则逃出守卫。 */
+const CSS_DIR = path.join(ROOT, 'css');
+const uiDir = path.join(CSS_DIR, 'ui');
+const uiFiles = readdirSync(uiDir, { withFileTypes: true }).filter(e => e.isFile() && e.name.endsWith('.css')).map(e => 'css/ui/' + e.name).sort();
+const CSS = [readFileSync(path.join(CSS_DIR, 'style.css'), 'utf8'),
+  ...uiFiles.map(f => readFileSync(path.join(ROOT, f), 'utf8'))].join('\u000a');;
 const HTML = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 
 const cssVar = (name, src = CSS) => {
@@ -237,6 +243,47 @@ test('js/app.js 必须接线图表类型（chartTypeV1 持久化 + setType 调�
   assert.ok(/sanitizeChartType\(/.test(app), 'app.js 没有消费 sanitizeChartType（脏值直灌图表侧）');
 });
 
+test('index.html 必须保留多图布局与联动入口（layoutToggle/layoutMenu + 三档 data-layout + syncToggle）', () => {
+  // 「多图布局」条目（TV-ROADMAP P1 第 1 条）的入口守卫：按钮被误删后功能失联且不会有
+  // 任何报错。title 必须含中文（红线 1）；data-layout 三档 ∈ {1x1,1x2,2x2} 且互不重复
+  // （sanitizeMultiLayout 只认三字面量，档位对不上等于切不中）；syncToggle 带 aria-pressed
+  // （读屏用户要知道联动开没开，drawHide 同款）。
+  const lt = HTML.match(/<button[^>]*id="layoutToggle"[^>]*>/);
+  const st = HTML.match(/<button[^>]*id="syncToggle"[^>]*>/);
+  assert.ok(lt, 'index.html 找不到 id="layoutToggle" 按钮（多图布局入口被误删）');
+  assert.ok(st, 'index.html 找不到 id="syncToggle" 按钮（联动入口被误删）');
+  assert.ok(/title="[^"]*[\u4e00-\u9fa5][^"]*"/.test(lt[0]), 'layoutToggle 缺中文 title：' + lt[0]);
+  assert.ok(/title="[^"]*[\u4e00-\u9fa5][^"]*"/.test(st[0]), 'syncToggle 缺中文 title：' + st[0]);
+  assert.ok(/aria-pressed="/.test(st[0]), 'syncToggle 缺 aria-pressed');
+  const layouts = [...HTML.matchAll(/data-layout="([^"]+)"/g)].map(m => m[1]);
+  assert.equal(JSON.stringify([...new Set(layouts)].sort()), JSON.stringify(['1x1', '1x2', '2x2']),
+    'data-layout 三档必须恰为 1x1/1x2/2x2 各一（缺档/重复都会让布局菜单切不中）：' + layouts.join(','));
+});
+
+test('index.html 的 #klineChart 必须被 class=kcell 的主格包装（paneStack 不进 grid 子元素）', () => {
+  // 多图网格的 grid 子元素是 .kcell：#klineChart 的 paneStack（js/charts.js 挂在
+  // el.parentElement）落进主格包装内，chartBox 的直接子元素才干净——包装被误删时
+  // 副格 stack 会混进 grid，1×2/2×2 布局被撑破且不会有任何报错。
+  const m = HTML.match(/<div class="kcell" id="kcellMain">\s*<div id="klineChart">/);
+  assert.ok(m, '#klineChart 必须包在 <div class="kcell" id="kcellMain"> 内');
+});
+
+test('js/app.js 必须接线多图布局（三持久化键 + 纯函数消费 + loadMultiCells + 副格关 MA + kind 守卫 + 同步订阅）', () => {
+  // 跨文件守卫（照 chartTypeV1 先例）：缺持久化刷新即丢；缺纯函数消费则脏值直灌；
+  // 缺 setMAVisible(false) 则副格带默认三条均线（「轻量 K 线」声明失效）；
+  // 缺 chartKind==='kline' 守卫则分时主图也会建副格（分钟下标广播给日K副格错乱）。
+  const app = readFileSync(path.join(ROOT, 'js/app.js'), 'utf8');
+  ['multiLayoutV1', 'multiSyncV1', 'multiCellsV1'].forEach(k =>
+    assert.ok(app.includes(k), 'app.js 缺 ' + k + ' 持久化键（刷新即丢）'));
+  ['sanitizeMultiLayout', 'pickCellSymbols', 'crossAt'].forEach(k =>
+    assert.ok(app.includes(k), 'app.js 没有消费 Charts.' + k));
+  assert.ok(/loadMultiCells/.test(app), 'app.js 缺 loadMultiCells 接线（副格不建）');
+  assert.ok(/setMAVisible\(false\)/.test(app), 'app.js 副格必须 setMAVisible(false)（副格不得带默认均线）');
+  assert.ok(/chartKind !== 'kline'/.test(app), 'app.js 缺 kind===kline 守卫（分时下建副格会错乱）');
+  assert.ok(/subscribeCrosshairMove/.test(app), 'app.js 缺十字线同步订阅');
+  assert.ok(/subscribeVisibleLogicalRangeChange/.test(app), 'app.js 缺缩放范围同步订阅');
+});
+
 test('js/charts.js 必须保留多副图管理核心（setPanes 导出 + k-pane-div 拖拽条 + sanitizePaneList 消费 + onPanesChange 回调）', () => {
   // 跨文件守卫（照 chartTypeV1 先例）：缺 setPanes 菜单点了图不变；缺 k-pane-div
   // 分隔条则拖拽调高失效；缺 sanitizePaneList 消费则脏配置毒化渲染；
@@ -345,19 +392,20 @@ test('js/ 全部脚本必须可解析（块注释里写 */ 会让整个文件静
    "tag 逼仄"是一类看不见的回归：padding 少 4px 不会有任何报错，
    只在页面上表现为文字贴着边框。所以把它钉成断言。 */
 
-test('带边框的四种皮肤里 .pill 必须有自己的内边距（文字不能贴框线）', () => {
-  // 这四套给 .pill 套了 1px 边框，但基础 .pill 的 padding 是给"下划线型"设计的，
-  // 套上边框后文字直接压在框上——用户反馈"tag 做得太逼仄"的根因。
-  ['swiss', 'bauhaus', 'clay', 'memphis'].forEach(t => {
-    const re = new RegExp(`html\\[data-theme="${t}"\\] \\.pill \\{[^}]*\\}`);
-    const m = CSS.match(re);
-    assert.ok(m, `${t} 主题里找不到 .pill 规则`);
-    const pad = /padding:\s*([^;]+);/.exec(m[0]);
-    assert.ok(pad, `${t} 的 .pill 没有内边距`);
-    const nums = pad[1].match(/\d+/g).map(Number);
-    assert.ok(nums.length >= 2, `${t} 的 .pill 内边距应写"上下 左右"两段，实际 "${pad[1]}"`);
-    assert.ok(nums[1] >= 8, `${t} 的 .pill 左右内边距只有 ${nums[1]}px，文字会贴住边框`);
-  });
+test('视图切换 .pill 必须有自己的内边距（文字不能贴框线）', () => {
+  // v2 新语言里 pill 一律带 1px 描边。下划线型 pill 可以很薄，
+  // 一旦套上边框，薄内边距会让文字压在框上——用户反馈"tag 太逼仄"的根因。
+  const m = CSS.match(/\n\.pill \{([\s\S]*?)\n\}/);
+  assert.ok(m, '找不到基础 .pill 规则');
+  const pad = /padding:\s*([^;]+);/.exec(m[1]);
+  assert.ok(pad, '.pill 没有显式内边距');
+  const parts = pad[1].trim().split(/\s+/);
+  assert.ok(parts.length >= 2, '.pill 内边距应写"上下 左右"两段，实际 "' + pad[1] + '"');
+  const left = parts[1];
+  const px = /^([\d.]+)px$/.exec(left);
+  const spVar = /^var\(--sp-(\d+)\)$/.exec(left);
+  const val = px ? parseFloat(px[1]) : (spVar ? parseFloat(spVar[1]) : NaN);
+  assert.ok(!Number.isNaN(val) && val >= 8, '.pill 左右内边距只有 ' + left + '，文字会贴住边框');
 });
 
 test('.chip 筛选器与 .pill 视图切换必须是两套独立的视觉', () => {
@@ -368,20 +416,25 @@ test('.chip 筛选器与 .pill 视图切换必须是两套独立的视觉', () =
   assert.ok(/\.chip b \{/.test(CSS), '.chip 的计数应有独立样式');
 });
 
-test('0 圆角通配不得压掉语义圆点（事件类型色点必须是圆）', () => {
-  // 四套设计语言皮肤用 `* { border-radius: 0 !important }` 统一硬朗感，
-  // 但它会把 .ev-dot（事件类型前置色点）压成方块，丢掉"这是一个点"的读感。
-  ['swiss', 'bauhaus', 'clay', 'memphis'].forEach(t => {
-    const re = new RegExp(`html\\[data-theme="${t}"\\] \\.ev-dot[^{]*\\{[^}]*border-radius:\\s*50%`);
-    assert.ok(re.test(CSS), `${t} 主题的 .ev-dot 缺少圆角豁免`);
-  });
+test('不许用 *{border-radius:0!important} 统一改圆角（语义圆点会被压成方块）', () => {
+  // 旧的四套"设计语言皮肤"曾用它一次性清零圆角，代价是 .ev-dot（事件类型色点）
+  // 变成方块、"这是一个点"的读感消失。v2 只有一套形状令牌，不需要这种通配改法。
+  const stripped = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.ok(!/\*\s*\{[^}]*border-radius:\s*0\s*!important/.test(stripped),
+    '又出现了 * { border-radius: 0 !important } 通配清零');
+  const dots = stripped.match(/\.ev-dot[^{]*\{[^}]*\}/g) || [];
+  assert.ok(dots.length, '找不到 .ev-dot 规则');
+  assert.ok(dots.some(r => /border-radius:\s*(50%|999px|var\(--r-pill\))/.test(r)),
+    '.ev-dot 丢了圆形（事件类型色点应是圆点）');
 });
 
 /* ---------------- 浅色皮肤下的可读性守卫 ----------------
    "看不见"是一类不会报错的回归：5% 白叠在白底上等于什么都没发生，
-   键盘选中的那一行直接在 5 套浅色皮肤里消失。这里把它变成可断言的数字。 */
+   键盘选中的那一行直接在 日光模式里消失。这里把它变成可断言的数字。 */
 
-const THEMES = [':root', 'swiss', 'paper', 'bauhaus', 'clay', 'memphis', 'aurora', 'oled'];
+/* v2（2026-11）推倒重来：旧 两套模式删除，只剩一套设计语言的两个模式。
+     ':root' = 深空（nexus，默认），'daylight' = 日光。对比度守卫对两套都要成立。 */
+const THEMES = [':root', 'daylight'];
 function themeBlock(name) {
   const re = name === ':root'
     ? /:root\s*\{([\s\S]*?)\n\}/
@@ -401,7 +454,7 @@ const contrast = (a, b) => {
   return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
 };
 
-test('8 套皮肤都定义了选中/悬停要用到的令牌（--accent-rgb / --bg-hover）', () => {
+test('两套模式都定义了选中/悬停要用到的令牌（--accent-rgb / --bg-hover）', () => {
   THEMES.forEach(t => {
     const b = themeBlock(t);
     assert.ok(themeVar('accent-rgb', b), t + ' 缺 --accent-rgb');
@@ -419,7 +472,7 @@ test('搜索下拉的悬停/选中行不许再写死白色透明层（5% 白叠�
   assert.ok(/var\(--accent-rgb\)/.test(joined), '选中/悬停行没有用主题强调色');
 });
 
-test('搜索下拉选中行在 8 套皮肤下都看得见（与面板底色有可辨的色差）', () => {
+test('搜索下拉选中行在 两套模式下都看得见（与面板底色有可辨的色差）', () => {
   THEMES.forEach(t => {
     const b = themeBlock(t);
     const bg = themeVar('bg-elevated', b);
@@ -477,7 +530,7 @@ function themeVarOrRoot(name, theme) {
   return themeVar(name, themeBlock(':root'));
 }
 
-test('8 套皮肤下涨/跌**文字色**对各自底色都 ≥4.5:1（AA 正文）', () => {
+test('两套模式下涨/跌**文字色**对各自底色都 ≥4.5:1（AA 正文）', () => {
   // 浅色 5 套（paper/swiss/bauhaus/clay/memphis）原来直接用亮色
   // #ff5c5c / #2ebd85，实测只有 2.22~3.03:1 —— AA 正文要 4.5:1。
   // 现在每套浅色皮肤各自覆写 --text-rise / --text-fall（文字专用色），
@@ -549,7 +602,7 @@ test('折叠标题的焦点环要用焦点环专用色（原来的 --border-hove
   assert.ok(/var\(--focus-ring\)/.test(m[1]), '折叠标题的焦点环没有用 --focus-ring：' + m[1]);
 });
 
-test('焦点环颜色在 8 套皮肤下都对底色 ≥3:1（WCAG 1.4.11 非文本对比）', () => {
+test('焦点环颜色在 两套模式下都对底色 ≥3:1（WCAG 1.4.11 非文本对比）', () => {
   // clay 的主强调橙压自己的底色只有 2.78:1、memphis 的粉只有 2.86:1，
   // 所以这两套皮肤把焦点环换成同色系深一档的 --focus-ring。
   THEMES.forEach(t => {
@@ -623,15 +676,15 @@ test('一级 tab 是 roving tabindex（同一时刻只占一个 Tab 位）', () 
    语义色收敛守卫（2026-10-31 · 路线图 P0★ 第 1 条）
    ------------------------------------------------------------
    路线图裁定："红/绿只许表示涨跌"。三道闸：
-   一、--warn 与涨跌色解耦且 8 套皮肤可读（警示用橙，对比度同 AA 正文标准）；
+   一、--warn 与涨跌色解耦且 两套模式可读（警示用橙，对比度同 AA 正文标准）；
    二、非涨跌元素禁用 var(--up*)/var(--down*)（规则级方向语义白名单，只减不增）；
    三、CSS 全文涨跌色硬编码字面量清零（剥令牌声明后无豁免——死令牌 --ok 已删除）。
    JS 画布 fallback 里的红绿属方向色语义，不在二、三的扫描范围（两者只扫 CSS）。
    ============================================================ */
 
-test('警示色 --warn 与涨跌色解耦且 8 套皮肤对三表面都 ≥4.5:1', () => {
+test('警示色 --warn 与涨跌色解耦且 两套模式对三表面都 ≥4.5:1', () => {
   // --warn 曾直接取涨红 #ff5c5c：红涨模式下"警示"与"涨"同色，违反"红只表示涨跌"。
-  // 收敛后深色皮肤用警示橙 #ff8f3d，5 套浅色皮肤各自覆写深琥珀 #a04c05
+  // 收敛后深色皮肤用警示橙 #ff8f3d，日光模式各自覆写深琥珀 #a04c05
   // （对最差表面 paper --bg-elevated #edebe4 实测 4.99:1，对白底 5.95:1）。
   // 绿涨模式只是 --up/--down 两个字面量互换，下面照两种模式的取值各查一遍。
   const dirVals = [cssVar('up'), cssVar('down'),
@@ -768,7 +821,8 @@ test('水平分隔线家族统一 1px（.section/.pm-sec/.pm-overview/.sec-line/
    形状漂了不会报错，只在页面上表现为"每个组件自说自话"，钉成断言。
    ============================================================ */
 
-const RADIUS_OK = new Set(['var(--r-sm)', 'var(--r-md)', 'var(--r-lg)', '0', '50%', '999px']);
+/* 六形态 + var(--r-pill)：胶囊档既有令牌（--r-pill: 999px），写令牌比写字面量更该被鼓励 */
+const RADIUS_OK = new Set(['var(--r-sm)', 'var(--r-md)', 'var(--r-lg)', 'var(--r-pill)', '0', '50%', '999px']);
 
 test('radius 三档令牌：全站 border-radius 收敛六形态 + --r-sm/md/lg 恰为 4/8/14px', () => {
   // 先扫违规（红的时候给出完整清单），再卡令牌定义本身。
@@ -824,18 +878,14 @@ test('阴影两档令牌：全站 box-shadow 收敛 + 暗色禁阴影(none) + �
   // （--border 已提亮，守卫见下方「暗色 1px 描边可见度」组）。
   assert.equal(cssVar('shadow-1'), 'none', '--shadow-1（暗色默认）应禁阴影：' + cssVar('shadow-1'));
   assert.equal(cssVar('shadow-2'), 'none', '--shadow-2（暗色默认）应禁阴影：' + cssVar('shadow-2'));
-  // 海拔交给浅色承接：5 套浅色皮肤块各自覆写 --shadow-1 亮影
+  // 海拔交给浅色承接：日光模式块各自覆写 --shadow-1 亮影
   // （paper 原有，swiss/bauhaus/clay/memphis 四套本轮补——:root 变 none 后
   // 浅色悬停浮起/浮层拿到的会是 none，等于海拔消失）。
-  ['swiss', 'paper', 'bauhaus', 'clay', 'memphis'].forEach(t => {
-    const s = themeVar('shadow-1', themeBlock(t));
-    assert.ok(s && /rgba\(/.test(s), t + ' 皮肤块缺 --shadow-1 亮色覆盖（rgba 阴影）：' + s);
-  });
-  // 暗色另两套（aurora/oled）不得覆写 shadow 令牌——继承 :root 的 none。
-  ['aurora', 'oled'].forEach(t => {
-    const b = themeBlock(t);
-    assert.ok(!/--shadow-1\s*:/.test(b) && !/--shadow-2\s*:/.test(b),
-      t + ' 皮肤块不应覆写 --shadow-*（暗色一律禁阴影，继承 :root 的 none）');
+  // 海拔交给日光模式承接：daylight 必须覆写 --shadow-1/2 亮影，否则卡片浮不起来。
+  const dayBlock = themeBlock('daylight');
+  ['shadow-1', 'shadow-2'].forEach(tok => {
+    const v = themeVar(tok, dayBlock);
+    assert.ok(v && /rgba\(/.test(v), 'daylight 缺 --' + tok + ' 亮色覆盖（rgba 阴影）：' + v);
   });
 });
 
@@ -873,18 +923,18 @@ test('描边一档：可见描边只许 1px、标记条统一 2px', () => {
    rgba(0,0,0,0.5) 叠 #0a0a0b/#000 底 1:1 不可见。
    处方：暗色 3 套（:root/aurora/oled）文字灰阶提亮至对全部四表面
    ≥4.5:1；描边提亮（--border 合成后 ≥1.25:1、--border-hover ≥1.7:1）；
-   阴影一律禁用改 1px 描边（守卫在上一组阴影令牌内）。5 套浅色皮肤
+   阴影一律禁用改 1px 描边（守卫在上一组阴影令牌内）。日光模式
    块各自覆写 --text-* 不受影响，本组只扫暗色三套。对比度按 WCAG
    相对亮度公式实算，rgba 描边先按 alpha 合成到底色再算。
    ============================================================ */
 
-test('暗色 3 套文字灰阶对全部四表面 ≥4.5:1（:root/aurora/oled）', () => {
+test('深空模式文字灰阶对全部四表面 ≥4.5:1（:root）', () => {
   // .brief-c 计数、图例刻度等信息性文字用的正是 --text-faint——旧注释
   // "仅装饰符号不承载信息"不成立，旧值 #5c5c63 对最差表面只有 2.75:1。
   // 新值三档各提亮约三档灰阶：:root #b4b4bc/#a0a0a8/#8a8a92（最差表面
   // 8.85/7.02/5.32），aurora 自有 #aeb7cf/#96a0bc/#7e88a6（8.53/6.56/4.86），
   // oled 不覆写灰阶、继承 :root（9.08/7.21/5.46）。
-  [':root', 'aurora', 'oled'].forEach(t => {
+  [':root'].forEach(t => {
     ['text-secondary', 'text-tertiary', 'text-faint'].forEach(tok => {
       const v = themeVarOrRoot(tok, t);
       assert.ok(/^#[0-9a-f]{6}$/i.test(v), t + ' 的 --' + tok + ' 不是 #rrggbb：' + v);
@@ -913,7 +963,7 @@ test('暗色 1px 描边可见度：--border 合成后对 --bg ≥1.25:1、--bord
   // 旧值 0.06~0.10 alpha 合成后只有 1.10~1.15:1——卡片与背景失去边界，
   // 禁阴影后这就是唯一的分界线。新值：:root 0.15/0.26（1.47/2.22）、
   // aurora 0.17/0.32（1.30/1.81）、oled 0.15/0.26（1.39/2.10）。
-  [':root', 'aurora', 'oled'].forEach(t => {
+  [':root'].forEach(t => {
     const b = themeBlock(t);
     const bgHex = themeVar('bg', b);
     assert.ok(/^#[0-9a-f]{6}$/i.test(bgHex), t + ' 的 --bg 不是 hex：' + bgHex);

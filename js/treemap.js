@@ -145,26 +145,52 @@ const Treemap = (() => {
     return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
   }
 
-  let _cs = { up: [255, 92, 92], down: [46, 189, 133] };
+  /* 颜色状态：红/绿 + **中性面/画布底也来自令牌**。
+     2026-11 改造前中性面写死 #333、画布底写死 #0a0a0a —— 深空下没问题，
+     日光模式（data-theme="daylight"）会画出一整块黑色画布（用户截图实锤）。 */
+  let _cs = {
+    up: [255, 92, 92], down: [46, 189, 133],
+    neutral: [11, 17, 25], bg: '#0a0f17', dark: true,
+  };
   let _csDirty = true;   // 脏标记：paint 不每帧读 getComputedStyle，仅首次与红绿切换时刷新
+  const _lum = ([r, g, b]) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
   function refreshColors() {
     const st = getComputedStyle(document.documentElement);
     const body = getComputedStyle(document.body);
-    const up = (body.getPropertyValue('--up') || st.getPropertyValue('--up')).trim();
-    const down = (body.getPropertyValue('--down') || st.getPropertyValue('--down')).trim();
+    const pick = (n) => ((body.getPropertyValue(n) || st.getPropertyValue(n) || '').trim());
+    const up = pick('--up');
+    const down = pick('--down');
     if (up) _cs.up = hexToRgb(up);
     if (down) _cs.down = hexToRgb(down);
+    const neutral = pick('--bg-elevated');
+    if (/^#[0-9a-f]{3,8}$/i.test(neutral)) _cs.neutral = hexToRgb(neutral);
+    const bg = pick('--bg-card') || pick('--bg');
+    if (bg) _cs.bg = bg;
+    _cs.dark = _lum(hexToRgb(_cs.bg)) < 0.5;
     _csDirty = false;
   }
 
-  // 涨跌幅 → 颜色（±3% 封顶，从 #333 线性插值到涨/跌色）
-  function pctColor(pct) {
-    if (pct === null || pct === undefined || isNaN(pct)) return '#222';
+  /* 块面文字色：块本身可能是浅色（日光下的浅中性面），白字会糊。
+     按块面亮度二选一，比"统一白字"多一行代码，换来两种模式都读得清。 */
+  function inkOn(rgbArr, alpha) {
+    const a = alpha === undefined ? 1 : alpha;
+    return _lum(rgbArr) > 0.55
+      ? `rgba(11,21,32,${a})`
+      : `rgba(255,255,255,${a})`;
+  }
+
+  /* 涨跌幅 → 颜色（±3% 封顶，从中性面线性插值到涨/跌色）。
+     pctRgb 是对外取色与块内文字色的共同来源，pctColor 只是它的 CSS 字符串形式。 */
+  function pctRgb(pct) {
+    if (pct === null || pct === undefined || isNaN(pct)) return _cs.neutral.slice();
     const t = Math.max(-3, Math.min(3, pct)) / 3;
     const to = t >= 0 ? _cs.up : _cs.down;
-    const from = [51, 51, 51];
+    const from = _cs.neutral;
     const a = Math.abs(t);
-    const c = from.map((f, i) => Math.round(f + (to[i] - f) * a));
+    return from.map((f, i) => Math.round(f + (to[i] - f) * a));
+  }
+  function pctColor(pct) {
+    const c = pctRgb(pct);
     return `rgb(${c[0]},${c[1]},${c[2]})`;
   }
 
@@ -329,7 +355,7 @@ const Treemap = (() => {
       ctx.scale(dpr, dpr);
       const rect = canvas.getBoundingClientRect();
       const W = rect.width, H = rect.height;
-      ctx.fillStyle = '#0a0a0a';
+      ctx.fillStyle = _cs.bg;
       ctx.fillRect(0, 0, W, H);
 
       const z = view.zoom;
@@ -353,17 +379,17 @@ const Treemap = (() => {
           const sw = f.w * z, sh = f.h * z;
           if (sx + sw < 0 || sy + sh < 0 || sx > W || sy > H) continue;
           if (f.headH > 0) {
-            ctx.fillStyle = 'rgba(255,255,255,0.06)';
+            ctx.fillStyle = _cs.dark ? 'rgba(255,255,255,0.06)' : 'rgba(10,20,32,0.06)';
             ctx.fillRect(sx, sy, sw, 15);
           }
-          ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+          ctx.strokeStyle = _cs.dark ? 'rgba(255,255,255,0.10)' : 'rgba(10,20,32,0.12)';
           ctx.lineWidth = 1;
           ctx.strokeRect(sx + 0.5, sy + 0.5, sw - 1, sh - 1);
           if (f.headH > 0 && sw >= 70) {
             ctx.font = '600 10px -apple-system, "PingFang SC", sans-serif';
             ctx.textBaseline = 'middle';
             ctx.textAlign = 'left';
-            ctx.fillStyle = 'rgba(255,255,255,0.78)';
+            ctx.fillStyle = _cs.dark ? 'rgba(255,255,255,0.78)' : 'rgba(11,21,32,0.72)';
             ctx.fillText(fitText(ctx, f.name, sw - 58), sx + 5, sy + 8);
             const a = agg[f.name];
             const pct = a && a.v ? a.pv / a.v : null;
@@ -385,13 +411,14 @@ const Treemap = (() => {
         if (sx + sw < 0 || sy + sh < 0 || sx > W || sy > H) continue;
         const w = Math.max(0, sw - 1), h = Math.max(0, sh - 1);
         if (w < 0.7 || h < 0.7) continue;
-        ctx.fillStyle = pctColor(c.item.pct);
+        const tileRgb = pctRgb(c.item.pct);
+        ctx.fillStyle = `rgb(${tileRgb[0]},${tileRgb[1]},${tileRgb[2]})`;
         // 2px 圆角（密集排布），太小的块直接矩形省算力
         if (w > 8 && h > 8) roundRect(ctx, sx, sy, w, h, 2);
         else ctx.fillRect(sx, sy, w, h);
 
         if (i === hoverIdx) {
-          ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+          ctx.strokeStyle = inkOn(tileRgb, 0.85);
           ctx.lineWidth = 1.5;
           ctx.strokeRect(sx + 0.75, sy + 0.75, w - 1.5, h - 1.5);
         }
@@ -424,7 +451,7 @@ const Treemap = (() => {
         if (nameFits && h >= s * 2.55) {
           ctx.font = `600 ${s}px -apple-system, "PingFang SC", sans-serif`;
           const name = fitText(ctx, item.name, w - 10);
-          ctx.fillStyle = 'rgba(255,255,255,0.96)';
+          ctx.fillStyle = inkOn(tileRgb, 0.96);
           const nameW = Math.min(ctx.measureText(name).width, w - 10);
           if (icon && w >= 78) {
             const totalW = 16 + 6 + nameW;
@@ -438,7 +465,7 @@ const Treemap = (() => {
           } else {
             ctx.fillText(name, cx, cy - s * 0.62);
           }
-          ctx.fillStyle = 'rgba(255,255,255,0.82)';
+          ctx.fillStyle = inkOn(tileRgb, 0.82);
           ctx.font = `${Math.max(8, Math.round(s * 0.82))}px ui-monospace, Menlo, monospace`;
           ctx.fillText(pctTxt, cx, cy + s * 0.75);
           continue;
@@ -446,17 +473,17 @@ const Treemap = (() => {
 
         // 二级：单行名称，字号贴着块高走
         const s1 = Math.max(8, Math.min(base * 0.34, 15));
-        if (w >= 30 && h >= s1 + 3) {
-          ctx.fillStyle = 'rgba(255,255,255,0.94)';
+        if (w >= 34 && h >= s1 + 3) {
+          ctx.fillStyle = inkOn(tileRgb, 0.94);
           ctx.font = `500 ${s1}px -apple-system, "PingFang SC", sans-serif`;
           ctx.fillText(fitText(ctx, item.name, w - 5), cx, cy);
           continue;
         }
 
         // 三级：只放得下一个数字——画涨幅（比名称信息量大），8px 是可辨认下限
-        if (w >= 21 && h >= 9) {
-          ctx.fillStyle = 'rgba(255,255,255,0.85)';
-          ctx.font = '8px ui-monospace, Menlo, monospace';
+        if (w >= 28 && h >= 11) {
+          ctx.fillStyle = inkOn(tileRgb, 0.85);
+          ctx.font = '9px ui-monospace, Menlo, monospace';
           ctx.fillText(pctTxt, cx, cy);
         }
       }
@@ -694,7 +721,7 @@ const Treemap = (() => {
     };
   }
 
-  return { create, squarify, groupedLayout, pctColor, refreshColors, colorAt, PCT_BANDS, bandOf,
+  return { create, squarify, groupedLayout, pctColor, pctRgb, refreshColors, colorAt, PCT_BANDS, bandOf,
     // 视口纯函数（单测用）：语义见文件头注释
     viewport: { clamp, applyZoom, applyPan, ZOOM_MAX } };
 })();

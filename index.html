@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<!-- 默认皮肤与 store.js 的 settings 默认值一致（瑞士白）；JS 起来后按存量设置修正。
-     静态写在这里是为了首帧就按白底渲染，不等 app.js（否则暗色→白闪一下） -->
-<html lang="zh-CN" data-theme="swiss">
+<!-- UI v2：一套语言两个模式。首帧静态写 nexus（深空，默认），JS 起来后按存量设置修正；
+     存量里可能是旧皮肤名（swiss/dark/…/random），app.js 的 applyTheme 会 sanitize 到 nexus。 -->
+<html lang="zh-CN" data-theme="nexus">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>OpenFinLens · 全球金融看板</title>
 <meta name="description" content="全球金融情报终端：A股/港股/美股/加密/外汇/指数/大宗商品/宏观利率，3D 全球事件地图、热力图、K线事件标记、龙虎榜资金动向、新闻流与产业链。">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23e8a33d'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%2335e1ff'/%3E%3C/svg%3E">
 <!-- PWA：手机浏览器"添加到主屏幕"后以独立窗口+品牌图标运行（个人主体上不了小程序 web-view 的替代体验） -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-<meta name="theme-color" content="#f7f6f2">
+<meta name="theme-color" content="#05080d">
 <!-- 设计语言四件套字体：Inter (瑞士) / Jost (包豪斯) / Newsreader + Instrument Sans (纸感) / Righteous (孟菲斯)。
      系统回退栈已在 CSS 内补全，Google Fonts 加载失败时也不会塌。
      字体 CSS 非阻塞加载（preload + media 切换）：跨境链路慢时不再阻塞首屏渲染，
@@ -20,12 +20,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style"
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Jost:wght@400;500;600;700;800;900&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Instrument+Sans:wght@400;500;600&family=Righteous&display=swap">
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" media="print" onload="this.media='all'"
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Jost:wght@400;500;600;700;800;900&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Instrument+Sans:wght@400;500;600&family=Righteous&display=swap">
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <noscript>
 <link rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Jost:wght@400;500;600;700;800;900&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Instrument+Sans:wght@400;500;600&family=Righteous&display=swap">
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 </noscript>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -33,42 +33,38 @@
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
 <!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
      对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
-<link rel="stylesheet" href="css/style.css?v=20261101m">
+<link rel="stylesheet" href="css/style.css?v=20261108a">
+<!-- UI v2 分层（顺序是契约）：tokens 在 style.css → 01 外壳 → 02 行情 → 03 面板 → 04 动效。
+     每层只消费 style.css 的令牌；01-shell.css 由 shell 独占。 -->
+<link rel="stylesheet" href="css/ui/01-shell.css?v=20261108a">
+<link rel="stylesheet" href="css/ui/02-market.css?v=20261108a">
+<link rel="stylesheet" href="css/ui/03-panels.css?v=20261108a">
+<link rel="stylesheet" href="css/ui/04-motion.css?v=20261108a">
 </head>
 <body data-updown="red">
 
+<!-- 顶栏（UI v2）：左品牌 → 中 5 个一级入口（滑动胶囊指示器）→ 右命令/状态/设置。
+     一级入口 12→5：市场 / 事件 / 资产 / 基金 / 洞察，内部 state.tab 仍是旧 12 个 key
+     （由 js/ui/navmap.js 做纯函数映射），深链与既有模块不受影响。 -->
 <header class="topbar">
-  <div class="logo"><span class="logo-dot"></span><span>OpenFinLens</span></div>
-  <nav class="tabs" id="tabs" role="tablist" aria-label="板块切换">
-    <!-- 每个 tab 有自己的 id：面板用 aria-labelledby 指向**当前**那个 tab，
-         六个市场 tab 共用一个面板时读屏才不会一直念"全球市场"。
-         tabindex 由 app.js 的 roving tabindex 维护（同一时刻只有一个在 Tab 序里）。 -->
-    <button class="tab active" id="tab-all" data-tab="all" role="tab" aria-selected="true" aria-controls="view-market" tabindex="0">全部</button>
-    <button class="tab" id="tab-cn" data-tab="cn" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">A股</button>
-    <button class="tab" id="tab-hk" data-tab="hk" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">港股</button>
-    <button class="tab" id="tab-us" data-tab="us" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">美股</button>
-    <button class="tab crypto-only" id="tab-crypto" data-tab="crypto" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">加密</button>
-    <button class="tab" id="tab-fxmacro" data-tab="fxmacro" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">宏观</button>
-    <button class="tab options-only" id="tab-option" data-tab="option" role="tab" aria-selected="false" aria-controls="view-option" tabindex="-1">期权</button>
-    <button class="tab" id="tab-events" data-tab="events" role="tab" aria-selected="false" aria-controls="view-events" tabindex="-1">事件</button>
-    <button class="tab" id="tab-chain" data-tab="chain" role="tab" aria-selected="false" aria-controls="view-chain" tabindex="-1">产业链</button>
-    <button class="tab" id="tab-watch" data-tab="watch" role="tab" aria-selected="false" aria-controls="view-watch" tabindex="-1">自选</button>
-    <button class="tab" id="tab-portfolio" data-tab="portfolio" role="tab" aria-selected="false" aria-controls="view-portfolio" tabindex="-1">持仓</button>
-    <button class="tab" id="tab-compare" data-tab="compare" role="tab" aria-selected="false" aria-controls="view-compare" tabindex="-1">基金</button>
-  </nav>
+  <a class="logo" id="brandHome" href="#tab=market&amp;sub=all" title="OpenFinLens · 回到市场总览">
+    <span class="logo-dot" aria-hidden="true"></span>
+    <span class="logo-word">OpenFinLens</span>
+  </a>
+  <!-- 一级栏用 role=tablist + roving tabindex（同一时刻只有一个在 Tab 序里，方向键横向移动）。
+       .nav-ink 是那枚滑动的胶囊高亮：app.js 用 transform/width 把它定位到当前一级，
+       动效交给 css/ui/04-motion.css（motion 层会接管已存在的 .nav-ink，不重复创建）。 -->
+  <div class="primary-nav" id="primaryNav" role="tablist" aria-label="一级板块">
+    <span class="nav-ink" id="navInk" aria-hidden="true"></span>
+    <button class="nav-primary active" id="pnav-market" data-primary="market" role="tab" aria-controls="view-market" aria-selected="true" tabindex="0">市场</button>
+    <button class="nav-primary" id="pnav-events" data-primary="events" role="tab" aria-controls="view-events" aria-selected="false" tabindex="-1">事件</button>
+    <button class="nav-primary" id="pnav-assets" data-primary="assets" role="tab" aria-controls="view-watch" aria-selected="false" tabindex="-1">资产</button>
+    <button class="nav-primary" id="pnav-fund" data-primary="fund" role="tab" aria-controls="view-compare" aria-selected="false" tabindex="-1">基金</button>
+    <button class="nav-primary" id="pnav-insight" data-primary="insight" role="tab" aria-controls="view-chain" aria-selected="false" tabindex="-1">洞察</button>
+  </div>
   <div class="topbar-actions">
     <a class="topbar-link" id="academyLink" href="https://5777-wq.github.io/openfin-academy/" target="_blank" rel="noopener"
        title="白话金融 OpenFin Academy · 给小白和家庭的金融说明书">白话金融 ↗</a>
-    <button id="alertBell" class="icon-btn" title="到价提醒" aria-haspopup="true" aria-expanded="false"
-            aria-controls="alertPanel">提醒<span id="alertBadge" class="alert-badge num" hidden>0</span></button>
-    <div id="alertPanel" class="alert-panel" role="dialog" aria-label="到价提醒" tabindex="-1" hidden>
-      <div class="al-head">
-        <span>到价提醒</span>
-        <button class="pill" id="alertPerm" hidden>开启浏览器通知</button>
-      </div>
-      <div id="alertList" class="al-list"></div>
-      <p class="al-hint" id="alertHint"></p>
-    </div>
     <div class="search-wrap">
       <span class="search-icon" aria-hidden="true">⌕</span>
       <!-- role=combobox：searchbox 角色不支持 aria-expanded / aria-autocomplete，
@@ -79,9 +75,55 @@
              aria-controls="searchResults" aria-autocomplete="list" aria-activedescendant="">
       <div id="searchResults" class="search-results" role="listbox" aria-label="搜索结果"></div>
     </div>
+    <!-- 命令面板入口：按钮只是可见入口，⌘K / Ctrl+K 由 js/ui/command.js 全局绑定 -->
+    <button id="cmdOpen" class="cmd-btn" type="button" title="命令面板（⌘K / Ctrl+K）" aria-keyshortcuts="Control+K Meta+K"
+            aria-haspopup="dialog" aria-controls="cmdPalette" aria-expanded="false">
+      <span class="cmd-btn-key" aria-hidden="true">⌘K</span>
+      <span class="cmd-btn-label">命令</span>
+    </button>
+    <div class="live-stat" id="liveStat" title="行情刷新状态：轮询间隔 / 数据到达">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span class="live-label num" id="liveLabel">--</span>
+    </div>
+    <button id="alertBell" class="icon-btn" title="到价提醒" aria-haspopup="true" aria-expanded="false"
+            aria-controls="alertPanel">提醒<span id="alertBadge" class="alert-badge num" hidden>0</span></button>
+    <div id="alertPanel" class="alert-panel" role="dialog" aria-label="到价提醒" tabindex="-1" hidden>
+      <div class="al-head">
+        <span>到价提醒</span>
+        <button class="pill" id="alertPerm" hidden>开启浏览器通知</button>
+      </div>
+      <div id="alertList" class="al-list"></div>
+      <p class="al-hint" id="alertHint"></p>
+    </div>
     <button id="settingsBtn" class="icon-btn" title="设置" aria-label="设置">设置</button>
   </div>
 </header>
+
+<!-- 二级 segmented control：只在当前一级有 ≥2 个子项时出现（市场/资产），
+     单子项的一级（事件/基金/洞察）不为了"有导航"而造导航。
+     12 个按钮仍是 state.tab 的唯一控制器（id/data-tab/aria 与旧版完全一致），
+     显隐与顺序由 app.js 按 Navmap.childrenOf(当前一级) ∩ tabscope 配置落地。 -->
+<div class="subbar" id="subbar" hidden>
+  <div class="subbar-inner">
+    <nav class="tabs subnav-tabs" id="tabs" role="tablist" aria-label="二级板块">
+      <!-- 每个 tab 有自己的 id：面板用 aria-labelledby 指向**当前**那个 tab，
+           六个市场 tab 共用一个面板时读屏才不会一直念"全球市场"。
+           tabindex 由 app.js 的 roving tabindex 维护（同一时刻只有一个在 Tab 序里）。 -->
+      <button class="tab active" id="tab-all" data-tab="all" role="tab" aria-selected="true" aria-controls="view-market" tabindex="0">全部</button>
+      <button class="tab" id="tab-cn" data-tab="cn" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">A股</button>
+      <button class="tab" id="tab-hk" data-tab="hk" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">港股</button>
+      <button class="tab" id="tab-us" data-tab="us" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">美股</button>
+      <button class="tab crypto-only" id="tab-crypto" data-tab="crypto" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">加密</button>
+      <button class="tab" id="tab-fxmacro" data-tab="fxmacro" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">宏观</button>
+      <button class="tab options-only" id="tab-option" data-tab="option" role="tab" aria-selected="false" aria-controls="view-option" tabindex="-1">期权</button>
+      <button class="tab" id="tab-events" data-tab="events" role="tab" aria-selected="false" aria-controls="view-events" tabindex="-1">事件</button>
+      <button class="tab" id="tab-chain" data-tab="chain" role="tab" aria-selected="false" aria-controls="view-chain" tabindex="-1">产业链</button>
+      <button class="tab" id="tab-watch" data-tab="watch" role="tab" aria-selected="false" aria-controls="view-watch" tabindex="-1">自选</button>
+      <button class="tab" id="tab-portfolio" data-tab="portfolio" role="tab" aria-selected="false" aria-controls="view-portfolio" tabindex="-1">持仓</button>
+      <button class="tab" id="tab-compare" data-tab="compare" role="tab" aria-selected="false" aria-controls="view-compare" tabindex="-1">基金</button>
+    </nav>
+  </div>
+</div>
 
 <!-- 吸顶全球指数跑马条（TradingView ticker tape 的终端版）：数据零额外请求，
      全部来自已轮询的 universe 指数；点击任一格进该指数详情。窄屏隐藏（顶栏已两行）。 -->
@@ -375,7 +417,7 @@
       <button class="star" id="detailStar" title="收藏" aria-label="收藏" aria-pressed="false">☆</button>
     </div>
     <div class="detail-stats num" id="detailStats"></div>
-      <div class="heat-toolbar">
+      <div class="heat-toolbar k-toolbar">
         <button class="pill" data-period="min">分时</button>
         <span id="intradaySeg" role="group" aria-label="分钟级周期（A股/港股/美股/加密有数据源）">
           <button class="pill" data-period="m5">5分</button>
@@ -422,6 +464,17 @@
             <label class="ma-pane-row" data-ktype="ha"><input type="radio" name="ktype" value="ha"><span>平均K（HA）</span></label>
           </span>
         </span>
+        <!-- 多图布局（1×1/1×2/2×2）与跨图联动：菜单复用 .ma-pane-row 语言（scaleMenu 同款），
+             打开时按当前布局回显；「联动」是十字线/缩放范围同步的开关（aria-pressed 供读屏） -->
+        <span class="ma-wrap">
+          <button class="pill" id="layoutToggle" title="多图布局：单图 / 1×2 双图 / 2×2 四宫格">布局 ▾</button>
+          <span class="ma-menu" id="layoutMenu" hidden>
+            <label class="ma-pane-row" data-layout="1x1"><input type="radio" name="klayout" value="1x1" checked><span>单图</span></label>
+            <label class="ma-pane-row" data-layout="1x2"><input type="radio" name="klayout" value="1x2"><span>1×2 双图</span></label>
+            <label class="ma-pane-row" data-layout="2x2"><input type="radio" name="klayout" value="2x2"><span>2×2 四宫格</span></label>
+          </span>
+        </span>
+        <button type="button" class="pill" id="syncToggle" title="十字线与缩放范围在多图间同步" aria-pressed="true">联动</button>
         <!-- 对比叠加（compare overlay）：第二个标的重定基到主图价格单位，虚线共用右轴 -->
         <span class="ma-wrap">
           <button class="pill" id="kcmpToggle" title="叠加第二个标的的归一化走势到主图">对比</button>
@@ -437,21 +490,31 @@
         </span>
         <button class="pill active" id="evtToggle" title="在K线上叠加事件标记（宏观/新闻/龙虎榜）">事件</button>
         <button class="pill" id="alertDetailBtn" title="为此标的设置到价提醒（价格线上画虚线）">提醒</button>
+        <!-- 移动端折叠：390px 下二十多个控件平铺会折成四五行，六件画线工具收进可展开组。
+             桌面端保持平铺、这个开关不显示；六个 [data-draw] 始终在 DOM 里（键盘与测试都找得到）。 -->
+        <button type="button" class="pill k-toolbar-more" id="kToolbarMore" aria-expanded="false"
+                aria-controls="kDrawGroup" title="展开画线工具" aria-label="展开画线工具">画线 ▾</button>
         <!-- 画线工具基础六件（吸附K线，按代码 localStorage 持久化；Esc 取消/退出）：
              字形即工具语义，title/aria 全中文。入口白名单由 _test/charts.test.mjs
              （data-draw ∈ Charts.DRAW_TOOLS）与 _test/tokens.test.mjs（6 个按钮不许被误删）双守卫 -->
-        <button class="pill draw-btn" data-draw="trend" title="趋势线（吸附K线，Esc退出）" aria-label="趋势线">╱</button>
-        <button class="pill draw-btn" data-draw="hline" title="水平线（吸附K线，Esc退出）" aria-label="水平线">─</button>
-        <button class="pill draw-btn" data-draw="vline" title="垂直线（吸附K线，Esc退出）" aria-label="垂直线">│</button>
-        <button class="pill draw-btn" data-draw="rect" title="矩形（吸附K线，Esc退出）" aria-label="矩形">▭</button>
-        <button class="pill draw-btn" data-draw="fib" title="斐波那契回撤（吸附K线，Esc退出）" aria-label="斐波那契回撤">ƒ</button>
-        <button class="pill draw-btn" data-draw="text" title="文字标注（吸附K线，Esc退出）" aria-label="文字标注">T</button>
+        <span class="k-draw-group" id="kDrawGroup">
+          <button class="pill draw-btn" data-draw="trend" title="趋势线（吸附K线，Esc退出）" aria-label="趋势线">╱</button>
+          <button class="pill draw-btn" data-draw="hline" title="水平线（吸附K线，Esc退出）" aria-label="水平线">─</button>
+          <button class="pill draw-btn" data-draw="vline" title="垂直线（吸附K线，Esc退出）" aria-label="垂直线">│</button>
+          <button class="pill draw-btn" data-draw="rect" title="矩形（吸附K线，Esc退出）" aria-label="矩形">▭</button>
+          <button class="pill draw-btn" data-draw="fib" title="斐波那契回撤（吸附K线，Esc退出）" aria-label="斐波那契回撤">ƒ</button>
+          <button class="pill draw-btn" data-draw="text" title="文字标注（吸附K线，Esc退出）" aria-label="文字标注">T</button>
+        </span>
         <!-- 「隐藏全部画线」：只藏不删（画线保留在 localStorage），不带 data-draw——
              不进画线工具白名单（上面 charts.test.mjs 按 data-draw 属性计数守卫 6 件） -->
         <button type="button" class="pill draw-btn" id="drawHide" title="隐藏全部画线（画线保留，再次点击显示）" aria-label="隐藏全部画线" aria-pressed="false">◉</button>
       </div>
     <div class="chart-box" id="chartBox">
-      <div id="klineChart"></div>
+      <!-- 主格包装：paneStack（副图 stack 挂在 #klineChart 的父层）落在这里面，
+           chartBox 的 grid 子元素才只有 .kcell（多图布局 1×2/2×2 的网格单元） -->
+      <div class="kcell" id="kcellMain">
+        <div id="klineChart"></div>
+      </div>
     </div>
     <div class="chart-event" id="chartEventCard" hidden></div>
     <div class="section mt32" id="detailInsight"></div>
@@ -757,22 +820,15 @@
 <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-label="设置">
   <div class="modal">
     <h2>设置</h2>
+    <!-- 模式（唯一一套设计语言的两个模式）：旧 8 套皮肤与随机换肤已删除 -->
     <div class="setting-row">
       <div>
-        <div class="setting-label">界面皮肤</div>
-        <div class="setting-hint">同一套数据 · 四种设计语言 · 图表同步换色</div>
+        <div class="setting-label">模式</div>
+        <div class="setting-hint">深空（默认）/ 日光 · 只改外观，数据与图表完全一致</div>
       </div>
-      <div class="seg" id="segTheme" role="group" aria-label="界面皮肤">
-        <button data-theme="dark" class="active" aria-pressed="true">终端黑</button>
-        <button data-theme="aurora" aria-pressed="false">极光玻璃</button>
-        <button data-theme="oled" aria-pressed="false">硬核终端</button>
-        <button data-theme="paper" aria-pressed="false">纸上编辑部</button>
-        <button data-theme="swiss" aria-pressed="false">瑞士</button>
-        <button data-theme="bauhaus" aria-pressed="false">包豪斯</button>
-        <button data-theme="clay" aria-pressed="false">纸感</button>
-        <button data-theme="memphis" aria-pressed="false">孟菲斯</button>
-        <!-- 随机换肤是一次性动作，不是"当前是哪一档"的状态，所以不给 aria-pressed -->
-        <button data-theme="random" id="segThemeRandom" title="随机换肤" aria-label="随机换肤">🎲</button>
+      <div class="seg seg-mode" id="segTheme" role="group" aria-label="界面模式">
+        <button data-theme="nexus" class="active" aria-pressed="true">深空</button>
+        <button data-theme="daylight" aria-pressed="false">日光</button>
       </div>
     </div>
     <div class="setting-row">
@@ -816,9 +872,17 @@
     <div class="setting-row setting-row-block">
       <div>
         <div class="setting-label">顶栏板块</div>
-        <div class="setting-hint">可调顺序、可隐藏用不到的板块 ·「全部」固定在最前</div>
+        <div class="setting-hint">按一级分组：可调同级顺序、可隐藏用不到的板块 ·「全部」固定在最前</div>
       </div>
       <div class="tab-cfg" id="tabCfg"></div>
+    </div>
+    <!-- 一键还原：模式/涨跌配色/刷新间隔/降级角标/科普入口/板块顺序全部回出厂值 -->
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">还原默认</div>
+        <div class="setting-hint">模式、涨跌配色、刷新间隔、板块顺序一起回到出厂设置</div>
+      </div>
+      <button class="pill" id="settingsReset" type="button" title="把设置恢复为出厂默认">一键还原</button>
     </div>
     <div class="setting-row">
       <div>
@@ -874,6 +938,36 @@
   </div>
 </div>
 
+<!-- ========== 命令面板（⌘K / Ctrl K） ==========
+     键盘全流程：↑↓ 选择 / Enter 执行 / Esc 关闭 / Tab 不逃逸（复用 js/focus-trap.js）。
+     数据源：①标的（本地词典 + 东财搜索，支持代码/中文名/拼音首字母）
+             ②功能命令（切一级/子项、开指标、切模式、导出快照、刷新）。
+     role=dialog + aria-modal + combobox/listbox 语义由 js/ui/command.js 维护。 -->
+<div class="cmd-host" id="cmdPalette" hidden>
+  <div class="cmd-scrim" id="cmdScrim" aria-hidden="true"></div>
+  <div class="cmd-panel" id="cmdPanel" role="dialog" aria-modal="true" aria-labelledby="cmdTitle">
+    <h2 class="sr-only" id="cmdTitle">命令面板</h2>
+    <div class="cmd-field">
+      <span class="cmd-glyph" aria-hidden="true">⌘</span>
+      <input id="cmdInput" class="cmd-input" type="text" autocomplete="off" spellcheck="false"
+             placeholder="搜索标的 / 跳转板块 / 切换模式…" aria-label="命令面板输入"
+             role="combobox" aria-expanded="false" aria-controls="cmdList"
+             aria-autocomplete="list" aria-activedescendant="">
+      <kbd class="cmd-kbd">ESC</kbd>
+    </div>
+    <div class="cmd-scroll">
+      <div id="cmdList" class="cmd-list" role="listbox" aria-label="命令与标的候选"></div>
+      <p class="cmd-empty" id="cmdEmpty" hidden>没有匹配项 · 试试代码、中文名或拼音首字母</p>
+    </div>
+    <div class="cmd-foot">
+      <span class="cmd-hint"><kbd>↑</kbd><kbd>↓</kbd>选择</span>
+      <span class="cmd-hint"><kbd>↵</kbd>执行</span>
+      <span class="cmd-hint"><kbd>ESC</kbd>关闭</span>
+      <span class="cmd-hint cmd-hint-end">代码 / 名称 / 拼音首字母</span>
+    </div>
+  </div>
+</div>
+
 <!-- 图表库本地化（v4.2.3 锁版）：原 unpkg latest 不锁版本，上游发版或 CDN 不可达时详情页全废 -->
 <script defer src="lib/lightweight-charts.standalone.production.js?v=4.2.3"></script>
 <!-- 平面地图的本地 vendor：topojson 解析国界、d3-geo 做投影 + 在 ±180° 处切跨线几何（俄罗斯/斐济/南极）
@@ -882,87 +976,93 @@
 <script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
 <script defer src="lib/d3-array.min.js?v=3.2.4"></script>
 <script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
-<script defer src="js/utils.js?v=20261101m"></script>
+<script defer src="js/utils.js?v=20261108a"></script>
 <!-- 弹层焦点工具：进焦点 / Tab 循环 / 退出还焦点。设置弹层、分享弹层、到价提醒弹层共用一套。 -->
-<script defer src="js/focus-trap.js?v=20261101m"></script>
-<script defer src="js/store.js?v=20261101m"></script>
-<script defer src="js/proxy.js?v=20261101m"></script>
-<script defer src="js/data/universe.js?v=20261101m"></script>
-<script defer src="js/data/us-indexes.js?v=20261101m"></script>
-<script defer src="js/auniverse.js?v=20261101m"></script>
-<script defer src="js/data/industry-chains.js?v=20261101m"></script>
-<script defer src="js/data/explain.js?v=20261101m"></script>
-<script defer src="js/data/academy-assets.js?v=20261101m"></script>
-<script defer src="js/data/academy-gloss.js?v=20261101m"></script>
-<script defer src="js/academy-gate.js?v=20261101m"></script>
-<script defer src="js/technical.js?v=20261101m"></script>
-<script defer src="js/flags.js?v=20261101m"></script>
-<script defer src="js/bus.js?v=20261101m"></script>
-<script defer src="js/events.js?v=20261101m"></script>
-<script defer src="js/polymarket.js?v=20261101m"></script>
-<script defer src="js/pmcharts.js?v=20261101m"></script>
-<script defer src="js/pmview.js?v=20261101m"></script>
-<script defer src="js/actors.js?v=20261101m"></script>
-<script defer src="js/sources/tencent.js?v=20261101m"></script>
-<script defer src="js/sources/sina.js?v=20261101m"></script>
-<script defer src="js/sources/eastmoney.js?v=20261101m"></script>
-<script defer src="js/sources/okx.js?v=20261101m"></script>
-<script defer src="js/sources/binance.js?v=20261101m"></script>
-<script defer src="js/sources/paprika.js?v=20261101m"></script>
-<script defer src="js/sources/fred.js?v=20261101m"></script>
-<script defer src="js/sources/news.js?v=20261101m"></script>
-<script defer src="js/sources/worldbank.js?v=20261101m"></script>
-<script defer src="js/sources/gdelt.js?v=20261101m"></script>
-<script defer src="js/sources/polymarket.js?v=20261101m"></script>
-<script defer src="js/sources/lhb.js?v=20261101m"></script>
-<script defer src="js/sources/southbound.js?v=20261101m"></script>
-<script defer src="js/sources/fundholds.js?v=20261101m"></script>
-<script defer src="js/sources/etf.js?v=20261101m"></script>
-<script defer src="js/sources/sec.js?v=20261101m"></script>
-<script defer src="js/sources/history.js?v=20261101m"></script>
+<script defer src="js/focus-trap.js?v=20261108a"></script>
+<script defer src="js/store.js?v=20261108a"></script>
+<script defer src="js/proxy.js?v=20261108a"></script>
+<script defer src="js/data/universe.js?v=20261108a"></script>
+<script defer src="js/data/us-indexes.js?v=20261108a"></script>
+<script defer src="js/auniverse.js?v=20261108a"></script>
+<script defer src="js/data/industry-chains.js?v=20261108a"></script>
+<script defer src="js/data/explain.js?v=20261108a"></script>
+<script defer src="js/data/academy-assets.js?v=20261108a"></script>
+<script defer src="js/data/academy-gloss.js?v=20261108a"></script>
+<script defer src="js/academy-gate.js?v=20261108a"></script>
+<script defer src="js/technical.js?v=20261108a"></script>
+<script defer src="js/flags.js?v=20261108a"></script>
+<script defer src="js/bus.js?v=20261108a"></script>
+<script defer src="js/events.js?v=20261108a"></script>
+<script defer src="js/polymarket.js?v=20261108a"></script>
+<script defer src="js/pmcharts.js?v=20261108a"></script>
+<script defer src="js/pmview.js?v=20261108a"></script>
+<script defer src="js/actors.js?v=20261108a"></script>
+<script defer src="js/sources/tencent.js?v=20261108a"></script>
+<script defer src="js/sources/sina.js?v=20261108a"></script>
+<script defer src="js/sources/eastmoney.js?v=20261108a"></script>
+<script defer src="js/sources/okx.js?v=20261108a"></script>
+<script defer src="js/sources/binance.js?v=20261108a"></script>
+<script defer src="js/sources/paprika.js?v=20261108a"></script>
+<script defer src="js/sources/fred.js?v=20261108a"></script>
+<script defer src="js/sources/news.js?v=20261108a"></script>
+<script defer src="js/sources/worldbank.js?v=20261108a"></script>
+<script defer src="js/sources/gdelt.js?v=20261108a"></script>
+<script defer src="js/sources/polymarket.js?v=20261108a"></script>
+<script defer src="js/sources/lhb.js?v=20261108a"></script>
+<script defer src="js/sources/southbound.js?v=20261108a"></script>
+<script defer src="js/sources/fundholds.js?v=20261108a"></script>
+<script defer src="js/sources/etf.js?v=20261108a"></script>
+<script defer src="js/sources/sec.js?v=20261108a"></script>
+<script defer src="js/sources/history.js?v=20261108a"></script>
 <!-- 期权数据源（window.OptionSource）：T 型报价的链数据/月份表，受 OPTIONS_ON 合规开关管辖 -->
-<script defer src="js/sources/option.js?v=20261101m"></script>
-<script defer src="js/breadth.js?v=20261101m"></script>
-<script defer src="js/sessions.js?v=20261101m"></script>
-<script defer src="js/treemap.js?v=20261101m"></script>
-<script defer src="js/spark.js?v=20261101m"></script>
-<script defer src="js/charts.js?v=20261101m"></script>
-<script defer src="js/engine/types.js?v=20261101m"></script>
-<script defer src="js/engine/geo.js?v=20261101m"></script>
-<script defer src="js/engine/impact-engine.js?v=20261101m"></script>
+<script defer src="js/sources/option.js?v=20261108a"></script>
+<script defer src="js/breadth.js?v=20261108a"></script>
+<script defer src="js/sessions.js?v=20261108a"></script>
+<script defer src="js/treemap.js?v=20261108a"></script>
+<script defer src="js/spark.js?v=20261108a"></script>
+<script defer src="js/charts.js?v=20261108a"></script>
+<script defer src="js/engine/types.js?v=20261108a"></script>
+<script defer src="js/engine/geo.js?v=20261108a"></script>
+<script defer src="js/engine/impact-engine.js?v=20261108a"></script>
 <!-- news-engine / event-engine / llm-provider 不在这里加载（2026-10-20 摘除）：
      生产代码零引用——事件页走的是 js/sources/gdelt.js → Events.normalize 这条路，
      聚类与 AI 闸门那两个模块只在 _test/engine.test.mjs 里用。
      三个文件留在仓库里给测试 require，浏览器不必为 400 行死代码付首屏带宽。 -->
-<script defer src="js/worldmap.js?v=20261101m"></script>
-<script defer src="js/compare.js?v=20261101m"></script>
-<script defer src="js/compareview.js?v=20261101m"></script>
-<script defer src="js/alerts.js?v=20261101m"></script>
+<script defer src="js/worldmap.js?v=20261108a"></script>
+<script defer src="js/compare.js?v=20261108a"></script>
+<script defer src="js/compareview.js?v=20261108a"></script>
+<script defer src="js/alerts.js?v=20261108a"></script>
 <!-- 宏观策略：纯计算（macrocalc）+ 视图（macroview） -->
-<script defer src="js/macrocalc.js?v=20261101m"></script>
-<script defer src="js/macroview.js?v=20261101m"></script>
+<script defer src="js/macrocalc.js?v=20261108a"></script>
+<script defer src="js/macroview.js?v=20261108a"></script>
 <!-- 持仓跟踪：纯计算（portfoliomath）+ 视图（portfolio） -->
-<script defer src="js/portfoliomath.js?v=20261101m"></script>
-<script defer src="js/portfolio.js?v=20261101m"></script>
+<script defer src="js/portfoliomath.js?v=20261108a"></script>
+<script defer src="js/portfolio.js?v=20261108a"></script>
 <!-- 基金画像：纯解析（fundparse）+ 视图（fundprofile） -->
-<script defer src="js/fundparse.js?v=20261101m"></script>
-<script defer src="js/fundprofile.js?v=20261101m"></script>
-<script defer src="js/fundquiz.js?v=20261101m"></script>
+<script defer src="js/fundparse.js?v=20261108a"></script>
+<script defer src="js/fundprofile.js?v=20261108a"></script>
+<script defer src="js/fundquiz.js?v=20261108a"></script>
 <!-- 市场预测：模型（polymarket）/ 图形（pmcharts）/ 视图（pmview）
      分享卡片：二维码（qr，自实现零依赖）+ 卡片绘制与导出（pmshare） -->
-<script defer src="js/qr.js?v=20261101m"></script>
-<script defer src="js/pmshare.js?v=20261101m"></script>
+<script defer src="js/qr.js?v=20261108a"></script>
+<script defer src="js/pmshare.js?v=20261108a"></script>
 <!-- 二级分区：判定逻辑是纯函数（js/zones.js），app.js 只负责把结论落到 DOM -->
-<script defer src="js/zones.js?v=20261101m"></script>
+<script defer src="js/zones.js?v=20261108a"></script>
 <!-- 顶栏板块的顺序与显隐（js/tabscope.js，纯函数、可单测） -->
-<script defer src="js/tabscope.js?v=20261101m"></script>
+<script defer src="js/tabscope.js?v=20261108a"></script>
 <!-- 副图指标计算（js/panes.js，纯函数、可单测） -->
-<script defer src="js/panes.js?v=20261101m"></script>
+<script defer src="js/panes.js?v=20261108a"></script>
 <!-- 副图指标窗绘制（js/paneview.js，纯几何、可单测） -->
-<script defer src="js/paneview.js?v=20261101m"></script>
+<script defer src="js/paneview.js?v=20261108a"></script>
 <!-- 市场维度归属：市场只由一级 tab 表达，下层不再重复表达（js/marketscope.js） -->
-<script defer src="js/marketscope.js?v=20261101m"></script>
-<script defer src="js/app.js?v=20261101m"></script>
-<script defer src="js/gloss-tip.js?v=20261101m"></script>
+<script defer src="js/marketscope.js?v=20261108a"></script>
+<!-- UI v2 外壳：一级↔二级映射（纯函数，含深链解析）+ 命令面板。
+     必须在 app.js 之前：app.js 初始化时要消费 Navmap，command.js 执行动作时要消费 window.AppNav。 -->
+<script defer src="js/ui/navmap.js?v=20261108a"></script>
+<script defer src="js/ui/command.js?v=20261108a"></script>
+<script defer src="js/app.js?v=20261108a"></script>
+<script defer src="js/gloss-tip.js?v=20261108a"></script>
+<!-- 动效层最后加载：只做委托/观察，不改业务逻辑（js/ui/motion.js 由 motion 层维护） -->
+<script defer src="js/ui/motion.js?v=20261108a"></script>
 </body>
 </html>

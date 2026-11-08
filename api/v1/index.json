@@ -1,0 +1,147 @@
+{
+  "ok": true,
+  "data": {
+    "version": "v1",
+    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "count": 11,
+    "datasets": [
+      {
+        "id": "index",
+        "title": "根索引",
+        "description": "列出全部数据集、各自路径、更新时间与滞后状态，是 Agent 的第一入口。",
+        "path": "api/v1/index.json",
+        "kind": "meta",
+        "asof": "2026-11-08T15:02:37.542Z",
+        "stale": false,
+        "count": 11,
+        "updatedAt": "2026-11-08T15:02:37.542Z"
+      },
+      {
+        "id": "manifest",
+        "title": "机器可读清单",
+        "description": "每个数据集的 id/标题/路径/字段定义/样例/数据截止时间，供 Agent 生成调用参数。",
+        "path": "api/v1/manifest.json",
+        "kind": "meta",
+        "asof": "2026-11-08T15:02:37.542Z",
+        "stale": false,
+        "count": 11,
+        "updatedAt": "2026-11-08T15:02:37.542Z"
+      },
+      {
+        "id": "universe",
+        "title": "标的宇宙",
+        "description": "代码、名称、市场、分组、拼音首字母与别名，用于把用户口语解析成标准 symbol。",
+        "path": "api/v1/universe.json",
+        "kind": "data",
+        "asof": "2026-11-08T15:02:37.542Z",
+        "stale": false,
+        "count": 194,
+        "updatedAt": "2026-11-08T15:02:37.542Z"
+      },
+      {
+        "id": "quotes.latest",
+        "title": "行情快照",
+        "description": "构建时抓取的行情快照，带 asof 与 stale；抓取失败时沿用上次快照并诚实标注。",
+        "path": "api/v1/quotes/latest.json",
+        "kind": "data",
+        "asof": "2026-11-08T15:02:38.255Z",
+        "stale": false,
+        "count": 194,
+        "updatedAt": "2026-11-08T15:02:37.542Z"
+      },
+      {
+        "id": "klines.catalog",
+        "title": "K 线目录",
+        "description": "可用 K 线标的清单、周期与行数，指向 api/v1/klines/{symbol}.json。",
+        "path": "api/v1/markets/klines.json",
+        "kind": "data",
+        "asof": "2026-11-08T00:00:00.000Z",
+        "stale": false,
+        "count": 19,
+        "updatedAt": "2026-11-08T15:02:37.542Z"
+      },
+      {
+        "id": "klines.symbol",
+        "title": "单标的 K 线",
+        "description": "日/周/月 K 线（时间与开高低收），每个标的一个文件；路径里的 {symbol} 取目录中的代码。",
+        "path": "api/v1/klines/{symbol}.json",
+        "kind": "data",
+        "asof": "2026-11-08T00:00:00.000Z",
+        "stale": false,
+        "count": 19,
+        "updatedAt": "2026-11-08T15:02:37.542Z"
+      },
+      {
+        "id": "events.global",
+        "title": "全球事件",
+        "description": "全球宏观/地缘事件，附分类、国家、0-100 严重度与关联标的。",
+        "path": "api/v1/events/global.json",
+        "kind": "data",
+        "asof": "2026-11-01T02:41:58.364Z",
+        "stale": true,
+        "count": 54,
+        "updatedAt": "2026-11-08T15:02:37.542Z"
+      },
+      {
+        "id": "prediction.markets",
+        "title": "预测市场概率",
+        "description": "事件与档位两层结构，probability 为 0-1 隐含概率；不含平台标识与链接。",
+        "path": "api/v1/prediction/markets.json",
+        "kind": "data",
+        "asof": "2026-11-01T02:42:39.263Z",
+        "stale": true,
+        "count": 30,
+        "updatedAt": "2026-11-08T15:02:37.542Z"
+      },
+      {
+        "id": "institutions.holdings",
+        "title": "机构持仓",
+        "description": "SEC 13F 机构季度持仓、规则化因子 ETF 全量持仓、基金合计持仓的加减仓榜。",
+        "path": "api/v1/institutions/holdings.json",
+        "kind": "data",
+        "asof": "2026-11-01T01:27:30.715Z",
+        "stale": false,
+        "count": 4,
+        "updatedAt": "2026-11-08T15:02:37.542Z"
+      },
+      {
+        "id": "macro.series",
+        "title": "宏观序列",
+        "description": "世界银行年度指标（GDP/增长/通胀/失业/债务/经常账户），附 FRED 口径目录。",
+        "path": "api/v1/macro/series.json",
+        "kind": "data",
+        "asof": "2025-01-01T00:00:00.000Z",
+        "stale": false,
+        "count": 44,
+        "updatedAt": "2026-11-08T15:02:37.542Z"
+      },
+      {
+        "id": "health",
+        "title": "链路自检",
+        "description": "各数据集最近构建时间、条数、耗时与 stale 状态。",
+        "path": "api/v1/health.json",
+        "kind": "meta",
+        "asof": "2026-11-08T15:02:37.542Z",
+        "stale": false,
+        "count": 11,
+        "updatedAt": "2026-11-08T15:02:37.542Z"
+      }
+    ],
+    "entrypoints": {
+      "manifest": "api/v1/manifest.json",
+      "health": "api/v1/health.json",
+      "openapi": "api/openapi.json",
+      "universe": "api/v1/universe.json"
+    },
+    "health": "degraded"
+  },
+  "meta": {
+    "dataset": "index",
+    "asof": "2026-11-08T15:02:37.542Z",
+    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "source": "本项目构建产物",
+    "stale": false,
+    "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
+    "note": "先读本索引挑数据集，再读 manifest 看字段；stale=true 的数据集回答用户时必须说明时效。"
+  }
+}

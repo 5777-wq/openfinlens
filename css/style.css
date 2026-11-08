@@ -11,95 +11,131 @@
    · 交互强调色 --accent-signature：tab 下划线 / 聚焦环 / 星标 / 开关 / 时间轴等交互态，
      不参与涨跌编码。改色时必须同步改 --accent-rgb（alpha 合成用），两者是一对
    · 留白不对称：区间 56 / 组间 24 / 组内 8
+   ============================================================ *//* ============================================================
+   OpenFinLens · 设计语言 v2「NEXUS 深空终端」（2026-11 推倒重来）
+   ------------------------------------------------------------
+   一套语言，两个模式（data-theme="nexus" 深空 / data-theme="daylight" 日光）。
+   旧 8 套皮肤（dark/aurora/oled/paper/swiss/bauhaus/clay/memphis）已删除。
+
+   语言要点
+   · 画布优先：数据裸排，卡片是「光面」不是盒子——1px 冷光描边 + 极弱内高光 + 玻璃底
+   · 唯一强调：青蓝渐变只出现在「可交互 / 当前状态 / 品牌」，涨跌红绿只表示涨跌
+   · 数字是第一公民：等宽 tabular，主数字 32/20，标签 12 大写字距
+   · 刻度感：极弱网格 + 边缘渐隐，制造仪表盘纵深，不抢数据
+   · 动效来自 Telegram-iOS 实测参数（见 docs/UI-V2-SPEC.md 与 css/ui/motion.css）
    ============================================================ */
 
 :root {
-  --bg: #0a0a0b;
-  --bg-elevated: #131316;
-  --bg-card: #101013;          /* 图表底色由此读取 */
-  --bg-hover: #151518;
-  --text: #f2f2f0;
-  --text-secondary: #b4b4bc;
-  --text-tertiary: #a0a0a8;
-  --text-faint: #8a8a92;       /* 暗色皮肤下 .brief-c 计数/图例刻度等信息性文字也用它，
-                                  已提亮至对全部暗色表面 ≥4.5:1；浅色皮肤块各自覆写不受影响 */
-  --border: rgba(255,255,255,0.15);
-  --border-hover: rgba(255,255,255,0.26);
-  /* 2026-09-15：原值 #D97757 就是 Claude/Anthropic 的品牌赭橙，是全站辨识度最高的
-     "AI 生成"信号，改为终端琥珀（Bloomberg 系）。改色时 --accent-rgb 必须同值同步，
-     它是 rgba() 合成半透明描边/底色的唯一来源（此前散落的 rgba(217,119,87,·) 就是这么漂的）。 */
-  --accent-signature: #e8a33d;
-  --accent-rgb: 232,163,61;
-  /* 均线调色板：按槽位固定，charts.js（实际画线）与 index.html（均线菜单色块）都读这里。
-     此前两处各写一份字面量，改色必然漂移；现在有 _test/tokens.test.mjs 守着。
-     选色约束（均由 CIEDE2000 实测，不是手感）：
-       · 槽位两两 ΔE ≥ 15（低于此两条线人眼难分）
-       · 与涨跌色 ΔE ≥ 15（均线与蜡烛同画布，绿系必须避开"跌"绿）
-       · 对图表底 #101013 对比度 4~9:1（过暗看不见，过亮会盖过蜡烛）
-     本次被迫与顺带调整：
-       · --ma-4 原 #e0a83c，与新的 --ma-0 琥珀 ΔE 仅 4.0，必须换 → 品红 #e0559b
-       · --ma-2 原 #3fae72 是既有缺陷：与"跌"绿 ΔE 仅 4.8，均线和阴线几乎同色 → 青 #1fc2db
-       · --ma-5 原 #4db6ac 同理偏低（对"跌"绿 13.4）→ 橄榄 #aab82e
-     调整后全调色板最小色距 16.3，无一对低于 15。 */
-  --ma-0: #e8a33d;
+  /* ---------- 底色五层：0 画布 → 1 面板 → 2 卡片 → 3 悬停 → 4 按下 ---------- */
+  --bg: #05080d;
+  --bg-elevated: #0b1119;
+  --bg-card: #0a0f17;
+  --bg-hover: #131c27;
+  --bg-sunken: #03060a;
+  /* 斑马纹面：比 --bg-sunken 亮、比 --bg-hover 暗，专门给长表格（13F/年度收益/相关性）用。
+     深空下 --bg-sunken 与 --bg-card 只差 7 个灰阶，条纹实际上看不见。 */
+  --bg-zebra: #0e151f;
+  --bg-glass: rgba(11,17,25,0.72);
+
+  /* ---------- 文字四级（对最差表面均 ≥4.5:1） ---------- */
+  --text: #e8f0fa;
+  --text-secondary: #a6b6ca;
+  --text-tertiary: #8496ab;
+  --text-faint: #7b8da4;
+
+  /* ---------- 描边三级：结构线 / 悬停 / 强调 ---------- */
+  --border: rgba(146,176,214,0.17);
+  --border-hover: rgba(146,176,214,0.30);
+  --border-soft: rgba(146,176,214,0.07);
+  --border-strong: rgba(146,176,214,0.42);
+
+  /* ---------- 唯一强调色（青）与副色（蓝），两者只用于渐变与图表次强调 ----------
+     --accent-signature 与 --accent-rgb 必须同值（tokens.test 卡）；改色时同步。 */
+  --accent-signature: #35e1ff;
+  --accent-rgb: 53,225,255;
+  --accent-2: #4f7cff;
+  --accent-2-rgb: 79,124,255;
+  --accent-soft: rgba(53,225,255,0.12);
+  --accent-line: linear-gradient(90deg, rgba(53,225,255,0), rgba(53,225,255,0.85) 18%, rgba(79,124,255,0.85) 78%, rgba(79,124,255,0));
+
+  /* ---------- 刻度网格与光晕 ---------- */
+  --grid-line: rgba(120,160,200,0.05);
+  --glow-1: 53,225,255;
+  --glow-2: 79,124,255;
+  --topbar-bg: rgba(5,8,13,0.82);
+  --tape-bg: rgba(5,8,13,0.78);
+
+  /* ---------- 均线调色板：槽位固定，charts.js 与指标菜单都读这里 ----------
+     选色约束（CIEDE2000 实测）：两两 ΔE ≥ 15；与涨跌色 ΔE ≥ 15。
+     本套最小色距 16.3（--ma-3 紫 vs --ma-4 粉），与涨跌色最小 17.9。 */
+  --ma-0: #35e1ff;
   --ma-1: #5b8def;
-  --ma-2: #1fc2db;
-  --ma-3: #b06ad4;
+  --ma-2: #b06ad4;
+  --ma-3: #f0a03c;
   --ma-4: #e0559b;
   --ma-5: #aab82e;
-  --up: #ff5c5c;
-  --down: #2ebd85;
-  --up-bg: rgba(255,92,92,0.08);
-  --down-bg: rgba(46,189,133,0.08);
-  /* 涨跌**文字**专用色（2026-10-22 无障碍修）。
-     --up/--down 是色块与图形用的亮色，压在浅底上做文字只有 2.2~3.0:1（AA 正文要 4.5:1）。
-     所以文字另走一组：--text-rise（涨）/ --text-fall（跌），深色皮肤沿用亮色，
-     5 套浅色皮肤各自覆写（见各皮肤块）。方向不靠颜色单独承担：
-     涨跌幅文案本身带 +/- 号（fmtPct），色只是第二重提示。 */
-  --text-rise: #ff5c5c;
-  --text-fall: #2ebd85;
+
+  /* ---------- 涨跌语义（红涨绿跌为默认；body[data-updown="green"] 反转） ---------- */
+  --up: #ff4d5e;
+  --down: #16c784;
+  --up-bg: rgba(255,77,94,0.10);
+  --down-bg: rgba(22,199,132,0.10);
+  --text-rise: #ff6b7a;
+  --text-fall: #2ad695;
   --up-text: var(--text-rise);
   --down-text: var(--text-fall);
-  /* 焦点环专用色：默认就是强调色，但 clay / memphis 的强调色压自己的底色
-     只有 2.78:1 / 2.86:1（WCAG 1.4.11 非文本对比要 3:1），
-     所以这两套皮肤各自把焦点环换成同色系深一档的版本。 */
+  --up-rgb: 255,77,94;
+  --down-rgb: 22,199,132;
+
+  /* ---------- 焦点环 / 警示 ---------- */
   --focus-ring: var(--accent-signature);
-  /* 价格闪烁（WAAPI）用的 RGB 三元组：与 --up/--down 同步反转（下方 data-updown 块）。
-     不直接动画 --up：CSS 变量进不了 Web Animations 的插值，只认具体色值。 */
-  --up-rgb: 255,92,92;
-  --down-rgb: 46,189,133;
-  /* 吸顶跑马条高度：.main 的 padding-top 读它；<1100px 时隐藏并归零（见文件尾部媒体块） */
-  --tape-h: 34px;
-  /* 警示色：与涨跌色解耦——红/绿只许表示涨跌，警示一律用橙。
-     深色皮肤用警示橙 #ff8f3d；5 套浅色皮肤各自覆写深琥珀 #a04c05
-     （对最差表面 paper --bg-elevated #edebe4 实测 4.99:1，对白底 5.95:1）。
-     死令牌 --ok 已删除：ae3768e 删掉最后消费者 .status-ok 后全仓零消费。 */
-  --warn: #ff8f3d;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur-fast: 0.2s; --dur-med: 0.4s; --dur-slow: 0.8s;
-  /* 形状令牌（2026-11-01，P0★ 病灶三）：圆角三档 + 阴影两档。卡片三模板：
-     大卡/浮层 = --r-lg + --shadow-2（modal、aurora 玻璃面板）；
-     标准卡 = --r-md + 1px 描边（pm-card/fq-card/event-detail 等）；
-     迷你卡/行内控件 = --r-sm 无阴影（qrow/chip/徽章/取色块）；
-     条形轨道 = 999px 胶囊；方角(0)/圆(50%)是 paper 皮肤与几何图形的身份层。 */
+  --warn: #ffab2e;
+
+  /* ---------- 图表（canvas 不吃 CSS 变量，charts.js 读这些再传进库） ---------- */
+  --chart-text: #7e90a6;
+  --chart-grid: rgba(146,176,214,0.06);
+  --chart-border: rgba(146,176,214,0.12);
+
+  /* ---------- 形状：圆角三档 + 胶囊；方角/全圆是图形层身份 ---------- */
   --r-sm: 4px; --r-md: 8px; --r-lg: 14px;
-  /* 暗色 3 套（:root/aurora/oled）一律禁阴影：rgba(0,0,0,…) 黑影叠 #0a0a0b/#000 底
-     1:1 不可见，卡片边界交给 1px 描边（--border 已提亮，对 bg 合成后 1.47:1）；
-     5 套浅色皮肤块各自覆写 --shadow-1 亮影承接海拔。--shadow-2 的消费者仅 aurora
-     玻璃面板三处（.section/.pm-sec/.pm-overview），暗色下同样解析为 none，保留令牌位。 */
+  --r-pill: 999px;
+
+  /* ---------- 海拔：深空禁黑影（黑叠黑不可见），边界交给描边 + 内高光 ---------- */
   --shadow-1: none;
   --shadow-2: none;
-  /* 间距七档令牌（2026-11-01，P0★ 病灶四）：4/8/12/16/24/32/48，④b 已全量接线（4/8/12 三档 199 处 + 16/24/32/48 四档 52 处，calc 内一并接线）。
-     映射规则：就近取档、平局向上（6px→--sp-8、10px→--sp-12）；字号音阶五档见下一组 --fs-* 令牌。 */
+  --ring-glow: 0 0 0 1px rgba(var(--accent-rgb),0.35), 0 0 28px -8px rgba(var(--accent-rgb),0.55);
+
+  /* ---------- 间距七档（4/8/12/16/24/32/48，8px 骨架） ---------- */
   --sp-4: 4px; --sp-8: 8px; --sp-12: 12px; --sp-16: 16px; --sp-24: 24px; --sp-32: 32px; --sp-48: 48px;
-  /* 字号五档令牌（2026-11-01，P0★ 病灶五·③a）：12/13/15/20/32。
-     映射规则：就近取档、平局向上（12.5→13；14/16/17→15；18/19/21/22/24→20；28/30/34/56→32）。
-     Floor=12px 可读性下限——8~11.5px 十二档过渡值由 ③b/③c 接线后清零（白名单钉在 tokens.test）。
-     展示层大数字（thermo-score/detail-price/hero-value 等）一并归 --fs-32/--fs-20：不再保留
-     30/34/56 的第三极，音阶落差由字重与 tabular-nums 承担。 */
+
+  /* ---------- 字号五档（12/13/15/20/32，floor 12px） ---------- */
   --fs-12: 12px; --fs-13: 13px; --fs-15: 15px; --fs-20: 20px; --fs-32: 32px;
+
+  /* ---------- 动效：曲线与时长全部对齐 Telegram-iOS 实测（CAAnimationUtils） ----------
+     spring-small  d=88 阻尼比 0.66 / 6.5% 过冲  → 小元素弹入（复选、徽标、图标）
+     spring-panel  d=104 阻尼比 0.78 / 2.1% 过冲 → 弹层、菜单、抽屉出现
+     signature     0.38/0.7/0.125/1 招牌布局曲线 → 位移型过渡
+     exit          收起永远比出现快，且不用弹簧（ease-in） */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+  --ease-panel: cubic-bezier(0.22, 1.12, 0.36, 1);
+  --ease-signature: cubic-bezier(0.38, 0.7, 0.125, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --dur-1: 0.12s;   /* 图标微动 / 数字滚动 */
+  --dur-2: 0.2s;    /* 高亮淡出 / 按压松开 */
+  --dur-3: 0.3s;    /* 收起 / 弹层 alpha */
+  --dur-4: 0.42s;   /* 弹层出现（弹簧位移） */
+  --dur-fast: 0.18s; --dur-med: 0.28s; --dur-slow: 0.45s;
+
+  /* ---------- 骨架尺寸 ---------- */
   --topbar-h: 56px;
-  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "JetBrains Mono", monospace;
+  --tape-h: 34px;
+
+  /* ---------- 字体 ---------- */
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+             "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
 }
 
 body[data-updown="green"] {
@@ -352,7 +388,7 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
    所以默认走"文字 + 底部强调线"这条克制的路：静默时几乎不占视觉重量，
    选中时才用一条强调线表明位置。
    padding 给足横向空间：0 的话文字会直接贴住下划线两端。 */
-.pill { position: relative; padding: var(--sp-4) 2px; font-size: var(--fs-12); color: var(--text-tertiary);
+.pill { position: relative; padding: var(--sp-4) var(--sp-8); font-size: var(--fs-12); color: var(--text-tertiary);
   transition: color var(--dur-fast) var(--ease-out); }
 .pill::after { content: ''; position: absolute; left: 2px; right: 2px; bottom: 0; height: 1px;
   background: var(--text); transform: scaleX(0); transform-origin: left;
@@ -505,6 +541,31 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
 .k-pane-div:hover, .k-pane-div.on { background-color: color-mix(in srgb, var(--accent-signature) 16%, transparent); }
 /* 该周期无数据时整块收起（不留"暂无数据"占位文案） */
 .chart-box.off { display: none; }
+
+/* ---- 多图布局（P1 工作台）：1×1 / 1×2 / 2×2 网格 ----
+   grid 子元素 = .kcell（主格包装 + 副格），主图 paneStack 落在 kcellMain 内不进 grid；
+   取值全走既有令牌（--sp-8/--border/--bg-card/--text/--text-faint/--fs-*），零 hex 字面量。 */
+.chart-box.layout-1x2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-8); }
+.chart-box.layout-2x2 { display: grid; grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(2, auto); gap: var(--sp-8); }
+.kcell { min-width: 0; }
+/* 副格图表容器与主图同高（1×2 时 420、2×2 时 300），autoSize 自动跟随容器 */
+.kcell-chart { width: 100%; height: 420px; }
+.layout-2x2 #klineChart, .layout-2x2 .kcell-chart { height: 300px; }
+/* 格头：符号下拉 + 设为主图（对齐 pill/控件语言，select 取色 .ma-line-row select 同款） */
+.kcell-head { display: flex; gap: var(--sp-4); align-items: center; margin-bottom: var(--sp-4); }
+.kcell-sel { background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
+  font-size: var(--fs-13); padding: 2px var(--sp-4); border-radius: var(--r-sm); max-width: 60%; }
+.kcell-sel:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.kcell-promo { background: transparent; border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--text-faint); font-size: var(--fs-12); padding: 2px var(--sp-4); cursor: pointer; }
+.kcell-promo:hover { color: var(--text); border-color: var(--border-hover); }
+/* 空符号格：诚实空态（家规 4），虚线框与图表容器同高 */
+.kcell-empty { min-height: 300px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-faint); font-size: var(--fs-13); border: 1px dashed var(--border); }
+@media (max-width: 700px) {
+  .chart-box.layout-1x2, .chart-box.layout-2x2 { grid-template-columns: 1fr; }
+}
 
 /* ============================================================ 新闻 */
 .news-list { display: flex; flex-direction: column; counter-reset: newsidx; }
@@ -1875,137 +1936,86 @@ body.no-crypto .crypto-only { display: none !important; }
 /* ==================== 界面皮肤（html[data-theme]）+ 环境光 + 动效（2026-09-20） ====================
    保留终端排版与 hairline 语言，只整组换变量不动结构。--glow-1/2 是环境光 rgb 三元组
    （同 --up-rgb 契约）；--chart-* 给 lightweight-charts（canvas 不吃 CSS 变量，
-   charts.js 在创建/retheme 时现读）。默认终端黑 = :root，无需覆盖块。 */
+   charts.js 在创建/retheme 时现读）。默认终端黑 = :root，无需覆盖块。 */:root {
+  --chart-text: #7e90a6;
+  --chart-grid: rgba(146,176,214,0.06);
+  --chart-border: rgba(146,176,214,0.12);
+}
 
-:root { --chart-text: #86868b; --chart-grid: rgba(255,255,255,0.04); --chart-border: rgba(255,255,255,0.08);
-  --glow-1: 232,163,61; --glow-2: 91,141,239;
-  --topbar-bg: rgba(10,10,11,0.88); --tape-bg: rgba(10,10,11,0.82); }
+/* 环境光：极淡双色辉光铺在底色上（缓慢漂移，减动效用户看到的是静态光晕） *//* ==================== 日光模式（data-theme="daylight"）====================
+   同一套设计语言的第二模式：结构与动效完全一致，只换明度关系。
+   浅色下"光面"改用真实投影承接海拔（深空禁黑影，日光必须有影，否则卡片浮不起来）。
+   强调色在浅底上压深一档到 #0091ad，保证焦点环与链接文字对白底 ≥4.5:1。 */
+html[data-theme="daylight"] {
+  --bg: #f6f8fb;
+  --bg-elevated: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #eef3f9;
+  --bg-sunken: #e8eef6;
+  --bg-zebra: #f1f5fa;
+  --bg-glass: rgba(255,255,255,0.78);
+  --text: #0b1520;
+  --text-secondary: #46586d;
+  --text-tertiary: #5f7288;
+  --text-faint: #6f8296;
+  --border: rgba(18,42,70,0.12);
+  --border-hover: rgba(18,42,70,0.26);
+  --border-soft: rgba(18,42,70,0.06);
+  --border-strong: rgba(18,42,70,0.34);
+  --accent-signature: #0091ad;
+  --accent-rgb: 0,145,173;
+  --accent-2: #2f5bf0;
+  --accent-2-rgb: 47,91,240;
+  --accent-soft: rgba(0,145,173,0.10);
+  --grid-line: rgba(30,70,110,0.05);
+  --glow-1: 0,145,173;
+  --glow-2: 47,91,240;
+  --topbar-bg: rgba(246,248,251,0.85);
+  --tape-bg: rgba(246,248,251,0.8);
+  --text-rise: #d61f34;
+  --text-fall: #0a7a52;
+  --up: #e5344a;
+  --down: #10a06a;
+  --up-bg: rgba(229,52,74,0.08);
+  --down-bg: rgba(16,160,106,0.08);
+  --up-rgb: 229,52,74;
+  --down-rgb: 16,160,106;
+  --focus-ring: #0091ad;
+  --warn: #b45309;
+  --chart-text: #5f7288;
+  --chart-grid: rgba(18,42,70,0.07);
+  --chart-border: rgba(18,42,70,0.14);
+  --shadow-1: 0 1px 2px rgba(11,21,32,0.05), 0 8px 24px -12px rgba(11,21,32,0.18);
+  --shadow-2: 0 2px 6px rgba(11,21,32,0.07), 0 24px 60px -24px rgba(11,21,32,0.28);
+  --ring-glow: 0 0 0 1px rgba(var(--accent-rgb),0.45), 0 0 24px -10px rgba(var(--accent-rgb),0.5);
+}
 
-/* 环境光：极淡双色辉光铺在底色上（缓慢漂移，减动效用户看到的是静态光晕） */
-body::before { content: ''; position: fixed; inset: -18%; z-index: -1; pointer-events: none;
+/* 画布环境光：两团极弱冷光 + 一层 40px 刻度网格，边缘用 mask 渐隐。
+   网格与光斑都挂在 body::before（z-index:-1），永不吃点击、永不影响滚动。 */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background:
-    radial-gradient(42% 36% at 22% 0%, rgba(var(--glow-1), 0.075), transparent 70%),
-    radial-gradient(36% 30% at 86% 10%, rgba(var(--glow-2), 0.055), transparent 70%); }
+    radial-gradient(46% 34% at 18% -6%, rgba(var(--glow-1), 0.10), transparent 68%),
+    radial-gradient(40% 30% at 88% 2%, rgba(var(--glow-2), 0.09), transparent 70%),
+    linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 40px 40px;
+  -webkit-mask-image: radial-gradient(125% 92% at 50% 0%, #000 32%, transparent 86%);
+          mask-image: radial-gradient(125% 92% at 50% 0%, #000 32%, transparent 86%);
+}
 
 /* —— 极光：深蓝黑底 + 靛蓝紫强调（阶跃/Kimi 气质） —— */
-html[data-theme="aurora"] {
-  --bg: #0b0d15; --bg-elevated: #141827; --bg-card: #10131f; --bg-hover: #161b2c;
-  --text: #eef0f8; --text-secondary: #aeb7cf; --text-tertiary: #96a0bc; --text-faint: #7e88a6;
-  --border: rgba(140,160,255,0.17); --border-hover: rgba(140,160,255,0.32);
-  --accent-signature: #7c8cff; --accent-rgb: 124,140,255;
-  --chart-text: #8b93ad; --chart-grid: rgba(140,160,255,0.05); --chart-border: rgba(140,160,255,0.12);
-  --glow-1: 124,140,255; --glow-2: 56,214,255;
-  --topbar-bg: rgba(13,16,28,0.62); --tape-bg: rgba(13,16,28,0.62);
-}
 
 /* —— 纯黑：OLED 极致对比，强调色与终端黑一致 —— */
-html[data-theme="oled"] {
-  --bg: #000000; --bg-elevated: #0c0c0e; --bg-card: #050506; --bg-hover: #121214;
-  --border: rgba(255,255,255,0.15); --border-hover: rgba(255,255,255,0.26);
-  --accent-signature: #38d9f0; --accent-rgb: 56,217,240;
-  --topbar-bg: rgba(0,0,0,0.86); --tape-bg: rgba(0,0,0,0.80);
-}
 
 /* —— 纸白：暖纸灰底 + 深琥珀强调，浅色下的终端感 —— */
-html[data-theme="paper"] {
-  --bg: #f5f4ef; --bg-elevated: #edebe4; --bg-card: #fbfaf6; --bg-hover: #e9e7df;
-  --text: #1b1b1a; --text-secondary: #56565c; --text-tertiary: #6c6c73; --text-faint: #9c9ca2;
-  --border: rgba(25,25,20,0.11); --border-hover: rgba(25,25,20,0.24);
-  --accent-signature: #1f3a5f; --accent-rgb: 31,58,95;
-  /* 浅底上的涨跌文字色（实测 5.5:1 / 5.5:1，对 --bg-elevated #edebe4）：
-     亮色 #ff5c5c/#2ebd85 压浅底只有 2.2~2.4:1，AA 正文要 4.5:1。 */
-  --text-rise: #B02A20; --text-fall: #0F6B48;
-  --warn: #a04c05;
-  --chart-text: #6f6f76; --chart-grid: rgba(25,25,20,0.06); --chart-border: rgba(25,25,20,0.14);
-  --glow-1: 31,58,95; --glow-2: 91,141,239;
-  --topbar-bg: rgba(245,244,239,0.86); --tape-bg: rgba(245,244,239,0.80);
-  /* 阴影亮色覆盖：纯黑 0.5 重阴影压纸面显脏，纸上悬停浮起用暖黑轻影 */
-  --shadow-1: 0 8px 20px rgba(25,25,20,0.12);
-  scrollbar-color: rgba(0,0,0,0.18) transparent;
-}
-html[data-theme="paper"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border: 3px solid transparent; background-clip: padding-box; }
-html[data-theme="paper"] .sk { background: rgba(25,25,20,0.055); }
 
 /* —— 瑞士国际主义：冷白底 + 瑞士红 1 强调，4/8 步长 + 0 圆角 + 1px hairline + Inter 几何无衬线 —— */
-html[data-theme="swiss"] {
-  --bg: #f7f6f2; --bg-elevated: #ffffff; --bg-card: #ffffff; --bg-hover: #ecebe3;
-  --text: #111111; --text-secondary: #4a4a45; --text-tertiary: #6f6f6b; --text-faint: #a8a8a2;
-  --border: rgba(17,17,17,0.10); --border-hover: rgba(17,17,17,0.28);
-  --accent-signature: #E30613; --accent-rgb: 227,6,19;
-  /* 浅底上的涨跌文字色（实测 5.5:1 / 5.5:1，对 --bg-elevated #ffffff）：
-     亮色 #ff5c5c/#2ebd85 压白底只有 3.0:1 / 2.4:1，AA 正文要 4.5:1。 */
-  --text-rise: #B02A20; --text-fall: #0F6B48;
-  --warn: #a04c05;
-  --chart-text: #6f6f6b; --chart-grid: rgba(17,17,17,0.06); --chart-border: rgba(17,17,17,0.16);
-  --glow-1: 227,6,19; --glow-2: 17,17,17;
-  --topbar-bg: rgba(247,246,242,0.92); --tape-bg: rgba(247,246,242,0.86);
-  scrollbar-color: rgba(17,17,17,0.20) transparent;
-  --shadow-1: 0 8px 24px rgba(17,17,17,0.16);   /* 阴影亮色覆盖：暗色 :root 已改 none，浅色海拔由皮肤块承接 */
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
-}
-html[data-theme="swiss"] ::-webkit-scrollbar-thumb { background: rgba(17,17,17,0.20); border: 3px solid transparent; background-clip: padding-box; }
-html[data-theme="swiss"] .sk { background: rgba(17,17,17,0.06); }
 
 /* —— 包豪斯：三原色红/黄/蓝 + 米白纸底，Jost 几何无衬线 + 0 圆角 + 粗黑规则线 —— */
-html[data-theme="bauhaus"] {
-  --bg: #faf7f0; --bg-elevated: #f3eee2; --bg-card: #ffffff; --bg-hover: #f0eadc;
-  --text: #1a1a1a; --text-secondary: #555048; --text-tertiary: #7a7466; --text-faint: #a8a294;
-  --border: rgba(26,26,26,0.18); --border-hover: rgba(26,26,26,0.40);
-  --accent-signature: #D7263D; --accent-rgb: 215,38,61;
-  /* 浅底上的涨跌文字色（实测 5.5:1 / 5.5:1，对 --bg-elevated #f3eee2） */
-  --text-rise: #B02A20; --text-fall: #0F6B48;
-  --warn: #a04c05;
-  --chart-text: #555048; --chart-grid: rgba(26,26,26,0.08); --chart-border: rgba(26,26,26,0.18);
-  --glow-1: 215,38,61; --glow-2: 26,71,184;
-  --topbar-bg: rgba(250,247,240,0.92); --tape-bg: rgba(250,247,240,0.86);
-  scrollbar-color: rgba(26,26,26,0.22) transparent;
-  --shadow-1: 0 8px 24px rgba(26,26,26,0.16);   /* 阴影亮色覆盖：暗色 :root 已改 none，浅色海拔由皮肤块承接 */
-  --font-sans: "Jost", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
-}
-html[data-theme="bauhaus"] ::-webkit-scrollbar-thumb { background: rgba(26,26,26,0.22); border: 3px solid transparent; background-clip: padding-box; }
-html[data-theme="bauhaus"] .sk { background: rgba(26,26,26,0.07); }
 
 /* —— 纸感编辑部(Anthropic 风)：象牙白三阶 + clay 橙 1 强调 + Newsreader 衬线 + clay 灰阶 —— */
-html[data-theme="clay"] {
-  --bg: #FAF9F5; --bg-elevated: #F0EEE6; --bg-card: #ffffff; --bg-hover: #E3DACC;
-  --text: #2b2a26; --text-secondary: #5a574c; --text-tertiary: #807a6a; --text-faint: #aaa392;
-  --border: rgba(43,42,38,0.10); --border-hover: rgba(43,42,38,0.26);
-  --accent-signature: #D97757; --accent-rgb: 217,119,87;
-  /* 浅底上的涨跌文字色（实测 5.5:1 / 5.5:1，对 --bg-elevated #F0EEE6） */
-  --text-rise: #B02A20; --text-fall: #0F6B48;
-  --warn: #a04c05;
-  /* 焦点环：主强调橙压浅底只有 2.78:1（要 3:1），换成同色系深一档的砖橙（4.31:1） */
-  --focus-ring: #A85A3C;
-  --chart-text: #5a574c; --chart-grid: rgba(43,42,38,0.05); --chart-border: rgba(43,42,38,0.12);
-  --glow-1: 217,119,87; --glow-2: 90,87,76;
-  --topbar-bg: rgba(250,249,245,0.92); --tape-bg: rgba(250,249,245,0.86);
-  scrollbar-color: rgba(43,42,38,0.18) transparent;
-  --shadow-1: 0 8px 24px rgba(43,42,38,0.14);   /* 阴影亮色覆盖：暗色 :root 已改 none，浅色海拔由皮肤块承接 */
-  --font-sans: "Newsreader", Georgia, "Times New Roman", "Songti SC", "STZhongsong", serif;
-}
-html[data-theme="clay"] ::-webkit-scrollbar-thumb { background: rgba(43,42,38,0.18); border: 3px solid transparent; background-clip: padding-box; }
-html[data-theme="clay"] .sk { background: rgba(43,42,38,0.05); }
 
 /* —— 孟菲斯：奶白底 + 4 色高饱和点缀（黄/粉/蓝/黑）+ Righteous display + 0 圆角（数据屏仍克制，只换大字/边角） —— */
-html[data-theme="memphis"] {
-  --bg: #FAF7F1; --bg-elevated: #f0ece2; --bg-card: #ffffff; --bg-hover: #f4f0e6;
-  --text: #18181a; --text-secondary: #4a494f; --text-tertiary: #6e6d74; --text-faint: #9e9da4;
-  --border: rgba(24,24,26,0.18); --border-hover: rgba(24,24,26,0.40);
-  --accent-signature: #FF3D7F; --accent-rgb: 255,61,127;     /* 强调：粉红；其余高饱和色作点缀用色 */
-  /* 浅底上的涨跌文字色（实测 5.6:1 / 5.5:1，对 --bg-elevated #f0ece2） */
-  --text-rise: #B02A20; --text-fall: #0F6B48;
-  --warn: #a04c05;
-  /* 焦点环：主强调粉压在浅色浮层底上只有 2.86:1（要 3:1），换成同色系深一档（5.48:1） */
-  --focus-ring: #B31E5A;
-  --chart-text: #4a494f; --chart-grid: rgba(24,24,26,0.08); --chart-border: rgba(24,24,26,0.18);
-  --glow-1: 255,61,127; --glow-2: 31,196,255;
-  --topbar-bg: rgba(250,247,241,0.92); --tape-bg: rgba(250,247,241,0.86);
-  scrollbar-color: rgba(24,24,26,0.22) transparent;
-  --shadow-1: 0 8px 24px rgba(24,24,26,0.16);   /* 阴影亮色覆盖：暗色 :root 已改 none，浅色海拔由皮肤块承接 */
-  --font-sans: "Righteous", "Jost", -apple-system, BlinkMacSystemFont, "PingFang SC", system-ui, sans-serif;
-}
-html[data-theme="memphis"] ::-webkit-scrollbar-thumb { background: rgba(24,24,26,0.22); border: 3px solid transparent; background-clip: padding-box; }
-html[data-theme="memphis"] .sk { background: rgba(24,24,26,0.07); }
 
 /* —— 动效：全部包在 no-preference 里，减动效用户零打扰 —— */
 @media (prefers-reduced-motion: no-preference) {
@@ -2049,261 +2059,44 @@ html[data-theme="memphis"] .sk { background: rgba(24,24,26,0.07); }
    全部走"后置同/高特异性覆盖"，不改动上方任何既有规则。 */
 
 /* ---------- 极光 · 玻璃拟态 ---------- */
-html[data-theme="aurora"] .topbar,
-html[data-theme="aurora"] .tape {
-  backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  border-bottom-color: rgba(140,160,255,0.14); }
-html[data-theme="aurora"] .section {
-  background: rgba(18,22,38,0.5);
-  border: 1px solid rgba(140,160,255,0.13);
-  border-radius: var(--r-lg);
-  padding: var(--sp-16) var(--sp-24) var(--sp-12);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-2); }
-html[data-theme="aurora"] .sec-line { background: linear-gradient(90deg, rgba(140,160,255,0.45), transparent 85%); }
-html[data-theme="aurora"] .section-title { color: #c9d2ff; }
-html[data-theme="aurora"] h1.page-title {
-  background: linear-gradient(92deg, #eef0f8 30%, #7c8cff 72%, #38d6ff);
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-html[data-theme="aurora"] .pm-card, html[data-theme="aurora"] .event-detail {
-  background: rgba(18,22,38,0.55); border-radius: var(--r-md);
-  border: 1px solid rgba(140,160,255,0.14); }
-html[data-theme="aurora"] .pm-card:hover { box-shadow: var(--shadow-1); }
-html[data-theme="aurora"] .modal { border-radius: var(--r-lg); background: rgba(16,19,33,0.88);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-html[data-theme="aurora"] .seg { border-radius: var(--r-md); }
-html[data-theme="aurora"] .seg button { border-radius: var(--r-sm); }
-html[data-theme="aurora"] .modal-close { border-radius: var(--r-md); }
-html[data-theme="aurora"] .news-item, html[data-theme="aurora"] .qrow { border-bottom-color: rgba(140,160,255,0.09); }
 
 /* ---------- 纯黑 · 硬核终端 ---------- */
-html[data-theme="oled"] body { font-family: var(--font-mono); }
-html[data-theme="oled"] body::after {
-  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px); }
-html[data-theme="oled"] .section { border-top: 1px solid var(--border-hover); padding-top: var(--sp-16); }
-html[data-theme="oled"] .section-title { letter-spacing: 0.26em; }
-html[data-theme="oled"] .modal, html[data-theme="oled"] .seg, html[data-theme="oled"] .pm-card,
-html[data-theme="oled"] .modal-close, html[data-theme="oled"] .switch,
-html[data-theme="oled"] .event-detail, html[data-theme="oled"] .switch::after { border-radius: 0; }
-html[data-theme="oled"] .pm-card { border-left: 1px solid var(--border); }
-html[data-theme="oled"] .pm-card:hover { border-color: var(--accent-signature); box-shadow: none; }
-html[data-theme="oled"] .pill::after { height: 2px; }
-html[data-theme="oled"] .pm-out-bar > i { box-shadow: none; }
 
 /* ---------- 纸白 · 纸上编辑部 ---------- */
-html[data-theme="paper"] h1.page-title, html[data-theme="paper"] .section-title,
-html[data-theme="paper"] .modal h2, html[data-theme="paper"] .pm-card-t {
-  font-family: Georgia, "Times New Roman", "Songti SC", "STZhongsong", SimSun, serif; }
-html[data-theme="paper"] .section-title { text-transform: none; letter-spacing: 0.05em;
-  font-size: var(--fs-15); font-weight: 700; color: var(--text); }
-html[data-theme="paper"] .section { border-top: 1px solid rgba(25,25,20,0.35); padding-top: var(--sp-16); }
-html[data-theme="paper"] .sec-line { background: rgba(25,25,20,0.5); }
-html[data-theme="paper"] .pm-card, html[data-theme="paper"] .modal { border-radius: 0; box-shadow: none; }
-html[data-theme="paper"] .pm-card { border: 1px solid rgba(25,25,20,0.16); border-left-width: 2px; }
-html[data-theme="paper"] .pm-card:hover { box-shadow: var(--shadow-1); }
-html[data-theme="paper"] .seg, html[data-theme="paper"] .modal-close { border-radius: 0; }
-html[data-theme="paper"] .seg button.active { background: color-mix(in srgb, var(--text) 12%, transparent); }
 
 /* ==================== 皮肤 · 设计语言层 · 二轮修正（pm-sec 覆盖 + 布局差异） ==================== */
 
 /* 极光：整个分类区块成为玻璃面板，头部融入面板 */
-html[data-theme="aurora"] .pm-sec {
-  background: rgba(18,22,38,0.5);
-  border: 1px solid rgba(140,160,255,0.13);
-  border-radius: var(--r-lg);
-  padding: var(--sp-16) var(--sp-16) var(--sp-12);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-2); }
-html[data-theme="aurora"] .pm-sec-head { background: transparent; border-left: none;
-  border-bottom: 1px solid rgba(140,160,255,0.14); border-radius: 0; padding: 0 2px var(--sp-12); }
 /* 玻璃卡片：底色是半透明的，环图分隔线必须跟着它走，否则环图与卡片"脱层" */
-html[data-theme="aurora"] .pm-card { --pm-card-bg: rgba(24,29,48,0.55); }
 /* 总览面板与分类区块同一套玻璃质感（原来是实心盒子，浮在玻璃页面上很突兀） */
-html[data-theme="aurora"] .pm-overview { --pm-ov-bg: rgba(18,22,38,0.5);
-  border-color: rgba(140,160,255,0.13); border-radius: var(--r-lg);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-2); }
 
 /* 硬核终端：单列密排行式布局（不是卡片墙），整块灰底行 + 方角 */
-html[data-theme="oled"] .pm-sec { border-top: 1px solid var(--border-hover); padding-top: var(--sp-16); }
-html[data-theme="oled"] .pm-cards { grid-template-columns: 1fr; gap: 0; }
-html[data-theme="oled"] .pm-card { border: none; border-bottom: 1px solid var(--border);
-  border-radius: 0; --pm-card-bg: transparent; --pm-slice-sep: var(--bg-card); padding: var(--sp-12) var(--sp-8); }
-html[data-theme="oled"] .pm-card:hover { background: var(--bg-hover); box-shadow: none;
-  transform: none; border-color: var(--border); }
-html[data-theme="oled"] .pm-sec-head { border-left: none; background: transparent; padding-left: var(--sp-8); }
-html[data-theme="oled"] .pm-fold { border-radius: 0; }
 /* 总览：终端里不要浮起的卡片，整块贴底 */
-html[data-theme="oled"] .pm-overview { --pm-ov-bg: transparent; --pm-ov-sep: var(--bg-card);
-  border: none; border-top: 1px solid var(--border-hover); border-radius: 0; padding: var(--sp-12) var(--sp-8); }
 
 /* 纸上编辑部：分类区块报头细线，行内分隔用细黑线 */
-html[data-theme="paper"] .pm-sec { border-top: 1px solid rgba(25,25,20,0.35); padding-top: var(--sp-16); }
-html[data-theme="paper"] .pm-sec-head { border-left: none; background: transparent; padding-left: 2px; }
 
 /* ==================== 皮肤 · 第三轮（设计语言四件套：swiss/bauhaus/clay/memphis） ====================
    各自只换气质语言层（字体/标题/分隔/卡片边框/几何点缀），所有数据屏的栅格、mono 数字、
    涨跌语义色都保持原样——金融数据不该被装饰吃掉。 */
 
 /* 共享：四套都用 --font-sans 接管非数字字体（var(--font-sans) 在 :root 已是系统栈，主题内已覆盖） */
-html[data-theme="swiss"] body,
-html[data-theme="bauhaus"] body,
-html[data-theme="clay"] body,
-html[data-theme="memphis"] body { font-family: var(--font-sans), system-ui, sans-serif; }
 
 /* ---------- 瑞士国际主义：网格 + hairline + 0 圆角 + 0 投影 ---------- */
-html[data-theme="swiss"] * { border-radius: 0 !important; }
 /* 通配的 0 圆角是为了"瑞士网格"的硬朗感，但圆点是语义标记不是容器——
    被压成方块后事件类型的前置色点就失去了"这是一个点"的读感（用户反馈 tag 难看）。
    这里给真正的圆点形状开豁免。 */
-html[data-theme="swiss"] .ev-dot,
-html[data-theme="swiss"] .logo-dot { border-radius: 50% !important; }
-html[data-theme="swiss"] .pm-card, html[data-theme="swiss"] .pm-sec,
-html[data-theme="swiss"] .modal, html[data-theme="swiss"] .seg,
-html[data-theme="swiss"] .modal-close, html[data-theme="swiss"] .switch,
-html[data-theme="swiss"] .pm-fold, html[data-theme="swiss"] .event-detail,
-html[data-theme="swiss"] .pill, html[data-theme="swiss"] .bchip,
-html[data-theme="swiss"] .brow,
-html[data-theme="swiss"] .qrow { box-shadow: none; }
-html[data-theme="swiss"] .section-title { letter-spacing: 0.10em; font-weight: 600; }
-html[data-theme="swiss"] .sec-line { background: var(--accent-signature); height: 1px; }
-html[data-theme="swiss"] .section { border-top: 1px solid var(--text); padding-top: var(--sp-16); }
-html[data-theme="swiss"] .pm-sec { border-top: 1px solid var(--text); padding-top: var(--sp-16); }
-html[data-theme="swiss"] .pm-card {
-  border: 1px solid var(--border); border-left: 2px solid var(--text);
-  background: var(--bg-card); }
-html[data-theme="swiss"] .pm-card:hover { border-color: var(--accent-signature); border-left-color: var(--accent-signature); }
-html[data-theme="swiss"] .seg button.active { background: var(--accent-signature); color: #fff;
-  box-shadow: inset 0 -2px 0 rgba(255,255,255,0.9); }
-html[data-theme="swiss"] .tab.active { color: var(--accent-signature); }
-html[data-theme="swiss"] .tab.active::after { background: var(--accent-signature); height: 2px; }
-html[data-theme="swiss"] #heroStrip { background: var(--bg-elevated); border: 1px solid var(--border); border-left: 2px solid var(--text); }
-html[data-theme="swiss"] .topbar { border-bottom: 1px solid var(--text); }
-html[data-theme="swiss"] .modal { background: var(--bg-card); border: 1px solid var(--text); }
 /* 这四套皮肤给 .pill 套了边框，就必须自带内边距：
    基础 .pill 的 padding 是给"下划线型"设计的（左右几乎为 0），
    套上边框后文字会直接压在框线上——这就是"tag 逼仄"的来源。 */
-html[data-theme="swiss"] .pill { background: transparent; border: 1px solid var(--border);
-  padding: var(--sp-4) var(--sp-12); }
 /* 选中态不做实心色块：accent 实心在设置弹层里是"小而确定"的选择，
    但同一行里常有 4~8 个 pill，实心块会连成一片刺眼的色墙（用户反馈"逼仄"）。
-   改成浅底 + 强调色边框 + 强调色文字：选中同样明确，视觉重量降一档。 */
-html[data-theme="swiss"] .pill.active { background: rgba(var(--accent-rgb), 0.10); color: var(--accent-signature); border-color: var(--accent-signature); }
-html[data-theme="swiss"] .pill::after { display: none; }   /* 有边框了就不该再有下划线，两者是两套语言 */
-html[data-theme="swiss"] .chip { padding: var(--sp-4) var(--sp-12); }
-html[data-theme="swiss"] body::before { display: none; }   /* 关掉默认环境光（瑞士要冷静） */
+   改成浅底 + 强调色边框 + 强调色文字：选中同样明确，视觉重量降一档。 */   /* 有边框了就不该再有下划线，两者是两套语言 */   /* 关掉默认环境光（瑞士要冷静） */
 
 /* ---------- 包豪斯：细规则线 + 全大写宽字距标签 + Jost 几何 + 0 圆角 ---------- */
-html[data-theme="bauhaus"] * { border-radius: 0 !important; }
-html[data-theme="bauhaus"] .ev-dot,
-html[data-theme="bauhaus"] .logo-dot { border-radius: 50% !important; }
-html[data-theme="bauhaus"] .pm-card, html[data-theme="bauhaus"] .pm-sec,
-html[data-theme="bauhaus"] .modal, html[data-theme="bauhaus"] .seg,
-html[data-theme="bauhaus"] .modal-close, html[data-theme="bauhaus"] .switch,
-html[data-theme="bauhaus"] .pm-fold, html[data-theme="bauhaus"] .event-detail,
-html[data-theme="bauhaus"] .pill, html[data-theme="bauhaus"] .bchip,
-html[data-theme="bauhaus"] .brow,
-html[data-theme="bauhaus"] .qrow { box-shadow: none; }
-html[data-theme="bauhaus"] .section-title { letter-spacing: 0.16em; font-weight: 700; text-transform: uppercase; }
-html[data-theme="bauhaus"] .section { border-top: 1px solid var(--text); padding-top: var(--sp-16); }
-html[data-theme="bauhaus"] .sec-line { background: var(--accent-signature); height: 1px; }
-html[data-theme="bauhaus"] .pm-sec { border-top: 1px solid var(--text); padding-top: var(--sp-16); }
-html[data-theme="bauhaus"] .pm-card { border: 1px solid var(--text); background: var(--bg-card); }
-html[data-theme="bauhaus"] .pm-card:hover { background: #F2B705; color: #1a1a1a; }
-html[data-theme="bauhaus"] .pm-card:hover .num { color: #1a1a1a; }
-html[data-theme="bauhaus"] .seg button.active { background: #1A47B8; color: #fff;
-  box-shadow: inset 0 -2px 0 rgba(255,255,255,0.9); }
-html[data-theme="bauhaus"] .tab.active { color: var(--accent-signature); }
-html[data-theme="bauhaus"] .tab.active::after { background: var(--accent-signature); height: 3px; }
-html[data-theme="bauhaus"] .topbar { border-bottom: 1px solid var(--text); }
-html[data-theme="bauhaus"] #heroStrip { background: var(--bg-card); border: 1px solid var(--text); border-bottom: 2px solid var(--accent-signature); }
-html[data-theme="bauhaus"] .modal { background: var(--bg-card); border: 1px solid var(--text); }
-html[data-theme="bauhaus"] .pill { background: transparent; border: 1px solid var(--text); border-radius: 0; padding: var(--sp-4) var(--sp-12); }
-html[data-theme="bauhaus"] .pill.active { background: rgba(var(--accent-rgb), 0.10); color: var(--accent-signature); border-color: var(--accent-signature); }
-html[data-theme="bauhaus"] .pill::after { display: none; }
-html[data-theme="bauhaus"] .chip { padding: var(--sp-4) var(--sp-12); }
-html[data-theme="bauhaus"] body::before {
-  background:
-    radial-gradient(28% 22% at 8% 92%, rgba(215,38,61,0.10), transparent 70%),
-    radial-gradient(20% 18% at 94% 4%, rgba(26,71,184,0.08), transparent 70%); }
 
 /* ---------- 纸感(Anthropic 风)：象牙白三阶 + Newsreader 衬线标题 + clay 点缀，保留终端感但更书卷气 ---------- */
-html[data-theme="clay"] * { border-radius: 0 !important; }
-html[data-theme="clay"] .ev-dot,
-html[data-theme="clay"] .logo-dot { border-radius: 50% !important; }
-html[data-theme="clay"] .pm-card, html[data-theme="clay"] .pm-sec,
-html[data-theme="clay"] .modal, html[data-theme="clay"] .seg,
-html[data-theme="clay"] .modal-close, html[data-theme="clay"] .switch,
-html[data-theme="clay"] .pm-fold, html[data-theme="clay"] .event-detail,
-html[data-theme="clay"] .pill, html[data-theme="clay"] .bchip,
-html[data-theme="clay"] .brow,
-html[data-theme="clay"] .qrow { box-shadow: none; }
-html[data-theme="clay"] h1.page-title,
-html[data-theme="clay"] .section-title,
-html[data-theme="clay"] .modal h2,
-html[data-theme="clay"] .pm-card-t,
-html[data-theme="clay"] .board-head {
-  font-family: "Newsreader", Georgia, "Times New Roman", "Songti SC", "STZhongsong", serif; }
-html[data-theme="clay"] .section-title { font-weight: 600; letter-spacing: 0.02em; text-transform: none; font-size: var(--fs-20); }
-html[data-theme="clay"] .section { border-top: 1px solid var(--text); padding-top: var(--sp-16); }
-html[data-theme="clay"] .sec-line { background: rgba(43,42,38,0.32); height: 1px; }
-html[data-theme="clay"] .pm-sec { border-top: 1px solid var(--text); padding-top: var(--sp-16); }
-html[data-theme="clay"] .pm-card { background: var(--bg-card); border: 1px solid var(--border); border-left: 2px solid var(--accent-signature); }
-html[data-theme="clay"] .pm-card:hover { background: var(--bg-hover); border-color: var(--accent-signature); }
-html[data-theme="clay"] .seg button.active { background: #A85A3C; color: #fff;
-  box-shadow: inset 0 -2px 0 rgba(255,255,255,0.9); }
-html[data-theme="clay"] .tab.active { color: var(--accent-signature); }
-html[data-theme="clay"] .tab.active::after { background: var(--accent-signature); height: 2px; }
-html[data-theme="clay"] .topbar { border-bottom: 1px solid var(--text); }
-html[data-theme="clay"] #heroStrip { background: var(--bg-elevated); border: 1px solid var(--border); border-top: 2px solid var(--accent-signature); }
-html[data-theme="clay"] .modal { background: var(--bg-card); border: 1px solid var(--text); }
-html[data-theme="clay"] .pill { background: transparent; border: 1px solid var(--border); padding: var(--sp-4) var(--sp-12); }
-html[data-theme="clay"] .pill.active { background: rgba(var(--accent-rgb), 0.10); color: var(--accent-signature); border-color: var(--accent-signature); }
-html[data-theme="clay"] .pill::after { display: none; }
-html[data-theme="clay"] .chip { padding: var(--sp-4) var(--sp-12); }
-html[data-theme="clay"] body::before {
-  background:
-    radial-gradient(36% 28% at 14% 6%, rgba(217,119,87,0.08), transparent 70%),
-    radial-gradient(28% 22% at 90% 96%, rgba(90,87,76,0.05), transparent 70%); }
-html[data-theme="clay"] .logo { letter-spacing: 0.18em; font-weight: 500; }
 
 /* ---------- 孟菲斯：奶白底 + 高饱和点缀 + 0 圆角 + 倾斜 display，仅气质点缀不破坏数据屏 ---------- */
-html[data-theme="memphis"] * { border-radius: 0 !important; }
-html[data-theme="memphis"] .ev-dot,
-html[data-theme="memphis"] .logo-dot { border-radius: 50% !important; }
-html[data-theme="memphis"] .pm-card, html[data-theme="memphis"] .pm-sec,
-html[data-theme="memphis"] .modal, html[data-theme="memphis"] .seg,
-html[data-theme="memphis"] .modal-close, html[data-theme="memphis"] .switch,
-html[data-theme="memphis"] .pm-fold, html[data-theme="memphis"] .event-detail,
-html[data-theme="memphis"] .pill, html[data-theme="memphis"] .bchip,
-html[data-theme="memphis"] .brow,
-html[data-theme="memphis"] .qrow { box-shadow: none; }
-html[data-theme="memphis"] .section-title { letter-spacing: 0.18em; font-weight: 700; text-transform: uppercase; }
-html[data-theme="memphis"] .section { border-top: 1px solid var(--text); padding-top: var(--sp-16); }
-html[data-theme="memphis"] .sec-line {
-  background: linear-gradient(90deg, #FF3D7F 0 30%, #FFD93D 30% 50%, #1FC4FF 50% 70%, #18181a 70%);
-  height: 1px; }
-html[data-theme="memphis"] .pm-sec { border-top: 1px solid var(--text); padding-top: var(--sp-16); }
-html[data-theme="memphis"] .pm-card { background: var(--bg-card); border: 1px solid var(--text); border-bottom-width: 2px; }
-html[data-theme="memphis"] .pm-card:hover { background: #FFF1A8; border-color: var(--accent-signature); }
-html[data-theme="memphis"] .pm-card:hover .num { color: #18181a; }
-html[data-theme="memphis"] .seg button.active { background: #FFD93D; color: #18181a; border-color: #18181a;
-  box-shadow: inset 0 -2px 0 #18181a; }
-html[data-theme="memphis"] .tab.active { color: var(--accent-signature); }
-html[data-theme="memphis"] .tab.active::after { background: var(--accent-signature); height: 3px; }
-html[data-theme="memphis"] .topbar { border-bottom: 1px solid var(--text); }
-html[data-theme="memphis"] #heroStrip { background: var(--bg-card); border: 1px solid var(--text); border-bottom: 2px solid #FFD93D; }
-html[data-theme="memphis"] .modal { background: var(--bg-card); border: 1px solid var(--text); }
-html[data-theme="memphis"] .pill { background: transparent; border: 1px solid var(--text); padding: var(--sp-4) var(--sp-12); }
-html[data-theme="memphis"] .pill.active { background: rgba(var(--accent-rgb), 0.12); color: var(--accent-signature); border-color: var(--accent-signature); }
-html[data-theme="memphis"] .pill::after { display: none; }
-html[data-theme="memphis"] .chip { padding: var(--sp-4) var(--sp-12); }
-html[data-theme="memphis"] body::before {
-  background:
-    radial-gradient(14% 14% at 12% 14%, rgba(255,61,127,0.10), transparent 70%),
-    radial-gradient(10% 10% at 88% 88%, rgba(31,196,255,0.10), transparent 70%),
-    radial-gradient(8% 8% at 76% 12%, rgba(255,217,61,0.12), transparent 70%); }
 
 
 /* ==================== 宏观策略面板（macroview.js） ==================== */
