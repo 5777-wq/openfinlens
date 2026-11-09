@@ -72,8 +72,6 @@ const PMView = (() => {
       + `<div class="pm-ov-leg">${slices.map(s =>
         `<span class="pm-ov-it"><i class="pm-dot" style="background:${s.color}"></i>${esc(s.label)}<b class="num">${s.value}</b></span>`
       ).join('')}</div>`
-      + `<div class="pm-ov-note">${partN} 个互斥事件可看档位分布环图 · ${total - partN} 个独立问句事件只给概率条`
-      + `<br>环图按各档位报价占比绘制，图例数字为市场真实报价</div>`
       + `</div>`;
   }
 

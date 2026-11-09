@@ -150,7 +150,7 @@
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   background: var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow:;
   overflow: hidden;
 }
 .map-layers { left: var(--sp-8); top: var(--sp-8); gap: var(--sp-8); }
@@ -159,9 +159,7 @@
   padding: 3px var(--sp-8);
   font-size: var(--fs-12);
   color: var(--text-secondary);
-  background: var(--bg-glass);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  backdrop-filter: blur(18px) saturate(1.4);
+  background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   white-space: nowrap;
@@ -177,9 +175,7 @@
   top: 40px;
   gap: var(--sp-8) var(--sp-12);
   padding: 3px var(--sp-12);
-  background: var(--bg-glass);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  backdrop-filter: blur(18px) saturate(1.4);
+  background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 999px;
 }
@@ -190,9 +186,7 @@
   padding: 3px var(--sp-12);
   font-size: var(--fs-12);
   color: var(--text-tertiary);
-  background: var(--bg-glass);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  backdrop-filter: blur(18px) saturate(1.4);
+  background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 999px;
 }
@@ -204,8 +198,8 @@
 .event-detail {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
   padding: var(--sp-16);
 }
 .evd-head { border-left: 0; padding-left: 0; align-items: baseline; gap: var(--sp-8) var(--sp-12); flex-wrap: wrap; }
@@ -335,8 +329,8 @@ html[data-theme="daylight"] .event-detail { box-shadow: var(--shadow-1); }
   padding: var(--sp-16);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
   margin-bottom: var(--sp-24);
 }
 .pm-ov-it { font-size: var(--fs-12); color: var(--text-secondary); gap: var(--sp-8); }
@@ -350,8 +344,8 @@ html[data-theme="daylight"] .event-detail { box-shadow: var(--shadow-1); }
   border: 1px solid var(--border);
   border-left: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
   padding: var(--sp-16);
   gap: var(--sp-12);
   transition: border-color var(--dur-fast) var(--ease-out);
@@ -602,8 +596,8 @@ html[data-theme="daylight"] .pm-overview { box-shadow: var(--shadow-1); }
   padding: var(--sp-16);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
 }
 .pstat-label {
   font-size: var(--fs-12);
@@ -681,8 +675,8 @@ html[data-theme="daylight"] .pm-overview { box-shadow: var(--shadow-1); }
   padding: var(--sp-12) var(--sp-16);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
 }
 .fp-ret-label { font-size: var(--fs-12); letter-spacing: 0.08em; color: var(--text-tertiary); }
 .fp-ret-val {
@@ -773,8 +767,8 @@ html[data-theme="daylight"] .fp-ret { box-shadow: var(--shadow-1); }
   border: 1px solid var(--border);
   border-left: 1px solid var(--border);
   border-radius: var(--r-lg);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
   padding: var(--sp-24);
   max-width: 760px;
 }
@@ -796,8 +790,8 @@ html[data-theme="daylight"] .fp-ret { box-shadow: var(--shadow-1); }
 .fq-q {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
   padding: var(--sp-16);
 }
 .fq-q legend { font-size: var(--fs-13); font-weight: 600; gap: var(--sp-8); }
@@ -844,8 +838,8 @@ html[data-theme="daylight"] .fp-ret { box-shadow: var(--shadow-1); }
   border: 1px solid var(--border);
   border-left: 1px solid var(--border);
   border-radius: var(--r-lg);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
   padding: var(--sp-16) var(--sp-24);
 }
 .fq-verdict-t { font-size: var(--fs-20); font-weight: 600; letter-spacing: -0.01em; }
@@ -881,8 +875,8 @@ html[data-theme="daylight"] .fp-ret { box-shadow: var(--shadow-1); }
 .fq-card {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
   padding: var(--sp-16);
   gap: var(--sp-8);
   transition: border-color var(--dur-fast) var(--ease-out);
@@ -1192,7 +1186,7 @@ html[data-theme="daylight"] .fq-verdict { box-shadow: var(--shadow-1); }
   padding: var(--sp-8) var(--sp-12);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
+  background: var(--bg-card);
   transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
 }
 .mac-chip:hover { border-color: var(--border-hover); background-color: var(--bg-hover); transform: none; }
@@ -1205,8 +1199,8 @@ html[data-theme="daylight"] .fq-verdict { box-shadow: var(--shadow-1); }
   padding: var(--sp-16);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
 }
 .sig-card.inv { border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
 .sig-label { font-size: var(--fs-12); letter-spacing: 0.08em; color: var(--text-tertiary); margin-bottom: var(--sp-8); }
@@ -1240,9 +1234,7 @@ html[data-theme="daylight"] .sig-card { box-shadow: var(--shadow-1); }
    正文行高 1.7、链接用强调色——浮层是"读"的地方，不是"看数字"的地方。 */
 .gloss-tip {
   padding: var(--sp-16);
-  background: var(--bg-glass);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  backdrop-filter: blur(18px) saturate(1.4);
+  background: var(--bg-elevated);
   border: 1px solid var(--border-hover);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-2);
@@ -1460,3 +1452,23 @@ html[data-theme="daylight"] .sig-card { box-shadow: var(--shadow-1); }
 .cr-arrow { font-family: var(--font-mono); }
 .chipbar { gap: var(--sp-8); }
 
+
+/* v3 修正：预测市场卡片栅格用 minmax(380px, 1fr)，390px 视口减掉页面内边距后只剩 ~366px，
+   于是整页被撑宽、浏览器把布局视口放大到 439（整站横向溢出）。窄屏必须允许列宽收缩。 */
+@media (max-width: 640px) {
+  .pm-cards { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* v3 修正②：档位行的中文长名（"亚历山大·奥卡西奥-…"）在 flex 里不收缩，
+   把卡片撑到 389px，而 390 视口减掉卡片内边距只剩 366 → 整页横向溢出。
+   给标签 min-width:0 + 省略号，让轨道与百分比优先保宽度。 */
+.pm-out-l { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pm-out-bar { flex: 1 1 auto; min-width: 24px; }
+.pm-out .pm-chg, .pm-out .pm-pct { flex: none; }
+
+/* v3 修正③：整条链路的 min-width 兜底。
+   390px 下预测市场里有一个 387px 的不可收缩行把布局视口撑到 421（整页被缩小），
+   逐层给 min-width:0 + max-width:100%，让长中文名只能省略、不能撑破父级。 */
+.pm-sec, .pm-list, .pm-cards, .pm-card, .pm-outs, .pm-out { min-width: 0; max-width: 100%; }
+.pm-out > * { min-width: 0; }
+.pm-outs { overflow-x: clip; }

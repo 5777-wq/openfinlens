@@ -43,6 +43,9 @@
   grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: stretch;
   flex: 0 1 auto;
+  /* 关键：flex 子项默认 min-width:auto = 内容宽度。390px 下 5 个一级按钮的
+     min-content 会把顶栏撑到 407px，浏览器随后放大布局视口 → 整页横向溢出。 */
+  min-width: 0;
   height: 34px;
   margin: 0 auto;                 /* 品牌与动作区之间居中 */
   padding: 3px;
@@ -169,8 +172,6 @@
   align-items: center;
   padding: 0 var(--sp-32);
   background: var(--topbar-bg);
-  backdrop-filter: blur(16px) saturate(1.3);
-  -webkit-backdrop-filter: blur(16px) saturate(1.3);
   border-bottom: 1px solid var(--border);
 }
 .subbar[hidden] { display: none; }
@@ -286,8 +287,6 @@ body.has-subbar .main {
   position: absolute;
   inset: 0;
   background: rgba(2, 5, 9, 0.62);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   opacity: 0;
   transition: opacity var(--dur-3) var(--ease-out);
 }
@@ -297,9 +296,7 @@ body.has-subbar .main {
   max-height: min(72vh, 620px);
   display: flex;
   flex-direction: column;
-  background: var(--bg-glass);
-  backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  background: var(--bg-elevated);
   border: 1px solid var(--border-hover);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-2);
@@ -521,6 +518,7 @@ html { scrollbar-width: thin; scrollbar-color: var(--border-hover) transparent; 
   .primary-nav {
     order: 3;
     flex: 0 0 100%;
+    min-width: 0;
     height: 34px;
     margin: var(--sp-4) 0 0;
     overflow-x: auto;

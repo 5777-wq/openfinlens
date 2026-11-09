@@ -160,7 +160,7 @@
     // 吸顶跑马条 + Movers 三榜（2026-09-17）
     'tape', 'moversSection', 'moversGrid', 'moversTitle', 'moversSub',
     // 首屏下方的「我的自选」块与全球涨跌概览条
-    'watchSection', 'watchGrid', 'watchSub', 'watchMore', 'marketBrief', 'marketBriefLive',
+    'watchSection', 'watchGrid', 'watchSub', 'watchMore',
     'heatCanvas', 'heatTip', 'heatWrap', 'heatSection', 'heatSub', 'heatSizeToggle', 'heatTopToggle',
     'heatReset', 'heatZoom', 'heatHint', 'heatLegend', 'heatMktSwitch', 'heatMktTag',
     'heatTable', 'heatTableToggle', 'heatCursorLive', 'heatIdxSwitch', 'heatFull',
@@ -576,6 +576,21 @@
     '<span class="qh-name">名称 / 代码</span><span>现价</span><span>涨跌</span><span>涨跌幅</span><span>成交额</span><span></span></div>';
 
   function renderCardWall(animate = true) {
+    /* v3 逻辑改动：「全部」页不再渲染这张全球指数表。
+       上证/纳指/标普/恒指已经在 hero 大卡里，其余 6 个市场在下面的裸排条里，
+       再来一张 9 行的表就是把同一批数字讲第三遍（用户原话「该删的删」）。
+       分市场 tab（A股/港股/美股/宏观/加密）的表照旧，那里它是唯一的列表。 */
+    if (state.tab === 'all') {
+      el.cardWall.innerHTML = '';
+      el.cardWall.hidden = true;
+      // data-zone 必须同步摘掉：分区判定只看 [data-zone] 节点的 hidden。
+      // 留一个空的 data-zone 容器会让「概览」分区仍然可选，点过去就是一片空白（v3 实测）。
+      el.cardWall.removeAttribute('data-zone');
+      if (typeof syncZones === 'function') syncZones();
+      return;
+    }
+    el.cardWall.hidden = false;
+    el.cardWall.setAttribute('data-zone', 'overview');
     const tab = state.tab;
     refreshWatchSet();
     const groups = groupsForTab(tab);
@@ -676,14 +691,8 @@
     const box = el.heroStrip;
     if (!box) return;
     const keys = heroKeys();
-    const cap = document.getElementById('heroCap');
-    if (cap) {
-      cap.hidden = false;
-      // 读法要写清：四条线是同一条时间轴上的"相对首日涨跌幅"，
-      // 纵轴高度可直接横向比较（用户问"上证怎么和标普不对齐"——
-      // 之前各按自己的 min-max 缩放，幅度全丢了，看着像两条不相干的曲线）。
-      cap.textContent = '全球核心指数 · 点击进详情 · 曲线为近 60 个交易日 · 四条线同一时间轴，纵轴为相对首日涨跌幅';
-    }
+    // v3：这段说明性长句已删除（"四条线同一时间轴/纵轴为相对首日涨跌幅"讲的是实现，
+    // 不是用户此刻需要的）。曲线口径改为 hover 时在图例上体现，不在首屏占一行。
     box.innerHTML = keys.map(heroCellHTML).join('');
     hydrateSparks(box);
   }
@@ -851,8 +860,11 @@
   function renderHomeWatch() {
     const box = el.watchGrid;
     if (!box) return;
-    if (el.watchSection) el.watchSection.hidden = false;
     const list = homeWatchItems();
+    // v3 逻辑改动：没有自选就整块隐藏。旧版留一张空态卡占掉一整行首屏高度，
+    // 而「去市场总览」本身就在一级导航里，不需要一块永远为空的区域来提醒。
+    if (el.watchSection) el.watchSection.hidden = !list.length;
+    if (!list.length) { box.innerHTML = ''; return; }
     const items = list.filter(x => x.q && x.q.price !== null);
     const valid = items.filter(x => typeof x.q.changePct === 'number' && !isNaN(x.q.changePct));
     if (el.watchSub) {
@@ -864,11 +876,6 @@
         const down = valid.filter(x => x.q.changePct < 0).length;
         el.watchSub.innerHTML = `<span class="num ${pctClass(avg)}">${fmtPct(avg)}</span> 等权平均 · <span class="up num">${up}</span> 涨 / <span class="down num">${down}</span> 跌 · ${items.length}/${list.length} 只有行情`;
       }
-    }
-    if (!list.length) {
-      box.innerHTML = '<div class="empty-hint">在任意卡片右上角点 ★ 收藏，这里就会出现你的自选（带走势图）'
-        + '<a class="empty-cta" href="#tab=all">去市场总览 →</a></div>';
-      return;
     }
     box.innerHTML = list.map(({ item, q }) => wcardHTML(item, q)).join('');
     hydrateSparks(box);
@@ -908,82 +915,11 @@
     await loadSparks(items).catch(() => { /* 画不出就不画 */ });
     hydrateSparks(el.heroStrip);
     hydrateSparks(el.watchGrid);
-    renderMarketBrief();
   }
 
-  /* 「市场简报」带（2026-10-20）：首屏先给答案，再给数据。
-     终端顶部仪表条（annunciator panel）的语言：左标签 / 中间连续分布条 / 右数字。
-     两行仪表：
-       ① 全球指数 —— 几涨几跌 + 平均涨跌（零请求，用已加载的指数行情）
-       ② A股全市场 —— 涨跌家数 + 情绪分（宽度调度器后台已经算好，零新增请求）
-     旧版是一条 180px 的小概览条夹在指数卡中间，信息量小、位置也深；
-     现在提到首屏最顶，一眼回答"现在市场怎么样"。 */
-  function renderMarketBrief() {
-    const box = el.marketBrief;
-    if (!box) return;
-    const rows = [];
-
-    const qs = heroKeys().map(findQuote).concat(state.globeQuotes ? [...state.globeQuotes.values()] : []);
-    const valid = qs.filter(q => q && typeof q.changePct === 'number' && !isNaN(q.changePct));
-    if (valid.length) {
-      const up = valid.filter(q => q.changePct > 0).length;
-      const flat = valid.filter(q => q.changePct === 0).length;
-      const down = valid.length - up - flat;
-      const avg = valid.reduce((s, q) => s + q.changePct, 0) / valid.length;
-      rows.push({ kind: 'global', label: '全球指数', total: valid.length, up, flat, down,
-        tail: '均值', tailVal: fmtPct(avg), tailCls: pctClass(avg) });
-    }
-
-    const b = state.breadth;
-    if (b && b.total) {
-      rows.push({ kind: 'cn', label: 'A股全市场', total: b.total, up: b.up, flat: b.flat, down: b.down,
-        tail: '情绪', tailVal: (b.score === null || b.score === undefined) ? '--' : b.score.toFixed(1), tailCls: 'flat' });
-    }
-
-    /* 骨架只建一次，之后逐个文本节点比对更新。
-       原来每次都 innerHTML 整块替换，而这整块住在 aria-live 区域里：
-       读屏用户每 10 秒（刷新间隔调到 5s 更勤）被整段朗读打断一次，几段话还会互相截断。
-       现在 live 区域缩到只剩"情绪分"一个数字（这块里真正会变的结论），
-       其余数字是普通文本节点——值没变就不碰 DOM，读屏不会被打扰。 */
-    const sig = rows.map(r => r.kind).join(',');
-    if (box.dataset.briefSig !== sig) {
-      box.dataset.briefSig = sig;
-      box.innerHTML = rows.map(r => `<div class="brief-row" data-brief="${r.kind}">
-        <span class="brief-k">${r.label}<i class="brief-c num"></i></span>
-        <span class="brief-bar" role="img" aria-label="">
-          <i class="b-up"></i><i class="b-flat"></i><i class="b-down"></i>
-        </span>
-        <span class="brief-v num"><b class="up"></b> 涨 · <b class="down"></b> 跌<span class="brief-flat"> · <b class="flat"></b> 平</span> · <span class="brief-tail"></span> <b class="lead"></b></span>
-      </div>`).join('');
-    }
-
-    rows.forEach(r => {
-      const node = box.querySelector('[data-brief="' + r.kind + '"]');
-      if (!node) return;
-      const total = r.total || 1;
-      setText(node.querySelector('.brief-c'), String(r.total));
-      setStyle(node.querySelector('.b-up'), 'width', (r.up / total * 100).toFixed(2) + '%');
-      setStyle(node.querySelector('.b-flat'), 'width', (r.flat / total * 100).toFixed(2) + '%');
-      setStyle(node.querySelector('.b-down'), 'width', (r.down / total * 100).toFixed(2) + '%');
-      setAttr(node.querySelector('.brief-bar'), 'aria-label', `${r.up} 涨 / ${r.flat} 平 / ${r.down} 跌`);
-      setText(node.querySelector('.brief-v b.up'), String(r.up));
-      setText(node.querySelector('.brief-v b.down'), String(r.down));
-      const flatWrap = node.querySelector('.brief-flat');
-      if (flatWrap) flatWrap.hidden = !r.flat;
-      setText(node.querySelector('.brief-v b.flat'), String(r.flat));
-      setText(node.querySelector('.brief-tail'), r.tail);
-      const lead = node.querySelector('.brief-v b.lead');
-      setText(lead, r.tailVal);
-      setDirClass(lead, r.tailCls);
-    });
-
-    // live 区域只播情绪分：其它数字变了不该打断读屏用户正在听的内容
-    if (el.marketBriefLive) {
-      const mood = rows.find(r => r.kind === 'cn');
-      const txt = mood ? `市场情绪 ${mood.tailVal}` : '';
-      setText(el.marketBriefLive, txt);
-    }
-  }
+  /* v3：renderMarketBrief 已删除（市场简报带整块下线）。
+     它的两条长条与下方指数卡重复，属于「结论层」的过度设计；
+     市场宽度与情绪分仍由「市场 → 情绪」分区完整提供。 */
 
   /* ==================== 吸顶指数跑马条（2026-09-17） ====================
      TradingView ticker tape 的终端版：常驻顶栏下方，一屏扫全球。数据零额外请求——
@@ -1780,8 +1716,6 @@
     }
     state.breadthAt = Date.now();
     renderMood();
-    // 市场简报带的 A股行跟着宽度数据走
-    renderMarketBrief();
     // 加密宽度与美股宽度**不在这里拉**：它们与 A股 无关，挂在 A股 tab 的"情绪与市场宽度"里
     // 既文不对题，又让 A股 tab 白跑一次美股全市场（139 页）。各自归位到 加密/美股 tab，
     // 由那边的 setTab 触发（见 renderMoodCrypto/renderMoodUS 的调用点）。
@@ -2945,7 +2879,6 @@
 
   function renderGlobe() {
     if (!el.globeBar || !state.globeQuotes) return;
-    renderMarketBrief();   // 概览条与指数卡共用同一批数据，一起刷新
     const cells = GLOBAL_IDX.map(x => {
       const q = state.globeQuotes.get(x.secid);
       if (!q) return '';
@@ -3006,9 +2939,11 @@
     // 这一行只讲两件事：数据从哪来、还新不新。
     // 地图点数统计是地图自己的信息（它有独立的图例与落点），
     // 塞进状态行会把它撑成一长串换行，把工具栏顶高——信息各归其位。
-    const src = (state.eventsVia === 'cache' ? '缓存 · ' : '') + (state.eventsSource || '') +
-      ' · 最新事件 ' + ageTxt +
-      (stale ? ' · 上游疑似停更' : '');
+    // v3：只留「来源 · 最新事件多长时间前 · 是否滞后」，去掉采集器技术名（GDELT DOC 2.0/artlist 这类）。
+    const src = (state.eventsVia === 'cache' ? '缓存 · ' : '') +
+      String(state.eventsSource || '').replace(/（[^）]*）/g, '').trim() +
+      ' · 最新 ' + ageTxt +
+      (stale ? ' · 已滞后' : '');
     el.globeStatus.textContent = src;
     el.globeStatus.title = src;
   }
@@ -3098,8 +3033,8 @@
         const stale = state.pmStale;
         const ageTxt = state.pmGenAt ? '数据 ' + fmtAgo(state.pmGenAt) : '';
         const viaTxt = state.pmVia === 'cache' ? '本地缓存' : '定时采集';
-        el.pmSub.textContent = `市场隐含概率（${viaTxt}${ageTxt ? ' · ' + ageTxt : ''}）`
-          + (stale ? ' · 数据已滞后' : '') + ' · 仅供参考，不构成预测或投资建议';
+        // v3：标题下一行只留「口径 + 新鲜度」，免责声明收进底部说明，不再在页头重复一遍
+        el.pmSub.textContent = `隐含概率 · ${viaTxt}${ageTxt ? ' · ' + ageTxt : ''}${stale ? ' · 已滞后' : ''}`;
       }
     }
     const V = window.PMView;
@@ -4721,7 +4656,7 @@
         const d = ZONE_DEFS.find(x => x.key === k);
         const on = k === state.zone;
         return `<button class="zone-btn${on ? ' active' : ''}" data-zone-btn="${k}" role="tab" aria-selected="${on}">${d.label}</button>`;
-      }).join('') + '<span class="zone-hint"></span>';
+      }).join('') + '';
     }
     applyZone(state.zone, false);
   }
@@ -5034,7 +4969,6 @@
     if (tab === 'all') {
       renderHero();
       renderHomeWatch();
-      renderMarketBrief();
       ensureSparks();
     }
     // 分区重算：必须等各 section 的 hidden 全部定下来（renderHomeWatch 才会解开自选块），
@@ -6966,7 +6900,6 @@
     // 所以首屏专属的两块（我的自选 / 全球涨跌概览）与走势线必须在 init 里自己来一遍
     if (state.tab === 'all') {
       renderHomeWatch();
-      renderMarketBrief();
       ensureSparks();
     }
     // 数据到位后再算一次分区：此时自选块等才解开，可用分区可能变了

@@ -560,9 +560,9 @@ test('涨跌文字走 --up-text/--down-text，色块仍走亮色 --up/--down', (
   const down = CSS.match(/^\.down\s*\{([^}]*)\}/m);
   assert.ok(down, '找不到 .down 规则');
   assert.ok(/var\(--down-text\)/.test(down[1]), '.down 文字没有走 --down-text：' + down[1]);
-  // 分布条/热力图色块是图形，不是文字：必须还是亮色，否则热力图整体变暗
-  const bar = CSS.match(/\.brief-bar\s*>\s*\.b-up\s*\{([^}]*)\}/);
-  assert.ok(bar && /var\(--up\)/.test(bar[1]), '分布条的色块不该换成文字色');
+  // 图形色块（振幅条游标）是图形不是文字：必须还是亮色，否则整块图形会塌成灰
+  const bar = CSS.match(/\.rbar \.rb-track > b\s*\{([^}]*)\}/);
+  assert.ok(bar && /var\(--up\)/.test(bar[1]), '图形色块不该换成文字色（应用 --up，不是 --up-text）');
 });
 
 test('全局焦点环宽度 ≥2px（WCAG 2.2 SC 2.4.11）', () => {
@@ -714,7 +714,7 @@ test('非涨跌元素禁用涨跌色（规则级方向语义白名单，只减�
   // **只减不增**：再往里加条目等于给"红绿非涨跌语义"开新口子，必须走路线图评审。
   // --up-rgb/--down-rgb 目前在 CSS 无 var() 消费（只有 JS 价格闪烁在用）。
   const WL = ['.up', '.down', '.hero-chg', '.sb-panic', '.sb-greed', '.thermo-track',
-    '.ts-', '.tc-bias', '.imp-dir', '.pm-chg', '.brk-chg', '.rbar', '.brief-bar', '.brief-v'];
+    '.ts-', '.tc-bias', '.imp-dir', '.pm-chg', '.brk-chg', '.rbar'];
   const DIR = /var\(--(up|down)(-text|-bg|-rgb)?\s*[),]/;
   const rules = CSS_NC.match(/[^{}]+\{[^{}]*\}/g) || [];
   assert.ok(rules.length > 300, '规则切分数异常，选择器可能失效');
@@ -991,17 +991,15 @@ test('暗色 1px 描边可见度：--border 合成后对 --bg ≥1.25:1、--bord
    （logo 缩图标、搜索占满中段）。钉成断言防再次被后置规则覆盖。
    ============================================================ */
 
-test('移动端修急：简报带堆叠级联序 + 顶栏搜索占中（390px 守卫）', () => {
-  // 断言 A：堆叠规则必须位于 .brief-row 基础规则之后——同特异性后者胜，
-  // 放在基础规则之前（如首个 640px 媒体块）会被静默覆盖（本轮事故形态）。
-  const base = CSS_NC.indexOf('.brief-row { display: grid');
-  const stack = CSS_NC.indexOf('.brief-row { grid-template-columns: 1fr');
-  assert.ok(base > -1, '找不到 .brief-row 基础规则（display: grid）');
-  assert.ok(stack > -1, '找不到简报带窄屏堆叠规则（grid-template-columns: 1fr）');
-  assert.ok(stack > base,
-    `简报带堆叠规则（index ${stack}）位于基础规则（index ${base}）之前——会被同特异性后置规则静默覆盖（数字被裁的事故形态）`);
-  assert.ok(/\.brief-v\s*\{\s*white-space:\s*normal;\s*\}/.test(CSS_NC),
-    '找不到 .brief-v 窄屏折行规则（white-space: normal）');
+test('移动端修急：小节头不竖排 + 顶栏搜索占中（390px 守卫）', () => {
+  // 断言 A（v3 改）：简报带已整块下线，改为守卫它的替代问题——
+  // 长副标题不许把小节标题压成竖排（390px 下曾出现"热力图"竖排三个字）。
+  const shAll = CSS_NC.match(/\.section-head\s*\{[^}]*\}/g) || [];
+  assert.ok(shAll.length, '找不到 .section-head 规则');
+  assert.ok(shAll.some(r => /flex-wrap:\s*wrap/.test(r)),
+    '.section-head 缺 flex-wrap: wrap（长副标题会把标题压成竖排）');
+  assert.ok(/\.section-head \.section-title\s*\{[^}]*flex:\s*none/.test(CSS_NC),
+    '.section-title 缺 flex: none（会被副标题挤扁）');
   // 断言 B：顶栏重排——logo 缩图标、搜索占满中段（手机端顶栏两行化块内）。
   assert.ok(/\.logo span:not\(\.logo-dot\)\s*\{\s*display:\s*none;\s*\}/.test(CSS_NC),
     'logo 未缩为图标（顶栏文字未隐藏）');

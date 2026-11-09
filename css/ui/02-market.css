@@ -40,8 +40,8 @@
 .hero {
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
   border: 1px solid var(--border); border-radius: var(--r-lg);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
   overflow: hidden; margin-bottom: var(--sp-12);
 }
 .hero-cell {
@@ -121,8 +121,8 @@ html[data-theme="daylight"] .hero { box-shadow: var(--shadow-1); }
   border: 1px solid var(--border); border-right: 1px solid var(--border);
   border-top: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
   transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
 }
 #globeBar .gcard:hover { border-color: var(--border-hover); background-color: var(--bg-hover); }
@@ -172,8 +172,7 @@ html[data-theme="daylight"] #globeBar .gcard { box-shadow: var(--shadow-1); }
   position: fixed; top: var(--topbar-h); left: 0; right: 0; height: var(--tape-h);
   display: flex; align-items: stretch;
   overflow-x: auto; scrollbar-width: none;
-  background: var(--bg-glass);
-  backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  background: var(--bg-elevated); -webkit-backdrop-filter: blur(18px) saturate(1.4);
   border-bottom: 1px solid var(--border);
   z-index: 90;
   /* 遮罩不是颜色：这里的两端黑只表示「不淡出的范围」，不参与主题 */
@@ -198,66 +197,8 @@ html[data-theme="daylight"] #globeBar .gcard { box-shadow: var(--shadow-1); }
   font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
 }
 .tp-pct { min-width: 56px; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-
-/* ============================================================ 4. 市场简报带
-   首屏先给答案：这不卡片，是「仪表条」——左标签 / 中间连续分布尺 / 右端数字。
-   条身做成凹陷面（--bg-sunken + 1px 描边），与下面三张光面卡形成「读数 vs 卡片」的层级差。
-   条是「尺」不是「块」：细轨道 + 渐变填充，涨的宽度就是涨的占比。 */
-.brief {
-  display: flex; flex-direction: column;
-  padding: 0 var(--sp-16);
-  border: 1px solid var(--border); border-radius: var(--r-md);
-  background: var(--bg-sunken);
-  margin-bottom: var(--sp-16);
-}
-.brief-row {
-  display: grid; grid-template-columns: 160px minmax(120px, 1fr) auto;
-  align-items: center; gap: var(--sp-16);
-  padding: var(--sp-12) 0;
-  border-bottom: 1px solid var(--border-soft);
-}
-.brief-row:last-child { border-bottom: 0; }
-.brief-k {
-  display: flex; align-items: baseline; gap: var(--sp-8); min-width: 0;
-  font-family: var(--font-mono); font-size: var(--fs-12); letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--text-tertiary); white-space: nowrap;
-}
-/* 计数贴标签：12px mono，但用 --text-tertiary 而不是 --text-faint（faint 在深空对 bg 只有 4.3:1） */
-.brief-c {
-  font-family: var(--font-mono); font-size: var(--fs-12); letter-spacing: 0;
-  color: var(--text-tertiary);
-}
-.brief-bar {
-  display: flex; height: 6px; border-radius: 999px; overflow: hidden;
-  background: var(--bg-elevated);
-}
-.brief-bar > i { display: block; height: 100%; }
-.brief-bar > .b-up { background: linear-gradient(90deg, var(--up-bg), var(--up)); }
-.brief-bar > .b-down { background: linear-gradient(90deg, var(--down-bg), var(--down)); }
-.brief-bar > .b-flat { background: var(--text-faint); }
-/* 右端数字：mono tabular，端点即数值；结论（均值/情绪）升一档到 15 才是这一行的主角 */
-.brief-v {
-  display: inline-flex; align-items: baseline; gap: var(--sp-4);
-  font-family: var(--font-mono); font-size: var(--fs-12);
-  font-variant-numeric: tabular-nums; color: var(--text-tertiary); white-space: nowrap;
-}
-.brief-v b { font-weight: 600; color: var(--text-secondary); }
-.brief-v b.up { color: var(--text-rise); }
-.brief-v b.down { color: var(--text-fall); }
-.brief-v b.flat { color: var(--text-tertiary); }
-.brief-v b.lead { font-size: var(--fs-15); font-weight: 600; color: var(--text); }
-.brief-v b.lead.up { color: var(--text-rise); }
-.brief-v b.lead.down { color: var(--text-fall); }
-.brief-tail {
-  font-size: var(--fs-12); letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--text-faint);
-}
-.brief-flat { display: inline-flex; align-items: baseline; gap: var(--sp-4); }
 /* 窄屏：三段网格（160+120+数字）放不进 358px，整行堆叠，条身独占一行 */
 @media (max-width: 640px) {
-  .brief-row { grid-template-columns: 1fr; gap: var(--sp-8); padding: var(--sp-12) 0; }
-  .brief-bar { width: 100%; }
-  .brief-v { white-space: normal; flex-wrap: wrap; }
 }
 
 /* ============================================================ 5. 行情行（hairline 表）
@@ -449,8 +390,7 @@ html[data-theme="daylight"] #globeBar .gcard { box-shadow: var(--shadow-1); }
 .heat-tip.active { opacity: 1; }
 .heat-tip > .ht-inner {
   padding: var(--sp-8) var(--sp-12); min-width: 130px;
-  background: var(--bg-glass); backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  background: var(--bg-elevated); backdrop-filter: blur(18px) saturate(1.4);
   border: 1px solid var(--border-hover); border-radius: var(--r-lg);
 }
 .ht-name { font-size: var(--fs-12); font-weight: 600; margin-bottom: 2px; color: var(--text); }
@@ -516,8 +456,8 @@ html[data-theme="daylight"] #globeBar .gcard { box-shadow: var(--shadow-1); }
   position: relative; min-width: 0; cursor: pointer;
   padding: var(--sp-16);
   border: 1px solid var(--border); border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 60%), var(--bg-card);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  background: var(--bg-card);
+  box-shadow:;
   transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
 }
 .wcard:hover { border-color: var(--border-hover); background-color: var(--bg-hover); }
@@ -677,8 +617,7 @@ html[data-theme="daylight"] .wcard:hover { box-shadow: var(--shadow-2); }
   top: calc(100% + var(--sp-8)); left: 0; z-index: 60;
   min-width: 240px; padding: var(--sp-12);
   max-height: min(70vh, 560px); overflow-y: auto;
-  background: var(--bg-glass);
-  backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  background: var(--bg-elevated); -webkit-backdrop-filter: blur(18px) saturate(1.4);
   border: 1px solid var(--border-hover); border-radius: var(--r-lg);
   box-shadow: var(--shadow-2);
 }
@@ -917,4 +856,34 @@ html[data-theme="daylight"] .breadth-grid { box-shadow: var(--shadow-1); }
   #view-market .section-head { flex-wrap: wrap; row-gap: var(--sp-4); }
   #view-market .section-title { flex: none; white-space: nowrap; }
   #view-market .section-sub { flex: 1 1 100%; }
+}
+
+/* ============================================================ v3 减法：指数墙降级为「裸排条」
+   v2 把它做成了 6 张和 hero 长得一模一样的卡片 —— 用户看到的是"两排一样的卡"，
+   信息重复、视觉噪音。它的真实身份是"其余市场的一行速览"，所以：
+   去掉卡片底色与圆角，只用 hairline 分隔，数字降到 15px —— 与 hero 的大卡形成明确层级差。 */
+#globeBar {
+  gap: 0; margin-top: var(--sp-8);
+  border-top: 1px solid var(--border);
+}
+#globeBar .gcard {
+  padding: var(--sp-12) var(--sp-16);
+  border: 0; border-right: 1px solid var(--border-soft); border-radius: 0;
+  background: transparent; transition: background-color var(--dur-fast) var(--ease-out);
+}
+#globeBar .gcard:last-child { border-right: 0; }
+#globeBar .gcard:hover { background-color: var(--bg-hover); }
+#globeBar .gcard .hero-label { min-height: 0; margin-bottom: var(--sp-4); }
+#globeBar .gcard .hero-value { font-size: var(--fs-15); margin-top: 0; }
+#globeBar .gcard .hero-chg { font-size: var(--fs-12); margin-top: 2px; }
+html[data-theme="daylight"] #globeBar .gcard { box-shadow: none; }
+
+/* 没有走势数据时，区间条只剩一个孤零零的圆点 —— 整条一起隐藏（:has 现代浏览器均支持） */
+.hero-cell:has(.spark[hidden]) .rbar { display: none; }
+
+/* v3 修正：`.tape` 在本层重新声明了 display:flex，而分层后本文件晚于 style.css，
+   同特异性后者胜 —— 于是 style.css 里 @media ≤1099px 的 `.tape{display:none}` 被静默压掉，
+   手机端又冒出一条本该隐藏的跑马条。这里把隐藏规则补回本层（同层级才压得住）。 */
+@media (max-width: 1099px) {
+  .tape { display: none; }
 }

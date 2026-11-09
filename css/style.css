@@ -26,49 +26,47 @@
    ============================================================ */
 
 :root {
-  /* ---------- 底色五层：0 画布 → 1 面板 → 2 卡片 → 3 悬停 → 4 按下 ---------- */
-  --bg: #05080d;
-  --bg-elevated: #0b1119;
-  --bg-card: #0a0f17;
-  --bg-hover: #131c27;
-  --bg-sunken: #03060a;
-  /* 斑马纹面：比 --bg-sunken 亮、比 --bg-hover 暗，专门给长表格（13F/年度收益/相关性）用。
-     深空下 --bg-sunken 与 --bg-card 只差 7 个灰阶，条纹实际上看不见。 */
-  --bg-zebra: #0e151f;
-  --bg-glass: rgba(11,17,25,0.72);
+  /* ---------- 底色五层（2026-11 v3 减法：纯黑 + 中性灰，不再有蓝调） ---------- */
+  --bg: #000000;
+  --bg-elevated: #0a0a0a;
+  --bg-card: #0b0b0b;
+  --bg-hover: #171717;
+  --bg-sunken: #060606;
+  --bg-zebra: #101010;
+  --bg-glass: rgba(0,0,0,0.86);
 
-  /* ---------- 文字四级（对最差表面均 ≥4.5:1） ---------- */
-  --text: #e8f0fa;
-  --text-secondary: #a6b6ca;
-  --text-tertiary: #8496ab;
-  --text-faint: #7b8da4;
+  /* ---------- 文字四级（纯中性灰，对最差表面均 ≥4.5:1） ---------- */
+  --text: #f2f2f2;
+  --text-secondary: #a8a8a8;
+  --text-tertiary: #8a8a8a;
+  --text-faint: #858585;
 
   /* ---------- 描边三级：结构线 / 悬停 / 强调 ---------- */
-  --border: rgba(146,176,214,0.17);
-  --border-hover: rgba(146,176,214,0.30);
-  --border-soft: rgba(146,176,214,0.07);
-  --border-strong: rgba(146,176,214,0.42);
+  --border: rgba(255,255,255,0.14);
+  --border-hover: rgba(255,255,255,0.28);
+  --border-soft: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.40);
 
   /* ---------- 唯一强调色（青）与副色（蓝），两者只用于渐变与图表次强调 ----------
      --accent-signature 与 --accent-rgb 必须同值（tokens.test 卡）；改色时同步。 */
-  --accent-signature: #35e1ff;
-  --accent-rgb: 53,225,255;
-  --accent-2: #4f7cff;
-  --accent-2-rgb: 79,124,255;
-  --accent-soft: rgba(53,225,255,0.12);
-  --accent-line: linear-gradient(90deg, rgba(53,225,255,0), rgba(53,225,255,0.85) 18%, rgba(79,124,255,0.85) 78%, rgba(79,124,255,0));
+  --accent-signature: #ffffff;
+  --accent-rgb: 255,255,255;
+  --accent-2: #d4d4d4;
+  --accent-2-rgb: 212,212,212;
+  --accent-soft: rgba(255,255,255,0.10);
+  --accent-line: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.85) 18%, rgba(255,255,255,0.85) 78%, rgba(255,255,255,0));
 
   /* ---------- 刻度网格与光晕 ---------- */
-  --grid-line: rgba(120,160,200,0.05);
-  --glow-1: 53,225,255;
-  --glow-2: 79,124,255;
-  --topbar-bg: rgba(5,8,13,0.82);
-  --tape-bg: rgba(5,8,13,0.78);
+  --grid-line: rgba(255,255,255,0.04);
+  --glow-1: 255,255,255;
+  --glow-2: 255,255,255;
+  --topbar-bg: rgba(0,0,0,0.86);
+  --tape-bg: rgba(0,0,0,0.82);
 
   /* ---------- 均线调色板：槽位固定，charts.js 与指标菜单都读这里 ----------
      选色约束（CIEDE2000 实测）：两两 ΔE ≥ 15；与涨跌色 ΔE ≥ 15。
      本套最小色距 16.3（--ma-3 紫 vs --ma-4 粉），与涨跌色最小 17.9。 */
-  --ma-0: #35e1ff;
+  --ma-0: #ffffff;
   --ma-1: #5b8def;
   --ma-2: #b06ad4;
   --ma-3: #f0a03c;
@@ -92,9 +90,9 @@
   --warn: #ffab2e;
 
   /* ---------- 图表（canvas 不吃 CSS 变量，charts.js 读这些再传进库） ---------- */
-  --chart-text: #7e90a6;
-  --chart-grid: rgba(146,176,214,0.06);
-  --chart-border: rgba(146,176,214,0.12);
+  --chart-text: #8a8a8a;
+  --chart-grid: rgba(255,255,255,0.06);
+  --chart-border: rgba(255,255,255,0.12);
 
   /* ---------- 形状：圆角三档 + 胶囊；方角/全圆是图形层身份 ---------- */
   --r-sm: 4px; --r-md: 8px; --r-lg: 14px;
@@ -103,7 +101,7 @@
   /* ---------- 海拔：深空禁黑影（黑叠黑不可见），边界交给描边 + 内高光 ---------- */
   --shadow-1: none;
   --shadow-2: none;
-  --ring-glow: 0 0 0 1px rgba(var(--accent-rgb),0.35), 0 0 28px -8px rgba(var(--accent-rgb),0.55);
+  --ring-glow: 0 0 0 1px rgba(var(--accent-rgb),0.35);
 
   /* ---------- 间距七档（4/8/12/16/24/32/48，8px 骨架） ---------- */
   --sp-4: 4px; --sp-8: 8px; --sp-12: 12px; --sp-16: 16px; --sp-24: 24px; --sp-32: 32px; --sp-48: 48px;
@@ -1692,48 +1690,11 @@ body.no-crypto .crypto-only { display: none !important; }
   .fq-verdict-r { display: block; margin-left: 0; margin-top: var(--sp-8); }
 }
 
-/* ---- 市场简报带（首屏的"答案"）----
-   终端顶部仪表条（annunciator panel）的语言：左标签 / 中间连续分布条 / 右数字。
-   条身是这条带子的签名：不是三段色块，是"市场实际的形状"——
-   涨的宽度就是涨的占比，看一眼就知道今天是普涨、普跌还是分化。 */
-.brief { display: flex; flex-direction: column;
-  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-  margin-bottom: var(--sp-32); }
-.brief-row { display: grid; grid-template-columns: 170px minmax(140px, 1fr) auto;
-  align-items: center; gap: var(--sp-16); padding: var(--sp-12) 2px;
-  border-bottom: 1px solid var(--border); }
-.brief-row:last-child { border-bottom: none; }
-.brief-k { display: flex; align-items: baseline; gap: var(--sp-8); min-width: 0;
-  font-family: var(--font-mono); font-size: var(--fs-12); letter-spacing: 0.15em;
-  text-transform: uppercase; color: var(--text-tertiary); white-space: nowrap; }
-.brief-c { font-size: var(--fs-12); letter-spacing: 0; color: var(--text-faint); }
-/* 条身是"尺"不是"块"：4px、无边框，只做形状提示。
-   （第一版做成 9px 带边框的满幅色块，结果两条红绿条比下面 hero 的 30px 大数字还响，
-    签名元素不能是两声大嗓门——boldness 只花在一处。） */
-.brief-bar { display: flex; height: 4px; border-radius: 999px; overflow: hidden;
-  background: var(--bg-elevated); }
-.brief-bar > i { display: block; height: 100%; }
-.brief-bar > .b-up { background: var(--up); }
-.brief-bar > .b-down { background: var(--down); }
-.brief-bar > .b-flat { background: var(--text-faint); }
-.brief-v { font-size: var(--fs-12); color: var(--text-tertiary); white-space: nowrap; }
-.brief-v b { font-weight: 600; color: var(--text-secondary); }
-.brief-v b.up { color: var(--up-text); }
-.brief-v b.down { color: var(--down-text); }
-.brief-v b.flat { color: var(--text-tertiary); }
-/* 结论数字（均值 / 情绪）是这一行的主角：涨跌家数是证据，均值才是判断 */
-.brief-v b.lead { color: var(--text); font-size: var(--fs-13); font-weight: 700; }
-.brief-v b.lead.up { color: var(--up-text); }
-.brief-v b.lead.down { color: var(--down-text); }
-
 /* 简报带窄屏堆叠（移动端修急，P0★ 病灶六）：必须位于上方 .brief-row/.brief-v
    基础规则之后——同特异性后者胜，曾放在首个 640px 媒体块里被静默覆盖：
    三列网格 170+140+间距已 326px，390px 屏可用 ~358px，第三列 brief-v 只剩
    十几像素、"3 涨"数字被裁。堆叠后 brief-v 独占一行 ~354px，单行放下不裁。 */
 @media (max-width: 640px) {
-  .brief-row { grid-template-columns: 1fr; gap: var(--sp-4); padding: var(--sp-12) 2px; }
-  .brief-bar { width: 100%; }
-  .brief-v { white-space: normal; }
 }
 
 /* 我的自选：卡片网格（窄屏 2 列 → 宽屏 4 列，与 hero 同构） */
@@ -1947,31 +1908,31 @@ body.no-crypto .crypto-only { display: none !important; }
    浅色下"光面"改用真实投影承接海拔（深空禁黑影，日光必须有影，否则卡片浮不起来）。
    强调色在浅底上压深一档到 #0091ad，保证焦点环与链接文字对白底 ≥4.5:1。 */
 html[data-theme="daylight"] {
-  --bg: #f6f8fb;
+  --bg: #ffffff;
   --bg-elevated: #ffffff;
   --bg-card: #ffffff;
-  --bg-hover: #eef3f9;
-  --bg-sunken: #e8eef6;
-  --bg-zebra: #f1f5fa;
-  --bg-glass: rgba(255,255,255,0.78);
-  --text: #0b1520;
-  --text-secondary: #46586d;
-  --text-tertiary: #5f7288;
-  --text-faint: #6f8296;
-  --border: rgba(18,42,70,0.12);
-  --border-hover: rgba(18,42,70,0.26);
-  --border-soft: rgba(18,42,70,0.06);
-  --border-strong: rgba(18,42,70,0.34);
-  --accent-signature: #0091ad;
-  --accent-rgb: 0,145,173;
-  --accent-2: #2f5bf0;
-  --accent-2-rgb: 47,91,240;
-  --accent-soft: rgba(0,145,173,0.10);
-  --grid-line: rgba(30,70,110,0.05);
-  --glow-1: 0,145,173;
-  --glow-2: 47,91,240;
-  --topbar-bg: rgba(246,248,251,0.85);
-  --tape-bg: rgba(246,248,251,0.8);
+  --bg-hover: #f2f2f2;
+  --bg-sunken: #f7f7f7;
+  --bg-zebra: #fafafa;
+  --bg-glass: rgba(255,255,255,0.86);
+  --text: #111111;
+  --text-secondary: #4d4d4d;
+  --text-tertiary: #666666;
+  --text-faint: #737373;
+  --border: rgba(0,0,0,0.14);
+  --border-hover: rgba(0,0,0,0.28);
+  --border-soft: rgba(0,0,0,0.07);
+  --border-strong: rgba(0,0,0,0.38);
+  --accent-signature: #000000;
+  --accent-rgb: 0,0,0;
+  --accent-2: #333333;
+  --accent-2-rgb: 51,51,51;
+  --accent-soft: rgba(0,0,0,0.08);
+  --grid-line: rgba(0,0,0,0.04);
+  --glow-1: 0,0,0;
+  --glow-2: 0,0,0;
+  --topbar-bg: rgba(255,255,255,0.88);
+  --tape-bg: rgba(255,255,255,0.84);
   --text-rise: #d61f34;
   --text-fall: #0a7a52;
   --up: #e5344a;
@@ -1980,28 +1941,17 @@ html[data-theme="daylight"] {
   --down-bg: rgba(16,160,106,0.08);
   --up-rgb: 229,52,74;
   --down-rgb: 16,160,106;
-  --focus-ring: #0091ad;
+  --focus-ring: #000000;
   --warn: #b45309;
-  --chart-text: #5f7288;
-  --chart-grid: rgba(18,42,70,0.07);
-  --chart-border: rgba(18,42,70,0.14);
-  --shadow-1: 0 1px 2px rgba(11,21,32,0.05), 0 8px 24px -12px rgba(11,21,32,0.18);
-  --shadow-2: 0 2px 6px rgba(11,21,32,0.07), 0 24px 60px -24px rgba(11,21,32,0.28);
-  --ring-glow: 0 0 0 1px rgba(var(--accent-rgb),0.45), 0 0 24px -10px rgba(var(--accent-rgb),0.5);
+  --chart-text: #666666;
+  --chart-grid: rgba(0,0,0,0.07);
+  --chart-border: rgba(0,0,0,0.14);
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.05), 0 8px 24px -14px rgba(0,0,0,0.16);
+  --shadow-2: 0 2px 8px rgba(0,0,0,0.06), 0 24px 60px -26px rgba(0,0,0,0.22);
+  --ring-glow: 0 0 0 1px rgba(var(--accent-rgb),0.35);
 }
 
-/* 画布环境光：两团极弱冷光 + 一层 40px 刻度网格，边缘用 mask 渐隐。
-   网格与光斑都挂在 body::before（z-index:-1），永不吃点击、永不影响滚动。 */
-body::before {
-  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background:
-    radial-gradient(46% 34% at 18% -6%, rgba(var(--glow-1), 0.10), transparent 68%),
-    radial-gradient(40% 30% at 88% 2%, rgba(var(--glow-2), 0.09), transparent 70%),
-    linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 40px 40px,
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 40px 40px;
-  -webkit-mask-image: radial-gradient(125% 92% at 50% 0%, #000 32%, transparent 86%);
-          mask-image: radial-gradient(125% 92% at 50% 0%, #000 32%, transparent 86%);
-}
+/* v3：画布环境光（网格 + 光斑）已删除——纯黑/纯白底上叠氛围只会显脏。 */
 
 /* —— 极光：深蓝黑底 + 靛蓝紫强调（阶跃/Kimi 气质） —— */
 
