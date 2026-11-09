@@ -433,7 +433,7 @@ test('不许用 *{border-radius:0!important} 统一改圆角（语义圆点会�
    键盘选中的那一行直接在 日光模式里消失。这里把它变成可断言的数字。 */
 
 /* v2（2026-11）推倒重来：旧 两套模式删除，只剩一套设计语言的两个模式。
-     ':root' = 深空（nexus，默认），'daylight' = 日光。对比度守卫对两套都要成立。 */
+     ':root' = 深空（nexus），'daylight' = 日光（2026-11-09 起为默认）。对比度守卫对两套都要成立。 */
 const THEMES = [':root', 'daylight'];
 function themeBlock(name) {
   const re = name === ':root'

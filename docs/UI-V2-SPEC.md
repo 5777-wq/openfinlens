@@ -23,7 +23,7 @@ CSS 加载顺序（shell 负责落地）：`css/style.css` → `css/ui/01-shell.
 
 ## 1. 设计语言：一套语言、两个模式
 
-- `html[data-theme="nexus"]`（默认，深空）／`html[data-theme="daylight"]`（日光）。**旧 8 套皮肤与新皮肤随机换肤已删除**。
+- `html[data-theme="nexus"]`（深空）／`html[data-theme="daylight"]`（**2026-11-09 起为默认**）。**旧 8 套皮肤与新皮肤随机换肤已删除**。
 - 令牌全部已在 `css/style.css` 的 `:root` 里（下表即契约，**不要在别的文件重复定义**）。
 
 ### 1.1 底色五层（数字越小越深）

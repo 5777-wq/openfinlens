@@ -55,7 +55,7 @@ await send('Runtime.enable');
 await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: MOBILE ? 2 : 1, mobile: MOBILE });
 await send('Page.navigate', { url: BASE });
 await sleep(1600);
-await send('Runtime.evaluate', { expression: `document.documentElement.setAttribute('data-theme', ${JSON.stringify(theme)}); true` });
+if (theme !== '-') await send('Runtime.evaluate', { expression: `document.documentElement.setAttribute('data-theme', ${JSON.stringify(theme)}); true` });
 await sleep(300);
 const r = await send('Runtime.evaluate', { expression: js, awaitPromise: true, returnByValue: true });
 if (r.exceptionDetails) console.error('JS 异常:', r.exceptionDetails.exception?.description || r.exceptionDetails.text);

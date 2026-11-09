@@ -5343,11 +5343,15 @@
 
   /* ==================== 界面模式（UI v2：一套语言、两个模式） ====================
      旧 8 套皮肤（dark/aurora/oled/paper/swiss/bauhaus/clay/memphis）与「随机换肤」
-     已按 docs/UI-V2-SPEC.md §1 删除：nexus = 深空（默认）/ daylight = 日光。
+     已按 docs/UI-V2-SPEC.md §1 删除：nexus = 深空 / daylight = 日光。
+     2026-11-09 起 **daylight 是默认**（用户要求默认白底），DEFAULT_THEME 常量是唯一出处。
      存量 localStorage 里可能是旧皮肤名（含 'random'、空值、脏值）——
      applyTheme 一律 sanitize 到 nexus；css/style.css 里已经没有那些主题块，
      停在旧值上会得到一块没有令牌可用的页面（老用户白屏/发灰）。 */
   const THEMES = ['nexus', 'daylight'];
+  /* 2026-11-09：默认模式改为日光（白底）。用户明确要求「默认换成白色背景」；
+     深空仍在设置里一键可切，老用户 localStorage 里存的 nexus 不受影响。 */
+  const DEFAULT_THEME = 'daylight';
   let themeTimer = 0;
 
   // 外围同步：原生控件明暗 + 移动端状态栏色。与换肤同值早退时也要跑
@@ -5375,7 +5379,7 @@
   }
 
   function applyTheme(t) {
-    if (THEMES.indexOf(t) < 0) t = 'nexus';   // 旧皮肤名 / random / 脏值 → 深空
+    if (THEMES.indexOf(t) < 0) t = DEFAULT_THEME;   // 旧皮肤名 / random / 脏值 → 默认（日光）
     if (el.segTheme) {
       // 只有两个模式按钮，没有一次性动作按钮了（随机换肤已删除）
       syncSegPressed(el.segTheme, b => b.dataset.theme === t);
@@ -6777,7 +6781,7 @@
     // 一键还原：模式/涨跌/刷新/降级/科普/板块顺序一起回出厂值（用户不用逐项找回来）
     if (el.settingsReset) {
       el.settingsReset.addEventListener('click', () => {
-        window.Store.settings.set({ updown: 'red', refresh: 10, showDegraded: true, theme: THEMES[0], academy: true });
+        window.Store.settings.set({ updown: 'red', refresh: 10, showDegraded: true, theme: DEFAULT_THEME, academy: true });
         window.Store.set('tabCfg', { order: [], hidden: [] });
         applySettings();
         applyTabCfg();
@@ -7110,7 +7114,7 @@
     navToPrimary(p) { if (typeof p === 'string' && p) navToPrimary(p); return state.tab; },
     openIndicator(name) { return openIndicator(name); },
     setTheme(mode) {
-      const t = THEMES.indexOf(mode) >= 0 ? mode : THEMES[0];
+      const t = THEMES.indexOf(mode) >= 0 ? mode : DEFAULT_THEME;
       window.Store.settings.set({ theme: t });
       applySettings();
       return t;
@@ -7126,7 +7130,7 @@
         const snap = {
           app: 'OpenFinLens',
           exportedAt: new Date().toISOString(),
-          mode: document.documentElement.dataset.theme || 'nexus',
+          mode: document.documentElement.dataset.theme || DEFAULT_THEME,
           updown: document.body.dataset.updown || 'red',
           tab: state.tab,
           primary: map ? map.tabToPrimary(state.tab) : null,
@@ -7169,7 +7173,7 @@
       return {
         tab: state.tab,
         primary: map ? map.tabToPrimary(state.tab) : null,
-        theme: document.documentElement.dataset.theme || 'nexus',
+        theme: document.documentElement.dataset.theme || DEFAULT_THEME,
         refresh: window.Store.settings.get().refresh,
       };
     },

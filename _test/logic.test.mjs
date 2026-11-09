@@ -149,13 +149,13 @@ test('squarify: 空输入 / 零尺寸不抛异常', () => {
 test('pctColor: 红涨绿跌 + null 兜底 + ±3% 封顶', () => {
   W.Treemap.refreshColors();
   // 中性面不再写死 #222/#333：从 --bg-elevated 令牌取（日光模式下色带必须跟着变浅）
-  assert.equal(W.Treemap.pctColor(null), rgbOf('--bg-elevated'));
-  assert.equal(W.Treemap.pctColor(NaN), rgbOf('--bg-elevated'));
+  assert.equal(W.Treemap.pctColor(null), rgbOf('--heat-neutral'));
+  assert.equal(W.Treemap.pctColor(NaN), rgbOf('--heat-neutral'));
   const up3 = W.Treemap.pctColor(3), up10 = W.Treemap.pctColor(10);
   assert.equal(up3, up10, '±3% 封顶');
   assert.equal(up3, rgbOf('--up'), '涨到顶=--up');
   assert.equal(W.Treemap.pctColor(-10), rgbOf('--down'), '跌到顶=--down');
-  assert.equal(W.Treemap.pctColor(0), rgbOf('--bg-elevated'), '0% = 中性面（--bg-elevated）');
+  assert.equal(W.Treemap.pctColor(0), rgbOf('--heat-neutral'), '0% = 热力图中性面（--heat-neutral）');
 });
 
 /* ================= utils 格式化 ================= */

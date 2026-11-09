@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- UI v2：一套语言两个模式。首帧静态写 nexus（深空，默认），JS 起来后按存量设置修正；
      存量里可能是旧皮肤名（swiss/dark/…/random），app.js 的 applyTheme 会 sanitize 到 nexus。 -->
-<html lang="zh-CN" data-theme="nexus">
+<html lang="zh-CN" data-theme="daylight">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +12,7 @@
 <!-- PWA：手机浏览器"添加到主屏幕"后以独立窗口+品牌图标运行（个人主体上不了小程序 web-view 的替代体验） -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-<meta name="theme-color" content="#05080d">
+<meta name="theme-color" content="#ffffff">
 <!-- 设计语言四件套字体：Inter (瑞士) / Jost (包豪斯) / Newsreader + Instrument Sans (纸感) / Righteous (孟菲斯)。
      系统回退栈已在 CSS 内补全，Google Fonts 加载失败时也不会塌。
      字体 CSS 非阻塞加载（preload + media 切换）：跨境链路慢时不再阻塞首屏渲染，
@@ -824,11 +824,11 @@
     <div class="setting-row">
       <div>
         <div class="setting-label">模式</div>
-        <div class="setting-hint">深空（默认）/ 日光 · 只改外观，数据与图表完全一致</div>
+        <div class="setting-hint">日光（默认）/ 深空 · 只改外观，数据与图表完全一致</div>
       </div>
       <div class="seg seg-mode" id="segTheme" role="group" aria-label="界面模式">
-        <button data-theme="nexus" class="active" aria-pressed="true">深空</button>
-        <button data-theme="daylight" aria-pressed="false">日光</button>
+        <button data-theme="daylight" class="active" aria-pressed="true">日光</button>
+        <button data-theme="nexus" aria-pressed="false">深空</button>
       </div>
     </div>
     <div class="setting-row">

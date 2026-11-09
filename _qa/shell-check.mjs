@@ -120,7 +120,7 @@ const main = async () => {
   await ev(`localStorage.removeItem('ofl:crypto'); localStorage.removeItem('ofl:options'); location.hash=''; true`);
   await goto(BASE);
 
-  ok('首帧模式数据令牌 = nexus', (await state()).theme === 'nexus', 'theme=' + (await state()).theme);
+  ok('首帧模式数据令牌 = daylight（默认白底）', (await state()).theme === 'daylight', 'theme=' + (await state()).theme);
 
   /* ---------- 5 个一级 ---------- */
   const expect = {
@@ -200,7 +200,7 @@ const main = async () => {
   await ev(`document.getElementById('settingsBtn').click(); true`); await sleep(400);
   await ev(`document.getElementById('settingsReset').click(); true`); await sleep(900);
   th = await ev(`({ theme: document.documentElement.dataset.theme, stored: JSON.parse(localStorage.getItem('gfd_settings')||'{}').theme, open: document.getElementById('settingsModal').classList.contains('active') })`);
-  ok('一键还原 → 深空 + 弹层关闭', th.theme === 'nexus' && th.stored === 'nexus' && !th.open, JSON.stringify(th));
+  ok('一键还原 → 默认日光 + 弹层关闭', th.theme === 'daylight' && th.stored === 'daylight' && !th.open, JSON.stringify(th));
 
   /* ---------- 移动端 390px ---------- */
   await reduceMotion(true);

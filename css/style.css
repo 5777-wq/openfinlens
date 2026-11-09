@@ -33,6 +33,7 @@
   --bg-hover: #171717;
   --bg-sunken: #060606;
   --bg-zebra: #101010;
+  --heat-neutral: #141414;
   --bg-glass: rgba(0,0,0,0.86);
 
   /* ---------- 文字四级（纯中性灰，对最差表面均 ≥4.5:1） ---------- */
@@ -1914,6 +1915,7 @@ html[data-theme="daylight"] {
   --bg-hover: #f2f2f2;
   --bg-sunken: #f7f7f7;
   --bg-zebra: #fafafa;
+  --heat-neutral: #e4e4e4;
   --bg-glass: rgba(255,255,255,0.86);
   --text: #111111;
   --text-secondary: #4d4d4d;

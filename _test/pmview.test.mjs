@@ -53,13 +53,14 @@ const independentEvent = {
   outcomeCount: 9,
 };
 
-await test('overviewHTML：类别分布环图 + 图例 + 互斥/独立事件计数', () => {
+await test('overviewHTML：类别分布环图 + 图例（v3 已删掉口径说明长句）', () => {
   const html = V.overviewHTML([partitionEvent, independentEvent]);
   assert.match(html, /pm-donut/, '总览应有环图');
   assert.match(html, /pm-ov-leg/, '应有图例');
   assert.match(html, /央行/, '图例应出现类别中文名');
-  assert.match(html, /1 个互斥事件可看档位分布环图/, '应说明哪些事件能看环图');
-  assert.match(html, /1 个独立问句事件只给概率条/);
+  // v3（2026-11-09）：用户要求「该删的删」，环图下方那句「N 个互斥事件可看档位分布环图
+  // · M 个独立问句事件只给概率条」是实现口径，已删除。这里改成反向断言，防止它悄悄长回来。
+  assert.doesNotMatch(html, /互斥事件可看档位分布环图/, '解释性长句又被加回来了');
   assert.equal(V.overviewHTML([]), '', '空列表不画总览');
 });
 

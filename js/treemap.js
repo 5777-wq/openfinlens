@@ -162,7 +162,7 @@ const Treemap = (() => {
     const down = pick('--down');
     if (up) _cs.up = hexToRgb(up);
     if (down) _cs.down = hexToRgb(down);
-    const neutral = pick('--bg-elevated');
+    const neutral = pick('--heat-neutral') || pick('--bg-elevated');
     if (/^#[0-9a-f]{3,8}$/i.test(neutral)) _cs.neutral = hexToRgb(neutral);
     const bg = pick('--bg-card') || pick('--bg');
     if (bg) _cs.bg = bg;

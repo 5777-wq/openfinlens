@@ -887,3 +887,15 @@ html[data-theme="daylight"] #globeBar .gcard { box-shadow: none; }
 @media (max-width: 1099px) {
   .tape { display: none; }
 }
+
+/* v3（默认白底后）：热力图右下角的操作提示直接压在色块上，白底/浅色块上读不出来。
+   给它一块实心底 + 描边（不做模糊，v3 不留玻璃），任何单元格颜色上都能读。
+   同理把左下角的水印改成中性灰。 */
+.heat-hint {
+  padding: 2px var(--sp-8);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text-secondary);
+}
+.heat-logo { color: var(--text-faint); }
