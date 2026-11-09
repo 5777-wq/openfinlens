@@ -2941,7 +2941,7 @@
     // 塞进状态行会把它撑成一长串换行，把工具栏顶高——信息各归其位。
     // v3：只留「来源 · 最新事件多长时间前 · 是否滞后」，去掉采集器技术名（GDELT DOC 2.0/artlist 这类）。
     const src = (state.eventsVia === 'cache' ? '缓存 · ' : '') +
-      String(state.eventsSource || '').replace(/（[^）]*）/g, '').trim() +
+      String(state.eventsSource || '').replace(/（[^）]*）/g, '').replace(/s*DOCs*[d.]*/i, '').trim() +
       ' · 最新 ' + ageTxt +
       (stale ? ' · 已滞后' : '');
     el.globeStatus.textContent = src;
