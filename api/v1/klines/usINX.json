@@ -8,17 +8,10 @@
       "day": {
         "interval": "day",
         "count": 160,
-        "asof": "2026-11-06",
+        "asof": "2026-11-09",
         "stale": false,
         "source": "tencent/eastmoney/binance（经 js/sources 适配器）",
         "rows": [
-          {
-            "time": "2026-03-23",
-            "open": 6574.96,
-            "high": 6651.62,
-            "low": 6565.55,
-            "close": 6581
-          },
           {
             "time": "2026-03-24",
             "open": 6552.09,
@@ -1131,23 +1124,23 @@
             "high": 7444.2,
             "low": 7369.55,
             "close": 7376.86
+          },
+          {
+            "time": "2026-11-09",
+            "open": 7422.24,
+            "high": 7577.39,
+            "low": 7422.24,
+            "close": 7570.06
           }
         ]
       },
       "week": {
         "interval": "week",
         "count": 104,
-        "asof": "2026-11-06",
+        "asof": "2026-11-09",
         "stale": false,
         "source": "tencent/eastmoney/binance（经 js/sources 适配器）",
         "rows": [
-          {
-            "time": "2024-11-15",
-            "open": 6008.86,
-            "high": 6017.31,
-            "low": 5853.01,
-            "close": 5870.62
-          },
           {
             "time": "2024-11-22",
             "open": 5874.17,
@@ -1868,13 +1861,20 @@
             "high": 7715.57,
             "low": 7350.35,
             "close": 7376.86
+          },
+          {
+            "time": "2026-11-09",
+            "open": 7422.24,
+            "high": 7577.39,
+            "low": 7422.24,
+            "close": 7570.32
           }
         ]
       },
       "month": {
         "interval": "month",
         "count": 10,
-        "asof": "2026-11-06",
+        "asof": "2026-11-09",
         "stale": false,
         "source": "tencent/eastmoney/binance（经 js/sources 适配器）",
         "rows": [
@@ -1942,11 +1942,11 @@
             "close": 1985.59
           },
           {
-            "time": "2026-11-06",
-            "open": 7377.65,
-            "high": 7444.2,
-            "low": 7369.55,
-            "close": 7376.86
+            "time": "2026-11-09",
+            "open": 7422.24,
+            "high": 7577.39,
+            "low": 7422.24,
+            "close": 7570.32
           }
         ]
       }
@@ -1954,8 +1954,8 @@
   },
   "meta": {
     "dataset": "klines.symbol",
-    "asof": "2026-11-06",
-    "generatedAt": "2026-11-09T00:10:29.582Z",
+    "asof": "2026-11-09",
+    "generatedAt": "2026-11-09T20:32:17.667Z",
     "source": "腾讯 ifzq / 东方财富 push2his / 币安 klines（复用 js/sources 口径）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",

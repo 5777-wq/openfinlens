@@ -1,7 +1,7 @@
 {
   "ok": true,
   "data": {
-    "asOf": "2026-11-09T10:24:26.410Z",
+    "asOf": "2026-11-09T20:32:17.086Z",
     "institutions": [
       {
         "slug": "berkshire",
@@ -4671,8 +4671,8 @@
   },
   "meta": {
     "dataset": "institutions.holdings",
-    "asof": "2026-11-09T10:24:26.410Z",
-    "generatedAt": "2026-11-09T10:24:26.924Z",
+    "asof": "2026-11-09T20:32:17.086Z",
+    "generatedAt": "2026-11-09T20:32:17.667Z",
     "source": "SEC EDGAR 13F · 发行方公开 ETF 持仓 · 东方财富基金持仓统计",
     "stale": false,
     "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
