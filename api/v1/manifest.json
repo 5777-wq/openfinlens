@@ -44,7 +44,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-09T00:10:29.582Z",
+          "generatedAt": "2026-11-09T10:24:26.924Z",
           "count": 11,
           "datasets": [
             {
@@ -60,7 +60,7 @@
             "openapi": "api/openapi.json"
           }
         },
-        "asof": "2026-11-09T00:10:29.582Z",
+        "asof": "2026-11-09T10:24:26.924Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -100,7 +100,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-09T00:10:29.582Z",
+          "generatedAt": "2026-11-09T10:24:26.924Z",
           "base": "api/v1",
           "datasets": [
             {
@@ -111,7 +111,7 @@
             }
           ]
         },
-        "asof": "2026-11-09T00:10:29.582Z",
+        "asof": "2026-11-09T10:24:26.924Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -203,7 +203,7 @@
             "中石化"
           ]
         },
-        "asof": "2026-11-09T00:10:29.582Z",
+        "asof": "2026-11-09T10:24:26.924Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -307,19 +307,19 @@
           "market": "cn",
           "kind": "stock",
           "price": 5.8,
-          "prevClose": 5.7,
-          "open": 5.7,
-          "high": 5.84,
-          "low": 5.59,
-          "change": 0.1,
-          "changePct": 1.75,
-          "quoteAt": 1793952896000,
-          "updatedAt": 1794183029903,
+          "prevClose": 5.8,
+          "open": 5.74,
+          "high": 5.89,
+          "low": 5.72,
+          "change": 0,
+          "changePct": 0,
+          "quoteAt": 1794212099000,
+          "updatedAt": 1794219867686,
           "source": "tencent"
         },
-        "asof": "2026-11-09T00:10:30.231Z",
+        "asof": "2026-11-09T10:24:28.031Z",
         "stale": false,
-        "count": 193,
+        "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
         "note": "实时抓取的行情快照；quoteAt 是上游行情时刻，updatedAt 是抓取时刻。只含价格与涨跌字段。"
       },
@@ -362,22 +362,22 @@
               "name": "上证指数",
               "market": "cn",
               "path": "api/v1/klines/sh000001.json",
-              "asof": "2026-11-06",
+              "asof": "2026-11-09",
               "stale": false,
               "periods": {
                 "day": {
                   "count": 160,
-                  "asof": "2026-11-06",
+                  "asof": "2026-11-09",
                   "stale": false
                 },
                 "week": {
                   "count": 104,
-                  "asof": "2026-11-06",
+                  "asof": "2026-11-09",
                   "stale": false
                 },
                 "month": {
                   "count": 60,
-                  "asof": "2026-11-06",
+                  "asof": "2026-11-09",
                   "stale": false
                 }
               }
@@ -430,16 +430,16 @@
             "day": {
               "interval": "day",
               "count": 160,
-              "asof": "2026-11-06",
+              "asof": "2026-11-09",
               "stale": false,
               "source": "tencent/eastmoney/binance（经 js/sources 适配器）",
               "rows": [
                 {
-                  "time": "2026-03-13",
-                  "open": 4117.57,
-                  "high": 4134.08,
-                  "low": 4086.85,
-                  "close": 4095.45
+                  "time": "2026-03-16",
+                  "open": 4092.25,
+                  "high": 4096.13,
+                  "low": 4048.09,
+                  "close": 4084.79
                 }
               ]
             }
@@ -559,25 +559,25 @@
           }
         ],
         "sample": {
-          "id": "ufc总裁将与特朗普面谈 正在英国伦敦的终极格斗冠军赛 ufc 总裁达纳 怀特当地时间11月7日表示 他将立即飞往华盛顿 并于下周一 11月9日 会见美国总统特朗普 不过对于特朗普邀请他出任白宫新闻秘书一事||1794101938000",
-          "category": "market",
-          "title": "【UFC总裁将与特朗普面谈】正在英国伦敦的终极格斗冠军赛（UFC）总裁达纳·怀特当地时间11月7日表示，他将立即飞往华盛顿，并于下周一（11月9日）会见美国总统特朗普。不过对于特朗普邀请他出任白宫新闻秘书一事，怀特未明确表态，只是称与特朗普会面后再说。稍早前，美国有线电视新闻网等媒体援引知情人士报道称，怀特已拒绝了特朗普的邀请。（CCTV国际时讯）",
+          "id": "墨西哥央行行长表示 央行自9月以来一直在考虑降息||1794219438000",
+          "category": "central_bank",
+          "title": "墨西哥央行行长表示，央行自9月以来一直在考虑降息。",
           "source": "新浪财经7x24",
           "sourceUrl": "https://finance.sina.com.cn/7x24/",
-          "publishedAt": "2026-11-08T01:38:58.000Z",
-          "country": "英国",
-          "lat": 51.51,
-          "lng": -0.13,
-          "severity": 30,
-          "importance": "low",
+          "publishedAt": "2026-11-09T10:17:18.000Z",
+          "country": "墨西哥",
+          "lat": 19.43,
+          "lng": -99.13,
+          "severity": 55,
+          "importance": "med",
           "relatedSymbols": [],
           "relatedAssets": []
         },
-        "asof": "2026-11-08T01:45:58.597Z",
-        "stale": true,
-        "count": 53,
+        "asof": "2026-11-09T10:22:07.493Z",
+        "stale": false,
+        "count": 45,
         "license": "GDELT 免费开放数据（gdeltproject.org）· 新浪财经7x24 公开快讯；坐标为本项目关键词地理定位，精度为国家/地区级",
-        "note": "severity 是把上游 importance 映射成 0-100 的展示口径；坐标为关键词地理定位，精度为国家/地区级，定位不到时为 null。 上游采集任务多轮未更新，数据可能滞后。"
+        "note": "severity 是把上游 importance 映射成 0-100 的展示口径；坐标为关键词地理定位，精度为国家/地区级，定位不到时为 null。"
       },
       {
         "id": "prediction.markets",
@@ -648,68 +648,68 @@
           }
         ],
         "sample": {
-          "id": "ev:711714",
-          "title": "Israel x Iran ceasefire continues through...?",
-          "titleZh": "以色列x伊朗停火持续到... ？",
-          "category": "geopolitics",
-          "partition": false,
-          "endDate": 1798748940000,
-          "updatedAt": 1794102286463,
-          "outcomeCount": 8,
+          "id": "ev:30829",
+          "title": "Democratic Presidential Nominee 2028",
+          "titleZh": "2028年民主党总统候选人",
+          "category": "election",
+          "partition": true,
+          "endDate": 1857272340000,
+          "updatedAt": 1794219696684,
+          "outcomeCount": 56,
           "outcomes": [
             {
-              "id": "pm:6367375",
-              "label": "November 6",
-              "labelZh": "11月6日",
-              "probability": 0.998,
+              "id": "pm:559661",
+              "label": "Jon Ossoff",
+              "labelZh": "乔恩·奥索夫",
+              "probability": 0.263,
               "change24h": 0.1
             },
             {
-              "id": "pm:6367373",
-              "label": "November 5",
-              "labelZh": "11月5日",
-              "probability": 0.998,
+              "id": "pm:559653",
+              "label": "Alexandria Ocasio-Cortez",
+              "labelZh": "亚历山大·奥卡西奥-科尔特斯",
+              "probability": 0.165,
+              "change24h": -0.2
+            },
+            {
+              "id": "pm:559652",
+              "label": "Gavin Newsom",
+              "labelZh": "加文·纽森",
+              "probability": 0.068,
+              "change24h": -3.8
+            },
+            {
+              "id": "pm:559658",
+              "label": "Kamala Harris",
+              "labelZh": "卡玛拉·哈里斯",
+              "probability": 0.059,
+              "change24h": null
+            },
+            {
+              "id": "pm:559654",
+              "label": "Pete Buttigieg",
+              "labelZh": null,
+              "probability": 0.056,
+              "change24h": 0.3
+            },
+            {
+              "id": "pm:559655",
+              "label": "Josh Shapiro",
+              "labelZh": null,
+              "probability": 0.047,
               "change24h": 0.1
-            },
-            {
-              "id": "pm:6367378",
-              "label": "November 7",
-              "labelZh": "11月7日",
-              "probability": 0.997,
-              "change24h": 2.6
-            },
-            {
-              "id": "pm:5339986",
-              "label": "November 15",
-              "labelZh": "11月15日",
-              "probability": 0.875,
-              "change24h": 11
-            },
-            {
-              "id": "pm:6367372",
-              "label": "November 22",
-              "labelZh": "11月22日",
-              "probability": 0.795,
-              "change24h": 14.5
-            },
-            {
-              "id": "pm:3902370",
-              "label": "November 30",
-              "labelZh": "11月30日",
-              "probability": 0.715,
-              "change24h": 12
             }
           ],
           "rest": {
-            "probability": 1.19,
-            "count": 2
+            "probability": 0.311,
+            "count": 50
           }
         },
-        "asof": "2026-11-08T01:46:51.027Z",
-        "stale": true,
+        "asof": "2026-11-09T10:22:42.958Z",
+        "stale": false,
         "count": 30,
         "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
-        "note": "probability 为 0-1 的隐含事件概率；outcomes 只保留档位标签与概率，不含平台标识、链接与交易功能。 采集任务多轮未更新，概率可能滞后。"
+        "note": "probability 为 0-1 的隐含事件概率；outcomes 只保留档位标签与概率，不含平台标识、链接与交易功能。"
       },
       {
         "id": "institutions.holdings",
@@ -744,7 +744,7 @@
           }
         ],
         "sample": {
-          "asOf": "2026-11-07T22:32:16.056Z",
+          "asOf": "2026-11-09T10:24:26.410Z",
           "institutions": [
             {
               "slug": "berkshire",
@@ -757,7 +757,7 @@
           "etf": {
             "asOf": "2026-11-05",
             "published": "2026-11-05",
-            "lagDays": 2,
+            "lagDays": 4,
             "funds": [
               {
                 "key": "spmo",
@@ -779,7 +779,7 @@
           "fundHoldings": {
             "reportDate": "2026-09-30",
             "reportDateName": "2026年三季报",
-            "lagDays": 39,
+            "lagDays": 40,
             "topAdd": [
               {
                 "code": "688825",
@@ -814,7 +814,7 @@
             ]
           }
         },
-        "asof": "2026-11-07T22:32:16.056Z",
+        "asof": "2026-11-09T10:24:26.410Z",
         "stale": false,
         "count": 4,
         "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
@@ -937,19 +937,19 @@
         ],
         "sample": {
           "status": "ok",
-          "generatedAt": "2026-11-09T00:10:29.582Z",
+          "generatedAt": "2026-11-09T10:24:26.924Z",
           "durationMs": 0,
           "datasets": [
             {
               "id": "quotes.latest",
-              "lastBuilt": "2026-11-09T00:10:29.582Z",
+              "lastBuilt": "2026-11-09T10:24:26.924Z",
               "count": 1,
               "ms": 0,
               "stale": false
             }
           ]
         },
-        "asof": "2026-11-09T00:10:29.582Z",
+        "asof": "2026-11-09T10:24:26.924Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -959,8 +959,8 @@
   },
   "meta": {
     "dataset": "manifest",
-    "asof": "2026-11-09T00:10:29.582Z",
-    "generatedAt": "2026-11-09T00:10:29.582Z",
+    "asof": "2026-11-09T10:24:26.924Z",
+    "generatedAt": "2026-11-09T10:24:26.924Z",
     "source": "本项目构建产物（data/** 与 js/data/universe.js）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
