@@ -30,3 +30,8 @@ _qa/*.png
 _qa/qa/
 _qa/shot-*.png
 _qa/qa-report.json
+
+# 一次性手术脚本不进仓库（留在本地做过的痕迹不可复跑、且含本机绝对路径）
+_qa/tokens-block.css
+_qa/light-block.css
+_qa/classes.txt
