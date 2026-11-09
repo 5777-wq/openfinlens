@@ -2,7 +2,7 @@
   "ok": true,
   "data": {
     "version": "v1",
-    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "generatedAt": "2026-11-09T00:10:29.582Z",
     "count": 11,
     "datasets": [
       {
@@ -11,10 +11,10 @@
         "description": "列出全部数据集、各自路径、更新时间与滞后状态，是 Agent 的第一入口。",
         "path": "api/v1/index.json",
         "kind": "meta",
-        "asof": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-09T00:10:29.582Z",
         "stale": false,
         "count": 11,
-        "updatedAt": "2026-11-08T15:02:37.542Z"
+        "updatedAt": "2026-11-09T00:10:29.582Z"
       },
       {
         "id": "manifest",
@@ -22,10 +22,10 @@
         "description": "每个数据集的 id/标题/路径/字段定义/样例/数据截止时间，供 Agent 生成调用参数。",
         "path": "api/v1/manifest.json",
         "kind": "meta",
-        "asof": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-09T00:10:29.582Z",
         "stale": false,
         "count": 11,
-        "updatedAt": "2026-11-08T15:02:37.542Z"
+        "updatedAt": "2026-11-09T00:10:29.582Z"
       },
       {
         "id": "universe",
@@ -33,10 +33,10 @@
         "description": "代码、名称、市场、分组、拼音首字母与别名，用于把用户口语解析成标准 symbol。",
         "path": "api/v1/universe.json",
         "kind": "data",
-        "asof": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-09T00:10:29.582Z",
         "stale": false,
         "count": 194,
-        "updatedAt": "2026-11-08T15:02:37.542Z"
+        "updatedAt": "2026-11-09T00:10:29.582Z"
       },
       {
         "id": "quotes.latest",
@@ -44,10 +44,10 @@
         "description": "构建时抓取的行情快照，带 asof 与 stale；抓取失败时沿用上次快照并诚实标注。",
         "path": "api/v1/quotes/latest.json",
         "kind": "data",
-        "asof": "2026-11-08T15:02:38.255Z",
+        "asof": "2026-11-09T00:10:30.231Z",
         "stale": false,
-        "count": 194,
-        "updatedAt": "2026-11-08T15:02:37.542Z"
+        "count": 193,
+        "updatedAt": "2026-11-09T00:10:29.582Z"
       },
       {
         "id": "klines.catalog",
@@ -55,10 +55,10 @@
         "description": "可用 K 线标的清单、周期与行数，指向 api/v1/klines/{symbol}.json。",
         "path": "api/v1/markets/klines.json",
         "kind": "data",
-        "asof": "2026-11-08T00:00:00.000Z",
+        "asof": "2026-11-09T00:00:00.000Z",
         "stale": false,
         "count": 19,
-        "updatedAt": "2026-11-08T15:02:37.542Z"
+        "updatedAt": "2026-11-09T00:10:29.582Z"
       },
       {
         "id": "klines.symbol",
@@ -66,10 +66,10 @@
         "description": "日/周/月 K 线（时间与开高低收），每个标的一个文件；路径里的 {symbol} 取目录中的代码。",
         "path": "api/v1/klines/{symbol}.json",
         "kind": "data",
-        "asof": "2026-11-08T00:00:00.000Z",
+        "asof": "2026-11-09T00:00:00.000Z",
         "stale": false,
         "count": 19,
-        "updatedAt": "2026-11-08T15:02:37.542Z"
+        "updatedAt": "2026-11-09T00:10:29.582Z"
       },
       {
         "id": "events.global",
@@ -77,10 +77,10 @@
         "description": "全球宏观/地缘事件，附分类、国家、0-100 严重度与关联标的。",
         "path": "api/v1/events/global.json",
         "kind": "data",
-        "asof": "2026-11-01T02:41:58.364Z",
+        "asof": "2026-11-08T01:45:58.597Z",
         "stale": true,
-        "count": 54,
-        "updatedAt": "2026-11-08T15:02:37.542Z"
+        "count": 53,
+        "updatedAt": "2026-11-09T00:10:29.582Z"
       },
       {
         "id": "prediction.markets",
@@ -88,10 +88,10 @@
         "description": "事件与档位两层结构，probability 为 0-1 隐含概率；不含平台标识与链接。",
         "path": "api/v1/prediction/markets.json",
         "kind": "data",
-        "asof": "2026-11-01T02:42:39.263Z",
+        "asof": "2026-11-08T01:46:51.027Z",
         "stale": true,
         "count": 30,
-        "updatedAt": "2026-11-08T15:02:37.542Z"
+        "updatedAt": "2026-11-09T00:10:29.582Z"
       },
       {
         "id": "institutions.holdings",
@@ -99,10 +99,10 @@
         "description": "SEC 13F 机构季度持仓、规则化因子 ETF 全量持仓、基金合计持仓的加减仓榜。",
         "path": "api/v1/institutions/holdings.json",
         "kind": "data",
-        "asof": "2026-11-01T01:27:30.715Z",
+        "asof": "2026-11-07T22:32:16.056Z",
         "stale": false,
         "count": 4,
-        "updatedAt": "2026-11-08T15:02:37.542Z"
+        "updatedAt": "2026-11-09T00:10:29.582Z"
       },
       {
         "id": "macro.series",
@@ -113,7 +113,7 @@
         "asof": "2025-01-01T00:00:00.000Z",
         "stale": false,
         "count": 44,
-        "updatedAt": "2026-11-08T15:02:37.542Z"
+        "updatedAt": "2026-11-09T00:10:29.582Z"
       },
       {
         "id": "health",
@@ -121,10 +121,10 @@
         "description": "各数据集最近构建时间、条数、耗时与 stale 状态。",
         "path": "api/v1/health.json",
         "kind": "meta",
-        "asof": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-09T00:10:29.582Z",
         "stale": false,
         "count": 11,
-        "updatedAt": "2026-11-08T15:02:37.542Z"
+        "updatedAt": "2026-11-09T00:10:29.582Z"
       }
     ],
     "entrypoints": {
@@ -137,8 +137,8 @@
   },
   "meta": {
     "dataset": "index",
-    "asof": "2026-11-08T15:02:37.542Z",
-    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "asof": "2026-11-09T00:10:29.582Z",
+    "generatedAt": "2026-11-09T00:10:29.582Z",
     "source": "本项目构建产物",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",

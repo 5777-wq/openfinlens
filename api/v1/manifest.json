@@ -44,7 +44,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-08T15:02:37.542Z",
+          "generatedAt": "2026-11-09T00:10:29.582Z",
           "count": 11,
           "datasets": [
             {
@@ -60,7 +60,7 @@
             "openapi": "api/openapi.json"
           }
         },
-        "asof": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-09T00:10:29.582Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -100,7 +100,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-08T15:02:37.542Z",
+          "generatedAt": "2026-11-09T00:10:29.582Z",
           "base": "api/v1",
           "datasets": [
             {
@@ -111,7 +111,7 @@
             }
           ]
         },
-        "asof": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-09T00:10:29.582Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -203,7 +203,7 @@
             "中石化"
           ]
         },
-        "asof": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-09T00:10:29.582Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -314,12 +314,12 @@
           "change": 0.1,
           "changePct": 1.75,
           "quoteAt": 1793952896000,
-          "updatedAt": 1794150157788,
+          "updatedAt": 1794183029903,
           "source": "tencent"
         },
-        "asof": "2026-11-08T15:02:38.255Z",
+        "asof": "2026-11-09T00:10:30.231Z",
         "stale": false,
-        "count": 194,
+        "count": 193,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
         "note": "实时抓取的行情快照；quoteAt 是上游行情时刻，updatedAt 是抓取时刻。只含价格与涨跌字段。"
       },
@@ -384,7 +384,7 @@
             }
           ]
         },
-        "asof": "2026-11-08T00:00:00.000Z",
+        "asof": "2026-11-09T00:00:00.000Z",
         "stale": false,
         "count": 19,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -445,7 +445,7 @@
             }
           }
         },
-        "asof": "2026-11-08T00:00:00.000Z",
+        "asof": "2026-11-09T00:00:00.000Z",
         "stale": false,
         "count": 19,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -559,25 +559,25 @@
           }
         ],
         "sample": {
-          "id": "特朗普称会邀请泽连斯基参加二十国集团领导人峰会 美国总统特朗普10月31日在佛罗里达州海湖庄园对媒体表示 他会邀请乌克兰总统泽连斯基参加将于12月举行的二十国集团领导人峰会 特朗普已邀请俄罗斯总统普京出席将于12月在佛罗里达州迈阿密举行的二十国集团领导人峰会 在被问及是否也会邀请泽连斯基时 特朗普回答道 我会的 没问题 美国国务卿鲁比奥10月31日在美国亚特兰大举行的二十国集团外长会闭幕记者会上说 俄方尚未确认普京是否参会||1793500516000",
-          "category": "geopolitics",
-          "title": "【特朗普称会邀请泽连斯基参加二十国集团领导人峰会】美国总统特朗普10月31日在佛罗里达州海湖庄园对媒体表示，他会邀请乌克兰总统泽连斯基参加将于12月举行的二十国集团领导人峰会。 特朗普已邀请俄罗斯总统普京出席将于12月在佛罗里达州迈阿密举行的二十国集团领导人峰会。 在被问及是否也会邀请泽连斯基时，特朗普回答道：“我会的，没问题。” 美国国务卿鲁比奥10月31日在美国亚特兰大举行的二十国集团外长会闭幕记者会上说，俄方尚未确认普京是否参会。（新华社）",
+          "id": "ufc总裁将与特朗普面谈 正在英国伦敦的终极格斗冠军赛 ufc 总裁达纳 怀特当地时间11月7日表示 他将立即飞往华盛顿 并于下周一 11月9日 会见美国总统特朗普 不过对于特朗普邀请他出任白宫新闻秘书一事||1794101938000",
+          "category": "market",
+          "title": "【UFC总裁将与特朗普面谈】正在英国伦敦的终极格斗冠军赛（UFC）总裁达纳·怀特当地时间11月7日表示，他将立即飞往华盛顿，并于下周一（11月9日）会见美国总统特朗普。不过对于特朗普邀请他出任白宫新闻秘书一事，怀特未明确表态，只是称与特朗普会面后再说。稍早前，美国有线电视新闻网等媒体援引知情人士报道称，怀特已拒绝了特朗普的邀请。（CCTV国际时讯）",
           "source": "新浪财经7x24",
           "sourceUrl": "https://finance.sina.com.cn/7x24/",
-          "publishedAt": "2026-11-01T02:35:16.000Z",
-          "country": "乌克兰",
-          "lat": 50.45,
-          "lng": 30.52,
+          "publishedAt": "2026-11-08T01:38:58.000Z",
+          "country": "英国",
+          "lat": 51.51,
+          "lng": -0.13,
           "severity": 30,
           "importance": "low",
           "relatedSymbols": [],
           "relatedAssets": []
         },
-        "asof": "2026-11-01T02:41:58.364Z",
+        "asof": "2026-11-08T01:45:58.597Z",
         "stale": true,
-        "count": 54,
+        "count": 53,
         "license": "GDELT 免费开放数据（gdeltproject.org）· 新浪财经7x24 公开快讯；坐标为本项目关键词地理定位，精度为国家/地区级",
-        "note": "severity 是把上游 importance 映射成 0-100 的展示口径；坐标为关键词地理定位，精度为国家/地区级，定位不到时为 null。 含第三方平台品牌字样的 1 条快讯按合规口径未纳入。 上游采集任务多轮未更新，数据可能滞后。"
+        "note": "severity 是把上游 importance 映射成 0-100 的展示口径；坐标为关键词地理定位，精度为国家/地区级，定位不到时为 null。 上游采集任务多轮未更新，数据可能滞后。"
       },
       {
         "id": "prediction.markets",
@@ -648,64 +648,64 @@
           }
         ],
         "sample": {
-          "id": "ev:1262243",
-          "title": "Which Senate Swing States will Republicans win?",
-          "titleZh": "共和党将赢得哪些参议院摇摆州？",
-          "category": "election",
-          "partition": true,
-          "endDate": 1793750340000,
-          "updatedAt": 1793500825630,
-          "outcomeCount": 128,
+          "id": "ev:711714",
+          "title": "Israel x Iran ceasefire continues through...?",
+          "titleZh": "以色列x伊朗停火持续到... ？",
+          "category": "geopolitics",
+          "partition": false,
+          "endDate": 1798748940000,
+          "updatedAt": 1794102286463,
+          "outcomeCount": 8,
           "outcomes": [
             {
-              "id": "pm:6274257",
-              "label": "None",
-              "labelZh": "无",
-              "probability": 0.255,
-              "change24h": 1
+              "id": "pm:6367375",
+              "label": "November 6",
+              "labelZh": "11月6日",
+              "probability": 0.998,
+              "change24h": 0.1
             },
             {
-              "id": "pm:6274182",
-              "label": "IA",
-              "labelZh": null,
-              "probability": 0.106,
-              "change24h": -2.4
+              "id": "pm:6367373",
+              "label": "November 5",
+              "labelZh": "11月5日",
+              "probability": 0.998,
+              "change24h": 0.1
             },
             {
-              "id": "pm:6274077",
-              "label": "IA, KS",
-              "labelZh": null,
-              "probability": 0.105,
-              "change24h": -3
+              "id": "pm:6367378",
+              "label": "November 7",
+              "labelZh": "11月7日",
+              "probability": 0.997,
+              "change24h": 2.6
             },
             {
-              "id": "pm:6274191",
-              "label": "KS",
-              "labelZh": "ks",
-              "probability": 0.044,
-              "change24h": 1.1
+              "id": "pm:5339986",
+              "label": "November 15",
+              "labelZh": "11月15日",
+              "probability": 0.875,
+              "change24h": 11
             },
             {
-              "id": "pm:6273577",
-              "label": "All 7",
-              "labelZh": "全部7",
-              "probability": 0.04,
-              "change24h": 2.5
+              "id": "pm:6367372",
+              "label": "November 22",
+              "labelZh": "11月22日",
+              "probability": 0.795,
+              "change24h": 14.5
             },
             {
-              "id": "pm:6274108",
-              "label": "IA, OH",
-              "labelZh": null,
-              "probability": 0.018,
-              "change24h": 1.1
+              "id": "pm:3902370",
+              "label": "November 30",
+              "labelZh": "11月30日",
+              "probability": 0.715,
+              "change24h": 12
             }
           ],
           "rest": {
-            "probability": 0.547,
-            "count": 122
+            "probability": 1.19,
+            "count": 2
           }
         },
-        "asof": "2026-11-01T02:42:39.263Z",
+        "asof": "2026-11-08T01:46:51.027Z",
         "stale": true,
         "count": 30,
         "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
@@ -744,7 +744,7 @@
           }
         ],
         "sample": {
-          "asOf": "2026-11-01T01:27:30.715Z",
+          "asOf": "2026-11-07T22:32:16.056Z",
           "institutions": [
             {
               "slug": "berkshire",
@@ -755,8 +755,8 @@
             }
           ],
           "etf": {
-            "asOf": "2026-10-29",
-            "published": "2026-10-29",
+            "asOf": "2026-11-05",
+            "published": "2026-11-05",
             "lagDays": 2,
             "funds": [
               {
@@ -779,7 +779,7 @@
           "fundHoldings": {
             "reportDate": "2026-09-30",
             "reportDateName": "2026年三季报",
-            "lagDays": 32,
+            "lagDays": 39,
             "topAdd": [
               {
                 "code": "688825",
@@ -814,7 +814,7 @@
             ]
           }
         },
-        "asof": "2026-11-01T01:27:30.715Z",
+        "asof": "2026-11-07T22:32:16.056Z",
         "stale": false,
         "count": 4,
         "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
@@ -937,19 +937,19 @@
         ],
         "sample": {
           "status": "ok",
-          "generatedAt": "2026-11-08T15:02:37.542Z",
+          "generatedAt": "2026-11-09T00:10:29.582Z",
           "durationMs": 0,
           "datasets": [
             {
               "id": "quotes.latest",
-              "lastBuilt": "2026-11-08T15:02:37.542Z",
+              "lastBuilt": "2026-11-09T00:10:29.582Z",
               "count": 1,
               "ms": 0,
               "stale": false
             }
           ]
         },
-        "asof": "2026-11-08T15:02:37.542Z",
+        "asof": "2026-11-09T00:10:29.582Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -959,8 +959,8 @@
   },
   "meta": {
     "dataset": "manifest",
-    "asof": "2026-11-08T15:02:37.542Z",
-    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "asof": "2026-11-09T00:10:29.582Z",
+    "generatedAt": "2026-11-09T00:10:29.582Z",
     "source": "本项目构建产物（data/** 与 js/data/universe.js）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",

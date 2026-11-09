@@ -1277,7 +1277,7 @@
           {
             "time": "2025-03-21",
             "open": 1090,
-            "high": 1103.49,
+            "high": 1103.48,
             "low": 1036.37,
             "close": 1042.89
           },
@@ -2305,7 +2305,7 @@
   "meta": {
     "dataset": "klines.symbol",
     "asof": "2026-11-06",
-    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "generatedAt": "2026-11-09T00:10:29.582Z",
     "source": "腾讯 ifzq / 东方财富 push2his / 币安 klines（复用 js/sources 口径）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",

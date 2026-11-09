@@ -3410,7 +3410,7 @@
   "meta": {
     "dataset": "macro.series",
     "asof": "2025-01-01T00:00:00.000Z",
-    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "generatedAt": "2026-11-09T00:10:29.582Z",
     "source": "世界银行公开 API（api.worldbank.org），指标口径复用 js/sources/worldbank.js",
     "stale": false,
     "license": "世界银行公开数据（CC BY 4.0）；仅用于信息展示。",

@@ -3361,8 +3361,8 @@
   },
   "meta": {
     "dataset": "universe",
-    "asof": "2026-11-08T15:02:37.542Z",
-    "generatedAt": "2026-11-08T15:02:37.542Z",
+    "asof": "2026-11-09T00:10:29.582Z",
+    "generatedAt": "2026-11-09T00:10:29.582Z",
     "source": "js/data/universe.js（与页面共用的标的常量表）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
