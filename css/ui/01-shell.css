@@ -24,6 +24,16 @@
 
 /* 品牌：光点 + 等宽字距的 wordmark。光点用强调色（唯一允许出现的位置之一） */
 .logo { position: relative; }
+/* 品牌标：v3.1 从「一颗 7px 圆点」换成真正的 mark ——
+   实底圆角块 + 折线（深色底上白块、浅色底上黑块），随主题自动反相，
+   不依赖任何图片资源，缩放不失真。 */
+.logo-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; flex: none;
+  border-radius: var(--r-sm);
+  background: var(--text); color: var(--bg);
+}
+.logo-mark svg { width: 14px; height: 14px; display: block; }
 .logo .logo-dot {
   width: 7px;
   height: 7px;
@@ -49,7 +59,7 @@
   height: 34px;
   margin: 0 auto;                 /* 品牌与动作区之间居中 */
   padding: 3px;
-  background: var(--bg-sunken);
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: 999px;
   isolation: isolate;
@@ -68,10 +78,10 @@
   letter-spacing: 0.04em;
   color: var(--text-tertiary);
   white-space: nowrap;
-  transition: color var(--dur-2) var(--ease-out);
+  transition: color var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
 }
 .nav-primary:hover { color: var(--text-secondary); }
-.nav-primary.active { color: var(--text); }
+.nav-primary.active { color: var(--bg); }
 /* 按压反馈：进快出慢（进 = 无过渡，出 = 默认过渡） */
 .nav-primary:active { transform: scale(0.98); transition: none; }
 .nav-primary:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
@@ -88,8 +98,9 @@
   z-index: 0;
   width: calc((100% - 6px) / var(--ink-n, 5));
   border-radius: 999px;
-  background: rgba(var(--accent-rgb), 0.13);
-  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  /* 实心墨色：深空=白、日光=黑。
+     旧版是 13% 强调色蒙版 + 内描边，白底上是一块"脏灰"，看不出是当前项。 */
+  background: var(--text);
   transform: translateX(calc(var(--ink-i, 0) * 100%));
   transform-origin: 0 50%;
   transition: transform var(--dur-3) var(--ease-signature);
@@ -215,8 +226,8 @@
 .subnav-tabs .tab:hover { color: var(--text-secondary); background: rgba(var(--accent-rgb), 0.06); }
 .subnav-tabs .tab.active {
   color: var(--text);
-  background: rgba(var(--accent-rgb), 0.10);
-  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.28);
+  background: var(--bg-hover);
+  box-shadow: inset 0 0 0 1px var(--border-hover);
 }
 .subnav-tabs .tab:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 
@@ -601,6 +612,9 @@ html { scrollbar-width: thin; scrollbar-color: var(--border-hover) transparent; 
    并加一圈极弱光环，读起来是一枚 mark 而不是一颗残留圆点。 */
 @media (max-width: 640px) {
   .topbar .logo .logo-word { display: inline; letter-spacing: 0.12em; }
+  /* style.css 里有一条老规则 `.logo span:not(.logo-dot){display:none}`（旧版把品牌缩成圆点），
+     现在品牌标是 <span class="logo-mark">，那条规则会把它一起藏掉 —— 这里按同权重补回。 */
+  .topbar .logo .logo-mark { display: inline-flex; }
 }
 @media (max-width: 480px) {
   .topbar .logo .logo-word { display: none; }
@@ -610,3 +624,16 @@ html { scrollbar-width: thin; scrollbar-color: var(--border-hover) transparent; 
     outline: 3px solid rgba(var(--accent-rgb), 0.18); outline-offset: 1px;
   }
 }
+
+/* ============================================================ v3.1 收口：提醒角标
+   旧规则 background: var(--accent-signature) + color: #0a0a0b —— 日光模式下强调色是黑，
+   于是变成「黑底 + 近黑字」，数字看不见（截图上就是一块黑方块）。
+   而且 `.alert-badge{display:inline-block}` 盖掉了 [hidden] 的默认 display:none，
+   数量为 0 时也一直显示。 */
+.alert-badge {
+  display: inline-block; min-width: 16px; height: 16px; margin-left: var(--sp-4);
+  padding: 0 var(--sp-4); border-radius: var(--r-pill);
+  background: var(--text); color: var(--bg);
+  font-size: var(--fs-12); line-height: 16px; text-align: center; vertical-align: 1px;
+}
+.alert-badge[hidden] { display: none; }

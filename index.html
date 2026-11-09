@@ -48,7 +48,10 @@
      （由 js/ui/navmap.js 做纯函数映射），深链与既有模块不受影响。 -->
 <header class="topbar">
   <a class="logo" id="brandHome" href="#tab=market&amp;sub=all" title="OpenFinLens · 回到市场总览">
-    <span class="logo-dot" aria-hidden="true"></span>
+    <span class="logo-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+           stroke-linecap="round" stroke-linejoin="round"><path d="M5 16.5 L10 11 L13.6 14 L19 7.6"/></svg>
+    </span>
     <span class="logo-word">OpenFinLens</span>
   </a>
   <!-- 一级栏用 role=tablist + roving tabindex（同一时刻只有一个在 Tab 序里，方向键横向移动）。
