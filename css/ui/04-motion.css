@@ -379,3 +379,50 @@ body .view.active.mo-vt-skip { animation: none; }
     transform: none;
   }
 }
+
+/* ============================================================ 10. v3.2 丝滑度补丁
+   （用户反馈「感觉还是不够丝滑」，本轮按实测重做三处：
+
+   ① 换面板：View Transition 从「整页快照交叉淡出」收窄到内容区。
+      整页快照既贵（切 tab 实测 57ms 长任务）又会让顶栏跟着闪；
+      现在只给 .main 命名过渡，顶栏/跑马条/二级条不参与。
+   ② 同面板换二级（全部↔A股…）：旧版零过渡 = 硬切。补 160ms 淡入 + 4px 上浮。
+   ③ 内容入场：4px/180ms 提到 8px/200ms，位移看得出来但不飘。 */
+
+/* ① 命名过渡：只有内容区参与 */
+.main { view-transition-name: appview; }
+.topbar, .subbar, .tape, .cmd-host, .modal-overlay { view-transition-name: none; }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+::view-transition-old(root) { opacity: 0; }          /* 根快照里只剩没变化的顶栏，直接隐掉即可 */
+::view-transition-group(appview) { animation-duration: 200ms; animation-timing-function: var(--ease-out); }
+::view-transition-old(appview) { animation: moVtOut 120ms var(--ease-exit) both; }
+::view-transition-new(appview) { animation: moVtIn 200ms var(--ease-out) both; }
+@keyframes moVtOut { to { opacity: 0; transform: translateY(-3px); } }
+@keyframes moVtIn { from { opacity: 0; transform: translateY(8px); } }
+
+/* ② 同面板二级切换：由 app.js 在 setTab 里给面板加 .mo-sub-in（240ms 后移除） */
+body .view.mo-sub-in { animation: moSubIn 160ms var(--ease-out); }
+@keyframes moSubIn {
+  from { opacity: 0.35; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ③ 内容入场：8px / 200ms（原 4px / 180ms 太轻，像没动） */
+body .view.active { animation-duration: 200ms; }
+
+/* 减动效兜底 */
+@media (prefers-reduced-motion: reduce) {
+  .main { view-transition-name: none; }
+  ::view-transition-old(appview), ::view-transition-new(appview) { animation: none; }
+  body .view.mo-sub-in { animation: none; }
+}
+
+/* ============================================================ 11. v3.2 悬停补面
+   列表行（行情/席位/13F/新闻/期权）原来只有 :hover 换底色、没有过渡 ——
+   鼠标扫过去是"一格一格闪"，这也是"不够丝滑"的体感来源之一。
+   用 :where() 保持零特异性，不覆盖各层已有的 transform/border 过渡。 */
+:where(.qrow, .brow, .srow, .news-item, .opt-tr, .heat-table tr) {
+  transition: background-color var(--dur-1) var(--ease-out),
+              border-color var(--dur-1) var(--ease-out);
+}
+

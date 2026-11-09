@@ -214,8 +214,18 @@
     var batch = [];
     pendingNum.forEach(function (_, n) { batch.push(n); });
     pendingNum.clear();
-    for (var i = 0; i < batch.length && i < 60; i++) rollNum(batch[i]);
-    if (batch.length > 60) pendingNum.set(batch[60], 1);
+    /* v3.2：行情 10s 一轮，全表几十个数字同时滚会明显「发花」。
+       只滚视口内的节点，单批上限 24；超出的直接落到终值（不播动画）。 */
+    var budget = 24;
+    for (var i = 0; i < batch.length; i++) {
+      var node = batch[i];
+      var inView = false;
+      try {
+        var rect = node.getBoundingClientRect();
+        inView = rect.bottom > -80 && rect.top < (window.innerHeight || 0) + 80;
+      } catch (err) { inView = false; }
+      if (inView && budget > 0) { rollNum(node); budget -= 1; }
+    }
     if (pendingNum.size && !numRaf) numRaf = raf(flushNum);
   }
 
@@ -481,8 +491,14 @@
      增强方案：一级 tab 点击时用 View Transitions API 包一层（旧页快照 → 新页快照交叉淡出）。
      只用在一级栏：它切换的是整块视图，快照值得；二级栏/命令面板不包（会跟内部重排打架）。
      失败/不支持/减动效 → 静默退回 CSS 方案，用户无感。 */
+  /* v3.2：View Transition 默认关闭。
+     原因不是兼容性，是成本：切一次一级 = 对 1440×1000 的整页做两个快照（含热力图 canvas），
+     实测稳定产生一次 ~59ms 的长任务 —— 那一帧的卡顿正是「不够丝滑」的来源。
+     CSS 的 opacity+translateY 只走合成层，同样能把「换页」讲清楚，且不掉帧。
+     想找回快照交叉淡出，把 USE_VT 改回 true 即可（下面的逻辑保留完整）。 */
+  var USE_VT = false;
   function initPageTransition() {
-    if (reduce || !doc.startViewTransition) return;
+    if (!USE_VT || reduce || !doc.startViewTransition) return;
     var busy = false;
 
     /* 收尾：只有"过渡真的跑过"才给新视图打 .mo-vt-skip（否则跳过过渡时连 CSS 兜底动画也没了）。

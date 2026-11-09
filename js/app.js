@@ -228,6 +228,13 @@
   let _rmVal = _rmMQ.matches;
   if (_rmMQ.addEventListener) _rmMQ.addEventListener('change', (e) => { _rmVal = e.matches; });
   const reduceMotion = () => _rmVal;
+  /* 把非关键渲染推到「这一帧画完之后」：先给用户新内容，再补重活。
+     双 rAF：第二帧的回调一定在首帧绘制之后；不支持时退 setTimeout。 */
+  function afterPaint(fn) {
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(function () { requestAnimationFrame(fn); });
+    } else { setTimeout(fn, 16); }
+  }
 
   /* ---- 加密内容内部开关（界面上没有任何入口；为微信小程序合规预留）----
      默认开。联调/合规场景：URL 带 ?crypto=off 关闭（写入本机记住），?crypto=on 重新打开，
@@ -554,7 +561,10 @@
         : '数据来自备用源';
     const degText = deg === 'cache' ? '缓存' : deg === 'stale' ? '旧值' : '备源';
     const amt = q.amount ? fmtVol(q.amount) : '--';   // 成交额缺失显示 --，不用成交量顶替（量纲不同）
-    const delay = (!animate || reduceMotion()) ? 0 : Math.min(idx, 12) * 60;
+    /* v3.2：原来是 60ms×12 档 = 最后一行要等 720ms 才出来，整张表像"慢慢爬"，
+       与被骂的"不够丝滑"直接相关。改成 22ms×8 档（最长 176ms），配合 220ms 动画，
+       整表在 400ms 内到位；错峰的"层次感"还在，但不再让人等。 */
+    const delay = (!animate || reduceMotion()) ? 0 : Math.min(idx, 8) * 22;
     return `<div class="qrow${animate && !reduceMotion() ? ' stagger-in' : ''}" data-symbol="${escapeHTML(q.symbol)}"
         tabindex="0" role="button" aria-label="${escapeHTML(quoteAriaLabel(q.name, q, digits))}"
         style="animation-delay:${delay}ms">
@@ -792,10 +802,31 @@
    * 原因见 js/spark.js 的对齐模式说明——各按自己的 min-max 缩放时，
    * 既看不出幅度差别，x 轴上的"第 N 根"又根本不是同一天（用户反馈"不对齐"）。
    * 自选卡是单序列，单独看没有"跟谁比"的问题，继续用原样即可。 */
+  /* 走势线要用的 CSS 颜色：按 (主题, 涨跌方向) 缓存，避免每次渲染触发强制样式重算。 */
+  let _sparkCols = null, _sparkColsKey = '';
+  function sparkColor(name) {
+    const key = (document.documentElement.dataset.theme || '') + '|' + (document.body.dataset.updown || '');
+    if (!_sparkCols || _sparkColsKey !== key) {
+      const cs = getComputedStyle(document.body);
+      _sparkCols = {
+        up: cs.getPropertyValue('--up').trim() || '#ff5c5c',
+        down: cs.getPropertyValue('--down').trim() || '#2ebd85',
+        border: cs.getPropertyValue('--border').trim(),
+      };
+      _sparkColsKey = key;
+    }
+    return _sparkCols[name];
+  }
+
   function hydrateSparks(root) {
     if (!root || !window.Spark) return;
-    const up = getComputedStyle(document.body).getPropertyValue('--up').trim() || '#ff5c5c';
-    const down = getComputedStyle(document.body).getPropertyValue('--down').trim() || '#2ebd85';
+    /* v3.2：颜色按「主题 + 涨跌色」缓存。
+       getComputedStyle 会强制一次同步样式重算——这个页面 DOM 上万节点，一次就是几十毫秒；
+       原来每条走势线都读一遍（profile 里占 7%，正好是切 tab 那次长任务的主体）。
+       现在只在主题/涨跌色变化后的第一次渲染读一次。 */
+    const up = sparkColor('up');
+    const down = sparkColor('down');
+    const borderCol = sparkColor('border');
     const heroSyms = new Set(HERO_KEYS);
     // 先把 hero 的几条序列凑齐，算出共享日期轴与共享标尺
     const heroSeries = heroKeys().map(sym => ({
@@ -808,12 +839,27 @@
     // 对齐模式下画布宽度必须四格一致（首格曾有 padding 特例，已在 CSS 去掉）。
     // 若此刻宽度还没量出来（DOM 刚插入、尚未布局），延后一帧再画——
     // 否则会静默退回单序列模式，出现"有时对齐有时不对齐"。
-    const widths = Array.from(root.querySelectorAll('canvas[data-spark]'))
-      .map(cv => cv.clientWidth || 0);
-    if (widths.some(w => w === 0)) {
+    /* v3.2：先算「画出来的东西会不会变」的签名，没变就直接返回。
+       之前每次切回「全部」都会重画全部走势线 + 逐张 canvas 读 clientWidth
+       （读宽度 = 强制布局，profile 里这段占 ~7%，就是切 tab 那一下的卡顿主体）。 */
+    const _firstCv = root.querySelector('canvas[data-spark]');
+    const _w0 = _firstCv ? (_firstCv.clientWidth || 0) : 0;
+    if (!_w0) {
       requestAnimationFrame(() => hydrateSparks(root));
       return;
     }
+    const _sig = [
+      document.documentElement.dataset.theme || '',
+      document.body.dataset.updown || '',
+      _w0,
+      heroSeries.map(s2 => {
+        const last = s2.rows[s2.rows.length - 1] || {};
+        return s2.key + ':' + s2.rows.length + ':' + (last.time || '') + ':' + (last.close || '');
+      }).join(','),
+    ].join('|');
+    if (root.dataset.sparkSig === _sig) return;
+    root.dataset.sparkSig = _sig;
+    const widths = [_w0];
 
     root.querySelectorAll('canvas[data-spark]').forEach(cv => {
       const sym = cv.getAttribute('data-spark');
@@ -834,7 +880,7 @@
         ok = pts ? window.Spark.drawAligned(cv, pts, {
           color, width: 1.8, axisLen: aligned.axis.length,
           zeroY: window.Spark.zeroLineY(scale, h),
-          zeroColor: getComputedStyle(document.body).getPropertyValue('--border').trim(),
+          zeroColor: borderCol,
           endMark: true,   // 末点标出累计涨跌的高度：曲线全程要覆盖波动，末值高低才是主要比较量
         }) : false;
       }
@@ -4560,7 +4606,10 @@
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     const node = $('view-' + view);
     if (node) node.classList.add('active');
-    window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' });
+    /* v3.2：切视图时一律瞬时回到顶部。原来是 smooth —— 每次切 tab 页面都在"缓慢上滑"，
+       同时内容又换了一批，两种运动叠加就是这个站点最明显的"不丝滑"（profile 里 scrollTo 占 5.6%）。
+       平滑滚动只保留给"点 logo / 返回顶部"这类明确动作。 */
+    if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
   /* ==================== 二级分区（一级 tab 下的第二层）====================
@@ -4881,6 +4930,7 @@
     if (tab === 'crypto' && !CRYPTO_ON) tab = 'all';   // 合规开关：加密深链/快捷键归位「全部」
     if (tab === 'option' && !OPTIONS_ON) tab = 'all';   // 合规开关：期权深链/快捷键归位「全部」（照抄加密）
     const animate = !opts || opts.animate !== false;   // 返回详情/改设置时不重播入场动画
+    const prevView = state.view;                       // 用于区分「换面板」与「同面板换二级」
     // 重复点击同一 tab：短路，避免整墙重建 + stagger 重播 + 焦点丢失
     if (tab === state.tab && state.view === (VIEW_OF_TAB[tab] || 'market')) return;
     // 从详情/席位档案直接切走（数字键/点 tab）：清理详情态，否则标题残留、后退出现"死点"
@@ -4904,8 +4954,19 @@
     const labelNode = (el.subbar && !el.subbar.hidden) ? activeBtn : (primaryBtn || activeBtn);
     if (panel && labelNode && labelNode.id) panel.setAttribute('aria-labelledby', labelNode.id);
     if (activeBtn && !(el.subbar && el.subbar.hidden) && activeBtn.scrollIntoView) {
-      try { activeBtn.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduceMotion() ? 'auto' : 'smooth' }); }
-      catch { /* 旧浏览器不支持 options 形参 */ }
+      /* v3.2：原来用 scrollIntoView({behavior:'smooth'}) —— 它会把**整页**一起平滑滚动，
+         切一次 tab 页面跟着滚一下，这是「不丝滑」最明显的一处（profile 里 scrollTo 占 7%）。
+         现在只把二级条自己的横向滚动位置调一下，纵向一律不动。 */
+      try {
+        const bar = el.tabs;
+        if (bar && bar.scrollWidth > bar.clientWidth) {
+          const br = bar.getBoundingClientRect();
+          const ar = activeBtn.getBoundingClientRect();
+          if (ar.left < br.left || ar.right > br.right) {
+            bar.scrollLeft += Math.round(ar.left - br.left - (br.width - ar.width) / 2);
+          }
+        }
+      } catch { /* 无布局信息时忽略 */ }
     }
     /* 焦点跟着切换走：读屏用户按数字键切板块时，焦点原来还留在 body，
        没有任何"已切换"的提示。焦点落到激活的 tab 上，读屏会念出 tab 名 + 面板名。 */
@@ -4913,6 +4974,16 @@
       try { activeBtn.focus({ preventScroll: true }); } catch (e) { activeBtn.focus(); }
     }
     setView(view);
+    /* v3.2：同一个面板内换二级（全部↔A股、自选↔持仓…）时，DOM 只改局部文字，
+       旧版没有过渡，眼睛读到的是「硬切」。这里给面板补一次 160ms 的轻微淡入 + 4px 上浮；
+       换面板时不加——那条路由 .view.active 入场动画 + View Transition 负责，两边不叠加。 */
+    if (prevView === view && animate && panel) {
+      panel.classList.remove('mo-sub-in');
+      void panel.offsetWidth;            // 强制重排，让动画能重播
+      panel.classList.add('mo-sub-in');
+      clearTimeout(panel.__moSubTimer);
+      panel.__moSubTimer = setTimeout(function () { panel.classList.remove('mo-sub-in'); }, 240);
+    }
     // 视图切完再对一次 roving tabindex：新露出来的面板里那些 tablist
     // （基金页子视图等）在隐藏时是同步不到可见 tab 的
     syncAllRovingTabs();
@@ -4950,13 +5021,17 @@
     }
     // Movers 三榜：只对有全市场行情的市场 tab 显示（2026-09-17）
     if (MOVERS_DEFS[tab]) {
-      renderMovers();
+      afterPaint(renderMovers);
       if (validMoverRows(MOVERS_DEFS[tab].rows()).length < 5) loadMovers();
     } else if (el.moversSection) {
       el.moversSection.hidden = true;
     }
-    // 进哪个市场 tab 就自动切到该市场的热力图，不用手点
-    if (heatMkt) switchHeat(heatMkt);
+    /* v3.2：热力图重排 + 榜单渲染是这个处理器里最重的两段（实测切 tab 有 57ms 长任务）。
+       推迟到本帧绘制之后执行：用户先看到新面板，再看到图补齐——比「卡一下再一起出来」顺。 */
+    afterPaint(function () {
+      // 进哪个市场 tab 就自动切到该市场的热力图，不用手点
+      if (heatMkt) switchHeat(heatMkt);
+    });
     // 世界经济仪表盘与宏观策略面板只在外汇宏观 tab 显示；全球指数条首次进市场视图时加载
     if (el.macroBox) el.macroBox.hidden = tab !== 'fxmacro';
     if (el.macroStrategy) el.macroStrategy.hidden = tab !== 'fxmacro';
