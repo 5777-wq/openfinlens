@@ -109,7 +109,9 @@ test('设置里没这一项的老用户，算开着（不受影响）', () => {
 
 test('index.html 必须加载这个模块', () => {
   const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  assert.ok(html.includes('js/academy-gate.js'), '没加载 academy-gate.js');
+  /* v3.3：脚本已打进 bundle，改成核对加载清单。 */
+  const bundleFiles = JSON.parse(readFileSync(path.join(ROOT, '_scripts/js-bundle.manifest.json'), 'utf8')).files;
+  assert.ok(bundleFiles.includes('js/academy-gate.js') || html.includes('js/academy-gate.js'), '没加载 academy-gate.js');
   assert.ok(/id="swAcademy"/.test(html), '设置里没有这个开关');
 });
 

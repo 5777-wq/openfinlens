@@ -231,8 +231,11 @@ test('gloss-tip.js 必须接住悬停、滚动与 Esc（否则浮层会挂在屏
 test('index.html 必须同时挂上科普站入口与浮层脚本', () => {
   const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   assert.ok(html.includes('https://5777-wq.github.io/openfin-academy/'), '顶栏缺少科普站链接');
-  assert.ok(html.includes('js/gloss-tip.js'), '没加载浮层脚本');
-  assert.ok(html.includes('js/data/academy-gloss.js'), '没加载映射表');
+  /* v3.3：脚本已打进 bundle，改成核对加载清单（未打包时仍看 index.html）。 */
+  const bundleFiles = JSON.parse(readFileSync(path.join(ROOT, '_scripts/js-bundle.manifest.json'), 'utf8')).files;
+  const loaded = (f) => bundleFiles.includes(f) || html.includes(f);
+  assert.ok(loaded('js/gloss-tip.js'), '没加载浮层脚本');
+  assert.ok(loaded('js/data/academy-gloss.js'), '没加载映射表');
   assert.ok(!/姊妹站/.test(html), '顶栏不该再出现「姊妹站」这类关系称呼');
 });
 

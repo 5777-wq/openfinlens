@@ -318,7 +318,9 @@ test('charts.js 不得再自带一份均线调色板字面量', () => {
 
 test('index.html 的业务资源 ?v= 必须全部同版本（防缓存穿透失效）', () => {
   const vers = [...HTML.matchAll(/\?v=(20\d{6}[a-z])/g)].map(m => m[1]);
-  assert.ok(vers.length > 10, '没扫到预期的 ?v=，选择器可能失效');
+  // v3.3：业务脚本打成一个 bundle 后，业务资源的 ?v= 只剩 5 个 CSS + 1 个 JS。
+  // 断言意图不变：扫到的每一个都必须同版本。
+  assert.ok(vers.length >= 5, '没扫到预期的 ?v=，选择器可能失效');
   const uniq = [...new Set(vers)];
   assert.equal(uniq.length, 1, `版本号不统一（漏 bump 会导致用户看到旧缓存）：${uniq.join(' ')}`);
 });
@@ -655,7 +657,11 @@ test('三个弹层都接了公共焦点陷阱（js/focus-trap.js）', () => {
     const src = readFileSync(path.join(ROOT, f), 'utf8');
     assert.ok(/FocusTrap/.test(src), f + ' 没有接公共焦点陷阱（Tab 会跑出弹层 / 关掉后焦点丢失）');
   });
-  assert.ok(/js\/focus-trap\.js\?v=/.test(HTML), 'index.html 里没有加载 js/focus-trap.js');
+  /* v3.3：业务脚本打成一个 bundle 后，index.html 不再有单独的 focus-trap 标签。
+     判据改成「加载清单里有它」——打包或未打包都成立。 */
+  const bundleFiles = JSON.parse(readFileSync(path.join(ROOT, '_scripts/js-bundle.manifest.json'), 'utf8')).files;
+  assert.ok(bundleFiles.includes('js/focus-trap.js') || HTML.includes('js/focus-trap.js'),
+    '没有加载 js/focus-trap.js（bundle 清单与 index.html 都没有）');
 });
 
 test('一级 tab 是 roving tabindex（同一时刻只占一个 Tab 位）', () => {
