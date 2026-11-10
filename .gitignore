@@ -35,3 +35,6 @@ _qa/qa-report.json
 _qa/tokens-block.css
 _qa/light-block.css
 _qa/classes.txt
+
+# 第三方项目调研产物（含对方 AGPL 内容，绝不入库）
+_qa/os/

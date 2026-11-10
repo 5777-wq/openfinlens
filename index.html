@@ -17,6 +17,14 @@
      系统回退栈已在 CSS 内补全，Google Fonts 加载失败时也不会塌。
      字体 CSS 非阻塞加载（preload + media 切换）：跨境链路慢时不再阻塞首屏渲染，
      display=swap 保证字体到达前后都有字；禁 JS 时由 noscript 回退为阻塞加载 -->
+<!-- v3.3 首屏提速：行情源预连接（DNS+TLS 握手提前做，首屏 fetch 少 1~2 个 RTT）。
+     只挑首屏真正会打的四个域名，多了反而抢连接。 -->
+<link rel="preconnect" href="https://qt.gtimg.cn">
+<link rel="preconnect" href="https://web.ifzq.gtimg.cn">
+<link rel="preconnect" href="https://push2.eastmoney.com">
+<link rel="preconnect" href="https://push2his.eastmoney.com">
+<link rel="dns-prefetch" href="//qt.gtimg.cn">
+<link rel="dns-prefetch" href="//push2.eastmoney.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style"
@@ -156,8 +164,10 @@
            用两条长条再讲一遍，与下方指数卡完全重复；用户原话「这个玩意啥用都没有」。
            市场宽度仍在「市场 → 情绪」分区里完整保留。 -->
       <div class="hero-cap" id="heroCap" hidden></div>
-      <div class="hero" id="heroStrip" role="group" aria-label="关键指数"></div>
-      <div class="globe-grid" id="globeBar" aria-label="全球指数"><span class="gcell num">全球指数加载中…</span></div>
+      <!-- v3.3：骨架写进静态 HTML。JS 执行前（慢网下可能 1~2s）先给位置和呼吸感，
+           否则首屏是一块空白，看起来像页面坏了。数据一到由 renderHero 整块替换。 -->
+      <div class="hero" id="heroStrip" role="group" aria-label="关键指数"><div class="hero-cell"><div class="sk sk-hero-a"></div><div class="sk sk-hero-b"></div><div class="sk sk-hero-c"></div></div><div class="hero-cell"><div class="sk sk-hero-a"></div><div class="sk sk-hero-b"></div><div class="sk sk-hero-c"></div></div><div class="hero-cell"><div class="sk sk-hero-a"></div><div class="sk sk-hero-b"></div><div class="sk sk-hero-c"></div></div><div class="hero-cell"><div class="sk sk-hero-a"></div><div class="sk sk-hero-b"></div><div class="sk sk-hero-c"></div></div></div>
+      <div class="globe-grid" id="globeBar" aria-label="全球指数"><span class="gcell gcell-sk"><i class="sk"></i><i class="sk"></i></span><span class="gcell gcell-sk"><i class="sk"></i><i class="sk"></i></span><span class="gcell gcell-sk"><i class="sk"></i><i class="sk"></i></span><span class="gcell gcell-sk"><i class="sk"></i><i class="sk"></i></span><span class="gcell gcell-sk"><i class="sk"></i><i class="sk"></i></span><span class="gcell gcell-sk"><i class="sk"></i><i class="sk"></i></span></div>
     </div>
 
     <!-- ===== 分区导航：一级 tab → 二级分区 =====

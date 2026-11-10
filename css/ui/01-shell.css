@@ -34,6 +34,22 @@
   background: var(--text); color: var(--bg);
 }
 .logo-mark svg { width: 14px; height: 14px; display: block; }
+
+/* 首屏 hero 的骨架：数据没到时先把四格的位置占住，避免"整块空白像坏了"。 */
+/* 静态骨架格（全球指数条）：JS 到位前也占住位置，不塌成一句"加载中"。
+   注意：style.css 里 `#globeBar .gcell` 是"加载占位整行跨满"的旧规则（grid-column:1/-1），
+   骨架格必须显式撤掉，否则 6 格会叠成 6 行。 */
+#globeBar span.gcell-sk {
+  grid-column: auto;
+  display: flex; flex-direction: column; gap: var(--sp-8);
+  padding: var(--sp-12) var(--sp-16);
+  border: 0; border-right: 1px solid var(--border-soft); border-radius: 0;
+}
+.gcell-sk .sk:first-child { height: 10px; width: 54%; }
+.gcell-sk .sk:last-child { height: 18px; width: 74%; }
+.sk-hero-a { height: 12px; width: 44%; margin-bottom: var(--sp-12); }
+.sk-hero-b { height: 28px; width: 66%; margin-bottom: var(--sp-12); }
+.sk-hero-c { height: 10px; width: 34%; }
 .logo .logo-dot {
   width: 7px;
   height: 7px;
@@ -637,3 +653,8 @@ html { scrollbar-width: thin; scrollbar-color: var(--border-hover) transparent; 
   font-size: var(--fs-12); line-height: 16px; text-align: center; vertical-align: 1px;
 }
 .alert-badge[hidden] { display: none; }
+
+/* 热力图容器在 JS 量出 canvas 尺寸前没有高度 → 加载期是一块纯白。
+   给个最小高度，让静态骨架（#heatSk）有地方显示。 */
+.heat-wrap { min-height: 420px; }
+@media (max-width: 640px) { .heat-wrap { min-height: 300px; } }

@@ -678,7 +678,8 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
   border: 1px solid var(--border); border-left: 2px solid var(--border-hover);
   background: var(--bg-card); line-height: 1.6; }
 
-.sk { background: rgba(255,255,255,0.05); animation: skPulse 1.4s ease-in-out infinite; }
+/* v3.3：写死的 5% 白在日光模式（白底）上等于不可见 —— 骨架屏会变成"一片空白"。改用令牌。 */
+.sk { background: var(--bg-hover); animation: skPulse 1.4s ease-in-out infinite; }
 @keyframes skPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 .sk-card { height: 36px; margin-bottom: 1px; }
 .sk-row { height: 52px; margin-bottom: 1px; }

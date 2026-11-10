@@ -2916,8 +2916,25 @@
     symbol: x.symbol, secid: x.secid, flag: x.flag, name: x.name,
   }));
   async function loadGlobe() {
-    const qs = await window.EastmoneySource.getQuotes(GLOBAL_IDX.map(x => x.secid));
+    if (state.globeLoading) return;            // v3.3：提前并发启动后，setTab 再触发不重复请求
+    // v3.3：先用缓存把这一条铺上，网络回来再刷新（老访客不再看 566ms 的空条）
+    if (!state.globeQuotes) {
+      const cached = [];
+      GLOBAL_IDX.forEach(function (x) {
+        const c = Cache.raw('gq:' + x.secid);
+        if (c && c.val) cached.push(Object.assign({}, c.val, { cachedAt: c.at }));
+      });
+      if (cached.length) {
+        state.globeQuotes = new Map(cached.map(function (q) { return [q.secid, q]; }));
+        renderGlobe();
+      }
+    }
+    state.globeLoading = true;
+    let qs = [];
+    try { qs = await window.EastmoneySource.getQuotes(GLOBAL_IDX.map(x => x.secid)); }
+    finally { state.globeLoading = false; }
     if (qs.length) {
+      qs.forEach(function (q) { if (q && q.secid) Cache.set('gq:' + q.secid, q); });
       state.globeQuotes = new Map(qs.map(q => [q.secid, q]));
       renderGlobe();
     }
@@ -5511,7 +5528,10 @@
       if (c && c.h && c.h !== state.chart && c.h.applyTheme) c.h.applyTheme();
     });
     if (state.view === 'watch') renderWatchlist();
-    if (state.view === 'chain') renderChains();
+    if (state.view === 'chain') {
+      renderChains();
+      if (!state.chainQuotes.size) loadChainQuotes().then(renderChains).catch(function () {});
+    }
     if (state.tab === 'cn') renderMood();   // 情绪小节在 A股板块内，色带跟随红绿模式
   }
 
@@ -6950,6 +6970,21 @@
     }
     if (el.heatReset && touchLike) el.heatReset.hidden = false;
 
+    /* v3.3 首屏提速①：缓存优先。
+       老访客上一次的行情就在 localStorage 里，先把它们铺上去（带 cache 角标），
+       网络那一轮回来再原地刷新——"打开就是空的、等两秒才出数"是最刺眼的那种慢。 */
+    try {
+      fillFromCache(TENCENT_SYMS);
+      fillFromCache(window.EM_UNIVERSE.map(x => x.symbol));
+      if (state.quotes.size) { renderTape(); renderHero(); renderCardWall(); }
+    } catch (e) { /* 缓存坏了就退回骨架 */ }
+
+    /* v3.3：hero 也要骨架。'all' 页的指数表已删，数据没到时首屏只剩标题 + 空框，
+       看起来像"页面坏了"而不是"正在加载"。这里先把 4 格的位置占住。 */
+    if (el.heroStrip && !el.heroStrip.children.length) {
+      el.heroStrip.innerHTML = '<div class="hero-cell"><div class="sk sk-hero-a"></div><div class="sk sk-hero-b"></div><div class="sk sk-hero-c"></div></div>'.repeat(4);
+    }
+
     // 首屏骨架：数据到达前先给结构（opacity 呼吸），不白屏
     el.cardWall.innerHTML = '<div class="section"><div class="card-grid">' +
       '<div class="sk sk-card"></div>'.repeat(8) + '</div></div>';
@@ -6967,11 +7002,16 @@
 
     // 首屏只等行情（47 标的，数百毫秒级）；全市场热力图（56 页并发）走后台加载——
     // 它曾把首屏阻塞 1-3 秒，是"打开变慢"的主因。到位后补画热力图并计算市场宽度。
+    /* v3.3 首屏提速②：全球指数条与热力图都在后台并发，不再排在行情 await 之后。 */
+    void loadGlobe();
     const heatBg = loadHeatCN().then(() => {
       drawHeat();
       return loadMood();   // 市场宽度/情绪历史/加密宽度一并在后台算好
     }).catch(() => {});
-    await fetchAllQuotes();
+    /* v3.3 首屏提速③：最多等 3.5s。
+       原来直接 await fetchAllQuotes()，只要有一个源挂住（实测 10s 超时），
+       整屏就一直是骨架。现在到点先渲染已到的数据，晚到的由后续轮询补上。 */
+    await Promise.race([fetchAllQuotes(), new Promise(function (r) { setTimeout(r, 3500); })]);
     renderTape();
     renderHero();
     renderCardWall();
@@ -6991,8 +7031,10 @@
 
     // 新闻/研报不再启动即抓：首次进入对应 tab 时懒加载（setTab 分支），避免白跑请求
     // 首屏就把产业链渲染好，切到该 tab 时不会先看到空白
-    loadChainQuotes().then(renderChains);
-    loadGlobe();
+    /* v3.3 首屏提速④：产业链要拉 163 只标的，原来在首屏就和 47 只主标的抢带宽。
+       改成空闲时预取（不抢首屏），进「洞察」tab 时若还没数据立刻补。 */
+    const idle = window.requestIdleCallback || function (f) { return setTimeout(f, 1500); };
+    idle(function () { loadChainQuotes().then(renderChains).catch(function () {}); });
     if (CRYPTO_ON) loadHeatCrypto();
 
     // 基金对比：把节点交给视图模块（它自己绑定控件、自己取数）。
