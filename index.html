@@ -41,13 +41,11 @@
 <meta name="apple-mobile-web-app-title" content="OpenFinLens">
 <!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
      对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
-<link rel="stylesheet" href="css/style.css?v=20261108a">
-<!-- UI v2 分层（顺序是契约）：tokens 在 style.css → 01 外壳 → 02 行情 → 03 面板 → 04 动效。
-     每层只消费 style.css 的令牌；01-shell.css 由 shell 独占。 -->
-<link rel="stylesheet" href="css/ui/01-shell.css?v=20261108a">
-<link rel="stylesheet" href="css/ui/02-market.css?v=20261108a">
-<link rel="stylesheet" href="css/ui/03-panels.css?v=20261108a">
-<link rel="stylesheet" href="css/ui/04-motion.css?v=20261108a">
+<!-- v3.4 首屏提速：5 个 CSS 层合成 1 个（css/bundle.css）。
+     原来是 5 个渲染阻塞请求、合计 88KB(gzip)，最后一个文件把 FCP 卡在 1.1s（TTFB 才 0.5s）；
+     合成 1 个、再去注释压空白后 ≈34KB。层叠顺序不变（style → shell → market → panels → motion），
+     源码仍分层放 css/ 与 css/ui/，改完样式跑 `node _scripts/build-css.mjs`。 -->
+<link rel="stylesheet" href="css/bundle.css?v=20261110a">
 </head>
 <body data-updown="red">
 
@@ -981,8 +979,9 @@
   </div>
 </div>
 
-<!-- 图表库本地化（v4.2.3 锁版）：原 unpkg latest 不锁版本，上游发版或 CDN 不可达时详情页全废 -->
-<script defer src="lib/lightweight-charts.standalone.production.js?v=4.2.3"></script>
+<!-- 图表库本地化（v4.2.3 锁版）：原 unpkg latest 不锁版本，上游发版或 CDN 不可达时详情页全废。
+     v3.4 起不在首屏加载（50KB gzip，只有点开详情/K线才用得到）：
+     app.js 的 loadLazyBundle() 会在拉 bundle-lazy 的同时把它注入。 -->
 <!-- 平面地图的本地 vendor：topojson 解析国界、d3-geo 做投影 + 在 ±180° 处切跨线几何（俄罗斯/斐济/南极）
      + geoContains 做点在多边形国家命中。禁止运行时海外 CDN（lib/THIRD_PARTY.md）。
      defer 加载不阻塞开屏，worldmap.js 只在首次进入"事件"页时才真正使用它们 -->
@@ -992,7 +991,7 @@
 <!-- v3.3 首屏提速：69 个业务脚本打成一个包（js/bundle.js）。
      慢网实测单个小文件要排队 ~1.9s，打包后只剩 1 个请求；源码仍在 js/ 下，
      改完源码跑 `node _scripts/build-js-bundle.mjs` 重新生成（顺序见 _scripts/js-bundle.manifest.json）。 -->
-<script defer src="js/bundle.js?v=20261108a"></script>
+<script defer src="js/bundle.js?v=20261110a"></script>
 <!-- 弹层焦点工具：进焦点 / Tab 循环 / 退出还焦点。设置弹层、分享弹层、到价提醒弹层共用一套。 -->
 <!-- 期权数据源（window.OptionSource）：T 型报价的链数据/月份表，受 OPTIONS_ON 合规开关管辖 -->
 <!-- news-engine / event-engine / llm-provider 不在这里加载（2026-10-20 摘除）：

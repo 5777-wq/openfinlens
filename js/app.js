@@ -236,6 +236,49 @@
     } else { setTimeout(fn, 16); }
   }
 
+  /* 首屏后懒加载包（js/bundle-lazy.js）：
+     只被「点开详情 / 基金 / 持仓 / 事件 / 科普」才用到的模块被切了出去
+     （清单见 _scripts/js-bundle.manifest.json 的 lazy）。
+     首屏骨架铺好后立刻开始下载（只占空闲带宽，不与行情请求抢），
+     真正 await 它的位置在首屏渲染完成之后、装配各面板之前。
+     拉取失败也只是少几个面板：下面所有 mount 都有 window.X 守卫，行情不受影响。 */
+  let _lazyReady = null;
+  let _lazyDone = false;   // 包已到齐（或已失败）：交互入口据此决定要不要挂起
+  function loadScriptOnce(src) {
+    return new Promise(function (res, rej) {
+      const s = document.createElement('script');
+      s.src = src; s.async = true;
+      s.onload = function () { res(); };
+      s.onerror = function () { rej(new Error('脚本加载失败：' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+  function loadLazyBundle() {
+    if (_lazyReady) return _lazyReady;
+    /* 版本号取首屏包自己的 ?v=，这样 index.html 里升一次版本，两个包一起换缓存 */
+    let v = String(Date.now());
+    try {
+      const s = document.querySelector('script[src*="js/bundle.js"]');
+      const m = s && /[?&]v=([^&]+)/.exec(s.src);
+      if (m) v = m[1];
+    } catch (e) { /* 取不到就用时间戳，最坏情况是多下一份 */ }
+    /* 图表库跟着懒加载包一起下：charts.js 只在函数里取 window.LightweightCharts，
+       两者并行加载是安全的（库没到时建图函数返回 null，不会抛）。 */
+    _lazyReady = Promise.all([
+      loadScriptOnce('lib/lightweight-charts.standalone.production.js?v=4.2.3').catch(function () {}),
+      loadScriptOnce('js/bundle-lazy.js?v=' + v),
+    ]).then(function () { _lazyDone = true; }, function (e) { _lazyDone = true; throw e; });
+    return _lazyReady;
+  }
+
+  /* 懒加载包还没到就点了某个入口（实测慢网下这段窗口有 0.3~1s）：
+     把这次操作挂起，包到齐后原样重放一次，而不是渲染出「一半有数据、一半没模块」的面板。
+     包已经失败时（_lazyDone 但模块仍缺）直接放行——各模块自己的 window.X 守卫会兜底。 */
+  function whenLazy(fn) {
+    if (!_lazyReady || _lazyDone) { fn(); return; }
+    _lazyReady.then(fn, fn);
+  }
+
   /* ---- 加密内容内部开关（界面上没有任何入口；为微信小程序合规预留）----
      默认开。联调/合规场景：URL 带 ?crypto=off 关闭（写入本机记住），?crypto=on 重新打开，
      或直接 localStorage['ofl:crypto']='off'。关闭后加密 tab/卡片/热力图/宽度/新闻/详情
@@ -2055,6 +2098,7 @@
 
   // 打开详情时与图表并行取一次日K → Technical.analyze → 渲染指标卡
   async function loadTechnical() {
+    if (!window.Explain) return;   // 懒加载包未到（详情入口已门控，这里兜底）
     const t = state.detail;
     const box = el.detailInsight;
     if (!t || !box) return;
@@ -2123,6 +2167,8 @@
 
   async function openDetail(target, opts) {
     if (target && target.market === 'crypto' && !CRYPTO_ON) return;   // 合规开关：加密标的详情不放行
+    // 详情页依赖懒加载包（图表库 / 历史源 / 副图指标）：没到齐就等一下，而不是画空图
+    if (!_lazyDone && _lazyReady) { try { await _lazyReady; } catch (e) { /* 掉了也继续：守卫兜底 */ } }
     // 防御：hashchange/popstate 曾在 IIFE 顶层注册（早于 init 填充 el），
     // 窗口期内的深链导航会命中空 el 直接 TypeError。真深链由 init 尾部的 renderFromHash 兜底
     if (!el.detailName) return;
@@ -2746,6 +2792,7 @@
   /* ==================== 新闻流 ==================== */
 
   async function loadNews() {
+    if (!window.NewsSource) return;   // 懒加载包未到（进入该页已由 setTab 挂起）
     const { list, via, cachedAt } = await window.NewsSource.getNews();
     const known = new Set(state.news.map(x => x.id));
     state.news = list;
@@ -2756,6 +2803,7 @@
   }
 
   function newsFiltered() {
+    if (!window.NewsSource) return [];   // 懒加载包未到：当作没有新闻（不抛）
     const kw = (el.searchInput.value || '').trim();
     const isNewsView = state.tab === 'events' && state.eventsSub === 'news';
     return state.news.filter(it => {
@@ -2769,6 +2817,7 @@
 
   // 新闻板块 pill：由当前新闻池动态生成（有内容的板块才显示），横滚
   function renderNewsCatBar() {
+    if (!window.NewsSource) return;
     if (!el.newsCatBar) return;
     const counts = {};
     state.news.forEach(it => {
@@ -2870,6 +2919,7 @@
   /* ==================== 大V喊单（新闻聚合口径） ==================== */
   // 免费无推特 API：用新浪+东财新闻池按人名关键词聚合"关于他们的发言/动作"，诚实标注口径。
   async function loadVoices() {
+    if (!window.NewsSource) return;   // 懒加载包未到
     const gen = ++state.voicesGen;
     el.voicesList.innerHTML = '<div class="sk sk-row"></div>'.repeat(4);
     // 喊单页要的新闻池和快讯页是**同一组接口**（新浪财经 + 东财财经要闻）。
@@ -2885,6 +2935,7 @@
   }
 
   function renderVoices() {
+    if (!window.NewsSource) return;
     if (!el.voicesList) return;
     const list = state.voices || [];
     el.voicesSub.textContent = list.length
@@ -3013,6 +3064,7 @@
 
   function renderEvTypeBar() {
     if (!el.evTypeBar) return;
+    if (!window.Events) return;   // 懒加载包未到：先不画类型条（包到了会重画）
     const list = state.events || [];
     if (!list.length) { el.evTypeBar.innerHTML = ''; return; }
     const counts = {};
@@ -3027,6 +3079,7 @@
   }
 
   function renderGlobeLegend() {
+    if (!window.Events) return;   // 懒加载包未到
     const html = Array.from(new Set(eventsFiltered().map(e => e.type))).slice(0, 6).map(t =>
       `<span class="gl-item"><i class="ev-dot" style="background:${window.Events.typeColor(t)}"></i>${escapeHTML(window.Events.typeLabel(t))}</span>`).join('');
     if (el.mapLegend) el.mapLegend.innerHTML = html;
@@ -3034,6 +3087,7 @@
 
   function renderEventList() {
     if (!el.eventList) return;
+    if (!window.Events) return;   // 懒加载包未到
     const list = eventsFiltered();
     if (!list.length) {
       el.eventList.innerHTML = '<div class="empty">暂无事件数据 · 数据更新中，稍后自动出现</div>';
@@ -3083,6 +3137,7 @@
   }
 
   function renderPmList() {
+    if (!window.Polymarket) return;   // 懒加载包未到：预测卡先不画
     if (!el.pmList) return;
     const list = state.pmEvents || [];
     if (el.pmSub) {
@@ -3383,6 +3438,7 @@
   /* ==================== 资金动向（A股龙虎榜 + 公开言论） ==================== */
 
   async function loadLhb() {
+    if (!window.LhbSource) return;   // 懒加载包未到（开屏后台预取可能早于它）
     const res = await window.LhbSource.getLhb();
     state.lhb = res;
     state.lhbVia = res.via;          // 'em' = 东财实时拉到，'cache' = 用的本地缓存
@@ -3439,6 +3495,7 @@
   /* ==================== 席位动向（Actor Directory / Actor Profile） ==================== */
 
   async function loadSeatActors() {
+    if (!window.LhbSource) return;
     const date = (state.lhb && state.lhb.tradeDate) || window.Events.latestLhbDate();
     if (!date) return;
     const { buyRows, sellRows } = await window.LhbSource.getDayDetails(date);
@@ -3767,6 +3824,7 @@
   /* ---- 席位档案（#actor=seat:CODE 深链，一级视图） ---- */
 
   async function openActor(id, opts) {
+    if (!window.LhbSource) return;   // 席位档案的数据在懒加载包里
     state.prevView = state.view === 'actor' ? state.prevView : state.tab;
     state.view = 'actor';
     setView('actor');
@@ -4809,7 +4867,8 @@
           syncNavDom();
           state.tab = 'compare';
           setView('compare');
-          window.CompareView.applyHash(h);
+          // 懒加载包未到时先跳过：init 末尾的深链还原（已在懒加载之后）会再走一遍
+          if (window.CompareView) window.CompareView.applyHash(h);
           applyCmpModeFromHash(h);
           renderStatus();
           return;
@@ -4938,6 +4997,9 @@
   }
 
   function setTab(tab, opts) {
+    /* 懒加载包未到时的点击：先挂起，包到了重放。事件/预测/基金/持仓这些页的模块都在懒加载包里，
+       否则会渲染出半截面板（还伴随 TypeError）。重放时代入参原样，不会被吞掉。 */
+    if (!_lazyDone) { whenLazy(function () { setTab(tab, opts); }); return; }
     // 旧 tab 名兼容：新闻/喊单→事件页的快讯子面板（公开言论已并入该页），情绪→A股(已并入)，
     // 资金页→A股（聪明钱 tab 已拆解：席位/龙虎榜归 A股、13F 归美股、公开言论归事件页）
     if (TAB_ALIAS[tab]) {
@@ -6989,16 +7051,16 @@
     el.cardWall.innerHTML = '<div class="section"><div class="card-grid">' +
       '<div class="sk sk-card"></div>'.repeat(8) + '</div></div>';
 
+    /* v3.4 首屏提速⑤：懒加载包在这里就开始下载——和行情请求并行，
+       等它到齐的位置在首屏渲染之后（见下面的 continuation）。 */
+    const lazyReady = loadLazyBundle();
+
     /* 分区栏与分享卡片都不依赖行情，必须排在 await fetchAllQuotes() 之前：
        行情源不通时这个 await 会一直挂着，挂在它后面的初始化永远跑不到，
        结果是"数据没来连分区都没有"——分层反倒成了数据加载的附属品。
        同样地，分享卡片只需要事件数据，取不到时安静返回即可。 */
     syncZones();
-    if (window.PMShare) {
-      window.PMShare.mount({
-        getEvent: (id) => (state.pmEvents || []).find(e => e.id === id) || null,
-      });
-    }
+    /* 分享卡片（pmshare.js）已切到懒加载包，mount 挪到下面的 continuation 里。 */
 
     // 首屏只等行情（47 标的，数百毫秒级）；全市场热力图（56 页并发）走后台加载——
     // 它曾把首屏阻塞 1-3 秒，是"打开变慢"的主因。到位后补画热力图并计算市场宽度。
@@ -7033,9 +7095,26 @@
     // 首屏就把产业链渲染好，切到该 tab 时不会先看到空白
     /* v3.3 首屏提速④：产业链要拉 163 只标的，原来在首屏就和 47 只主标的抢带宽。
        改成空闲时预取（不抢首屏），进「洞察」tab 时若还没数据立刻补。 */
+    if (CRYPTO_ON) loadHeatCrypto();
+
+    /* ===== 首屏渲染完成：等懒加载包，再装配「点开才可见」的面板 =====
+       走到这里用户已经看到行情了。详情图表 / 基金对比与画像 / 持仓 / 到价提醒 /
+       事件与预测 / 产业链 / 科普层，它们的代码在 js/bundle-lazy.js 里，
+       与行情请求并行下载，这里只等它到齐。 */
+    try { await lazyReady; } catch (e) {
+      console.warn('[OpenFinLens] 懒加载包未就绪，部分面板不可用', e);
+    }
+
+    // 分享卡片（pmshare.js，懒加载）
+    if (window.PMShare) {
+      window.PMShare.mount({
+        getEvent: (id) => (state.pmEvents || []).find(e => e.id === id) || null,
+      });
+    }
+
+    // 产业链 163 只标的的空闲预取（依赖 data/industry-chains.js，故排在懒加载之后）
     const idle = window.requestIdleCallback || function (f) { return setTimeout(f, 1500); };
     idle(function () { loadChainQuotes().then(renderChains).catch(function () {}); });
-    if (CRYPTO_ON) loadHeatCrypto();
 
     // 基金对比：把节点交给视图模块（它自己绑定控件、自己取数）。
     // 不在这里预取：这页一次要拉 6 条十几年长历史，进页面才拉（onEnter 首次触发）。

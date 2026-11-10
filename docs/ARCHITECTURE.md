@@ -60,6 +60,22 @@ js/ui/command.js      ⌘K 命令面板（键盘全流程、焦点陷阱复用 f
 js/ui/motion.js       运行时动效层（事件委托 + MutationObserver + IntersectionObserver，不改 app.js）
 ```
 
+**打包产物（v3.4，均已提交；源码仍分层，改完要重新生成）**：
+
+```
+js/bundle.js          首屏必需：32 个文件（utils/store/sources/treemap/charts/app…）
+js/bundle-lazy.js     首屏后懒加载：37 个文件（基金/持仓/事件预测/科普/期权/命令面板…）
+css/bundle.css        5 层 CSS 合一，层叠顺序不变
+_scripts/build-js-bundle.mjs  ← 清单 _scripts/js-bundle.manifest.json（files + lazy）
+_scripts/build-css.mjs
+_scripts/minify-js.mjs / minify-css.mjs  词法感知压缩（只删注释与冗余空白）
+```
+
+生成命令：`node _scripts/build-js-bundle.mjs`、`node _scripts/build-css.mjs`；
+`--check` 只校验是否过期（CI / `_test/bundle.test.mjs` 会用）。
+**懒加载边界**：`lazy` 里的模块在首屏拿不到，引用处必须有 `window.X` 守卫；
+`setTab()` / `openDetail()` 已统一门控，新入口若直接调懒加载模块，务必自己 `await` 或守卫。
+
 **规则**：`css/ui/*` 只消费 `style.css` 的令牌，不许写死颜色/间距/字号；加载顺序即覆盖顺序；
 `_test/tokens.test.mjs` 扫「style.css + css/ui/*.css」全量，所以新层的规则逃不出守卫。
 **为什么保留旧 style.css**：它是令牌的唯一事实源，同时给尚未迁移到新层的零星组件兜底；

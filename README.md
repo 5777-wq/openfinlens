@@ -4,7 +4,9 @@
 
 **A股、港股、美股、加密、全球事件，一块屏幕读完的纯前端行情终端。**
 
-没有后端，没有 API key，没有构建。clone 下来双击 `index.html`，它就跑起来了。
+没有后端，没有 API key，没有构建步骤。clone 下来双击 `index.html`，它就跑起来了
+（打包产物 `js/bundle.js` / `js/bundle-lazy.js` / `css/bundle.css` 都已提交；
+只有改源码时才需要跑一次 `node _scripts/build-js-bundle.mjs` 或 `node _scripts/build-css.mjs`）。
 
 **[线上体验 →](https://5777-wq.github.io/openfinlens/)**　·　**[下载安卓 APK](https://github.com/5777-wq/openfinlens/releases)**
 

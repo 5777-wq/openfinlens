@@ -1,5 +1,5 @@
 {
-  "note": "index.html 的脚本加载顺序（build-js-bundle.mjs --init 生成）",
+  "note": "js/ 的脚本加载顺序（files）与其中首屏后懒加载的子集（lazy）。由 build-js-bundle.mjs 读取。",
   "files": [
     "js/utils.js",
     "js/focus-trap.js",
@@ -70,5 +70,50 @@
     "js/app.js",
     "js/gloss-tip.js",
     "js/ui/motion.js"
+  ],
+  "lazy": [
+    "js/technical.js",
+    "js/compare.js",
+    "js/compareview.js",
+    "js/fundparse.js",
+    "js/fundprofile.js",
+    "js/fundquiz.js",
+    "js/polymarket.js",
+    "js/pmcharts.js",
+    "js/pmview.js",
+    "js/actors.js",
+    "js/portfolio.js",
+    "js/portfoliomath.js",
+    "js/alerts.js",
+    "js/qr.js",
+    "js/pmshare.js",
+    "js/panes.js",
+    "js/paneview.js",
+    "js/sources/lhb.js",
+    "js/sources/gdelt.js",
+    "js/sources/fred.js",
+    "js/sources/worldbank.js",
+    "js/sources/option.js",
+    "js/sources/history.js",
+    "js/sources/news.js",
+    "js/sources/southbound.js",
+    "js/sources/etf.js",
+    "js/sources/sec.js",
+    "js/sources/fundholds.js",
+    "js/engine/impact-engine.js",
+    "js/data/explain.js",
+    "js/data/academy-assets.js",
+    "js/data/academy-gloss.js",
+    "js/academy-gate.js",
+    "js/data/industry-chains.js",
+    "js/macrocalc.js",
+    "js/macroview.js",
+    "js/ui/command.js"
+  ],
+  "notLoaded": [
+    "js/engine/event-engine.js",
+    "js/engine/llm-provider.js",
+    "js/engine/mock-data.js",
+    "js/engine/news-engine.js"
   ]
 }

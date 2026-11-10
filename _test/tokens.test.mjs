@@ -318,9 +318,10 @@ test('charts.js 不得再自带一份均线调色板字面量', () => {
 
 test('index.html 的业务资源 ?v= 必须全部同版本（防缓存穿透失效）', () => {
   const vers = [...HTML.matchAll(/\?v=(20\d{6}[a-z])/g)].map(m => m[1]);
-  // v3.3：业务脚本打成一个 bundle 后，业务资源的 ?v= 只剩 5 个 CSS + 1 个 JS。
+  // v3.4：业务脚本 1 个包（js/bundle.js）+ 样式 1 个包（css/bundle.css），
+  // 懒加载包不在 index.html 里（它的 ?v= 由 app.js 从首屏包同步，故不在此扫描范围）。
   // 断言意图不变：扫到的每一个都必须同版本。
-  assert.ok(vers.length >= 5, '没扫到预期的 ?v=，选择器可能失效');
+  assert.ok(vers.length >= 2, '没扫到预期的 ?v=，选择器可能失效');
   const uniq = [...new Set(vers)];
   assert.equal(uniq.length, 1, `版本号不统一（漏 bump 会导致用户看到旧缓存）：${uniq.join(' ')}`);
 });

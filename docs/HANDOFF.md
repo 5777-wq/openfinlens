@@ -2,11 +2,29 @@
 
 > ## ⚠️ 2026-11-08 最新状态（优先读这一段，下面的旧交接已被部分取代）
 >
-> **2026-11-10 v3.3 首屏提速（已 push）**：业务脚本 69 个 → `js/bundle.js` 一个包
-> （`_scripts/build-js-bundle.mjs` 生成，清单 `_scripts/js-bundle.manifest.json`）。
-> **改完任何 `js/*.js` 必须跑一次 `node _scripts/build-js-bundle.mjs`**，否则线上还是旧代码；
-> 也加了缓存优先（老访客 50ms 出数）、首屏 3.5s 上限、全球指数并发+缓存、数据源 preconnect、
-> 静态骨架（hero/指数条）。实测：本地首访 hero 915ms→487ms，二次访问 51ms；请求数 131→101、JS 请求 73→5。
+> **2026-11-10 v3.4 首屏再瘦身（核心包/懒加载包 + CSS 合并压缩）**
+>
+> **两条打包铁律（改代码前必读）**：
+> 1. 改完任何 `js/*.js` → `node _scripts/build-js-bundle.mjs`
+> 2. 改完任何 `css/**/*.css` → `node _scripts/build-css.mjs`
+>
+> 产物（都已提交，clone 下来不改源码就不用跑）：
+> - `js/bundle.js` 首屏必需（32 文件，124KB gzip）
+> - `js/bundle-lazy.js` 首屏后懒加载（37 文件，102KB gzip；由 `app.js` 的 `loadLazyBundle()` 注入，
+>   在首屏渲染后、装配各面板前 `await`。清单与 lazy 子集见 `_scripts/js-bundle.manifest.json`）
+> - `css/bundle.css` 5 层合一（31KB gzip）
+> 压缩器：`_scripts/minify-js.mjs` / `_scripts/minify-css.mjs`（词法感知，只删注释+冗余空白，
+> 不重命名标识符；自证测试 `_test/minify.test.mjs`）。
+>
+> **懒加载的代价与纪律**：懒加载包里的模块（图表/基金/持仓/事件/预测/科普/期权/新闻源…）
+> 在包到齐前 `window.X` 是 undefined。所以：
+> - 首屏代码引用它们必须加守卫（`if (!window.X) return;` / `if (window.X)`）；
+> - 用户入口已统一门控：`setTab()` 在包未到时挂起并重放，`openDetail()` 会 `await` 包到齐；
+> - 新增模块默认进懒加载包，只有首屏真用得到才加进核心包——`_test/bundle.test.mjs` 会拦两条线：
+>   核心包里出现懒加载引用却没守卫 → 失败；首屏包超 300KB gzip → 失败。
+>
+> 实测（线上 GitHub Pages，无缓存首访）：JS 请求 5 → 4（少一个 50KB 的图表库）、
+> 首屏传输 590KB gzip → 约 180KB gzip。v3.3 的缓存优先/3.5s 上限/预连接/静态骨架全部保留。
 >
 > **2026-11-09 追加 v3「减法重做」（已 push，`6b6179f`）**：按用户反馈把 v2 的装饰推平——
 > 纯黑 `#000` / 纯白 `#fff` 底、单色强调（深空白/日光黑）、删掉渐变/玻璃/网格/光晕；
