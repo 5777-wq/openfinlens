@@ -1710,10 +1710,10 @@
   "meta": {
     "dataset": "events.global",
     "asof": "2026-11-09T20:31:19.361Z",
-    "generatedAt": "2026-11-09T20:32:17.667Z",
+    "generatedAt": "2026-11-10T02:58:07.441Z",
     "source": "新浪财经7x24",
-    "stale": false,
+    "stale": true,
     "license": "GDELT 免费开放数据（gdeltproject.org）· 新浪财经7x24 公开快讯；坐标为本项目关键词地理定位，精度为国家/地区级",
-    "note": "severity 是把上游 importance 映射成 0-100 的展示口径；坐标为关键词地理定位，精度为国家/地区级，定位不到时为 null。"
+    "note": "severity 是把上游 importance 映射成 0-100 的展示口径；坐标为关键词地理定位，精度为国家/地区级，定位不到时为 null。 上游采集任务多轮未更新，数据可能滞后。"
   }
 }
