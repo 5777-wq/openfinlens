@@ -1,7 +1,7 @@
 {
   "ok": true,
   "data": {
-    "count": 190,
+    "count": 191,
     "via": "live",
     "quotes": [
       {
@@ -17,7 +17,7 @@
         "change": -0.11,
         "changePct": -1.9,
         "quoteAt": 1794298500000,
-        "updatedAt": 1794352797810,
+        "updatedAt": 1794353207282,
         "source": "tencent"
       },
       {
@@ -33,7 +33,7 @@
         "change": -0.11,
         "changePct": -0.43,
         "quoteAt": 1794298484000,
-        "updatedAt": 1794352797810,
+        "updatedAt": 1794353207282,
         "source": "tencent"
       },
       {
@@ -49,7 +49,7 @@
         "change": 0,
         "changePct": 0,
         "quoteAt": 1794298491000,
-        "updatedAt": 1794352797810,
+        "updatedAt": 1794353207282,
         "source": "tencent"
       },
       {
@@ -65,7 +65,7 @@
         "change": -0.68,
         "changePct": -1.38,
         "quoteAt": 1794298493000,
-        "updatedAt": 1794352797810,
+        "updatedAt": 1794353207282,
         "source": "tencent"
       },
       {
@@ -81,7 +81,7 @@
         "change": -5.99,
         "changePct": -0.41,
         "quoteAt": 1794298493000,
-        "updatedAt": 1794352797810,
+        "updatedAt": 1794353207282,
         "source": "tencent"
       },
       {
@@ -97,7 +97,7 @@
         "change": -0.16,
         "changePct": -0.54,
         "quoteAt": 1794298491000,
-        "updatedAt": 1794352797810,
+        "updatedAt": 1794353207282,
         "source": "tencent"
       },
       {
@@ -113,7 +113,7 @@
         "change": 0.14,
         "changePct": 1.16,
         "quoteAt": 1794298491000,
-        "updatedAt": 1794352797810,
+        "updatedAt": 1794353207282,
         "source": "tencent"
       },
       {
@@ -129,7 +129,7 @@
         "change": -0.77,
         "changePct": -1.55,
         "quoteAt": 1794298496000,
-        "updatedAt": 1794352797810,
+        "updatedAt": 1794353207282,
         "source": "tencent"
       },
       {
@@ -145,7 +145,7 @@
         "change": 0.61,
         "changePct": 1.43,
         "quoteAt": 1794298476000,
-        "updatedAt": 1794352797810,
+        "updatedAt": 1794353207282,
         "source": "tencent"
       },
       {
@@ -161,7 +161,7 @@
         "change": -0.04,
         "changePct": -0.54,
         "quoteAt": 1794298487000,
-        "updatedAt": 1794352797810,
+        "updatedAt": 1794353207282,
         "source": "tencent"
       },
       {
@@ -177,7 +177,7 @@
         "change": -0.5,
         "changePct": -0.92,
         "quoteAt": 1794298492000,
-        "updatedAt": 1794352797810,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -193,7 +193,7 @@
         "change": -0.01,
         "changePct": -0.12,
         "quoteAt": 1794298493000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -209,7 +209,7 @@
         "change": -0.8,
         "changePct": -6.34,
         "quoteAt": 1794298490000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -225,7 +225,7 @@
         "change": -0.18,
         "changePct": -0.34,
         "quoteAt": 1794298494000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -241,7 +241,7 @@
         "change": -0.23,
         "changePct": -0.81,
         "quoteAt": 1794298498000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -257,7 +257,7 @@
         "change": -0.04,
         "changePct": -0.57,
         "quoteAt": 1794298478000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -273,7 +273,7 @@
         "change": 0.2,
         "changePct": 0.57,
         "quoteAt": 1794298487000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -289,7 +289,7 @@
         "change": -1.27,
         "changePct": -1.16,
         "quoteAt": 1794298488000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -305,7 +305,7 @@
         "change": 0.01,
         "changePct": 0.31,
         "quoteAt": 1794298467000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -321,7 +321,7 @@
         "change": -1.26,
         "changePct": -1.4,
         "quoteAt": 1794298491000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -337,7 +337,7 @@
         "change": 0.04,
         "changePct": 0.9,
         "quoteAt": 1794298491000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -353,7 +353,7 @@
         "change": -0.49,
         "changePct": -0.66,
         "quoteAt": 1794298494000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -369,7 +369,7 @@
         "change": 0.16,
         "changePct": 0.46,
         "quoteAt": 1794298485000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -385,7 +385,7 @@
         "change": 0.9,
         "changePct": 1.77,
         "quoteAt": 1794298470000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -401,7 +401,7 @@
         "change": -0.46,
         "changePct": -0.54,
         "quoteAt": 1794298476000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -417,7 +417,7 @@
         "change": 0,
         "changePct": 0,
         "quoteAt": 1794298473000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -433,7 +433,7 @@
         "change": 1.31,
         "changePct": 0.53,
         "quoteAt": 1794298485000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -449,7 +449,7 @@
         "change": -2.18,
         "changePct": -1.2,
         "quoteAt": 1794298473000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -457,15 +457,15 @@
         "name": "COMEX黄金",
         "market": "commodity",
         "kind": "commodity",
-        "price": 4041.6,
-        "prevClose": 4030.2,
+        "price": 4040.8,
+        "prevClose": 4030.2000000000003,
         "open": 4043.7,
         "high": 4043.8,
-        "low": 4040.4,
-        "change": 11.4,
-        "changePct": 0.28,
+        "low": 4038.3,
+        "change": 10.6,
+        "changePct": 0.26,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -473,15 +473,15 @@
         "name": "COMEX铜",
         "market": "commodity",
         "kind": "commodity",
-        "price": 6.2585,
+        "price": 6.263,
         "prevClose": 6.2345,
         "open": 6.2685,
         "high": 6.2685,
         "low": 6.257,
-        "change": 0.024,
-        "changePct": 0.38,
+        "change": 0.0285,
+        "changePct": 0.46,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -489,15 +489,15 @@
         "name": "COMEX白银",
         "market": "commodity",
         "kind": "commodity",
-        "price": 51.51,
-        "prevClose": 51.225,
+        "price": 51.495,
+        "prevClose": 51.224999999999994,
         "open": 51.52,
-        "high": 51.53,
+        "high": 51.535,
         "low": 51.46,
-        "change": 0.285,
-        "changePct": 0.56,
+        "change": 0.27,
+        "changePct": 0.53,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -505,15 +505,15 @@
         "name": "NYMEX原油",
         "market": "commodity",
         "kind": "commodity",
-        "price": 86.32,
+        "price": 86.22,
         "prevClose": 86.03999999999999,
         "open": 86.43,
         "high": 86.45,
-        "low": 86.22,
-        "change": 0.28,
-        "changePct": 0.33,
+        "low": 86.15,
+        "change": 0.18,
+        "changePct": 0.21,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -521,15 +521,15 @@
         "name": "天然气",
         "market": "commodity",
         "kind": "commodity",
-        "price": 3.299,
-        "prevClose": 3.296,
+        "price": 3.298,
+        "prevClose": 3.2960000000000003,
         "open": 3.299,
         "high": 3.304,
         "low": 3.296,
-        "change": 0.003,
-        "changePct": 0.09,
+        "change": 0.002,
+        "changePct": 0.06,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -537,15 +537,15 @@
         "name": "AAVE",
         "market": "crypto",
         "kind": "crypto",
-        "price": 123.77,
-        "prevClose": 132.04,
-        "open": 132.06,
+        "price": 124,
+        "prevClose": 132,
+        "open": 132.01,
         "high": 132.51,
         "low": 120.83,
-        "change": -8.29,
-        "changePct": -6.277,
+        "change": -8.01,
+        "changePct": -6.068,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -553,15 +553,15 @@
         "name": "ADA",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.1734,
-        "prevClose": 0.1776,
-        "open": 0.1776,
+        "price": 0.1735,
+        "prevClose": 0.1772,
+        "open": 0.1772,
         "high": 0.1798,
         "low": 0.1702,
-        "change": -0.0042,
-        "changePct": -2.365,
+        "change": -0.0037,
+        "changePct": -2.088,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -569,15 +569,15 @@
         "name": "ALGO",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.0898,
+        "price": 0.09,
         "prevClose": 0.0922,
-        "open": 0.0923,
+        "open": 0.0922,
         "high": 0.0937,
         "low": 0.088,
-        "change": -0.0025,
-        "changePct": -2.709,
+        "change": -0.0022,
+        "changePct": -2.386,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -593,7 +593,7 @@
         "change": -0.00015,
         "changePct": -3.927,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -601,15 +601,15 @@
         "name": "APT",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.5631,
-        "prevClose": 0.586,
-        "open": 0.5866,
+        "price": 0.564,
+        "prevClose": 0.5864,
+        "open": 0.5865,
         "high": 0.5965,
         "low": 0.5538,
-        "change": -0.0235,
-        "changePct": -4.006,
+        "change": -0.0225,
+        "changePct": -3.836,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -617,15 +617,15 @@
         "name": "ARB",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.1614,
-        "prevClose": 0.1752,
-        "open": 0.1753,
+        "price": 0.1616,
+        "prevClose": 0.1754,
+        "open": 0.1754,
         "high": 0.1759,
         "low": 0.1558,
-        "change": -0.0139,
-        "changePct": -7.929,
+        "change": -0.0138,
+        "changePct": -7.868,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206940,
         "source": "binance"
       },
       {
@@ -633,15 +633,15 @@
         "name": "ARKM",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.0985,
-        "prevClose": 0.0981,
-        "open": 0.098,
+        "price": 0.0987,
+        "prevClose": 0.0979,
+        "open": 0.0978,
         "high": 0.1002,
         "low": 0.0951,
-        "change": 0.0005,
-        "changePct": 0.51,
+        "change": 0.0009,
+        "changePct": 0.92,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206940,
         "source": "binance"
       },
       {
@@ -649,15 +649,15 @@
         "name": "ATOM",
         "market": "crypto",
         "kind": "crypto",
-        "price": 1.388,
-        "prevClose": 1.364,
+        "price": 1.392,
+        "prevClose": 1.362,
         "open": 1.364,
         "high": 1.403,
         "low": 1.359,
-        "change": 0.024,
-        "changePct": 1.76,
+        "change": 0.028,
+        "changePct": 2.053,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -665,15 +665,15 @@
         "name": "AVAX",
         "market": "crypto",
         "kind": "crypto",
-        "price": 8.37,
-        "prevClose": 8.666,
-        "open": 8.666,
+        "price": 8.395,
+        "prevClose": 8.67,
+        "open": 8.671,
         "high": 8.747,
         "low": 8.068,
-        "change": -0.296,
-        "changePct": -3.416,
+        "change": -0.276,
+        "changePct": -3.183,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -681,15 +681,15 @@
         "name": "AXS",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.8,
+        "price": 0.801,
         "prevClose": 0.807,
-        "open": 0.806,
+        "open": 0.807,
         "high": 0.823,
         "low": 0.786,
         "change": -0.006,
-        "changePct": -0.744,
+        "changePct": -0.743,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -697,15 +697,15 @@
         "name": "BAT",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.122,
-        "prevClose": 0.131,
-        "open": 0.1308,
+        "price": 0.1221,
+        "prevClose": 0.13,
+        "open": 0.1301,
         "high": 0.1315,
         "low": 0.1208,
-        "change": -0.0088,
-        "changePct": -6.728,
+        "change": -0.008,
+        "changePct": -6.149,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -713,15 +713,15 @@
         "name": "BCH",
         "market": "crypto",
         "kind": "crypto",
-        "price": 230.8,
-        "prevClose": 238,
-        "open": 238,
+        "price": 231.1,
+        "prevClose": 237.9,
+        "open": 237.9,
         "high": 240.5,
         "low": 226.5,
-        "change": -7.2,
-        "changePct": -3.025,
+        "change": -6.8,
+        "changePct": -2.858,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -729,15 +729,15 @@
         "name": "BLUR",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.0066,
-        "prevClose": 0.00668,
-        "open": 0.00668,
+        "price": 0.00661,
+        "prevClose": 0.00667,
+        "open": 0.00666,
         "high": 0.00684,
         "low": 0.00651,
-        "change": -0.00008,
-        "changePct": -1.198,
+        "change": -0.00005,
+        "changePct": -0.751,
         "quoteAt": null,
-        "updatedAt": 1794352797685,
+        "updatedAt": 1794353206940,
         "source": "binance"
       },
       {
@@ -745,15 +745,15 @@
         "name": "币安币",
         "market": "crypto",
         "kind": "crypto",
-        "price": 677.49,
-        "prevClose": 689.88,
-        "open": 689.89,
+        "price": 677.7,
+        "prevClose": 690.1,
+        "open": 690.1,
         "high": 692.64,
         "low": 670.06,
         "change": -12.4,
         "changePct": -1.797,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -761,15 +761,15 @@
         "name": "BONK",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.0000028,
-        "prevClose": 0.0000028,
-        "open": 0.0000028,
+        "price": 0.00000281,
+        "prevClose": 0.00000279,
+        "open": 0.00000279,
         "high": 0.00000287,
         "low": 0.00000272,
-        "change": 0,
-        "changePct": 0,
+        "change": 2e-8,
+        "changePct": 0.717,
         "quoteAt": null,
-        "updatedAt": 1794352797685,
+        "updatedAt": 1794353206940,
         "source": "binance"
       },
       {
@@ -777,15 +777,15 @@
         "name": "比特币",
         "market": "crypto",
         "kind": "crypto",
-        "price": 73755.73,
-        "prevClose": 75222.01,
-        "open": 75222,
+        "price": 73707.72,
+        "prevClose": 75278.58,
+        "open": 75278.59,
         "high": 75442.01,
         "low": 72727.27,
-        "change": -1466.27,
-        "changePct": -1.949,
+        "change": -1570.87,
+        "changePct": -2.087,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -793,15 +793,15 @@
         "name": "CELO",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.06635,
-        "prevClose": 0.06526,
-        "open": 0.06526,
+        "price": 0.06634,
+        "prevClose": 0.06522,
+        "open": 0.06527,
         "high": 0.06755,
         "low": 0.06456,
-        "change": 0.00109,
-        "changePct": 1.67,
+        "change": 0.00107,
+        "changePct": 1.639,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -809,15 +809,15 @@
         "name": "CHZ",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.01085,
-        "prevClose": 0.01101,
-        "open": 0.01099,
+        "price": 0.01086,
+        "prevClose": 0.011,
+        "open": 0.01101,
         "high": 0.01118,
         "low": 0.01069,
-        "change": -0.00014,
-        "changePct": -1.274,
+        "change": -0.00015,
+        "changePct": -1.362,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -825,15 +825,15 @@
         "name": "COMP",
         "market": "crypto",
         "kind": "crypto",
-        "price": 19.96,
-        "prevClose": 20.07,
-        "open": 20.06,
+        "price": 19.99,
+        "prevClose": 20.02,
+        "open": 20.02,
         "high": 20.42,
         "low": 19.69,
-        "change": -0.1,
-        "changePct": -0.499,
+        "change": -0.03,
+        "changePct": -0.15,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -841,15 +841,15 @@
         "name": "CRV",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.246,
-        "prevClose": 0.2585,
-        "open": 0.2587,
+        "price": 0.2456,
+        "prevClose": 0.2582,
+        "open": 0.2583,
         "high": 0.2644,
-        "low": 0.2456,
+        "low": 0.2454,
         "change": -0.0127,
-        "changePct": -4.909,
+        "changePct": -4.917,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -857,15 +857,15 @@
         "name": "狗狗币",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.06774,
-        "prevClose": 0.07002,
-        "open": 0.07003,
+        "price": 0.06784,
+        "prevClose": 0.06996,
+        "open": 0.06997,
         "high": 0.07036,
         "low": 0.06659,
-        "change": -0.00229,
-        "changePct": -3.27,
+        "change": -0.00213,
+        "changePct": -3.044,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -873,15 +873,15 @@
         "name": "DOT",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.841,
+        "price": 0.842,
         "prevClose": 0.856,
-        "open": 0.856,
+        "open": 0.857,
         "high": 0.87,
         "low": 0.831,
         "change": -0.015,
-        "changePct": -1.752,
+        "changePct": -1.75,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -889,15 +889,15 @@
         "name": "DYDX",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.08988,
-        "prevClose": 0.09082,
+        "price": 0.09007,
+        "prevClose": 0.09062,
         "open": 0.09057,
         "high": 0.0931,
         "low": 0.08819,
-        "change": -0.00069,
-        "changePct": -0.762,
+        "change": -0.0005,
+        "changePct": -0.552,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -905,15 +905,15 @@
         "name": "EGLD",
         "market": "crypto",
         "kind": "crypto",
-        "price": 2.956,
-        "prevClose": 2.973,
-        "open": 2.973,
+        "price": 2.962,
+        "prevClose": 2.967,
+        "open": 2.966,
         "high": 3.032,
         "low": 2.896,
-        "change": -0.017,
-        "changePct": -0.572,
+        "change": -0.004,
+        "changePct": -0.135,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -921,15 +921,15 @@
         "name": "ENJ",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.02356,
-        "prevClose": 0.02297,
-        "open": 0.02297,
+        "price": 0.02362,
+        "prevClose": 0.02294,
+        "open": 0.02294,
         "high": 0.02424,
         "low": 0.02273,
-        "change": 0.00059,
-        "changePct": 2.569,
+        "change": 0.00068,
+        "changePct": 2.964,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -945,7 +945,7 @@
         "change": -0.0052,
         "changePct": -0.662,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -953,15 +953,15 @@
         "name": "ETC",
         "market": "crypto",
         "kind": "crypto",
-        "price": 6.7,
-        "prevClose": 6.82,
-        "open": 6.82,
+        "price": 6.71,
+        "prevClose": 6.83,
+        "open": 6.83,
         "high": 6.92,
         "low": 6.64,
         "change": -0.12,
-        "changePct": -1.76,
+        "changePct": -1.757,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -969,15 +969,15 @@
         "name": "以太坊",
         "market": "crypto",
         "kind": "crypto",
-        "price": 2052.5,
-        "prevClose": 2133.04,
-        "open": 2133.05,
+        "price": 2050.81,
+        "prevClose": 2134.08,
+        "open": 2134.08,
         "high": 2136.77,
         "low": 2006,
-        "change": -80.55,
-        "changePct": -3.776,
+        "change": -83.27,
+        "changePct": -3.902,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -985,15 +985,15 @@
         "name": "FIL",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.7542,
-        "prevClose": 0.7646,
-        "open": 0.7648,
+        "price": 0.7561,
+        "prevClose": 0.763,
+        "open": 0.7631,
         "high": 0.7744,
         "low": 0.7313,
-        "change": -0.0106,
-        "changePct": -1.386,
+        "change": -0.007,
+        "changePct": -0.917,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1001,15 +1001,15 @@
         "name": "FLOKI",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.00002089,
-        "prevClose": 0.00002094,
-        "open": 0.00002094,
+        "price": 0.00002094,
+        "prevClose": 0.00002091,
+        "open": 0.00002091,
         "high": 0.00002144,
         "low": 0.00002046,
-        "change": -5e-8,
-        "changePct": -0.239,
+        "change": 3e-8,
+        "changePct": 0.143,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206940,
         "source": "binance"
       },
       {
@@ -1018,14 +1018,14 @@
         "market": "crypto",
         "kind": "crypto",
         "price": 0.02038,
-        "prevClose": 0.02032,
+        "prevClose": 0.02031,
         "open": 0.0203,
         "high": 0.02095,
         "low": 0.01992,
         "change": 0.00008,
         "changePct": 0.394,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1041,7 +1041,7 @@
         "change": -0.0054,
         "changePct": -0.766,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1049,15 +1049,15 @@
         "name": "GALA",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.001499,
-        "prevClose": 0.001525,
-        "open": 0.001524,
+        "price": 0.0015,
+        "prevClose": 0.001522,
+        "open": 0.001522,
         "high": 0.001553,
         "low": 0.001472,
-        "change": -0.000025,
-        "changePct": -1.64,
+        "change": -0.000022,
+        "changePct": -1.445,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1067,13 +1067,13 @@
         "kind": "crypto",
         "price": 7.61,
         "prevClose": 7.62,
-        "open": 7.6,
+        "open": 7.63,
         "high": 7.86,
         "low": 7.46,
-        "change": 0.01,
-        "changePct": 0.132,
+        "change": -0.02,
+        "changePct": -0.262,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1081,15 +1081,15 @@
         "name": "GRT",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.01766,
-        "prevClose": 0.0183,
-        "open": 0.01832,
+        "price": 0.01769,
+        "prevClose": 0.01829,
+        "open": 0.01828,
         "high": 0.01847,
         "low": 0.01736,
-        "change": -0.00066,
-        "changePct": -3.603,
+        "change": -0.00059,
+        "changePct": -3.228,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1097,15 +1097,15 @@
         "name": "HBAR",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.06549,
-        "prevClose": 0.06679,
+        "price": 0.06539,
+        "prevClose": 0.06677,
         "open": 0.06679,
         "high": 0.06758,
         "low": 0.06478,
-        "change": -0.0013,
-        "changePct": -1.946,
+        "change": -0.0014,
+        "changePct": -2.096,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1113,15 +1113,15 @@
         "name": "ICP",
         "market": "crypto",
         "kind": "crypto",
-        "price": 2.524,
-        "prevClose": 2.392,
+        "price": 2.532,
+        "prevClose": 2.391,
         "open": 2.391,
         "high": 2.543,
         "low": 2.336,
-        "change": 0.133,
-        "changePct": 5.563,
+        "change": 0.141,
+        "changePct": 5.897,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1129,15 +1129,15 @@
         "name": "IMX",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.116,
-        "prevClose": 0.1196,
-        "open": 0.1195,
+        "price": 0.1162,
+        "prevClose": 0.1197,
+        "open": 0.1197,
         "high": 0.1206,
         "low": 0.1146,
         "change": -0.0035,
-        "changePct": -2.929,
+        "changePct": -2.924,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1145,15 +1145,15 @@
         "name": "INJ",
         "market": "crypto",
         "kind": "crypto",
-        "price": 7.968,
-        "prevClose": 8.09,
-        "open": 8.09,
+        "price": 7.979,
+        "prevClose": 8.088,
+        "open": 8.086,
         "high": 8.249,
         "low": 7.657,
-        "change": -0.122,
-        "changePct": -1.508,
+        "change": -0.107,
+        "changePct": -1.323,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1162,14 +1162,14 @@
         "market": "crypto",
         "kind": "crypto",
         "price": 0.0344,
-        "prevClose": 0.0344,
+        "prevClose": 0.0345,
         "open": 0.0344,
         "high": 0.0355,
         "low": 0.0337,
         "change": 0,
         "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1177,15 +1177,15 @@
         "name": "JUP",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.2515,
-        "prevClose": 0.2538,
-        "open": 0.2538,
+        "price": 0.2516,
+        "prevClose": 0.2528,
+        "open": 0.2529,
         "high": 0.2602,
         "low": 0.2479,
-        "change": -0.0023,
-        "changePct": -0.906,
+        "change": -0.0013,
+        "changePct": -0.514,
         "quoteAt": null,
-        "updatedAt": 1794352797685,
+        "updatedAt": 1794353206940,
         "source": "binance"
       },
       {
@@ -1193,15 +1193,15 @@
         "name": "KAVA",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.06828,
-        "prevClose": 0.06826,
-        "open": 0.06824,
+        "price": 0.06832,
+        "prevClose": 0.0683,
+        "open": 0.0683,
         "high": 0.06956,
         "low": 0.06766,
-        "change": 0.00004,
-        "changePct": 0.059,
+        "change": 0.00002,
+        "changePct": 0.029,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1209,15 +1209,15 @@
         "name": "LDO",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.3244,
-        "prevClose": 0.3262,
-        "open": 0.3262,
+        "price": 0.325,
+        "prevClose": 0.3257,
+        "open": 0.3257,
         "high": 0.3332,
         "low": 0.3173,
-        "change": -0.0018,
-        "changePct": -0.552,
+        "change": -0.0007,
+        "changePct": -0.215,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1225,15 +1225,15 @@
         "name": "LINK",
         "market": "crypto",
         "kind": "crypto",
-        "price": 10.273,
-        "prevClose": 10.688,
-        "open": 10.689,
-        "high": 10.703,
+        "price": 10.272,
+        "prevClose": 10.658,
+        "open": 10.658,
+        "high": 10.693,
         "low": 10.102,
-        "change": -0.416,
-        "changePct": -3.892,
+        "change": -0.386,
+        "changePct": -3.622,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1241,15 +1241,15 @@
         "name": "LTC",
         "market": "crypto",
         "kind": "crypto",
-        "price": 50.54,
-        "prevClose": 51.39,
-        "open": 51.39,
+        "price": 50.58,
+        "prevClose": 51.34,
+        "open": 51.35,
         "high": 51.8,
         "low": 49.52,
-        "change": -0.85,
-        "changePct": -1.654,
+        "change": -0.77,
+        "changePct": -1.5,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1259,13 +1259,13 @@
         "kind": "crypto",
         "price": 0.0702,
         "prevClose": 0.0716,
-        "open": 0.0716,
+        "open": 0.0715,
         "high": 0.0717,
         "low": 0.0687,
-        "change": -0.0014,
-        "changePct": -1.955,
+        "change": -0.0013,
+        "changePct": -1.818,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1273,15 +1273,15 @@
         "name": "MINA",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.0521,
+        "price": 0.0523,
         "prevClose": 0.0512,
-        "open": 0.0513,
+        "open": 0.0512,
         "high": 0.0532,
         "low": 0.0502,
-        "change": 0.0008,
-        "changePct": 1.559,
+        "change": 0.0011,
+        "changePct": 2.148,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1297,7 +1297,7 @@
         "change": 13.7,
         "changePct": 0.761,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1305,15 +1305,15 @@
         "name": "NEAR",
         "market": "crypto",
         "kind": "crypto",
-        "price": 3.559,
-        "prevClose": 3.619,
-        "open": 3.619,
+        "price": 3.571,
+        "prevClose": 3.622,
+        "open": 3.623,
         "high": 3.765,
         "low": 3.471,
-        "change": -0.06,
-        "changePct": -1.658,
+        "change": -0.052,
+        "changePct": -1.435,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1321,15 +1321,15 @@
         "name": "ONE",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.001854,
-        "prevClose": 0.001467,
-        "open": 0.001468,
+        "price": 0.001863,
+        "prevClose": 0.001452,
+        "open": 0.001453,
         "high": 0.00208,
         "low": 0.001351,
-        "change": 0.000386,
-        "changePct": 26.294,
+        "change": 0.00041,
+        "changePct": 28.217,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1337,15 +1337,15 @@
         "name": "OP",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.0981,
+        "price": 0.0984,
         "prevClose": 0.1006,
         "open": 0.1006,
         "high": 0.102,
         "low": 0.0961,
-        "change": -0.0025,
-        "changePct": -2.485,
+        "change": -0.0022,
+        "changePct": -2.187,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1353,15 +1353,15 @@
         "name": "ORDI",
         "market": "crypto",
         "kind": "crypto",
-        "price": 3.172,
-        "prevClose": 3.179,
-        "open": 3.177,
+        "price": 3.177,
+        "prevClose": 3.173,
+        "open": 3.174,
         "high": 3.254,
         "low": 3.121,
-        "change": -0.005,
-        "changePct": -0.157,
+        "change": 0.003,
+        "changePct": 0.095,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206940,
         "source": "binance"
       },
       {
@@ -1369,15 +1369,15 @@
         "name": "PEPE",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.00000531,
-        "prevClose": 0.00000513,
+        "price": 0.00000532,
+        "prevClose": 0.00000514,
         "open": 0.00000514,
         "high": 0.00000562,
         "low": 0.0000051,
-        "change": 1.7e-7,
-        "changePct": 3.307,
+        "change": 1.8e-7,
+        "changePct": 3.502,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206940,
         "source": "binance"
       },
       {
@@ -1385,15 +1385,15 @@
         "name": "PYTH",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.06487,
-        "prevClose": 0.06501,
+        "price": 0.06489,
+        "prevClose": 0.06503,
         "open": 0.06498,
         "high": 0.06711,
         "low": 0.06367,
-        "change": -0.00011,
-        "changePct": -0.169,
+        "change": -0.00009,
+        "changePct": -0.139,
         "quoteAt": null,
-        "updatedAt": 1794352797685,
+        "updatedAt": 1794353206940,
         "source": "binance"
       },
       {
@@ -1401,15 +1401,15 @@
         "name": "QNT",
         "market": "crypto",
         "kind": "crypto",
-        "price": 181.06,
-        "prevClose": 194.6,
-        "open": 194.57,
+        "price": 181.25,
+        "prevClose": 194.22,
+        "open": 194.22,
         "high": 195.46,
         "low": 176.27,
-        "change": -13.51,
-        "changePct": -6.944,
+        "change": -12.97,
+        "changePct": -6.678,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1417,15 +1417,15 @@
         "name": "RENDER",
         "market": "crypto",
         "kind": "crypto",
-        "price": 1.611,
-        "prevClose": 1.583,
-        "open": 1.582,
+        "price": 1.615,
+        "prevClose": 1.582,
+        "open": 1.583,
         "high": 1.622,
         "low": 1.531,
-        "change": 0.029,
-        "changePct": 1.833,
+        "change": 0.032,
+        "changePct": 2.021,
         "quoteAt": null,
-        "updatedAt": 1794352797685,
+        "updatedAt": 1794353206940,
         "source": "binance"
       },
       {
@@ -1433,15 +1433,15 @@
         "name": "ROSE",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.00534,
-        "prevClose": 0.00541,
-        "open": 0.0054,
+        "price": 0.00536,
+        "prevClose": 0.00539,
+        "open": 0.00539,
         "high": 0.00548,
         "low": 0.00521,
-        "change": -0.00006,
-        "changePct": -1.111,
+        "change": -0.00003,
+        "changePct": -0.557,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1449,15 +1449,15 @@
         "name": "RUNE",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.596,
+        "price": 0.597,
         "prevClose": 0.596,
         "open": 0.596,
         "high": 0.609,
         "low": 0.587,
-        "change": 0,
-        "changePct": 0,
+        "change": 0.001,
+        "changePct": 0.168,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1465,15 +1465,15 @@
         "name": "RVN",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.001225,
-        "prevClose": 0.001231,
-        "open": 0.001231,
+        "price": 0.00123,
+        "prevClose": 0.00123,
+        "open": 0.001229,
         "high": 0.001263,
         "low": 0.001205,
-        "change": -0.000006,
-        "changePct": -0.487,
+        "change": 0.000001,
+        "changePct": 0.081,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1481,15 +1481,15 @@
         "name": "SAND",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.04271,
-        "prevClose": 0.04224,
-        "open": 0.04225,
+        "price": 0.04275,
+        "prevClose": 0.04217,
+        "open": 0.04217,
         "high": 0.0441,
         "low": 0.04192,
-        "change": 0.00046,
-        "changePct": 1.089,
+        "change": 0.00058,
+        "changePct": 1.375,
         "quoteAt": null,
-        "updatedAt": 1794352797684,
+        "updatedAt": 1794353206939,
         "source": "binance"
       },
       {
@@ -1497,15 +1497,15 @@
         "name": "SEI",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.04365,
-        "prevClose": 0.04421,
-        "open": 0.04421,
+        "price": 0.0437,
+        "prevClose": 0.04413,
+        "open": 0.04415,
         "high": 0.04498,
         "low": 0.04253,
-        "change": -0.00056,
-        "changePct": -1.267,
+        "change": -0.00045,
+        "changePct": -1.019,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1513,15 +1513,15 @@
         "name": "SHIB",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.00000443,
-        "prevClose": 0.00000443,
-        "open": 0.00000443,
+        "price": 0.00000444,
+        "prevClose": 0.00000442,
+        "open": 0.00000442,
         "high": 0.00000449,
         "low": 0.00000431,
-        "change": 0,
-        "changePct": 0,
+        "change": 2e-8,
+        "changePct": 0.452,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1529,15 +1529,15 @@
         "name": "SKL",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.00355,
-        "prevClose": 0.00358,
-        "open": 0.00358,
+        "price": 0.00356,
+        "prevClose": 0.00357,
+        "open": 0.00357,
         "high": 0.00368,
         "low": 0.0035,
-        "change": -0.00003,
-        "changePct": -0.838,
+        "change": -0.00001,
+        "changePct": -0.28,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1545,15 +1545,15 @@
         "name": "SNX",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.1624,
+        "price": 0.1627,
         "prevClose": 0.1604,
         "open": 0.1602,
         "high": 0.1652,
         "low": 0.1571,
-        "change": 0.0022,
-        "changePct": 1.373,
+        "change": 0.0025,
+        "changePct": 1.561,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1561,15 +1561,15 @@
         "name": "索拉纳",
         "market": "crypto",
         "kind": "crypto",
-        "price": 83.04,
-        "prevClose": 86.67,
-        "open": 86.68,
+        "price": 83.1,
+        "prevClose": 86.64,
+        "open": 86.65,
         "high": 86.82,
         "low": 81.34,
-        "change": -3.64,
-        "changePct": -4.199,
+        "change": -3.55,
+        "changePct": -4.097,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1585,7 +1585,7 @@
         "change": -0.0023,
         "changePct": -7.165,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1593,15 +1593,15 @@
         "name": "STX",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.3114,
-        "prevClose": 0.3133,
+        "price": 0.3134,
+        "prevClose": 0.3131,
         "open": 0.3134,
         "high": 0.3209,
         "low": 0.3065,
-        "change": -0.002,
-        "changePct": -0.638,
+        "change": 0,
+        "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1609,15 +1609,15 @@
         "name": "SUI",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.8212,
+        "price": 0.8229,
         "prevClose": 0.844,
         "open": 0.844,
         "high": 0.8516,
         "low": 0.8013,
-        "change": -0.0228,
-        "changePct": -2.701,
+        "change": -0.0211,
+        "changePct": -2.5,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1625,15 +1625,15 @@
         "name": "THETA",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.1394,
-        "prevClose": 0.141,
+        "price": 0.1398,
+        "prevClose": 0.1408,
         "open": 0.1408,
         "high": 0.1446,
         "low": 0.1368,
-        "change": -0.0014,
-        "changePct": -0.994,
+        "change": -0.001,
+        "changePct": -0.71,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1641,15 +1641,15 @@
         "name": "TIA",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.4259,
-        "prevClose": 0.4271,
-        "open": 0.4273,
+        "price": 0.4261,
+        "prevClose": 0.4264,
+        "open": 0.4265,
         "high": 0.4403,
         "low": 0.4126,
-        "change": -0.0014,
-        "changePct": -0.328,
+        "change": -0.0004,
+        "changePct": -0.094,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1657,15 +1657,15 @@
         "name": "TRX",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.318,
-        "prevClose": 0.3178,
-        "open": 0.3177,
+        "price": 0.3179,
+        "prevClose": 0.3177,
+        "open": 0.3178,
         "high": 0.3205,
         "low": 0.3173,
-        "change": 0.0003,
-        "changePct": 0.094,
+        "change": 0.0001,
+        "changePct": 0.031,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1673,15 +1673,15 @@
         "name": "UNI",
         "market": "crypto",
         "kind": "crypto",
-        "price": 6.656,
-        "prevClose": 7.02,
-        "open": 7.023,
+        "price": 6.67,
+        "prevClose": 7.01,
+        "open": 7.011,
         "high": 7.16,
         "low": 6.611,
-        "change": -0.367,
-        "changePct": -5.226,
+        "change": -0.341,
+        "changePct": -4.864,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1690,14 +1690,14 @@
         "market": "crypto",
         "kind": "crypto",
         "price": 0.00513,
-        "prevClose": 0.005182,
-        "open": 0.005183,
+        "prevClose": 0.005179,
+        "open": 0.00518,
         "high": 0.005299,
         "low": 0.005075,
-        "change": -0.000053,
-        "changePct": -1.023,
+        "change": -0.00005,
+        "changePct": -0.965,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1713,7 +1713,7 @@
         "change": 0.115,
         "changePct": 11.967,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1721,15 +1721,15 @@
         "name": "WIF",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.1566,
-        "prevClose": 0.1574,
-        "open": 0.1574,
+        "price": 0.1568,
+        "prevClose": 0.1571,
+        "open": 0.1572,
         "high": 0.1607,
         "low": 0.1533,
-        "change": -0.0008,
-        "changePct": -0.508,
+        "change": -0.0004,
+        "changePct": -0.254,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1737,15 +1737,15 @@
         "name": "WLD",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.309,
-        "prevClose": 0.319,
-        "open": 0.3191,
+        "price": 0.3103,
+        "prevClose": 0.3182,
+        "open": 0.3182,
         "high": 0.3223,
         "low": 0.3029,
-        "change": -0.0101,
-        "changePct": -3.165,
+        "change": -0.0079,
+        "changePct": -2.483,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1753,15 +1753,15 @@
         "name": "XLM",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.1442,
-        "prevClose": 0.1474,
+        "price": 0.1444,
+        "prevClose": 0.1473,
         "open": 0.1474,
         "high": 0.1497,
         "low": 0.1408,
-        "change": -0.0032,
-        "changePct": -2.171,
+        "change": -0.003,
+        "changePct": -2.035,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1769,15 +1769,15 @@
         "name": "瑞波币",
         "market": "crypto",
         "kind": "crypto",
-        "price": 1.0539,
-        "prevClose": 1.0973,
-        "open": 1.0972,
+        "price": 1.0566,
+        "prevClose": 1.0984,
+        "open": 1.0984,
         "high": 1.1063,
         "low": 1.0311,
-        "change": -0.0433,
-        "changePct": -3.946,
+        "change": -0.0418,
+        "changePct": -3.806,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1785,15 +1785,15 @@
         "name": "ZIL",
         "market": "crypto",
         "kind": "crypto",
-        "price": 0.001588,
-        "prevClose": 0.001659,
-        "open": 0.001656,
+        "price": 0.001591,
+        "prevClose": 0.001656,
+        "open": 0.001658,
         "high": 0.001679,
         "low": 0.001539,
-        "change": -0.000068,
-        "changePct": -4.106,
+        "change": -0.000067,
+        "changePct": -4.041,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1809,7 +1809,7 @@
         "change": -0.0016,
         "changePct": -1.796,
         "quoteAt": null,
-        "updatedAt": 1794352797841,
+        "updatedAt": 1794353207097,
         "source": "binance"
       },
       {
@@ -1821,11 +1821,11 @@
         "prevClose": 102.25,
         "open": 102.24,
         "high": 102.26,
-        "low": 102.21,
+        "low": 102.2,
         "change": -0.04,
         "changePct": -0.04,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -1833,15 +1833,15 @@
         "name": "欧元美元",
         "market": "fx",
         "kind": "fx",
-        "price": 1.1171,
+        "price": 1.1169,
         "prevClose": 1.1164,
         "open": 1.1166,
         "high": 1.1171,
         "low": 1.1165,
-        "change": 0.0007,
-        "changePct": 0.06,
+        "change": 0.0005,
+        "changePct": 0.04,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -1857,7 +1857,7 @@
         "change": 0.0004,
         "changePct": 0.03,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -1873,7 +1873,7 @@
         "change": -0.0006,
         "changePct": -0.01,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -1881,15 +1881,15 @@
         "name": "美元日元",
         "market": "fx",
         "kind": "fx",
-        "price": 158.7075,
-        "prevClose": 158.763,
+        "price": 158.7,
+        "prevClose": 158.76299999999998,
         "open": 158.7648,
         "high": 158.7835,
         "low": 158.684,
-        "change": -0.0555,
-        "changePct": -0.03,
+        "change": -0.063,
+        "changePct": -0.04,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -1897,15 +1897,15 @@
         "name": "美元离岸人民币",
         "market": "fx",
         "kind": "fx",
-        "price": 6.6759,
-        "prevClose": 6.676500000000001,
+        "price": 6.676,
+        "prevClose": 6.6765,
         "open": 6.6774,
         "high": 6.6782,
         "low": 6.6755,
-        "change": -0.0006,
+        "change": -0.0005,
         "changePct": -0.01,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -1921,7 +1921,7 @@
         "change": 6,
         "changePct": 4.37,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -1937,7 +1937,7 @@
         "change": 0.33,
         "changePct": 0.29,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -1953,7 +1953,7 @@
         "change": 0.1,
         "changePct": 0.29,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -1969,7 +1969,7 @@
         "change": 0.16,
         "changePct": 0.76,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -1985,7 +1985,7 @@
         "change": -0.075,
         "changePct": -1.55,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2001,7 +2001,7 @@
         "change": -0.6,
         "changePct": -0.14,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2017,7 +2017,7 @@
         "change": -0.36,
         "changePct": -3.45,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2033,7 +2033,7 @@
         "change": -0.6,
         "changePct": -2.57,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2049,7 +2049,7 @@
         "change": 0.05,
         "changePct": 0.47,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2065,7 +2065,7 @@
         "change": -0.2,
         "changePct": -0.25,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2081,7 +2081,7 @@
         "change": 0.16,
         "changePct": 0.56,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2097,7 +2097,7 @@
         "change": 0.68,
         "changePct": 1.38,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2113,7 +2113,7 @@
         "change": 0.8,
         "changePct": 1.02,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2129,7 +2129,7 @@
         "change": 0.005,
         "changePct": 0.06,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2145,7 +2145,7 @@
         "change": 0.5,
         "changePct": 1.66,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2161,7 +2161,7 @@
         "change": 0.35,
         "changePct": 0.44,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2177,7 +2177,7 @@
         "change": 0.05,
         "changePct": 0.09,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2193,7 +2193,7 @@
         "change": 0.35,
         "changePct": 0.47,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2209,7 +2209,7 @@
         "change": 0.005,
         "changePct": 0.08,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2225,7 +2225,7 @@
         "change": -0.16,
         "changePct": -0.37,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2241,7 +2241,7 @@
         "change": 0,
         "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2257,7 +2257,7 @@
         "change": -0.2,
         "changePct": -0.18,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2273,7 +2273,7 @@
         "change": -3,
         "changePct": -2.87,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2289,7 +2289,7 @@
         "change": 1,
         "changePct": 0.49,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2305,7 +2305,7 @@
         "change": 45.3,
         "changePct": 0.55,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2321,7 +2321,7 @@
         "change": -31.28,
         "changePct": -0.29,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2337,7 +2337,7 @@
         "change": 80.26,
         "changePct": 0.31,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2353,7 +2353,7 @@
         "change": 220.28,
         "changePct": 4.39,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2369,7 +2369,7 @@
         "change": 1684.08,
         "changePct": 2.87,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2385,7 +2385,7 @@
         "change": 78.63,
         "changePct": 0.1,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2401,7 +2401,7 @@
         "change": 108.09,
         "changePct": 0.44,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2417,7 +2417,7 @@
         "change": 43.72,
         "changePct": 1.08,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2433,7 +2433,7 @@
         "change": 2.93,
         "changePct": 0.08,
         "quoteAt": 1794298468000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2449,7 +2449,7 @@
         "change": 8.06,
         "changePct": 0.64,
         "quoteAt": 1794298450000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2465,7 +2465,7 @@
         "change": 96.05,
         "changePct": 0.86,
         "quoteAt": 1794298467000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2481,7 +2481,7 @@
         "change": 35.84,
         "changePct": 1.46,
         "quoteAt": 1794298482000,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207283,
         "source": "tencent"
       },
       {
@@ -2497,7 +2497,7 @@
         "change": -157.86,
         "changePct": -0.3,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2513,7 +2513,7 @@
         "change": -29.01,
         "changePct": -0.38,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2529,7 +2529,7 @@
         "change": -187.27,
         "changePct": -0.74,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2545,7 +2545,7 @@
         "change": 0,
         "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2561,7 +2561,7 @@
         "change": 0,
         "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2577,7 +2577,7 @@
         "change": 0,
         "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2593,7 +2593,7 @@
         "change": 0,
         "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2609,7 +2609,7 @@
         "change": 0,
         "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2625,7 +2625,7 @@
         "change": 0,
         "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2641,7 +2641,23 @@
         "change": 0,
         "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
+        "source": "eastmoney"
+      },
+      {
+        "symbol": "EM:171.US30Y",
+        "name": "美债30年",
+        "market": "macro",
+        "kind": "rate",
+        "price": 5.3557,
+        "prevClose": 5.3557,
+        "open": 5.3557,
+        "high": 5.3557,
+        "low": 5.3557,
+        "change": 0,
+        "changePct": 0,
+        "quoteAt": null,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2657,7 +2673,7 @@
         "change": 0,
         "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352798383,
+        "updatedAt": 1794353207928,
         "source": "eastmoney"
       },
       {
@@ -2673,7 +2689,7 @@
         "change": -2.18,
         "changePct": -0.62,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2689,7 +2705,7 @@
         "change": 6.63,
         "changePct": 1.3,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2705,7 +2721,7 @@
         "change": 3.94,
         "changePct": 1.48,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2721,7 +2737,7 @@
         "change": 12.5,
         "changePct": 3.91,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2737,7 +2753,7 @@
         "change": 1,
         "changePct": 0.58,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2753,7 +2769,7 @@
         "change": -3.97,
         "changePct": -2.92,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2769,7 +2785,7 @@
         "change": 0.09,
         "changePct": 0.08,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2785,7 +2801,7 @@
         "change": -1.09,
         "changePct": -0.38,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2801,7 +2817,7 @@
         "change": -1.24,
         "changePct": -2.09,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2817,7 +2833,7 @@
         "change": -0.01,
         "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2833,7 +2849,7 @@
         "change": 0.02,
         "changePct": 0,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2849,7 +2865,7 @@
         "change": -12.02,
         "changePct": -2.2,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2865,7 +2881,7 @@
         "change": -8.04,
         "changePct": -1.1,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2881,7 +2897,7 @@
         "change": -0.69,
         "changePct": -1.08,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2897,7 +2913,7 @@
         "change": -9.78,
         "changePct": -5.47,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2913,7 +2929,7 @@
         "change": -1.81,
         "changePct": -1.51,
         "quoteAt": null,
-        "updatedAt": 1794352797811,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2929,7 +2945,7 @@
         "change": 0.13,
         "changePct": 0.44,
         "quoteAt": null,
-        "updatedAt": 1794352797812,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2945,7 +2961,7 @@
         "change": -0.38,
         "changePct": -0.22,
         "quoteAt": null,
-        "updatedAt": 1794352797812,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2961,7 +2977,7 @@
         "change": 2.06,
         "changePct": 1.2,
         "quoteAt": null,
-        "updatedAt": 1794352797812,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2977,7 +2993,7 @@
         "change": 1.73,
         "changePct": 0.46,
         "quoteAt": null,
-        "updatedAt": 1794352797812,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -2993,7 +3009,7 @@
         "change": 7.86,
         "changePct": 2.02,
         "quoteAt": null,
-        "updatedAt": 1794352797812,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -3009,7 +3025,7 @@
         "change": 1.62,
         "changePct": 0.38,
         "quoteAt": null,
-        "updatedAt": 1794352797812,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -3025,7 +3041,7 @@
         "change": -0.11,
         "changePct": -0.09,
         "quoteAt": null,
-        "updatedAt": 1794352797812,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       },
       {
@@ -3041,7 +3057,7 @@
         "change": -0.26,
         "changePct": -0.16,
         "quoteAt": null,
-        "updatedAt": 1794352797812,
+        "updatedAt": 1794353207284,
         "source": "tencent"
       }
     ],
@@ -3049,8 +3065,8 @@
   },
   "meta": {
     "dataset": "quotes.latest",
-    "asof": "2026-11-10T23:19:58.383Z",
-    "generatedAt": "2026-11-10T23:19:56.528Z",
+    "asof": "2026-11-10T23:26:47.928Z",
+    "generatedAt": "2026-11-10T23:26:45.692Z",
     "source": "公开行情接口（腾讯 qt.gtimg.cn / 东方财富 push2delay / 币安 data-api）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
