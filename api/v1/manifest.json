@@ -44,7 +44,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-10T02:58:07.441Z",
+          "generatedAt": "2026-11-10T18:16:08.766Z",
           "count": 11,
           "datasets": [
             {
@@ -60,7 +60,7 @@
             "openapi": "api/openapi.json"
           }
         },
-        "asof": "2026-11-10T02:58:07.441Z",
+        "asof": "2026-11-10T18:16:08.766Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -100,7 +100,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-10T02:58:07.441Z",
+          "generatedAt": "2026-11-10T18:16:08.766Z",
           "base": "api/v1",
           "datasets": [
             {
@@ -111,7 +111,7 @@
             }
           ]
         },
-        "asof": "2026-11-10T02:58:07.441Z",
+        "asof": "2026-11-10T18:16:08.766Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -203,7 +203,7 @@
             "中石化"
           ]
         },
-        "asof": "2026-11-10T02:58:07.441Z",
+        "asof": "2026-11-10T18:16:08.766Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -306,20 +306,20 @@
           "name": "中国石化",
           "market": "cn",
           "kind": "stock",
-          "price": 5.77,
+          "price": 5.69,
           "prevClose": 5.8,
           "open": 5.73,
           "high": 5.83,
-          "low": 5.66,
-          "change": -0.03,
-          "changePct": -0.52,
-          "quoteAt": 1794279486000,
-          "updatedAt": 1794279488766,
+          "low": 5.65,
+          "change": -0.11,
+          "changePct": -1.9,
+          "quoteAt": 1794298500000,
+          "updatedAt": 1794334569527,
           "source": "tencent"
         },
-        "asof": "2026-11-10T02:58:08.976Z",
+        "asof": "2026-11-10T18:16:10.044Z",
         "stale": false,
-        "count": 165,
+        "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
         "note": "实时抓取的行情快照；quoteAt 是上游行情时刻，updatedAt 是抓取时刻。只含价格与涨跌字段。"
       },
@@ -559,25 +559,25 @@
           }
         ],
         "sample": {
-          "id": "国际油价9日显著下跌 国际油价9日显著下跌 截至当天收盘 纽约商品交易所12月交货的轻质原油期货价格下跌3 98美元 收于每桶86 85美元 跌幅为4 38 1月交货的伦敦布伦特原油期货价格下跌5|38,85|1794256059000",
-          "category": "macro",
-          "title": "【国际油价9日显著下跌】国际油价9日显著下跌。截至当天收盘，纽约商品交易所12月交货的轻质原油期货价格下跌3.98美元，收于每桶86.85美元，跌幅为4.38%；1月交货的伦敦布伦特原油期货价格下跌5.75美元，收于每桶92.57美元，跌幅为5.85%。",
+          "id": "巴西央行行长加利波洛 我们的国际储备足以覆盖以雷亚尔以外货币计价的债务部分 且绰绰有余||1794334319000",
+          "category": "central_bank",
+          "title": "巴西央行行长加利波洛：我们的国际储备足以覆盖以雷亚尔以外货币计价的债务部分，且绰绰有余。",
           "source": "新浪财经7x24",
           "sourceUrl": "https://finance.sina.com.cn/7x24/",
-          "publishedAt": "2026-11-09T20:27:39.000Z",
-          "country": "英国",
-          "lat": 51.51,
-          "lng": -0.13,
+          "publishedAt": "2026-11-10T18:11:59.000Z",
+          "country": "巴西",
+          "lat": -15.79,
+          "lng": -47.88,
           "severity": 30,
           "importance": "low",
           "relatedSymbols": [],
           "relatedAssets": []
         },
-        "asof": "2026-11-09T20:31:19.361Z",
-        "stale": true,
-        "count": 107,
+        "asof": "2026-11-10T18:13:43.422Z",
+        "stale": false,
+        "count": 111,
         "license": "GDELT 免费开放数据（gdeltproject.org）· 新浪财经7x24 公开快讯；坐标为本项目关键词地理定位，精度为国家/地区级",
-        "note": "severity 是把上游 importance 映射成 0-100 的展示口径；坐标为关键词地理定位，精度为国家/地区级，定位不到时为 null。 上游采集任务多轮未更新，数据可能滞后。"
+        "note": "severity 是把上游 importance 映射成 0-100 的展示口径；坐标为关键词地理定位，精度为国家/地区级，定位不到时为 null。"
       },
       {
         "id": "prediction.markets",
@@ -648,64 +648,57 @@
           }
         ],
         "sample": {
-          "id": "ev:79987",
-          "title": "Next French Presidential Election",
-          "titleZh": "下届法国总统选举",
-          "category": "election",
+          "id": "ev:770450",
+          "title": "Fed Decision in December?",
+          "titleZh": "美联储12月份的决定？",
+          "category": "central_bank",
           "partition": true,
-          "endDate": 1808107140000,
-          "updatedAt": 1794279384609,
-          "outcomeCount": 46,
+          "endDate": 1796878740000,
+          "updatedAt": 1794334345234,
+          "outcomeCount": 5,
           "outcomes": [
             {
-              "id": "pm:679018",
-              "label": "Marine Le Pen",
-              "labelZh": null,
-              "probability": 0.453,
-              "change24h": -0.3
+              "id": "pm:3215008",
+              "label": "25 bps increase",
+              "labelZh": "增加25个基点",
+              "probability": 0.835,
+              "change24h": 3
             },
             {
-              "id": "pm:679022",
-              "label": "David Lisnard",
-              "labelZh": null,
-              "probability": 0.14,
-              "change24h": -0.9
+              "id": "pm:3215009",
+              "label": "50+ bps increase",
+              "labelZh": "增加50 +个基点",
+              "probability": 0.107,
+              "change24h": 10.1
             },
             {
-              "id": "pm:679030",
-              "label": "Jean-Luc Mélenchon",
-              "labelZh": "让-吕克·梅朗雄",
-              "probability": 0.135,
-              "change24h": null
+              "id": "pm:3215007",
+              "label": "No change",
+              "labelZh": "不变",
+              "probability": 0.036,
+              "change24h": -13.9
             },
             {
-              "id": "pm:679021",
-              "label": "Édouard Philippe",
-              "labelZh": null,
-              "probability": 0.095,
-              "change24h": 1
+              "id": "pm:3215006",
+              "label": "25 bps decrease",
+              "labelZh": "下降25个基点",
+              "probability": 0.005,
+              "change24h": -0.2
             },
             {
-              "id": "pm:679060",
-              "label": "Christine Lagarde",
-              "labelZh": "克莉丝蒂娜·拉加德（Christine Lagarde）",
-              "probability": 0.059,
-              "change24h": -1.1
-            },
-            {
-              "id": "pm:679064",
-              "label": "Teddy Riner",
-              "labelZh": null,
-              "probability": 0.026,
-              "change24h": null
+              "id": "pm:3215005",
+              "label": "50+ bps decrease",
+              "labelZh": "降低50 +个基点",
+              "probability": 0.003,
+              "change24h": -0.2
             }
           ],
           "rest": {
-            "probability": 0.136,
-            "count": 40
+            "probability": 0,
+            "count": 0
           }
         },
-        "asof": "2026-11-10T02:57:55.617Z",
+        "asof": "2026-11-10T18:14:26.076Z",
         "stale": false,
         "count": 30,
         "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
@@ -744,7 +737,7 @@
           }
         ],
         "sample": {
-          "asOf": "2026-11-10T02:58:06.961Z",
+          "asOf": "2026-11-10T18:16:08.077Z",
           "institutions": [
             {
               "slug": "berkshire",
@@ -755,9 +748,9 @@
             }
           ],
           "etf": {
-            "asOf": "2026-11-05",
-            "published": "2026-11-05",
-            "lagDays": 4,
+            "asOf": "2026-11-09",
+            "published": "2026-11-09",
+            "lagDays": 1,
             "funds": [
               {
                 "key": "spmo",
@@ -779,7 +772,7 @@
           "fundHoldings": {
             "reportDate": "2026-09-30",
             "reportDateName": "2026年三季报",
-            "lagDays": 40,
+            "lagDays": 42,
             "topAdd": [
               {
                 "code": "688825",
@@ -814,7 +807,7 @@
             ]
           }
         },
-        "asof": "2026-11-10T02:58:06.961Z",
+        "asof": "2026-11-10T18:16:08.077Z",
         "stale": false,
         "count": 4,
         "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
@@ -937,19 +930,19 @@
         ],
         "sample": {
           "status": "ok",
-          "generatedAt": "2026-11-10T02:58:07.441Z",
+          "generatedAt": "2026-11-10T18:16:08.766Z",
           "durationMs": 0,
           "datasets": [
             {
               "id": "quotes.latest",
-              "lastBuilt": "2026-11-10T02:58:07.441Z",
+              "lastBuilt": "2026-11-10T18:16:08.766Z",
               "count": 1,
               "ms": 0,
               "stale": false
             }
           ]
         },
-        "asof": "2026-11-10T02:58:07.441Z",
+        "asof": "2026-11-10T18:16:08.766Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -959,8 +952,8 @@
   },
   "meta": {
     "dataset": "manifest",
-    "asof": "2026-11-10T02:58:07.441Z",
-    "generatedAt": "2026-11-10T02:58:07.441Z",
+    "asof": "2026-11-10T18:16:08.766Z",
+    "generatedAt": "2026-11-10T18:16:08.766Z",
     "source": "本项目构建产物（data/** 与 js/data/universe.js）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
