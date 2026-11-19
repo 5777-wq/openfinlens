@@ -1,0 +1,32 @@
+{
+  "asOf": "2025-12-19",
+  "note": "纳指100（Nasdaq-100，QQQ 成分）快照，约100只。调仓（每年12月+年中微调）后请手工增删。外资 ADR 只收纳斯达克上市的（如 ASML 在列、TSM 是纽交所 ADR 不在列）。标的本身可能是美股大盘但不同属 SP500（如 ASML 只属纳指100）。",
+  "tickers": [
+    ["AAPL", "苹果"], ["MSFT", "微软"], ["NVDA", "英伟达"], ["AMZN", "亚马逊"],
+    ["META", "Meta"], ["AVGO", "博通"], ["TSLA", "特斯拉"], ["GOOGL", "谷歌A"],
+    ["GOOG", "谷歌C"], ["COST", "好市多"], ["NFLX", "奈飞"], ["AMD", "超威半导体"],
+    ["ASML", "阿斯麦"], ["ADBE", "奥多比"], ["PEP", "百事"], ["CSCO", "思科"],
+    ["TMUS", "T-Mobile US"], ["QCOM", "高通"], ["TXN", "德州仪器"], ["AMAT", "应用材料"],
+    ["INTU", "财捷"], ["CMCSA", "康卡斯特"], ["AMGN", "安进"], ["ISRG", "直觉外科"],
+    ["ADI", "亚德诺"], ["BKNG", "缤客"], ["PANW", "Palo Alto网络"], ["GILD", "吉利德"],
+    ["CSX", "CSX"], ["VRTX", "福泰制药"], ["MU", "美光科技"], ["ADP", "ADP"],
+    ["LRCX", "拉姆研究"], ["KLAC", "KLA"], ["SNPS", "新思科技"], ["CDNS", "楷登电子"],
+    ["MELI", "美客多"], ["CRWD", "CrowdStrike"], ["MAR", "万豪"], ["FTNT", "飞塔"],
+    ["AEP", "美国电力"], ["KDP", "胡椒博士"], ["MNST", "怪兽饮料"], ["NXPI", "恩智浦"],
+    ["PAYX", "沛齐"], ["FAST", "Fastenal"], ["ROP", "罗珀技术"], ["DASH", "DoorDash"],
+    ["EA", "艺电"], ["CTAS", "Cintas"], ["ORLY", "O'Reilly汽车"], ["ROST", "罗斯百货"],
+    ["RMD", "瑞思迈"], ["KHC", "卡夫亨氏"], ["SBUX", "星巴克"], ["CCEP", "可口可乐欧洲合伙"],
+    ["TT", "特灵科技"], ["GEHC", "GE医疗"], ["WDAY", "Workday"], ["CSGP", "CoStar"],
+    ["AXON", "Axon企业"], ["MSTR", "Strategy"], ["APP", "AppLovin"], ["TRMB", "天宝导航"],
+    ["ON", "安森美"], ["ZS", "Zscaler"], ["DDOG", "Datadog"], ["SMCI", "超微电脑"],
+    ["ARM", "安谋"], ["PDD", "拼多多"], ["TMDX", "TransMedics"], ["XEL", "埃克西尔能源"],
+    ["IDXX", "IDEXX实验室"], ["ODFL", "Old Dominion"], ["EXC", "爱克斯龙"], ["BIIB", "百健"],
+    ["MRNA", "莫德纳"], ["CDW", "CDW"], ["ADSK", "欧特克"], ["PCAR", "帕卡"],
+    ["PYPL", "PayPal"], ["CTSH", "高知特"], ["FANG", "Diamondback能源"], ["MDB", "MongoDB"],
+    ["MCHP", "微芯科技"], ["BIDU", "百度"], ["JD", "京东"], ["NTES", "网易"],
+    ["CHTR", "特许通信"], ["EXPE", "Expedia"], ["AZN", "阿斯利康"],
+    ["LULU", "露露乐蒙"], ["ABNB", "爱彼迎"], ["TEAM", "Atlassian"], ["CPRT", "Copart"],
+    ["REGN", "再生元"], ["MRVL", "迈威尔"], ["ANSS", "Ansys"], ["DXCM", "德康医疗"],
+    ["LULU", "露露乐蒙"], ["ABNB", "爱彼迎"], ["TEAM", "Atlassian"], ["CPRT", "Copart"]
+  ]
+}
