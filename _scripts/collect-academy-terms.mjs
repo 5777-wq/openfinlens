@@ -27,8 +27,8 @@ import path from 'node:path';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'data', 'academy-terms.json');
 const OUT_ASSETS = path.join(ROOT, 'js', 'data', 'academy-assets.js');
-const LIVE = 'https://5777-wq.github.io/openfin-academy/data/content/glossary.json';
-const LIVE_ASSETS = 'https://5777-wq.github.io/openfin-academy/data/content/asset-ids.json';
+const LIVE = 'https://5777-wq.github.io/openfinlens/academy/data/content/glossary.json';
+const LIVE_ASSETS = 'https://5777-wq.github.io/openfinlens/academy/data/content/asset-ids.json';
 
 /** --src <dir>：本地科普站仓库 */
 const srcDir = (() => {

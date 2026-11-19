@@ -1,0 +1,55 @@
+# collect-academy —— 白话金融长历史序列采集（Phase 4 迁入，取代旧仓 openfin-academy/collect.yml）
+# 产物：apps/academy/data/history/*.json（约 46 条长历史序列）+ chain-secids.json
+#       → 经 _scripts/push-data-branch.sh 推 data 分支（deploy-pages 拼装时重映射到
+#       /academy/data/history）。内容编译产物（data/content/**）不在此链——它们是
+#       版本化内容，随 main 提交（Phase 5 统一收口进 test/run-all.mjs 的编译校验）。
+#
+# 触发：每日 18:00 UTC（原仓同刻）+ workflow_dispatch。
+# 并发：共用 data-branch-write 组——与 collect.yml（5 分钟档事件）和
+#       collect-meridian.yml（收盘档美股信号）严格串行写 data 分支，互不覆盖产物路径。
+name: collect-academy
+
+on:
+  schedule:
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-branch-write
+  cancel-in-progress: false
+
+jobs:
+  academy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 采集长历史序列（写 apps/academy/data/history）
+        id: collect
+        continue-on-error: true
+        run: node pipelines/academy/_scripts/collect-history.mjs
+
+      - name: 推送 Academy 历史序列到 data 分支
+        if: always() && steps.collect.outcome == 'success' && hashFiles('apps/academy/data/history/*.json') != ''
+        run: |
+          git config user.name "openfinlens-bot"
+          git config user.email "actions@users.noreply.github.com"
+          bash _scripts/push-data-branch.sh -m "data: refresh +academy-history" \
+            apps/academy/data/history apps/academy/data/chain-secids.json
+
+      - name: 失败闸门（采集失败 → workflow 红，旧产物保留在 data 分支）
+        if: always()
+        run: |
+          if [ "${{ steps.collect.outcome }}" = "failure" ]; then
+            echo "::error::collect-history 采集失败——旧序列保留，本轮未更新"
+            exit 1
+          fi
+          echo "Academy 历史序列本轮正常"

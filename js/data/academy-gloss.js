@@ -8,7 +8,10 @@
    宁可给搜索页，也不给一个主体对不上的页面。 */
 
 const AcademyGloss = (() => {
-  const BASE = 'https://5777-wq.github.io/openfin-academy/';
+  /* BASE 用相对路径（monorepo Phase 4）：academy 挂在站点根 /academy/ 下，相对引用
+     在 Pages /openfinlens/ 前缀与本地根路径下都解析正确（gloss 链接 target=_blank，
+     浏览器按当前页 URL 解析）。生成器 _scripts/collect-academy-terms.mjs 不重写本文件。 */
+  const BASE = 'academy/';
 
   // 精确页：symbol → 科普站术语 id
   const TERM_BY_SYMBOL = {

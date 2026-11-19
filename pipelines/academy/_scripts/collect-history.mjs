@@ -11,7 +11,10 @@ import vm from 'node:vm';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+/* monorepo Phase 4：脚本随管线迁入 pipelines/academy/_scripts/，站点数据根在
+ * apps/academy/（data/history、data/chain-secids 写这里，随 collect-academy.yml
+ * 推 data 分支）；vendor/core 两个 IIFE 已退役，改读 apps/academy/js/legacy/。 */
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'apps', 'academy');
 const OUT = path.join(ROOT, 'data', 'history');
 const EAST = 'https://push2his.eastmoney.com/api/qt/stock/kline/get';
 
@@ -812,8 +815,8 @@ async function seriesMeta(id) {
 
 /* ---------------- 产业链 secid 解析 ---------------- */
 async function resolveChainSecids() {
-  const srcFile = path.join(ROOT, 'vendor', 'core', 'industry-chains.js');
-  if (!existsSync(srcFile)) { console.warn('  [chain] vendor 尚未同步，跳过'); return; }
+  const srcFile = path.join(ROOT, 'js', 'legacy', 'industry-chains.js');
+  if (!existsSync(srcFile)) { console.warn('  [chain] legacy 兼容层缺失，跳过'); return; }
   const txt = await readFile(srcFile, 'utf8');
   const re = /\{\s*name:\s*'([^']+)'\s*,\s*symbol:\s*'([^']+)'/g;
   const stocks = new Map();
@@ -860,7 +863,7 @@ async function resolveChainSecids() {
 
 /* 终端 universe（vendor 里同步过来的那份）——两边共用同一份标的清单 */
 async function loadVendorUniverse() {
-  const p = path.join(ROOT, 'vendor', 'core', 'universe.js');
+  const p = path.join(ROOT, 'js', 'legacy', 'universe.js');
   if (!existsSync(p)) return [];
   const src = await readFile(p, 'utf8');
   const ctx = { window: {}, console };

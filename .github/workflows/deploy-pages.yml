@@ -53,12 +53,14 @@ jobs:
           ref: data
           path: data-src
 
-      - name: 拼装发布目录（main 为底，data 分支同路径覆盖）
+      - name: 拼装发布目录（apps/terminal 站点根 + /academy/ 挂载 + data 分支覆盖）
         run: |
           mkdir -p _site
-          # 基底：main 的代码与静态资源。排除清单（Phase 1.5 加严，Gemini 审查裁定）：
-          # 内部脚本、测试桩、未编译内容源、骨架目录、私有配置一律不进 Pages；
-          # android/ 的 APK 按现状继续随站发布（Phase 3/5 起改为只发 Releases 后排除）。
+          # 基底：main 的代码与静态资源（根树与 apps/terminal 过渡期字节一致，由
+          # drift 测试钉住；Phase 5 清理根前端后，apps/terminal 覆盖即唯一来源）。
+          # 排除清单（Phase 1.5 加严 + Phase 4 扩充）：内部脚本、测试桩、未编译内容源、
+          # 骨架目录、私有配置一律不进 Pages；android/ 的 APK 按现状继续随站发布
+          # （Phase 5 起改为只发 Releases 后排除）。
           rsync -a \
             --exclude '.git' \
             --exclude '.github' \
@@ -75,15 +77,25 @@ jobs:
             --exclude 'mcp' \
             --exclude 'miniprogram' \
             --exclude '.data-local' \
+            --exclude '.meridian-cache' \
             --exclude 'config.local.json' \
             --exclude '美股监控' \
             --exclude 'keystore-*' \
             --exclude '*.bundle' \
             main-src/ _site/
-          # 覆盖：data 分支的采集产物（data/**、api/**、js/data/academy-assets.js）。
-          # data 分支尚不存在时静默跳过，回退使用 main 里现有的 data/，保证首次部署不失败。
+          # 站点根 = apps/terminal（覆盖根树同名文件：过渡期字节一致，切换后唯一来源）
+          rsync -a main-src/apps/terminal/ _site/
+          # 子站挂载：/academy/
+          rsync -a main-src/apps/academy/ _site/academy/
+          # 覆盖：data 分支的采集产物（data/**、api/**、js/data/academy-assets.js、
+          # apps/academy/data/**）。data 分支尚不存在时静默跳过（回退 main 静态副本）。
           if [ -d data-src ]; then
             rsync -a data-src/ _site/
+            # Academy 历史序列重映射：data 分支里的 apps/academy/data/** → /academy/data/**
+            if [ -d data-src/apps/academy/data ]; then
+              mkdir -p _site/academy
+              rsync -a data-src/apps/academy/data/ _site/academy/data/
+            fi
             echo "已用 data 分支产物覆盖：$(cd data-src && git ls-files | head -3 | tr '\n' ' ')…"
           else
             echo "::warning::data 分支尚不存在（首次采集未跑），先用 main 的静态副本发布"

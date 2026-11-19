@@ -55,8 +55,8 @@ test('科普站术语清单是同步来的，不是手抄的（防止清单与�
 
 /* ---------------- 链接目标 ---------------- */
 
-test('科普站地址是已上线的部署地址', () => {
-  assert.equal(AG.BASE, 'https://5777-wq.github.io/openfin-academy/');
+test('科普站地址挂相对子路径（Pages /openfinlens/ 前缀与本地根路径双部署通吃）', () => {
+  assert.equal(AG.BASE, 'academy/');
 });
 
 test('有对应术语的标的 → 精确的术语页', () => {
@@ -230,7 +230,7 @@ test('gloss-tip.js 必须接住悬停、滚动与 Esc（否则浮层会挂在屏
 
 test('index.html 必须同时挂上科普站入口与浮层脚本', () => {
   const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  assert.ok(html.includes('https://5777-wq.github.io/openfin-academy/'), '顶栏缺少科普站链接');
+  assert.ok(html.includes('href="academy/'), '顶栏缺少科普站链接（相对挂载 academy/，双部署前缀通吃）');
   /* v3.3：脚本已打进 bundle，改成核对加载清单（未打包时仍看 index.html）。 */
   const bundleFiles = JSON.parse(readFileSync(path.join(ROOT, '_scripts/js-bundle.manifest.json'), 'utf8')).files;
   const loaded = (f) => bundleFiles.includes(f) || html.includes(f);
@@ -453,7 +453,7 @@ function bootTip(metaOf, targetFor) {
 
 /* 科普站去处的桩：把"传进来的名字"原样带回链接里，好看清解析到的是哪个名字 */
 const echoTarget = (sym, name) => ({
-  href: 'https://5777-wq.github.io/openfin-academy/#/search?q=' + encodeURIComponent(name || ''),
+  href: 'https://5777-wq.github.io/openfinlens/academy/#/search?q=' + encodeURIComponent(name || ''),
   kind: 'search',
   label: '在白话金融里查「' + (name || '') + '」↗',
 });

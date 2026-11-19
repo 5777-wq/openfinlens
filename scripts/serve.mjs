@@ -182,8 +182,10 @@ const server = http.createServer(async (req, res) => {
       return serveStatic(req, res, path.join(ROOT, 'index.html'), 'no index');
     }
 
-    // 5) 其余：仓库根旧布局
-    return serveStatic(req, res, safeJoin(ROOT, url));
+    // 5) 其余：apps/terminal 站点根（Phase 4 切换：/js/ /css/ /assets/ 等前端资源
+    //    以 apps/terminal 为准——与线上 deploy-pages 拼装规则一致；仓库根旧前端
+    //    由 drift 测试钉住字节一致，Phase 5 收口后删除）
+    return serveStatic(req, res, safeJoin(TERMINAL_DIR, url));
   } catch (e) {
     send(req, res, 500, Buffer.from('server error: ' + (e && e.message || e)), 'text/plain; charset=utf-8');
   }

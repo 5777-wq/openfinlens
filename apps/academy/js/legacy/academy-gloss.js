@@ -8,7 +8,10 @@
    宁可给搜索页，也不给一个主体对不上的页面。 */
 
 const AcademyGloss = (() => {
-  const BASE = 'https://5777-wq.github.io/openfin-academy/';
+  /* BASE 用相对路径（monorepo Phase 4）。注意本文件也被 apps/academy 自身加载：
+     站内视图只用 TERM_BY_SYMBOL/CONCEPT_BY_SYMBOL 映射，不消费 BASE——
+     相对值对 academy 页面无副作用。 */
+  const BASE = 'academy/';
 
   // 精确页：symbol → 科普站术语 id
   const TERM_BY_SYMBOL = {
