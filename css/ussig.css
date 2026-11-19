@@ -1,0 +1,87 @@
+/* ussig.css —— 「美股信号」Tab（monorepo Phase 4）
+ * 换肤纪律：只用主终端 CSS 变量（--ink/--muted/--line/--up/--down/--surface…），
+ * 零硬编码色——纸白/纯黑两套主题自动跟随。 */
+
+.ussig-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: center;
+  margin: 10px 0 14px;
+}
+.ussig-clock {
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ussig-clock b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.ussig-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+.ussig-badge.warn { color: var(--warn, #a66a16); }
+.ussig-badge.ret { color: var(--down); border-color: var(--down); }
+.ussig-badge.note { color: var(--accent); font-weight: 700; }
+
+.ussig-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.ussig-switch { display: inline-flex; gap: 6px; }
+.ussig-note { font-size: 12px; }
+
+.ussig-body { overflow-x: auto; }
+.ussig-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 900px;
+  font-variant-numeric: tabular-nums;
+}
+.ussig-table th, .ussig-table td {
+  padding: 8px 10px;
+  border-top: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+}
+.ussig-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2, var(--surface));
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+  box-shadow: 0 1px 0 var(--line);
+}
+.ussig-table th:nth-child(3), .ussig-table td:nth-child(3),
+.ussig-table th:nth-child(4), .ussig-table td:nth-child(4),
+.ussig-table td.sig { text-align: left; }
+.ussig-row { cursor: pointer; transition: background .15s; }
+.ussig-row:hover, .ussig-row:focus-visible { background: var(--hl, rgba(0, 0, 0, .06)); outline: none; }
+.ussig-row td.rsi.ob { color: var(--up); font-weight: 800; }
+.ussig-row td.rsi.os { color: var(--down); font-weight: 800; }
+.ussig-row .ticker { font-weight: 800; }
+.ussig-row .company { font-weight: 600; }
+.ussig-row .up { color: var(--up); }
+.ussig-row .dn { color: var(--down); }
+.ussig-row .rank, .ussig-row .mut { color: var(--muted); }
+.ussig-row .vegas { display: inline-flex; gap: 8px; }
+.ussig-row .vegas .up { color: var(--up); font-weight: 700; }
+.ussig-row .vegas .dn { color: var(--down); font-weight: 700; }
+.stcol { text-align: center !important; width: 36px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ussig-row { transition: none !important; }
+}

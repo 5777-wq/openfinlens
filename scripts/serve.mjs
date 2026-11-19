@@ -136,6 +136,13 @@ const server = http.createServer(async (req, res) => {
     }
     if (!url.startsWith('/')) url = '/' + url;
 
+    // 模拟 Pages 项目站子路径：/openfinlens/* 与 /* 同义（验收要求两种前缀下零 404）。
+    // 剥掉前缀后走同一条路由逻辑——线上真实部署由 Pages 自带该前缀，行为一致。
+    const SUB = '/openfinlens';
+    if (url === SUB || url.startsWith(SUB + '/')) {
+      url = url.slice(SUB.length) || '/';
+    }
+
     // 1) 采集产物：/data/* 与 /api/*，走三级回退
     if (url === '/data' || url.startsWith('/data/') || url.startsWith('/api/')) {
       return await serveDataish(req, res, url.replace(/^\/+/, ''));

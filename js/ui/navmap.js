@@ -18,13 +18,16 @@
 (function (global) {
   'use strict';
 
-  /* 一级 → 子项。顺序即展示顺序；12 个旧 key 必须恰好各被认领一次。 */
+  /* 一级 → 子项。顺序即展示顺序；12 个旧 key 必须恰好各被认领一次。
+     monorepo Phase 4 新增第 6 个一级「美股信号」（ussig，消费 data/us-signals.json，
+     Meridian 管线产物）——它不是 12 个旧 key 的一部分，children 自成一体。 */
   const PRIMARY_DEFS = [
     { key: 'market', label: '市场', children: ['all', 'cn', 'hk', 'us', 'crypto', 'fxmacro', 'option'] },
     { key: 'events', label: '事件', children: ['events'] },
     { key: 'assets', label: '资产', children: ['watch', 'portfolio'] },
     { key: 'fund', label: '基金', children: ['compare'] },
     { key: 'insight', label: '洞察', children: ['chain'] },
+    { key: 'ussig', label: '美股信号', children: ['ussig'] },
   ];
 
   const DEFAULT_PRIMARY = PRIMARY_DEFS[0].key;               // 'market'

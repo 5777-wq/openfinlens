@@ -1,0 +1,157 @@
+/* ============================================================
+   白话金融 OpenFin Academy — 设计令牌
+   风格：财经报刊的编辑感 × 交易终端的信息密度
+   —— 纸感底 + 墨蓝字 + 正方切角 + hairline 分隔 + 等宽数字
+   ============================================================ */
+
+:root {
+  /* ---------- 纸与墨 ---------- */
+  --paper:        #EEF2F6;   /* 账簿纸：暖玫瑰调，区别于纯白与奶油 */
+  --paper-deep:   #E3E9F0;   /* 纸的暗部，用于分区底 */
+  --sheet:        #FFFFFF;   /* 单页白：卡片、正文面板 */
+  --sheet-2:      #F6F8FA;   /* 次级面板 */
+  --rule:         #DCE3EA;   /* 主界线 */
+  --rule-2:       #E9EEF3;   /* 淡界线 */
+  --rule-3:       #F2F5F8;   /* 极淡界线 */
+
+  --ink:          #111B24;   /* 标题 */
+  --ink-2:        #3D4C57;   /* 正文 */
+  --ink-3:        #5A6B78;   /* 辅助、注释（5.33:1，浅底上也要读得清） */
+  --ink-4:        #5C6B77;   /* 占位（4.64:1，兜底的字也不能看不清） */
+
+  /* ---------- 强调 ---------- */
+  --teal:         #1563C0;   /* 青金：链接、主图表色、选中态 */
+  --teal-2:       #2A8BE8;
+  --teal-soft:    rgba(21,99,192,.07);
+  --teal-line:    rgba(21,99,192,.24);
+
+  --gold:         #A87A22;   /* 金箔：图形色——峰值圈、游标、滑块、焦点环
+                                 （图形对比只需 3:1，不跟文字一个尺子） */
+  --gold-text:    #7A5A0E;   /* 金箔的**文字**版（纸底 5.21:1 / 卡底 6.05:1，≥4.5） */
+  --gold-2:       #C79B36;
+  --gold-soft:    rgba(168,122,34,.09);
+  --gold-line:    rgba(168,122,34,.26);
+
+  /* ---------- 语义（红涨绿跌，中式口径） ----------
+     这几个主要是**文字**色：浅底上都必须 ≥4.5:1。
+     原来的值只有 3.0–4.5，金色尤其差（3.23:1，标题级别的字都看不清）。 */
+  --up:           #B03627;   /* 4.68 / 5.20 */
+  --up-soft:      rgba(194,64,47,.08);
+  --down:         #186A4B;   /* 4.97 / 5.52 */
+  --down-soft:    rgba(27,122,87,.08);
+  --flat:         #55636D;   /* 4.90 / 5.44 */
+  --warn:         #8A5A12;   /* 4.66 / 5.17 */
+  --warn-soft:    rgba(169,112,26,.10);
+  --danger:       #A83A3A;
+  --danger-soft:  rgba(168,58,58,.08);
+
+  /* ---------- 面积填充（回放器：基准线上方=涨，下方=跌） ---------- */
+  --fill-up:      rgba(194,64,47,.13);
+  --fill-down:    rgba(27,122,87,.15);
+
+  /* ---------- 字体 ---------- */
+  --font-sans: "PingFang SC", "Source Han Sans SC", "Noto Sans SC", "Hiragino Sans GB",
+               "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+               "Liberation Mono", "Courier New", monospace;
+
+  /* ---------- 字号 ---------- */
+  --t-masthead:  clamp(26px, 3.4vw, 36px);
+  --t-hero:      clamp(24px, 3vw, 33px);
+  --t-h1:        25px;
+  --t-h2:        19px;
+  --t-h3:        16px;
+  --t-body:      15px;
+  --t-small:     13px;
+  --t-micro:     12px;
+  --t-eyebrow:   11px;
+
+  --lh-tight:    1.3;
+  --lh-title:    1.42;
+  --lh-body:     1.78;
+
+  /* ---------- 间距 ---------- */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 22px; --s-6: 30px; --s-7: 42px; --s-8: 60px;
+
+  /* ---------- 圆角：金融风格用极小切角 ---------- */
+  --r-0: 0px;  --r-1: 8px;  --r-2: 12px;  --r-3: 16px;
+
+  /* ---------- 阴影：靠 hairline 而非投影分层 ---------- */
+  --sh-1: 0 1px 2px rgba(17,27,36,.04), 0 1px 3px rgba(17,27,36,.03);
+  --sh-2: 0 6px 18px -8px rgba(17,27,36,.18), 0 2px 6px rgba(17,27,36,.05);
+  --sh-3: 0 24px 60px -20px rgba(17,27,36,.30), 0 8px 20px -12px rgba(17,27,36,.18);
+
+  /* ---------- 布局尺寸 ---------- */
+  --masthead-h:  60px;
+  --ticker-h:    38px;
+  --rail-w:      214px;
+  --rail-w-min:  60px;
+  --reading-w:   700px;
+  --page-max:    1320px;
+
+  /* ---------- 动效 ----------
+     --dur-* / --ease-* / --stagger 的唯一来源在 motion.css 的 :root
+     （本文件之后加载）。此处若再写同名令牌只会成为被覆盖的死值，
+     故不再定义；节奏规则、缓动用法与 spring 的 live 落点见 motion.css 顶部。 */
+
+  /* ---------- 层级 ---------- */
+  --z-sticky: 40; --z-rail: 50; --z-drawer: 80; --z-palette: 90; --z-top: 100;
+}
+
+/* 深色皮肤：夜盘终端。仍保持同一套结构语言，只换纸墨。 */
+body[data-theme="night"] {
+  --paper:        #0F1720;
+  --paper-deep:   #0A1118;
+  --sheet:        #17212B;
+  --sheet-2:      #1C2733;
+  --rule:         #2B3A47;
+  --rule-2:       #23313D;
+  --rule-3:       #1D2A35;
+  --ink:          #F1F5F8;
+  --ink-2:        #C2CFDA;
+  --ink-3:        #9DAEBC;   /* 辅助、注释（6.76:1，夜里的字也得看得清） */
+  --ink-4:        #8A9BA9;   /* 占位（5.54:1） */
+  --teal:         #6FB5F5;
+  --teal-2:       #8CC7F8;
+  --teal-soft:    rgba(111,181,245,.12);
+  --teal-line:    rgba(111,181,245,.30);
+  --gold:         #E6C069;
+  --gold-text:    #E6C069;   /* 夜里的金本来就够亮，文字与图形同色 */
+  --gold-2:       #F2D48C;
+  --gold-soft:    rgba(230,192,105,.12);
+  --gold-line:    rgba(230,192,105,.30);
+  --up:           #F07C6F;
+  --up-soft:      rgba(228,102,90,.12);
+  --down:         #4FD1A1;
+  --down-soft:    rgba(53,177,131,.12);
+  --warn:         #E0B45C;
+  --warn-soft:    rgba(214,165,78,.12);
+  --danger:       #E06A6A;
+  --danger-soft:  rgba(224,106,106,.12);
+  --fill-up:      rgba(240,124,111,.18);
+  --fill-down:    rgba(79,209,161,.20);
+  --sh-1: 0 1px 2px rgba(0,0,0,.3);
+  --sh-2: 0 4px 14px -6px rgba(0,0,0,.5);
+  --sh-3: 0 16px 44px -16px rgba(0,0,0,.6);
+}
+
+/* ---------- 涨跌配色：中式红涨绿跌 / 西式绿涨红跌 ----------
+   只交换语义色的映射，不改任何数字与文案。
+   两个主题都要各写一份：夜里红绿都调亮过，不能直接套白天的值。 */
+body[data-updown="green"] {
+  --up:           #186A4B;
+  --up-soft:      rgba(27,122,87,.08);
+  --down:         #B03627;
+  --down-soft:    rgba(194,64,47,.08);
+  --fill-up:      rgba(27,122,87,.15);
+  --fill-down:    rgba(194,64,47,.13);
+}
+body[data-theme="night"][data-updown="green"] {
+  --up:           #35B183;
+  --up-soft:      rgba(53,177,131,.12);
+  --down:         #E4665A;
+  --down-soft:    rgba(228,102,90,.12);
+  --fill-up:      rgba(53,177,131,.20);
+  --fill-down:    rgba(228,102,90,.18);
+}

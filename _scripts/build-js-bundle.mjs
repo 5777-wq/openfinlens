@@ -24,8 +24,11 @@ import { readFileSync, writeFileSync, existsSync, statSync, readdirSync, statSyn
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MANIFEST = path.join(ROOT, '_scripts/js-bundle.manifest.json');
+/* --root <dir>（monorepo Phase 4 过渡期）：对 apps/terminal 再打一份。
+ * manifest 恒在仓库根 _scripts/（两棵树文件集一致）；--root 只改源/产物目录。 */
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
+  '..', process.argv.indexOf('--root') >= 0 ? process.argv[process.argv.indexOf('--root') + 1] : '.');
+const MANIFEST = path.join(path.dirname(fileURLToPath(import.meta.url)), 'js-bundle.manifest.json');
 const OUT_CRIT = path.join(ROOT, 'js/bundle.js');
 const OUT_LAZY = path.join(ROOT, 'js/bundle-lazy.js');
 const CHECK = process.argv.includes('--check');

@@ -326,8 +326,8 @@ test('index.html 的业务资源 ?v= 必须全部同版本（防缓存穿透失�
   assert.equal(uniq.length, 1, `版本号不统一（漏 bump 会导致用户看到旧缓存）：${uniq.join(' ')}`);
 });
 
-test('vendor 库的 ?v= 必须是锁定的语义化版本，不被业务版本号覆盖', () => {
-  const vendor = [...HTML.matchAll(/lib\/[^"?]+\?v=([^"&]+)/g)].map(m => m[1]);
+test('vendor 库的 ?v= 必须是锁定的语义化版本，不被业务版本号覆盖（monorepo 后路径在 core/vendor/）', () => {
+  const vendor = [...HTML.matchAll(/(?:lib|core\/vendor)\/[^"?]+\?v=([^"&]+)/g)].map(m => m[1]);
   assert.ok(vendor.length >= 3, '没扫到 vendor 资源');
   vendor.forEach(v => assert.ok(/^\d+\.\d+\.\d+$/.test(v), `vendor 版本应形如 1.2.3，实际 "${v}"`));
 });

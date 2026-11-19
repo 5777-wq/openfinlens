@@ -31,20 +31,20 @@ vm.runInContext(src, sandbox, { filename: 'js/ui/navmap.js' });
 const Nav = sandbox.window.Navmap || sandbox.Navmap || sandbox.window.NavMap;
 assert.ok(Nav, 'js/ui/navmap.js 没有把模块挂到 window.Navmap 上');
 
-const ALL_TABS = ['all', 'cn', 'hk', 'us', 'crypto', 'fxmacro', 'option', 'events', 'chain', 'watch', 'portfolio', 'compare'];
+const ALL_TABS = ['all', 'cn', 'hk', 'us', 'crypto', 'fxmacro', 'option', 'events', 'chain', 'watch', 'portfolio', 'compare', 'ussig'];
 
-test('5 个一级入口，且每个一级都有 label 与非空子项', () => {
+test('6 个一级入口，且每个一级都有 label 与非空子项', () => {
   const P = Nav.PRIMARY_DEFS;
   assert.ok(Array.isArray(P), 'PRIMARY_DEFS 应为数组');
-  assert.equal(P.length, 5, '一级入口应为 5 个');
+  assert.equal(P.length, 6, '一级入口应为 6 个（市场/事件/资产/基金/洞察/美股信号）');
   P.forEach(d => {
     assert.ok(d.key && d.label, '一级项缺 key/label：' + JSON.stringify(d));
     assert.ok(Array.isArray(d.children) && d.children.length >= 1, d.key + ' 没有子项');
   });
-  assert.deep(P.map(d => d.key), ['market', 'events', 'assets', 'fund', 'insight'], '一级顺序固定（市场/事件/资产/基金/洞察）');
+  assert.deep(P.map(d => d.key), ['market', 'events', 'assets', 'fund', 'insight', 'ussig'], '一级顺序固定（市场/事件/资产/基金/洞察/美股信号）');
 });
 
-test('12 个旧 key 一个不落地被某个一级认领（一个 key 只能属于一个一级）', () => {
+test('12 个旧 key + ussig 一个不落地被某个一级认领（一个 key 只能属于一个一级）', () => {
   const owner = {};
   Nav.PRIMARY_DEFS.forEach(d => d.children.forEach(k => {
     assert.ok(!owner[k], `旧 key "${k}" 被两个一级同时认领：${owner[k]} / ${d.key}`);

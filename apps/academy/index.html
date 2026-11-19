@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>白话金融 · OpenFin Academy</title>
+<meta name="description" content="把美债收益率、黄金、纳指、原油、A股和 AI 产业链讲成金融小白听得懂的话。零后端、零密钥、零构建的金融科普站。">
+<meta name="theme-color" content="#F2ECDF">
+<link rel="manifest" href="manifest.webmanifest">
+<!-- 分享卡片：静态兜底写死站点级信息，js/app.js 每次换页再改写成这一页的内容。
+     微信/微博/Twitter 的爬虫不执行 JS，只能拿到这份壳——所以壳也得站得住。 -->
+<meta property="og:site_name" content="白话金融 OpenFin Academy">
+<meta property="og:title" id="og-title" content="白话金融 · OpenFin Academy">
+<meta property="og:description" id="og-desc" content="把美债收益率、黄金、纳指、原油、A股和 AI 产业链讲成金融小白听得懂的话。">
+<meta property="og:type" id="og-type" content="website">
+<meta property="og:url" id="og-url" content="https://5777-wq.github.io/openfinlens/academy/">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" id="og-image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='630' viewBox='0 0 1200 630'%3E%3Crect width='1200' height='630' fill='%23F2EAE6'/%3E%3Cpath d='M0 520 L240 470 L420 500 L660 380 L900 300 L1200 210' stroke='%230B6E75' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='1200' cy='210' r='16' fill='%23A87A22'/%3E%3Ctext x='80' y='150' font-family='Helvetica,Arial,sans-serif' font-size='64' font-weight='bold' fill='%2316232B'%3EOpenFin Academy%3C/text%3E%3Ctext x='80' y='215' font-family='Helvetica,Arial,sans-serif' font-size='30' fill='%234A5B63'%3EPlain-language finance, zero backend%3C/text%3E%3C/svg%3E">
+<meta name="twitter:card" id="tw-card" content="summary">
+<meta name="twitter:title" id="tw-title" content="白话金融 · OpenFin Academy">
+<meta name="twitter:description" id="tw-desc" content="把美债收益率、黄金、纳指、原油、A股和 AI 产业链讲成金融小白听得懂的话。">
+<link rel="canonical" id="canonical" href="https://5777-wq.github.io/openfinlens/academy/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F2EAE6'/%3E%3Cpath d='M4 23 L11 14 L17 19 L28 7' stroke='%230B6E75' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='28' cy='7' r='2.6' fill='%23A87A22'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/tokens.css?v=20261110">
+<link rel="stylesheet" href="css/layout.css?v=20261110">
+<link rel="stylesheet" href="css/components.css?v=20261110">
+<link rel="stylesheet" href="css/aurora.css?v=20261110">
+<link rel="stylesheet" href="css/home.css?v=20261110">
+<link rel="stylesheet" href="css/motion.css?v=20261110">
+<style>
+/* ============================================================
+   导航与命令面板 · 动效层（叠在三份 css 之后）
+   约定：动效只回答「这东西从哪来」与「我刚刚碰了什么」；
+   只动 transform / opacity；时长与缓动一律引用变量并带兜底；
+   JS 只切类名，过渡与关键帧全部在这里。reduced-motion 的
+   全局关闭分支在 layout.css 顶部，本层末尾再显式关一次。
+   ============================================================ */
+
+/* ---------- 1. 当前项指示：左栏（报头区导航）与底栏的金线 ----------
+   金线只在选中状态切换的一瞬展开/收起（scaleY/scaleX 0→1），
+   不脉冲、不循环。基础态常驻（scale 为 0），类名切换不打断过渡。 */
+.rail-item::before {
+  content: ""; position: absolute; left: -1px; top: 6px; bottom: 6px; width: 2px;
+  display: none;   /* 选中态已经有胶囊底色，不再叠一条金线 */
+}
+
+@media (max-width: 860px) {
+  /* 底栏：金线从中点展开。文字与图标的选中换色过渡在 layout.css
+     （颜色双向过渡用 --ease-in-out），这里不写第二份。 */
+  .tabbar button::before {
+    content: ""; position: absolute; top: 0; left: 50%; width: 16px; height: 2px;
+    background: var(--gold);
+    display: none;   /* 底栏用底色表达选中，不画顶部金线 */
+  }
+}
+
+/* ---------- 2. 命令面板：开合 ----------
+   wrap 常驻布局（覆盖 components.css 的 display:none），
+   开合交给 visibility + 面板自身的 opacity/transform；
+   关闭方向 visibility 延到淡出结束再翻，点击则由 pointer-events 即时挡住。 */
+.palette-wrap {
+  display: block;
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility 0s linear var(--dur-2, 340ms);
+}
+.palette-wrap.on {
+  visibility: visible;
+  pointer-events: auto;
+  transition: visibility 0s;
+}
+.palette {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px) scale(.985);
+  transition:
+    opacity var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.16,1,.3,1)),
+    transform var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.16,1,.3,1));
+}
+.palette-wrap.on .palette {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* ---------- 3. 换页淡入 ----------
+   route() 每次换页新建一个 .route-host 节点，进场动画随节点
+   插入播放一次：滚动不触发、不重复、不回放。只淡容器，数据不动——
+   位移交给各视图自己的进场动画（fx-page-in 等）。
+   这是唯一一份定义，layout.css 里不再另写（同特异性会互相覆盖）。 */
+@keyframes route-in {
+  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(.997); }
+  to   { opacity: 1; transform: none; }
+}
+.route-host {
+  animation: route-in var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.16,1,.3,1)) both;
+  will-change: transform, opacity;
+}
+
+/* ---------- 4. 切肤颜色过渡（T 键） ----------
+   类名由 JS 短暂挂在 body 上（transitionend 即摘，见 app.js），
+   颜色双向过渡用 --ease-in-out、大表面用 --dur-3；
+   !important 只为在挂类期间盖过各组件自己的 transition 声明。 */
+body.theme-anim,
+body.theme-anim *,
+body.theme-anim *::before,
+body.theme-anim *::after {
+  transition:
+    background-color var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)),
+    border-color var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)),
+    color var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)),
+    fill var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)),
+    stroke var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)),
+    box-shadow var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)) !important;
+}
+
+/* ---------- reduced-motion：本层动效全部关闭 ----------
+   layout.css 顶部的全局兜底不覆盖 transition-delay，也不与
+   带 !important 的声明比大小，所以这里按本层再显式关一次。 */
+@media (max-width: 860px) {
+  /* UI v2：底栏用胶囊选中态，不再画顶部金线 */
+  .tabbar button::before { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-item::before,
+  .tabbar button::before,
+  .palette,
+  .route-host { transition: none; animation: none; }
+  .palette-wrap,
+  .palette-wrap.on { transition: none; }
+  body.theme-anim,
+  body.theme-anim *,
+  body.theme-anim *::before,
+  body.theme-anim *::after { transition: none !important; }
+}
+</style>
+<script>
+/* 启动期错误可见化：把异常写进标题与页脚，方便定位（不吞错误，只让它可见） */
+window.__ofaErrors = [];
+function __ofaReport(kind, msg) {
+  window.__ofaErrors.push(kind + ': ' + msg);
+  try {
+    // 标题只带调试标记时改，避免污染正常浏览时的标题
+    if (/(\?|&)debug=1/.test(location.search)) {
+      document.title = 'JS-' + kind + ': ' + String(msg).slice(0, 120);
+    }
+    var b = document.getElementById('boot-error');
+    if (!b) {
+      b = document.createElement('pre');
+      b.id = 'boot-error';
+      b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;max-height:40vh;overflow:auto;'
+        + 'margin:0;padding:12px 16px;background:#3b1518;color:#ffd9d4;font:12px/1.6 monospace;white-space:pre-wrap;border-top:2px solid #b06367';
+      (document.body || document.documentElement).appendChild(b);
+    }
+    b.textContent = window.__ofaErrors.join('\n');
+  } catch (e) { /* 报告本身失败就算了 */ }
+}
+window.addEventListener('error', function (e) {
+  __ofaReport('ERR', (e.message || 'unknown') + ' @ ' + String(e.filename || '').split('/').pop() + ':' + e.lineno);
+});
+window.addEventListener('unhandledrejection', function (e) {
+  var r = e.reason;
+  __ofaReport('REJ', (r && (r.stack || r.message)) || String(r));
+});
+</script>
+</head>
+<body>
+
+<!-- 跳到主内容：键盘用户不用每次都 Tab 过整个报头 -->
+<a class="skip" id="skip-link" href="#main">跳到主内容</a>
+<!-- 换页播报：内容整块换掉了，读屏用户得有人告诉他一声 -->
+<div id="route-live" class="sr-only" role="status" aria-live="polite"></div>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<!-- ============ 报头 ============ -->
+<header class="masthead">
+  <div class="masthead-in">
+    <a class="nameplate" href="#/" aria-label="白话金融 首页">
+      <span class="brand-symbol" aria-hidden="true"></span>
+      <span class="nameplate-copy"><span class="zh">白话金融</span><span class="en">OpenFin Academy</span></span>
+    </a>
+
+    <div class="masthead-spacer"></div>
+
+    <div class="masthead-meta">
+      <span class="hide-sm" id="mh-date">—</span>
+      <span class="sep hide-sm">·</span>
+      <a class="hide-sm" id="mh-sister" href="https://5777-wq.github.io/openfinlens/" target="_blank" rel="noopener">OpenFinLens ↗</a>
+    </div>
+
+    <button class="mh-btn" id="btn-search" aria-label="搜索（快捷键斜杠）">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="hide-sm">搜索</span><span class="kbd">/</span>
+    </button>
+    <button class="mh-btn icon" id="btn-keys" aria-label="快捷键">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>
+    </button>
+    <button class="mh-btn icon" id="btn-theme" aria-label="切换日夜皮肤">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <button class="mh-btn icon" id="btn-settings" aria-label="站点设置">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+  <div class="tick-rule" id="tick-rule" aria-hidden="true"></div>
+</header>
+
+<!-- ============ 报价条 ============ -->
+<div class="ticker">
+  <div class="ticker-in" id="ticker">
+    <span class="tk src-note">行情加载中…</span>
+  </div>
+</div>
+
+<!-- ============ 主体 ============ -->
+<div class="shell">
+  <nav class="rail" id="rail" aria-label="栏目导航"></nav>
+  <main class="main" id="main" tabindex="-1">
+    <!-- 首屏骨架：内容到达前先撑住版面，避免白屏。路由渲染时整块替换 -->
+    <div class="reading" id="view" data-skeleton="1">
+      <section style="padding:var(--s-6) 0 0">
+        <div class="eyebrow">白话金融 · 金融科普</div>
+        <h1 style="font-size:var(--t-hero);line-height:1.32;letter-spacing:-.015em;margin-bottom:var(--s-3)">
+          把美债收益率、黄金、纳指、原油、A股<br class="hero-br">讲成你听得懂的话。
+        </h1>
+        <p class="art-dek">零后端、零密钥、零构建的金融科普站。每一句都能点开看真实数据，每一场危机都能拖动时间轴回放。</p>
+        <div style="display:flex;gap:var(--s-2);flex-wrap:wrap;margin-top:var(--s-4)">
+          <span class="btn" style="pointer-events:none">从零开始 · 8 课</span>
+          <span class="btn ghost" style="pointer-events:none">看一场危机复盘</span>
+          <span class="btn ghost" style="pointer-events:none">查一个概念</span>
+        </div>
+      </section>
+      <section style="margin-top:var(--s-7)">
+        <div class="eyebrow">实时仪表</div>
+        <div class="gauges">
+          <div class="dpanel"><div class="skel" style="height:12px;width:56%"></div><div class="skel" style="height:26px;width:42%;margin-top:10px"></div></div>
+          <div class="dpanel"><div class="skel" style="height:12px;width:56%"></div><div class="skel" style="height:26px;width:42%;margin-top:10px"></div></div>
+          <div class="dpanel"><div class="skel" style="height:12px;width:56%"></div><div class="skel" style="height:26px;width:42%;margin-top:10px"></div></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- ============ 全站页脚（免责声明） ============ -->
+<footer class="footer">
+  <div class="footer-in">
+    <div class="footer-text">
+      <p>白话金融 · OpenFin Academy —— 只做金融知识科普，<b>不构成投资建议，不推荐任何具体产品，不预测市场走势</b>。</p>
+      <p>数据来自第三方公开接口，有延迟、会出错；历史不代表未来。据此决策，风险自负。</p>
+      <p class="footer-links">
+        <a href="#/compare">资产对比</a><span>·</span>
+        <a href="#/curve">收益率曲线</a><span>·</span>
+        <a href="#/analogy">周期对照</a><span>·</span>
+        <a href="#/calc">理财计算器</a><span>·</span>
+        <a href="#/quiz">术语自测</a><span>·</span>
+        <a href="#/saved">收藏与记录</a><span>·</span>
+        <a href="#/status">数据台账</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ 移动端底栏 ============ -->
+<nav class="tabbar" id="tabbar" aria-label="移动端导航"></nav>
+
+<!-- ============ 术语抽屉 ============ -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-labelledby="drawer-title">
+  <div class="drawer-head">
+    <span class="dt" id="drawer-title" tabindex="-1">术语</span>
+    <button class="dx" id="drawer-close" aria-label="关闭">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+  <div class="drawer-foot" id="drawer-foot"></div>
+</aside>
+
+<!-- ============ 命令面板 ============ -->
+<div class="palette-wrap" id="palette-wrap">
+  <div class="palette" role="dialog" aria-modal="true" aria-label="搜索">
+    <div class="palette-input">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="palette-input" type="text" placeholder="搜术语、标的、文章…" autocomplete="off" spellcheck="false"
+             role="combobox" aria-expanded="true" aria-controls="palette-list" aria-autocomplete="list">
+      <span class="kbd">Esc</span>
+    </div>
+    <div class="palette-list" id="palette-list" role="listbox" aria-label="搜索结果"></div>
+    <div class="palette-foot">
+      <span>↑↓ 选择</span><span>⏎ 打开</span><span>Esc 关闭</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<button class="to-top" id="to-top" aria-label="回到顶部">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
+</button>
+
+<!-- monorepo：sync-core.mjs 与 vendor/ 已退役（Phase 4）。这五个 IIFE 兼容模块的原字节
+     随本仓 apps/academy/js/legacy/ 走（与 apps/terminal/js 同名文件由漂移测试钉住一致；
+     utils.js 两仓版本刻意保持 academy 冻结版，收口进 core/ 是 Phase 5 的事） -->
+<script src="js/legacy/utils.js?v=20261110"></script>
+<script src="js/legacy/universe.js?v=20261110"></script>
+<script src="js/legacy/explain.js?v=20261110"></script>
+<script src="js/legacy/industry-chains.js?v=20261110"></script>
+<!-- 终端→本站的术语映射表：术语库据此判断「哪些词是行情里真能撞见的」，
+     那些词在分类内排前面（组内按读者遇到顺序，不按字母序） -->
+<script src="js/legacy/academy-gloss.js?v=20261110"></script>
+
+<!-- core/ 桥接：ESM 唯一真源挂回 window（OpenFinCore/Technical），供跨站复用与后续接入 -->
+<script type="module" src="../core/bridge/auto.mjs"></script>
+
+<!-- 部署坐标（必须最先加载：jsonld/cross/各视图读 window.ACADEMY_SITE） -->
+<script src="js/site/base.js?v=20261110"></script>
+
+<!-- 本站 -->
+<script src="js/site/format.js?v=20261110"></script>
+<script src="js/site/jsonld.js?v=20261110"></script>
+<script src="js/site/pwa.js?v=20261110"></script>
+<script src="js/site/net.js?v=20261110"></script>
+<script src="js/site/cross.js?v=20261110"></script>
+<script src="js/site/disclaimer.js?v=20261110"></script>
+<script src="js/store.js?v=20261110"></script>
+<script src="js/router.js?v=20261110"></script>
+<script src="js/engine/series.js?v=20261110"></script>
+<script src="js/engine/percentile.js?v=20261110"></script>
+<script src="js/engine/drawdown.js?v=20261110"></script>
+<script src="js/engine/crisis.js?v=20261110"></script>
+<script src="js/engine/instrument.js?v=20261110"></script>
+<script src="js/engine/spread.js?v=20261110"></script>
+<script src="js/engine/analogy.js?v=20261110"></script>
+<script src="js/engine/compare.js?v=20261110"></script>
+<script src="js/sources/quotes.js?v=20261110"></script>
+<script src="js/sources/history.js?v=20261110"></script>
+<script src="js/site/content.js?v=20261110"></script>
+<script src="js/components/term-card.js?v=20261110"></script>
+<script src="js/components/term-drawer.js?v=20261110"></script>
+<script src="js/components/era-timeline.js?v=20261110"></script>
+<script src="js/components/replay-player.js?v=20261110"></script>
+<script src="js/components/chain-heat.js?v=20261110"></script>
+<script src="js/components/series-chart.js?v=20261110"></script>
+<script src="js/views/home.js?v=20261110"></script>
+<script src="js/views/list.js?v=20261110"></script>
+<script src="js/views/assets.js?v=20261110"></script>
+<script src="js/views/article.js?v=20261110"></script>
+<script src="js/views/crisis.js?v=20261110"></script>
+<script src="js/views/chain.js?v=20261110"></script>
+<script src="js/views/path.js?v=20261110"></script>
+<script src="js/views/term.js?v=20261110"></script>
+<script src="js/views/search.js?v=20261110"></script>
+<script src="js/views/compare.js?v=20261110"></script>
+<script src="js/views/curve.js?v=20261110"></script>
+<script src="js/views/analogy.js?v=20261110"></script>
+<script src="js/views/calc.js?v=20261110"></script>
+<script src="js/views/saved.js?v=20261110"></script>
+<script src="js/views/tag.js?v=20261110"></script>
+<script src="js/views/quiz.js?v=20261110"></script>
+<script src="js/views/series.js?v=20261110"></script>
+<script src="js/app.js?v=20261110"></script>
+</body>
+</html>

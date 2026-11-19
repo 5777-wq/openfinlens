@@ -68,6 +68,7 @@
     "js/ui/navmap.js",
     "js/ui/command.js",
     "js/app.js",
+    "js/us-signals.js",
     "js/gloss-tip.js",
     "js/ui/motion.js"
   ],

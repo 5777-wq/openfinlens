@@ -70,6 +70,7 @@
     <button class="nav-primary" id="pnav-assets" data-primary="assets" role="tab" aria-controls="view-watch" aria-selected="false" tabindex="-1">资产</button>
     <button class="nav-primary" id="pnav-fund" data-primary="fund" role="tab" aria-controls="view-compare" aria-selected="false" tabindex="-1">基金</button>
     <button class="nav-primary" id="pnav-insight" data-primary="insight" role="tab" aria-controls="view-chain" aria-selected="false" tabindex="-1">洞察</button>
+    <button class="nav-primary" id="pnav-ussig" data-primary="ussig" role="tab" aria-controls="view-ussig" aria-selected="false" tabindex="-1">美股信号</button>
   </div>
   <div class="topbar-actions">
     <a class="topbar-link" id="academyLink" href="https://5777-wq.github.io/openfin-academy/" target="_blank" rel="noopener"
@@ -528,6 +529,27 @@
     <div class="section mt32" id="detailInsight"></div>
   </section>
 
+  <!-- ========== 美股信号（Meridian）——消费 data/us-signals.json，js/us-signals.js 自渲染 ========== -->
+  <section class="view tab-panel" id="view-ussig" role="tabpanel" tabindex="-1" aria-label="美股信号">
+    <h1 class="page-title">美股信号 <span class="mut" style="font-size:14px;font-weight:500">Meridian · SPMO + SP500 前 150</span></h1>
+    <div class="ussig-head">
+      <div class="ussig-clock" id="ussig-clock"></div>
+      <div class="ussig-chips" id="ussig-chips" role="group" aria-label="信号筛选"></div>
+    </div>
+    <div class="ussig-tools">
+      <span class="ussig-switch" id="ussig-rsi" role="group" aria-label="RSI 周期切换">
+        <button class="chip on" type="button" data-ussig-p="6" aria-pressed="true">RSI6</button>
+        <button class="chip" type="button" data-ussig-p="14" aria-pressed="false">RSI14</button>
+      </span>
+      <span class="ussig-switch" id="ussig-cycle" role="group" aria-label="周期切换">
+        <button class="chip on" type="button" data-ussig-cycle="daily" aria-pressed="true">日线</button>
+        <button class="chip" type="button" data-ussig-cycle="weekly" aria-pressed="false">周线</button>
+      </span>
+      <span class="ussig-note mut" id="ussig-note"></span>
+    </div>
+    <div class="ussig-body" id="ussig-body"><div class="ussig-empty">切到本页时自动载入 data/us-signals.json…</div></div>
+  </section>
+
   <!-- ========== 全球事件（3D 地球 + 事件流 + 快讯） ========== -->
   <section class="view tab-panel" id="view-events" role="tabpanel" tabindex="-1" aria-label="全球事件">
     <h1 class="page-title">全球事件</h1>
@@ -983,11 +1005,11 @@
      v3.4 起不在首屏加载（50KB gzip，只有点开详情/K线才用得到）：
      app.js 的 loadLazyBundle() 会在拉 bundle-lazy 的同时把它注入。 -->
 <!-- 平面地图的本地 vendor：topojson 解析国界、d3-geo 做投影 + 在 ±180° 处切跨线几何（俄罗斯/斐济/南极）
-     + geoContains 做点在多边形国家命中。禁止运行时海外 CDN（lib/THIRD_PARTY.md）。
+     + geoContains 做点在多边形国家命中。禁止运行时海外 CDN（core/vendor/THIRD_PARTY.md）。
      defer 加载不阻塞开屏，worldmap.js 只在首次进入"事件"页时才真正使用它们 -->
-<script defer src="lib/topojson-client.min.js?v=3.1.0"></script>
-<script defer src="lib/d3-array.min.js?v=3.2.4"></script>
-<script defer src="lib/d3-geo.min.js?v=3.1.1"></script>
+<script defer src="core/vendor/topojson-client.min.js?v=3.1.0"></script>
+<script defer src="core/vendor/d3-array.min.js?v=3.2.4"></script>
+<script defer src="core/vendor/d3-geo.min.js?v=3.1.1"></script>
 <!-- v3.3 首屏提速：69 个业务脚本打成一个包（js/bundle.js）。
      慢网实测单个小文件要排队 ~1.9s，打包后只剩 1 个请求；源码仍在 js/ 下，
      改完源码跑 `node _scripts/build-js-bundle.mjs` 重新生成（顺序见 _scripts/js-bundle.manifest.json）。 -->

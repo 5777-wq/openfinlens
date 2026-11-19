@@ -265,7 +265,7 @@
     /* 图表库跟着懒加载包一起下：charts.js 只在函数里取 window.LightweightCharts，
        两者并行加载是安全的（库没到时建图函数返回 null，不会抛）。 */
     _lazyReady = Promise.all([
-      loadScriptOnce('lib/lightweight-charts.standalone.production.js?v=4.2.3').catch(function () {}),
+      loadScriptOnce('core/vendor/lightweight-charts.standalone.production.js?v=4.2.3').catch(function () {}),
       loadScriptOnce('js/bundle-lazy.js?v=' + v),
     ]).then(function () { _lazyDone = true; }, function (e) { _lazyDone = true; throw e; });
     return _lazyReady;
@@ -4498,6 +4498,7 @@
     events: 'events', chain: 'chain', watch: 'watch',
     compare: 'compare',   // 基金：独立视图（对比 + 画像两个子面板）
     portfolio: 'portfolio',   // 持仓跟踪：本机记账 + 实时盈亏
+    ussig: 'ussig',   // 美股信号（Meridian）：独立视图，js/us-signals.js 自渲染
     mood: 'market',   // 旧 hash：情绪已并入 A股板块
     // 旧快捷方式/hash 兼容：新闻→事件页，喊单→事件页的公开言论，资金页→A股（席位/龙虎榜已归位到 A股）
     news: 'events', voices: 'events', funds: 'market',
@@ -5020,6 +5021,7 @@
     }
     if (state.view === 'actor' && (VIEW_OF_TAB[tab] || 'market') !== 'actor') leaveActor();
     state.tab = tab;
+    window.Bus.emit('tab', tab);   // 跨面板激活信号（美股信号 Tab 惰性首拉自己的产物）
     if (NM()) lastSubOfPrimary[NM().tabToPrimary(tab)] = tab;   // 记住每个一级上次的子项
     syncNavDom();   // 一级胶囊 + 二级条显隐/顺序 + 12 个按钮的 .active/aria 一起对
     const activeBtn = el.tabs.querySelector('.tab.active');
@@ -6043,6 +6045,7 @@
         const q = findQuote(sym) || { symbol: sym, name: sym, market: '' };
         const on = window.Store.watchlist.toggle({ symbol: sym, name: q.name, market: q.market });
         refreshWatchSet();   // 立刻同步缓存集合：星标后直接切产业链页时 rowHTML 读到的不能是旧集合
+        window.Bus.emit('watchlist', sym);   // 跨面板同步（美股信号 Tab 的星标初始态跟着变）
         star.textContent = on ? '★' : '☆';
         star.classList.toggle('on', on);
         star.title = on ? '取消自选' : '加入自选';
@@ -7195,6 +7198,8 @@
     loadBrk().catch(() => { /* 13F 静态 JSON 不可用时资金页显示诚实空态 */ });
     // K 线 marker 点击 → 事件卡（charts.js 抛出，详情页渲染）
     window.Bus.on('chart:event', renderChartEventCard);
+    // 标的详情统一入口（bus.js 约定的 symbol:open）：跨面板（美股信号 Tab 等）复用 openDetail
+    window.Bus.on('symbol:open', function (t) { openDetail(t); });
 
     startScheduler();
     // 自检区也走 setTimeout 链（禁令 3：不许用 setInterval）

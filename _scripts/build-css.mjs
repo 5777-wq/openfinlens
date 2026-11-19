@@ -25,7 +25,9 @@ import { readFileSync, writeFileSync, existsSync, statSync, readdirSync } from '
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+/* --root <dir>（monorepo Phase 4 过渡期）：对 apps/terminal 再打一份。 */
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
+  '..', process.argv.indexOf('--root') >= 0 ? process.argv[process.argv.indexOf('--root') + 1] : '.');
 const OUT = path.join(ROOT, 'css/bundle.css');
 const CHECK = process.argv.includes('--check');
 const NO_MIN = process.argv.includes('--no-minify');
@@ -35,6 +37,7 @@ const LAYERS = [
   'css/ui/01-shell.css',
   'css/ui/02-market.css',
   'css/ui/03-panels.css',
+  'css/ussig.css',   // 美股信号 Tab（monorepo Phase 4；纯变量取色，置于 motion 覆盖层之前）
   'css/ui/04-motion.css',
 ];
 

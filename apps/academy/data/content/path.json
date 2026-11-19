@@ -1,0 +1,64 @@
+{
+  "id": "path",
+  "title": "从零开始：8 课把金融基础打完",
+  "dek": "每课 3 到 5 分钟，按顺序读。读完你能看懂财经新闻里最常出现的那 20 个词。",
+  "totalMinutes": 32,
+  "lessons": [
+    {
+      "id": "l1",
+      "title": "钱放在哪：先认识四种去处",
+      "dek": "活期、定期、货基、国债——它们的差别不在利率，在「随时能不能拿回来」。",
+      "minutes": 4,
+      "target": "#/term/money-market-fund"
+    },
+    {
+      "id": "l2",
+      "title": "通胀：钱为什么放着放着就不值钱了",
+      "dek": "看懂 CPI，学会用实际利率算真实的到手收益。",
+      "minutes": 4,
+      "target": "#/term/inflation"
+    },
+    {
+      "id": "l3",
+      "title": "利率：从央行的水龙头说起",
+      "dek": "降息和加息到底改变了什么，为什么它能撬动房价和股市。",
+      "minutes": 4,
+      "target": "#/term/monetary-policy"
+    },
+    {
+      "id": "l4",
+      "title": "无风险利率：全球资产定价的那把尺子",
+      "dek": "为什么全世界都在盯着美债 10 年期的那一个数字。",
+      "minutes": 5,
+      "target": "#/term/risk-free-rate"
+    },
+    {
+      "id": "l5",
+      "title": "风险与波动：钱会变少这件事",
+      "dek": "波动不等于亏损，但杠杆会让波动变成归零。",
+      "minutes": 4,
+      "target": "#/term/volatility"
+    },
+    {
+      "id": "l6",
+      "title": "分散：不要把鸡蛋放一个篮子",
+      "dek": "为什么把全部积蓄押一只股票，不是勇敢是算术。",
+      "minutes": 4,
+      "target": "#/term/index-fund"
+    },
+    {
+      "id": "l7",
+      "title": "黄金与现金：它们各自防的是什么",
+      "dek": "黄金防的是货币信用，黄金 ETF 和实物金条不是一回事。",
+      "minutes": 4,
+      "target": "#/term/gold"
+    },
+    {
+      "id": "l8",
+      "title": "看懂一张收益率曲线",
+      "dek": "学会读倒挂这个信号，以及为什么它预警但不预言。",
+      "minutes": 3,
+      "target": "#/term/yield-curve"
+    }
+  ]
+}
