@@ -172,11 +172,11 @@ const ctx = vm.createContext(sandbox);
 
 /** 与 index.html 保持一致的脚本顺序 */
 const SCRIPTS = [
-  'vendor/core/utils.js',
-  'vendor/core/universe.js',
-  'vendor/core/explain.js',
-  'vendor/core/industry-chains.js',
-  'vendor/core/academy-gloss.js',
+  'js/legacy/utils.js',
+  'js/legacy/universe.js',
+  'js/legacy/explain.js',
+  'js/legacy/industry-chains.js',
+  'js/legacy/academy-gloss.js',
   'js/site/format.js',
   'js/site/jsonld.js',
   'js/site/pwa.js',

@@ -88,8 +88,8 @@ sandbox.window = sandbox; sandbox.globalThis = sandbox; sandbox.self = sandbox;
 const ctx = vm.createContext(sandbox);
 
 const SCRIPTS = [
-  'vendor/core/utils.js', 'vendor/core/universe.js', 'vendor/core/explain.js',
-  'vendor/core/industry-chains.js', 'vendor/core/academy-gloss.js',
+  'js/legacy/utils.js', 'js/legacy/universe.js', 'js/legacy/explain.js',
+  'js/legacy/industry-chains.js', 'js/legacy/academy-gloss.js',
   'js/site/format.js', 'js/site/jsonld.js', 'js/site/pwa.js', 'js/site/net.js',
   'js/site/cross.js', 'js/site/disclaimer.js', 'js/store.js', 'js/router.js',
   'js/engine/series.js', 'js/engine/percentile.js', 'js/engine/drawdown.js',

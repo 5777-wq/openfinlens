@@ -8,9 +8,9 @@
    宁可给搜索页，也不给一个主体对不上的页面。 */
 
 const AcademyGloss = (() => {
-  /* BASE 用相对路径（monorepo Phase 4）。注意本文件也被 apps/academy 自身加载：
-     站内视图只用 TERM_BY_SYMBOL/CONCEPT_BY_SYMBOL 映射，不消费 BASE——
-     相对值对 academy 页面无副作用。 */
+  /* BASE 用相对路径（monorepo Phase 4）：academy 挂在站点根 /academy/ 下，相对引用
+     在 Pages /openfinlens/ 前缀与本地根路径下都解析正确（gloss 链接 target=_blank，
+     浏览器按当前页 URL 解析）。生成器 _scripts/collect-academy-terms.mjs 不重写本文件。 */
   const BASE = 'academy/';
 
   // 精确页：symbol → 科普站术语 id

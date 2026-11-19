@@ -290,7 +290,7 @@ function loadScripts(files) {
     }
     return out;
   };
-  const contentFiles = walk(path.join(ROOT, 'content')).filter((f) => /\.(md|json)$/.test(f));
+  const contentFiles = walk(path.join(ROOT, '..', '..', 'content')).filter((f) => /\.(md|json)$/.test(f));
 
   /* ① U+FFFD 乱码：已经出过一次（富时100 那条「英国」），还会再犯。
         乱码一旦进术语库，抽屉、速查表、搜索三处一起坏。 */
@@ -320,14 +320,14 @@ function loadScripts(files) {
     }
   }
   const priceMiss = [];
-  for (const f of readdirSync(path.join(ROOT, 'content/assets')).filter((x) => x.endsWith('.md'))) {
+  for (const f of readdirSync(path.join(ROOT, '..', '..', 'content/assets')).filter((x) => x.endsWith('.md'))) {
     const id = f.replace(/\.md$/, '');
     const sid = SERIES_OF[id] || id;
     const sp = path.join(ROOT, 'data/history', sid + '.json');
     if (!existsSync(sp)) continue;
     const j = JSON.parse(readFileSync(sp, 'utf8'));
     const vals = new Set((j.points || []).map((x) => Number(x.v).toFixed(2)));
-    const text = readFileSync(path.join(ROOT, 'content/assets', f), 'utf8');
+    const text = readFileSync(path.join(ROOT, '..', '..', 'content/assets', f), 'utf8');
     const nums = [];
     for (const re of [/月末价\s*([\d.]+)/g, /从\s*([\d.]+)\s*到\s*([\d.]+)/g]) {
       let hit;
@@ -519,7 +519,7 @@ function loadScripts(files) {
     const idsPath = path.join(ROOT, 'data', 'content', 'asset-ids.json');
     if (existsSync(idsPath)) {
       const ids = JSON.parse(await readFile(idsPath, 'utf8'));
-      const W = loadScripts(['vendor/core/universe.js', 'js/views/assets.js']);
+      const W = loadScripts(['js/legacy/universe.js', 'js/views/assets.js']);
       const uni = (W.AssetsView && W.AssetsView.universe) ? W.AssetsView.universe() : [];
       const listed = new Set(uni.map((u) => u.symbol));
       const orphan = (ids.symbols || []).filter((s) => !listed.has(s));
@@ -536,7 +536,7 @@ function loadScripts(files) {
      守住「标的页不再只有一张数据表」；多余/超长/禁用词由 merge 脚本在写盘前拦截。 */
   {
     const statsPath = path.join(ROOT, 'drafts', 'asset-notes', 'stats.json');
-    const notesPath = path.join(ROOT, 'content', '_meta', 'asset-notes.json');
+    const notesPath = path.join(ROOT, '..', '..', 'content', '_meta', 'asset-notes.json');
     if (existsSync(statsPath)) {
       const stats = JSON.parse(await readFile(statsPath, 'utf8'));
       if (!existsSync(notesPath)) {
@@ -563,7 +563,7 @@ function loadScripts(files) {
      （汇率对 / 国债收益率没有单一词条）。豁免表由 resolve-asset-wiki.mjs 写进 JSON，
      页面和测试读同一份，防止新增标的悄悄漏挂链接。 */
   {
-    const wikiSrcPath = path.join(ROOT, 'content', '_meta', 'asset-wiki.json');
+    const wikiSrcPath = path.join(ROOT, '..', '..', 'content', '_meta', 'asset-wiki.json');
     const idsPath = path.join(ROOT, 'data', 'content', 'asset-ids.json');
     if (existsSync(idsPath)) {
       if (!existsSync(wikiSrcPath)) {
@@ -722,7 +722,7 @@ function loadScripts(files) {
       }
       // 源与产物必须一致：审的是源、读者看的是产物，两者漂了就会「审的不是上线的」
       {
-        const src = JSON.parse(await readFile(path.join(ROOT, 'content', '_meta', 'glossary.json'), 'utf8'));
+        const src = JSON.parse(await readFile(path.join(ROOT, '..', '..', 'content', '_meta', 'glossary.json'), 'utf8'));
         const built = JSON.parse(await readFile(gPath, 'utf8'));
         const srcIds = Object.keys(src.terms || {}).sort();
         const builtIds = Object.keys(built.terms || {}).sort();
@@ -809,7 +809,7 @@ function loadScripts(files) {
    这两处各坏过一次：引号替换的第二个正则与第一个一模一样（都是 /"/g），
    所有直引号都变成孤立的「；patch 稿只写一个字段，却把老词条的中文名冲成英文 id。 */
 {
-  const { smartQuotes, parseDraft, buildRec, mergeTerm } = await import('../_scripts/merge-terms.mjs');
+  const { smartQuotes, parseDraft, buildRec, mergeTerm } = await import('../../../pipelines/academy/_scripts/merge-terms.mjs');
 
   eq('merge-terms 成对直引号 → 成对中文引号',
     smartQuotes('他说"这是股债跷跷板"'), '他说「这是股债跷跷板」');
@@ -862,13 +862,12 @@ function loadScripts(files) {
   ok('index.html 的业务资源都带了 ?v=', vers.length >= 20, `实际 ${vers.length} 个`);
   const uniq = [...new Set(vers)];
   ok('业务资源 ?v= 全部同版本', uniq.length === 1, `版本号不统一：${uniq.join(' ')}`);
-  // vendor/core 是从 OpenFinLens 同步来的**代码副本**，它会随同步改动，
-  // 所以必须跟着版本号走（不然改了 vendor 却让浏览器吃缓存）。
+  // js/legacy 是 monorepo Phase 4 的兼容层（原 vendor/core 同步副本），同样随改动走版本号。
   // 真正的第三方库（本仓没有）才不该被业务版本号覆盖。
-  ok('vendor/core 同步副本带上了版本号',
-    /vendor\/core\/[^"?]+\?v=/.test(indexHtml), 'vendor/core 没带 ?v=，同步后浏览器会吃旧缓存');
+  ok('js/legacy 兼容层带上了版本号',
+    /js\/legacy\/[^"?]+\?v=/.test(indexHtml), 'js/legacy 没带 ?v=，改后浏览器会吃旧缓存');
   ok('没有资源漏掉版本号',
-    ![...indexHtml.matchAll(/(?:href|src)="((?:css|js|vendor\/core)\/[^"]+)"/g)]
+    ![...indexHtml.matchAll(/(?:href|src)="((?:css|js|js\/legacy)\/[^"]+)"/g)]
       .some((m) => m[1].indexOf('?v=') < 0), '有 css/js 资源没带 ?v=');
 }
 
@@ -1034,18 +1033,24 @@ function loadScripts(files) {
 }
 
 /* ============================================================
-   6. vendor 契约
+   6. legacy 兼容层契约（monorepo Phase 4：vendor/sync-core 已退役）
+   js/legacy/* 与 apps/terminal/js 同名文件逐字节一致（utils 刻意保持
+   academy 冻结版除外）——漂移由主仓 _test/terminal-drift.test.mjs
+   的同款口径兜底，这里只验证存在性与关键差异点。
    ============================================================ */
 {
-  const headPath = path.join(ROOT, 'vendor', 'HEAD');
-  ok('vendor/HEAD 存在', existsSync(headPath));
-  if (existsSync(headPath)) {
-    const h = await readFile(headPath, 'utf8');
-    ok('vendor/HEAD 记录了上游 commit', /# commit: [0-9a-f]{7,}/.test(h), h.slice(0, 120));
+  const TERM = path.join(ROOT, '..', '..', 'apps', 'terminal', 'js');
+  for (const f of ['universe.js', 'explain.js', 'industry-chains.js', 'academy-gloss.js']) {
+    const a = path.join(ROOT, 'js', 'legacy', f);
+    const b = path.join(TERM, f === 'universe.js' ? 'data/universe.js' : f === 'explain.js' ? 'data/explain.js' : f === 'academy-gloss.js' ? 'data/academy-gloss.js' : 'data/industry-chains.js');
+    ok(`js/legacy/${f} 存在`, existsSync(a));
+    if (existsSync(a) && existsSync(b)) {
+      ok(`js/legacy/${f} 与终端真源逐字节一致`,
+        readFileSync(a, 'utf8') === readFileSync(b, 'utf8').replace(/\r\n/g, '\n') || readFileSync(a, 'utf8') === readFileSync(b, 'utf8'));
+    }
   }
-  for (const f of ['core/utils.js', 'core/universe.js', 'core/explain.js', 'core/industry-chains.js']) {
-    ok(`vendor/${f} 已同步`, existsSync(path.join(ROOT, 'vendor', f)));
-  }
+  ok('js/legacy/utils.js 存在（academy 冻结版，与终端新版差异已裁定）',
+    existsSync(path.join(ROOT, 'js', 'legacy', 'utils.js')));
 }
 
 /* ---------- 汇总 ---------- */

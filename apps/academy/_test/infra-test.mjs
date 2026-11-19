@@ -345,7 +345,7 @@ async function main() {
     for (const symbol of Object.keys(assetIds.detail || {})) expected.add(SITE + '#/assets/' + encodeURIComponent(symbol));
 
     const chainSandbox = { window: {} };
-    vm.runInContext(readFileSync(path.join(ROOT, 'vendor/core/industry-chains.js'), 'utf8'),
+    vm.runInContext(readFileSync(path.join(ROOT, 'js/legacy/industry-chains.js'), 'utf8'),
       vm.createContext(chainSandbox), { filename: 'industry-chains.js' });
     const chains = chainSandbox.window.INDUSTRY_CHAINS || [];
     for (const c of chains) expected.add(SITE + '#/chains/' + encodeURIComponent(c.id));
