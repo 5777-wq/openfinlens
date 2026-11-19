@@ -1,0 +1,136 @@
+# deploy-pages —— 把 main（代码）与 data（采集产物）拼装成一个静态发布目录并部署 GitHub Pages
+# （monorepo Phase 1 新增。此前 Pages 直接发布 main；采集产物改写 data 分支后，
+#  线上站点必须由本 workflow 拼装，否则吃不到新数据。）
+#
+# 拼装规则：
+#   1. main 整棵检出为站点基底（旧布局 index.html/js/css/assets/lib 原样在根路径可用，
+#      Phase 4 前线上行为不变；Phase 4 后 apps/terminal 会成为基底，届时切换 rsync 根）；
+#   2. data 分支检出进 data-src，整体覆盖到发布目录（产物在 data 分支里保持与仓库
+#      一致的路径：data/**、api/**、js/data/academy-assets.js —— 产物永远以 data 分支为准）；
+#   3. 触发：main 或 data 分支有新提交都重新发布——data 分支更新频率最高（collect 每
+#      5 分钟档），即行情更新入口；main push 负责代码变更。
+#
+# ⚠️ 首次启用需人工一次性把仓库 Settings → Pages → Build and deployment → Source
+#    切到 "GitHub Actions"。切换之前本 workflow 照常构建部署，但页面仍由旧的
+#    「main 直发」机制服务，data 分支的更新不会生效。
+#
+# 数据新鲜度哨兵从 ci.yml 迁到此处（2026-11-19）：产物改写 data 分支后，main 检出里
+# 的 data/ 只是冻结的离线测试夹具，在 ci 里查新鲜度必然全红；哨兵跟着数据走——每次
+# 部署前对 data 分支检出的产物做同样的体检，部署被挡住即为断更信号。
+name: deploy-pages
+
+on:
+  push:
+    branches: [main, data]
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 检出 main（代码基底）
+        uses: actions/checkout@v4
+        with:
+          path: main-src
+
+      - name: 检出 data 分支（采集产物；分支尚未创建时容忍缺失）
+        id: data
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: data
+          path: data-src
+
+      - name: 拼装发布目录（main 为底，data 分支同路径覆盖）
+        run: |
+          mkdir -p _site
+          # 基底：main 的代码与静态资源。排除非站点目录控制体积；
+          # android/ 的 APK 保持现状继续随站发布（Phase 3/5 起改为只发 Releases）。
+          rsync -a \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'main-src' \
+            --exclude 'data-src' \
+            --exclude '_test' \
+            --exclude '_qa' \
+            --exclude 'docs' \
+            main-src/ _site/
+          # 覆盖：data 分支的采集产物（缺失时先退回 main 静态副本，首采完成即恢复）
+          if [ -d data-src ]; then
+            rsync -a data-src/ _site/
+            echo "已用 data 分支产物覆盖：$(cd data-src && git ls-files | head -3 | tr '\n' ' ')…"
+          else
+            echo "::warning::data 分支尚不存在（首次采集未跑），先用 main 的静态副本发布"
+          fi
+          # Jekyll 会吞下划线开头目录并重写路径，Pages 站一律带 .nojekyll
+          touch _site/.nojekyll
+
+      - name: 数据新鲜度哨兵（体检 data 分支产物，超龄即红、部署中止）
+        run: |
+          if [ ! -d data-src/data ]; then
+            echo "data 分支尚不存在，跳过新鲜度检查"
+            exit 0
+          fi
+          cd data-src
+          node -e '
+            const fs = require("fs");
+            const LIMITS = {
+              "data/events/global-events.json": 24 * 3600e3,   // 24h（collect 阈值 10min）
+              "data/events/polymarket.json":    24 * 3600e3,   // 24h（collect 阈值 30min）
+              "data/actors/13f.json":            2 * 86400e3,  // 2 天（collect 阈值 6h）
+              "data/actors/fundholds.json":      3 * 86400e3,  // 3 天（collect 阈值 24h）
+              "data/actors/etf.json":            3 * 86400e3,  // 3 天（collect 阈值 25h）
+              "data/academy-terms.json":         12 * 3600e3,  // 12h（collect 阈值 360min）
+              "data/events/polymarket-history.json": 24 * 3600e3, // 24h（随 polymarket 一起采）
+            };
+            let bad = 0;
+            for (const [f, lim] of Object.entries(LIMITS)) {
+              let g = null;
+              try { g = JSON.parse(fs.readFileSync(f, "utf8")).generatedAt; } catch (e) { g = null; }
+              const t = g ? Date.parse(g) : NaN;
+              const age = isFinite(t) ? Date.now() - t : Infinity;
+              const h = (age / 3600e3).toFixed(1);
+              if (age > lim) {
+                bad++;
+                console.error("::error::" + f + " 产物过期 " + h + "h（阈值 " + (lim / 3600e3).toFixed(0) + "h）——采集链路可能已断更");
+              } else {
+                console.log(f + " 产物年龄 " + h + "h，OK（阈值 " + (lim / 3600e3).toFixed(0) + "h）");
+              }
+            }
+            if (bad) { console.error("::error::" + bad + " 个产物超过新鲜度阈值，本次部署中止"); process.exit(1); }
+            console.log("数据新鲜度 OK，继续部署");
+          '
+
+      - name: 站点盘点（信息步骤）
+        run: |
+          echo "站点就绪：$(find _site -type f | wc -l) 个文件，$(du -sh _site | cut -f1)"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

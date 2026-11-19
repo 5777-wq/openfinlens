@@ -27,43 +27,7 @@ jobs:
       - name: Run offline test groups
         run: node _test/run-all.mjs --offline
 
-      - name: Check data freshness (数据新鲜度体检)
-        run: |
-          # 各产物的 generatedAt 距今超过阈值就红：采集链路静默断更时，
-          # 离线单测照样全绿，这里是唯一的"数据还活着吗"哨兵。
-          # 阈值 = collect.yml 的产物年龄阈值 + 冗余（冗余量按 GitHub schedule
-          # 实测最大间隔 488 分钟算：产物实际年龄 ≤ 阈值 + 实际跑批间隔）。
-          node -e '
-            const fs = require("fs");
-            const LIMITS = {
-              "data/events/global-events.json": 24 * 3600e3,   // 24h（collect 阈值 10min）
-              "data/events/polymarket.json":    24 * 3600e3,   // 24h（collect 阈值 30min）
-              "data/actors/13f.json":            2 * 86400e3,  // 2 天（collect 阈值 6h）
-              "data/actors/fundholds.json":      3 * 86400e3,  // 3 天（collect 阈值 24h）
-              "data/actors/etf.json":            3 * 86400e3,  // 3 天（collect 阈值 25h）
-              // 这三个之前没进体检范围，于是它们悄悄过期也没人知道：
-              // 术语清单过期 → 终端的科普站链接大面积扑空；
-              // 概率走势过期 → 对应面板退化但没有任何提示。
-              // polymarket-i18n.json 是**翻译缓存**（原问题 → 中文），是个扁平映射、
-              // 压根没有 generatedAt，所以不进来——它过期不致命，
-              // 漏掉的词条只会退回原文。
-              "data/academy-terms.json":         12 * 3600e3,  // 12h（collect 阈值 360min）
-              "data/events/polymarket-history.json": 24 * 3600e3, // 24h（随 polymarket 一起采）
-            };
-            let bad = 0;
-            for (const [f, lim] of Object.entries(LIMITS)) {
-              let g = null;
-              try { g = JSON.parse(fs.readFileSync(f, "utf8")).generatedAt; } catch (e) { g = null; }
-              const t = g ? Date.parse(g) : NaN;
-              const age = isFinite(t) ? Date.now() - t : Infinity;
-              const h = (age / 3600e3).toFixed(1);
-              if (age > lim) {
-                bad++;
-                console.error("::error::" + f + " 产物过期 " + h + "h（阈值 " + (lim / 3600e3).toFixed(0) + "h）——采集链路可能已断更");
-              } else {
-                console.log(f + " 产物年龄 " + h + "h，OK（阈值 " + (lim / 3600e3).toFixed(0) + "h）");
-              }
-            }
-            if (bad) { console.error("::error::" + bad + " 个产物超过新鲜度阈值"); process.exit(1); }
-            console.log("数据新鲜度 OK");
-          '
+      # 数据新鲜度哨兵已随「分支解耦」迁往 deploy-pages.yml（2026-11-19 monorepo Phase 1）：
+      # 采集产物改写 data 分支后，main 检出里的 data/ 只是冻结的离线测试夹具，
+      # 在这里查新鲜度必然全红。哨兵跟着数据走——deploy-pages 每次部署前对
+      # data 分支检出的产物做同样的体检（阈值逐字沿用），部署被挡住即为断更信号。
