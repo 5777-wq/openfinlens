@@ -1,0 +1,127 @@
+# collect-meridian —— Meridian 美股收盘信号管线（Phase 3 迁入，取代旧仓 us-monitor.yml）
+# 流程：池子构建（SP500/NDX 快照 + 腾讯市值重排）→ 逐标的取数评估（core/ 三级降级链）
+#       → 产物 data/us-signals.json + data/us-signals-latest.csv → 推 data 分支 → 推送 → 心跳。
+#
+# 触发：美东交易日收盘后（cron 21:35 UTC：夏令时=17:35 EDT、冬令时=16:35 EST，均在收盘后）
+#       + workflow_dispatch（可选 limit / refresh_cache）。
+# 并发：与 collect.yml 共用 concurrency group data-branch-write——两条采集链严格串行写
+#       data 分支（push-data-branch.sh 的 read-tree FETCH_HEAD 增量保留保证互不覆盖产物）。
+# 缓存：K 线增量缓存放 .meridian-cache/klines/（严禁提交进任何 Git 分支），actions/cache
+#       以 run_id 作 key 追新、restore-keys 模糊前缀兜底（休市长假后缓存失效也不至于全量硬拉
+#       触发东财 WAF；真失效时 monitor 内部还有熔断 + Yahoo/腾讯降级链兜底）。
+# 通知：Server酱/Bark/Telegram 密钥全部从 GitHub Secrets 读取（notify.mjs 约定），未配置的
+#       渠道静默跳过；失败告警由末尾 curl 步骤承担（Secrets 直读）。
+# Secrets 清单（Phase 6 统一配置）：NOTIFY_SERVERCHAN_KEY / NOTIFY_BARK_URL /
+#       NOTIFY_TELEGRAM_TOKEN / NOTIFY_TELEGRAM_CHAT_ID（全部可选，缺哪个静默跳哪个）。
+name: collect-meridian
+
+on:
+  schedule:
+    - cron: "35 21 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "试跑只取前 N 只（0=全量；试跑产物只写缓存目录，不发布）"
+        required: false
+        default: "0"
+      refresh_cache:
+        description: "忽略增量判断，全量重拉 K 线"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-branch-write
+  cancel-in-progress: false
+
+jobs:
+  meridian:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 恢复 K 线增量缓存（run_id 追新 + restore-keys 模糊兜底）
+        uses: actions/cache@v4
+        with:
+          path: .meridian-cache/klines
+          key: meridian-klines-${{ github.run_id }}
+          restore-keys: |
+            meridian-klines-
+
+      - name: 运行 Meridian 监控（产物写 data/，试跑写 .meridian-cache/preview）
+        id: monitor
+        continue-on-error: true
+        env:
+          NOTIFY_SERVERCHAN_KEY: ${{ secrets.NOTIFY_SERVERCHAN_KEY }}
+          NOTIFY_BARK_URL: ${{ secrets.NOTIFY_BARK_URL }}
+          NOTIFY_TELEGRAM_TOKEN: ${{ secrets.NOTIFY_TELEGRAM_TOKEN }}
+          NOTIFY_TELEGRAM_CHAT_ID: ${{ secrets.NOTIFY_TELEGRAM_CHAT_ID }}
+        run: |
+          ARGS=()
+          LIMIT="${{ github.event.inputs.limit || '0' }}"
+          if [ "${LIMIT:-0}" != "0" ]; then ARGS+=("--limit" "$LIMIT"); fi
+          if [ "${{ github.event.inputs.refresh_cache }}" = "true" ]; then ARGS+=("--refresh-cache"); fi
+          node pipelines/meridian/monitor.mjs "${ARGS[@]}" --quiet
+
+      - name: 提交前离线契约闸门（同 collect.yml 口径：契约不过不发布）
+        id: gate
+        continue-on-error: true
+        run: node _test/run-all.mjs --offline
+
+      - name: 推送 Meridian 产物到 data 分支
+        # if: always()：monitor 步骤失败（如全部取数失败 exit 2）时不该推产物——用结果文件存在性判断。
+        # push-data-branch.sh：read-tree FETCH_HEAD 增量保留 + commit-tree + 冲突重试，
+        # 无变化时静默退出 0（不产生空提交）。
+        if: always() && steps.gate.outcome != 'failure' && hashFiles('data/us-signals.json') != ''
+        run: |
+          git config user.name "openfinlens-bot"
+          git config user.email "actions@users.noreply.github.com"
+          bash _scripts/push-data-branch.sh -m "data: refresh +meridian" \
+            data/us-signals.json data/us-signals-latest.csv
+
+      - name: 心跳检查（us-signals.json 的 marketDate 必须等于最近已收盘交易日）
+        id: fresh
+        continue-on-error: true
+        if: always() && hashFiles('data/us-signals.json') != ''
+        run: node pipelines/meridian/tools/check-fresh.mjs data/us-signals.json
+
+      - name: 失败闸门与告警（监控失败 / 闸门红 / 心跳陈旧 → workflow 红 + 可选推送告警）
+        if: always()
+        env:
+          NOTIFY_SERVERCHAN_KEY: ${{ secrets.NOTIFY_SERVERCHAN_KEY }}
+          NOTIFY_BARK_URL: ${{ secrets.NOTIFY_BARK_URL }}
+          NOTIFY_TELEGRAM_TOKEN: ${{ secrets.NOTIFY_TELEGRAM_TOKEN }}
+          NOTIFY_TELEGRAM_CHAT_ID: ${{ secrets.NOTIFY_TELEGRAM_CHAT_ID }}
+        run: |
+          BAD=""
+          [ "${{ steps.monitor.outcome }}" = "failure" ] && BAD="$BAD monitor"
+          [ "${{ steps.gate.outcome }}" = "failure" ] && BAD="$BAD contract-gate"
+          [ "${{ steps.fresh.outcome }}" = "failure" ] && BAD="$BAD freshness"
+          if [ -n "$BAD" ]; then
+            TITLE="Meridian 采集异常"
+            BODY="失败步骤:${BAD}（run ${{ github.run_id }}）"
+            echo "::error::${TITLE}${BODY}"
+            # 与 notify.mjs 同约定：有密钥才发（fetch → curl 兜底），无密钥静默跳过
+            if [ -n "$NOTIFY_SERVERCHAN_KEY" ]; then
+              curl -s --max-time 15 -X POST "https://sctapi.ftqq.com/${NOTIFY_SERVERCHAN_KEY}.send" \
+                --data-urlencode "title=${TITLE}" --data-urlencode "desp=${BODY}" >/dev/null || true
+            fi
+            if [ -n "$NOTIFY_BARK_URL" ]; then
+              curl -s --max-time 15 -X POST "${NOTIFY_BARK_URL}/$(python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))" "${TITLE}")/$(python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))" "${BODY}")" >/dev/null || true
+            fi
+            if [ -n "$NOTIFY_TELEGRAM_TOKEN" ] && [ -n "$NOTIFY_TELEGRAM_CHAT_ID" ]; then
+              curl -s --max-time 15 -X POST "https://api.telegram.org/bot${NOTIFY_TELEGRAM_TOKEN}/sendMessage" \
+                -H "Content-Type: application/json" \
+                -d "{\"chat_id\":\"${NOTIFY_TELEGRAM_CHAT_ID}\",\"text\":\"${TITLE}\\n${BODY}\"}" >/dev/null || true
+            fi
+            exit 1
+          fi
+          echo "Meridian 本轮正常（含心跳）"

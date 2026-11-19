@@ -34,6 +34,28 @@ let EAST_GAP_MS = 600;    // 东财请求间隔（测试可置 0）
 export function __setHttpTransport(fn) { HTTP_GET = fn; }
 export function __setEastGapMs(ms) { EAST_GAP_MS = ms; }
 
+/* 离线 mock 通道（仅测试/试跑）：设 OFL_MOCK_HTTP=<路由 JSON 路径> 后，全部 HTTP 走假传输层。
+ * 路由文件格式：[[URL前缀, 响应体], ...]，响应体为字符串或对象（自动 JSON 序列化）；
+ * 未命中任何前缀 → 抛错（mock 下没有真实网络兜底，宁可红也不编造）。
+ * 安全护栏（monitor.mjs 侧强制）：mock 视为试跑——产物只写 preview 目录、meta.mock=true、
+ * 不触发推送；生产环境误设此变量时会有显眼日志。 */
+if (process.env.OFL_MOCK_HTTP) {
+  try {
+    const routes = JSON.parse(readFileSync(process.env.OFL_MOCK_HTTP, 'utf8'));
+    HTTP_GET = async (url) => {
+      for (const [prefix, body] of routes) {
+        if (url.startsWith(prefix)) {
+          return Buffer.from(typeof body === 'string' ? body : JSON.stringify(body), 'utf8');
+        }
+      }
+      throw new Error('mock: 未注册的 URL ' + url.slice(0, 80));
+    };
+    console.error('[history] OFL_MOCK_HTTP 生效：HTTP 全部走离线 mock 路由（' + routes.length + ' 条）——数据为固定 fixture，绝不用于正式发布');
+  } catch (e) {
+    console.error('[history] OFL_MOCK_HTTP 加载失败，忽略（走真实网络）:', e.message);
+  }
+}
+
 async function viaFetch(url, timeoutMs) {
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), timeoutMs);

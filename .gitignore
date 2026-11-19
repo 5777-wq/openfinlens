@@ -48,3 +48,7 @@ config.local.json
 .data-local/
 # deploy-pages 拼装产物若在本地试跑，不进仓库
 _site/
+# Meridian 管线本地缓存与试跑产物（正式产物写 data/ 并走 data 分支；K 线缓存严禁进 Git，
+# CI 侧由 actions/cache 承载——Gemini 裁定）
+.meridian-cache/
+pipelines/meridian/out/
