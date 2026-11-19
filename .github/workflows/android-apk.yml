@@ -1,0 +1,90 @@
+# android-apk —— OpenFinLens 安卓壳构建 + GitHub Releases 发布（Phase 5）
+#
+# 背景（Gemini 裁定）：APK 不再提交入库。构建用「Linux 工具链直下」方案：
+#   ubuntu runner 上直接下载 aapt2(Linux) / android 平台 jar / r8 / uber-apk-signer，
+#   JDK 用 setup-java；build.sh 已做环境感知（OFL_AAPT2 覆盖 aapt2 路径，
+#   Android jar 由 OFL_AJAR 传入）。产物经 gh release upload 发到 GitHub Releases。
+#
+# 触发：android/** 或 build.sh 变更 + 手动 dispatch（可填版本号）。
+# 首跑说明：工具链下载 URL 为真实公开镜像，但 CI 环境差异（glibc 等）需首跑验证；
+#          若 aapt2-linux 镜像失效，在 Secrets 配 OFL_AAPT2_URL 覆盖。
+name: android-apk
+
+on:
+  push:
+    branches: [main]
+    paths: ['android/**']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "APK 版本号（默认 1.0.3）"
+        required: false
+        default: "1.0.3"
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: 把 JDK 摆进 build.sh 期望的 toolchain 布局（toolchain/jdk/jdk-*/bin）
+        run: |
+          mkdir -p android/toolchain/jdk
+          cp -r "$JAVA_HOME" android/toolchain/jdk/jdk-17
+
+      - name: 下载 Linux 工具链（aapt2 / 平台 jar / r8 / 签名器）
+        run: |
+          cd android
+          mkdir -p toolchain/aapt2 toolchain/jdk
+          AAPT2_URL="${OFL_AAPT2_URL:-https://dl.google.com/android/maven2/com/android/tools/build/aapt2/8.5.0-11315950/aapt2-8.5.0-11315950-linux.jar}"
+          curl -sSL --max-time 120 -o toolchain/aapt2/aapt2.zip "$AAPT2_URL"
+          unzip -q -o toolchain/aapt2/aapt2.zip -d toolchain/aapt2 || true
+          # aapt2 linux jar 内含可执行文件 aapt2
+          if [ ! -f toolchain/aapt2/aapt2 ]; then
+            echo "aapt2 可执行文件缺失（镜像返回了非预期内容）"; exit 1
+          fi
+          chmod +x toolchain/aapt2/aapt2
+          curl -sSL --max-time 120 -o toolchain/android16.jar \
+            "https://github.com/Sable/android-platforms/releases/download/android-33/android-33.jar" || \
+          curl -sSL --max-time 120 -o toolchain/android16.jar \
+            "https://raw.githubusercontent.com/Sable/android-platforms/master/android-33/android.jar"
+          curl -sSL --max-time 120 -o toolchain/r8.jar \
+            "https://dl.google.com/android/maven2/com/android/tools/r8/8.3.37/r8-8.3.37.jar"
+          curl -sSL --max-time 120 -o toolchain/uber-apk-signer.jar \
+            "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar"
+        env:
+          OFL_AAPT2_URL: ${{ secrets.OFL_AAPT2_URL }}
+
+      - name: 构建 APK（OFL_AAPT2/OFL_AJAR 环境感知）
+        run: |
+          cd android
+          OFL_VERSION="${{ github.event.inputs.version || '1.0.3' }}" \
+          OFL_AAPT2="$GITHUB_WORKSPACE/android/toolchain/aapt2/aapt2" \
+          OFL_AJAR="$GITHUB_WORKSPACE/android/toolchain/android16.jar" \
+          bash build.sh
+
+      - name: 发布到 GitHub Releases（不入库）
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.event.inputs.version || '1.0.3' }}
+        run: |
+          TAG="apk-v${VERSION}"
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "OpenFinLens v${VERSION}" --notes "安卓壳构建（自动发布，不入库）"
+          gh release upload "$TAG" "android/OpenFinLens-v${VERSION}.apk" --clobber
+
+      - name: 上传构建日志（排错用）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-logs
+          path: android/build/
+          retention-days: 7

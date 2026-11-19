@@ -24,8 +24,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Run offline test groups
-        run: node _test/run-all.mjs --offline
+      - name: Run offline test groups (主仓 + core + Meridian + Academy)
+        run: node test/run-all.mjs
 
       # 数据新鲜度哨兵已随「分支解耦」迁往 deploy-pages.yml（2026-11-19 monorepo Phase 1）：
       # 采集产物改写 data 分支后，main 检出里的 data/ 只是冻结的离线测试夹具，

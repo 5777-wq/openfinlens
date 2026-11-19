@@ -16,7 +16,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 
-const ROOT = path.resolve(import.meta.dirname, '..');
+const ROOT = path.resolve(import.meta.dirname, '..', 'apps', 'terminal');
 let pass = 0, fail = 0;
 /* 必须 await 回调：视图层的断言全在 await 之后，同步版 test() 会把"还没跑断言"的用例
    直接记成通过（任何后续断言失败只变成 unhandled rejection，测试照样绿）。 */

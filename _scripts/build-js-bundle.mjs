@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 /* --root <dir>（monorepo Phase 4 过渡期）：对 apps/terminal 再打一份。
  * manifest 恒在仓库根 _scripts/（两棵树文件集一致）；--root 只改源/产物目录。 */
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
-  '..', process.argv.indexOf('--root') >= 0 ? process.argv[process.argv.indexOf('--root') + 1] : '.');
+  '..', process.argv.indexOf('--root') >= 0 ? process.argv[process.argv.indexOf('--root') + 1] : 'apps/terminal');   // Phase 5：默认站点树
 const MANIFEST = path.join(path.dirname(fileURLToPath(import.meta.url)), 'js-bundle.manifest.json');
 const OUT_CRIT = path.join(ROOT, 'js/bundle.js');
 const OUT_LAZY = path.join(ROOT, 'js/bundle-lazy.js');

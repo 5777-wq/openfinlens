@@ -49,7 +49,6 @@ const groups = [
   { file: 'core-bridge.test.mjs', net: false },   // core/bridge：ESM→window 桥接契约（老视图零改动接入的保险丝）
   { file: 'meridian-engine.test.mjs', net: false },  // Meridian 引擎套件移植：黄金值/状态机/ET时钟/排名/周线/信号（证明 core/ 真源与旧仓逐点一致）
   { file: 'meridian-pipeline.test.mjs', net: false }, // Meridian 管线：us-signals Schema/CSV BOM/固定名原子写出/mock 离线试跑护栏/心跳
-  { file: 'terminal-drift.test.mjs', net: false },  // Phase 4 过渡钉子：根旧前端 ↔ apps/terminal 逐字节一致（Phase 5 删根副本时随之退役）
   { file: 'events.test.mjs', net: false },  // 事件数据模型/聚类/时间语义/Bus（纯函数）
   { file: 'auniverse.test.mjs', net: false }, // 全市场行分类：指数 vs 个股（漏判与误判都要钉死）
   { file: 'option.test.mjs', net: false },  // 期权数据源：合约月/行权价网格/secid 白名单/探针保留/OKX→Deribit 降级/熔断（离线组；不注册实网组——EM WAF 会 IP 级拉黑打红 CI，实网验证走手动 curl）

@@ -1033,5 +1033,7 @@
 <!-- UI v2 外壳：一级↔二级映射（纯函数，含深链解析）+ 命令面板。
      必须在 app.js 之前：app.js 初始化时要消费 Navmap，command.js 执行动作时要消费 window.AppNav。 -->
 <!-- 动效层最后加载：只做委托/观察，不改业务逻辑（js/ui/motion.js 由 motion 层维护） -->
+<!-- PWA：SW 注册（data/api Network-First、静态 SWR，见 sw.js 头注） -->
+<script>if('serviceWorker' in navigator)addEventListener('load',function(){navigator.serviceWorker.register('sw.js')})</script>
 </body>
 </html>

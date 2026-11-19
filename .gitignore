@@ -52,3 +52,5 @@ _site/
 # CI 侧由 actions/cache 承载——Gemini 裁定）
 .meridian-cache/
 pipelines/meridian/out/
+# APK 不再入库（Phase 5 裁定：只发 GitHub Releases）
+android/*.apk

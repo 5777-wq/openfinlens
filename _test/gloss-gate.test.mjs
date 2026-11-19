@@ -9,7 +9,8 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 
-const ROOT = path.resolve(import.meta.dirname, '..');
+const ROOT = path.resolve(import.meta.dirname, '..', 'apps', 'terminal');
+const REPO = path.resolve(ROOT, '..', '..');   // 仓库根（_scripts 共享设施）
 let pass = 0, fail = 0;
 const test = (name, fn) => {
   try { fn(); pass++; console.log('✓ ' + name); }
@@ -110,7 +111,7 @@ test('设置里没这一项的老用户，算开着（不受影响）', () => {
 test('index.html 必须加载这个模块', () => {
   const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   /* v3.3：脚本已打进 bundle，改成核对加载清单。 */
-  const bundleFiles = JSON.parse(readFileSync(path.join(ROOT, '_scripts/js-bundle.manifest.json'), 'utf8')).files;
+  const bundleFiles = JSON.parse(readFileSync(path.join(REPO, '_scripts/js-bundle.manifest.json'), 'utf8')).files;
   assert.ok(bundleFiles.includes('js/academy-gate.js') || html.includes('js/academy-gate.js'), '没加载 academy-gate.js');
   assert.ok(/id="swAcademy"/.test(html), '设置里没有这个开关');
 });

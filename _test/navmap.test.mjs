@@ -10,7 +10,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 
-const ROOT = path.resolve(import.meta.dirname, '..');
+const ROOT = path.resolve(import.meta.dirname, '..', 'apps', 'terminal');
 let pass = 0, fail = 0;
 const test = (name, fn) => {
   try { fn(); pass++; console.log('✓ ' + name); }

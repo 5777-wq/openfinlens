@@ -79,6 +79,7 @@ jobs:
             --exclude '.data-local' \
             --exclude '.meridian-cache' \
             --exclude 'config.local.json' \
+            --exclude 'android' \
             --exclude '美股监控' \
             --exclude 'keystore-*' \
             --exclude '*.bundle' \

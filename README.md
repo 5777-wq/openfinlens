@@ -4,7 +4,7 @@
 
 **A股 · 港股 · 美股 · 加密 · 全球事件，一块屏幕读完的纯前端行情终端。**
 
-没有后端，没有 API key，没有构建步骤。clone 下来双击 `index.html`，它就跑起来了。
+没有后端，没有 API key，没有构建步骤。clone 下来 `node scripts/serve.mjs`，它就跑起来了。
 
 **[线上体验 →](https://5777-wq.github.io/openfinlens/)**　·　**[下载安卓 APK](https://github.com/5777-wq/openfinlens/releases)**
 
@@ -25,11 +25,23 @@
 | 方式 | 做法 |
 |---|---|
 | 在线 | 打开 [5777-wq.github.io/openfinlens](https://5777-wq.github.io/openfinlens/)，支持 PWA 安装到桌面 |
-| 本地 | `git clone` 后双击 `index.html`（`file://` 也能跑），或 `python -m http.server 8765` |
-| Android | [Releases](https://github.com/5777-wq/openfinlens/releases) 签名 APK，只申请 `INTERNET` 一个权限；`cd android && bash build.sh` 可自建 |
-| 自部署 | push 到你的仓库 → Settings → Pages → `Deploy from a branch`（`.nojekyll` 已备好）；访问不到币安 / OKX 时可选 `wrangler deploy worker.js` 起代理 |
+| 本地 | `git clone` 后 `node scripts/serve.mjs`（默认 8765；`/academy/` 与 `/openfinlens/` 前缀同站可用） |
+| Android | [Releases](https://github.com/5777-wq/openfinlens/releases) 签名 APK（Actions 自动构建上传，不入库），只申请 `INTERNET` 一个权限；`cd android && bash build.sh` 可自建 |
+| 自部署 | push 到你的仓库 → Settings → Pages → Source 选 **GitHub Actions**（deploy-pages.yml 会拼装站点）；访问不到币安 / OKX 时可选 `wrangler deploy worker.js` 起代理 |
 
 只有改源码才需要构建：`node _scripts/build-js-bundle.mjs` 或 `node _scripts/build-css.mjs`（打包产物已提交在仓库里）。
+
+## 仓库结构（三合一 Monorepo）
+
+```
+apps/terminal/   行情终端（主站 /）——含「美股信号」Tab（Meridian）
+apps/academy/    白话金融科普站（子站 /academy/）
+content/         Academy 文章与术语源
+core/            三仓共享内核：engine（指标唯一真源）/ sources（三级降级链）/ registry / vendor / bridge
+pipelines/       meridian（美股收盘信号）/ academy（长历史序列）采集管线
+data/            采集产物（由 3 条采集 workflow 推 data 分支，deploy 时拼装回站点）
+test/            统一离线测试入口（主仓 + Academy 两套件）
+```
 
 ## 核心功能
 
@@ -66,11 +78,11 @@ claude mcp add openfinlens -- node "/绝对路径/openfinlens/mcp/server.mjs"
 ## 测试
 
 ```bash
-node _test/run-all.mjs --offline   # 离线组已挂 CI，断网可跑
-node _test/run-all.mjs             # 全部（含实网组）
+node test/run-all.mjs              # 全仓统一入口：主仓 + core + Meridian + Academy（离线）
+node _test/run-all.mjs --net       # 附带实网组（本地/手动）
 ```
 
-技术指标有构造序列对账；降级链是逐条改坏主源实测的；预测市场三层（模型 / 图形 / 视图）各自可离线单测。
+技术指标有构造序列对账；降级链是逐条改坏主源实测的；美股信号产物有 Schema 与体积红线断言；Academy 6088+ 断言（含 DOM 渲染与无障碍）各自可离线单测。
 
 ## 常见问题
 

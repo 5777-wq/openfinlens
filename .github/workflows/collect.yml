@@ -236,7 +236,7 @@ jobs:
         # 所以这里再跑一遍离线契约测试，不通过就不提交（宁缺毋假，不要发残次品）。
         continue-on-error: true
         run: |
-          node _test/run-all.mjs --offline
+          node test/run-all.mjs
 
       - name: 提交采集产物到 data 分支（main 只留代码）
         # if: always()：哪怕某个采集步骤崩了，也要先把已经写盘的成功数据推上去。

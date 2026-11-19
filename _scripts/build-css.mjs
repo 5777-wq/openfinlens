@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 
 /* --root <dir>（monorepo Phase 4 过渡期）：对 apps/terminal 再打一份。 */
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
-  '..', process.argv.indexOf('--root') >= 0 ? process.argv[process.argv.indexOf('--root') + 1] : '.');
+  '..', process.argv.indexOf('--root') >= 0 ? process.argv[process.argv.indexOf('--root') + 1] : 'apps/terminal');   // Phase 5：默认站点树
 const OUT = path.join(ROOT, 'css/bundle.css');
 const CHECK = process.argv.includes('--check');
 const NO_MIN = process.argv.includes('--no-minify');

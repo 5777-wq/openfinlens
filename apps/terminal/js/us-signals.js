@@ -66,10 +66,12 @@
   function badge(text, cls, title) {
     return '<span class="ussig-badge ' + (cls || '') + '"' + (title ? ' title="' + esc(title) + '"' : '') + '>' + esc(text) + '</span>';
   }
+  /* 术语抽屉标记：data-gloss 走 explain.js CONCEPT_NOTES（gloss-tip 全局委托，
+     动态插入的元素自动生效）。只挂 explain.js 真实存在的 id——不许假链接。 */
 
   function rowBadges(it) {
     var b = '';
-    if (it.adj === 'raw') b += badge('不复权', 'warn', '腾讯兜底源为不复权价：近一年有拆股的标的，长通道会失真');
+    if (it.adj === 'raw') b += '<span class="ussig-badge warn" data-gloss="hfq-raw" tabindex="0" role="button" aria-label="什么是不复权">不复权</span>';
     if (it.stale) b += badge('陈旧', 'warn', '最后一根收盘 bar 为 ' + esc(it.asOf || '') + '，指标不是当期值');
     (it.warnings || []).forEach(function (wn) {
       if (wn.tag === '数据' || wn.tag === '口径') b += badge(wn.tag, 'warn', wn.text);
@@ -99,9 +101,9 @@
       '<td>' + num(it.price) + '</td>' +
       '<td class="' + (it.changePct >= 0 ? 'up' : 'dn') + '">' + pct(it.changePct) + '</td>' +
       '<td class="rsi ' + (r && r.state === 'overbought' ? 'ob' : r && r.state === 'oversold' ? 'os' : '') + '">' +
-        (r ? num(r.value, 1) : '--') + '</td>' +
+        '<span data-gloss="rsi" tabindex="0" role="button" aria-label="什么是RSI">' + (r ? num(r.value, 1) : '--') + '</span></td>' +
       '<td>' + (wR ? num(wR.value, 1) : '--') + '</td>' +
-      '<td class="sig">' + rev + ' <span class="vegas">' + vList + '</span></td>' +
+      '<td class="sig">' + rev + ' <span class="vegas" data-gloss="vegas" tabindex="0" role="button" aria-label="什么是Vegas通道">' + vList + '</span></td>' +
       '<td class="mut">' + esc(idx || '--') + '</td>' +
       '<td>' + (it.spmoWeight != null ? it.spmoWeight.toFixed(1) + '%' : '--') + '</td>' +
       '</tr>';

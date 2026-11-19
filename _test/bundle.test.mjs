@@ -11,12 +11,13 @@ import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 import assert from 'node:assert/strict';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'apps', 'terminal');
 let pass = 0, fail = 0;
 function test(name, fn) {
   try { fn(); pass++; console.log('✓ ' + name); }
   catch (e) { fail++; console.log('✗ ' + name + '\n    ' + String(e.message).split('\n').slice(0, 6).join('\n    ')); }
 }
+const REPO = path.resolve(ROOT, '..', '..');   // 仓库根（_scripts 共享设施）
 const read = (p) => readFileSync(path.join(ROOT, p), 'utf8');
 
 // ---------------------------------------------------------------- 产物新鲜度
@@ -25,13 +26,13 @@ for (const [script, label] of [
   ['_scripts/build-css.mjs', 'CSS 包'],
 ]) {
   test(label + '产物是最新的（没忘跑打包脚本）', () => {
-    const r = spawnSync(process.execPath, [path.join(ROOT, script), '--check'], { encoding: 'utf8' });
+    const r = spawnSync(process.execPath, [path.join(REPO, script), '--check'], { encoding: 'utf8' });
     assert.equal(r.status, 0, (r.stdout || '') + (r.stderr || ''));
   });
 }
 
 // ---------------------------------------------------------------- 入口完整性
-const MANIFEST = JSON.parse(read('_scripts/js-bundle.manifest.json'));
+const MANIFEST = JSON.parse(readFileSync(path.join(REPO, '_scripts/js-bundle.manifest.json'), 'utf8'));
 const LAZY = new Set(MANIFEST.lazy || []);
 
 test('js/ 下每个文件要么进了包、要么在 manifest.notLoaded 里登记', () => {

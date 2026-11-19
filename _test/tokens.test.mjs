@@ -11,7 +11,8 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
-const ROOT = path.resolve(import.meta.dirname, '..');
+const ROOT = path.resolve(import.meta.dirname, '..', 'apps', 'terminal');
+const REPO = path.resolve(ROOT, '..', '..');   // 仓库根（_scripts 共享设施）
 let pass = 0, fail = 0;
 const test = (name, fn) => {
   try { fn(); pass++; console.log('✓ ' + name); }
@@ -660,7 +661,7 @@ test('三个弹层都接了公共焦点陷阱（js/focus-trap.js）', () => {
   });
   /* v3.3：业务脚本打成一个 bundle 后，index.html 不再有单独的 focus-trap 标签。
      判据改成「加载清单里有它」——打包或未打包都成立。 */
-  const bundleFiles = JSON.parse(readFileSync(path.join(ROOT, '_scripts/js-bundle.manifest.json'), 'utf8')).files;
+  const bundleFiles = JSON.parse(readFileSync(path.join(REPO, '_scripts/js-bundle.manifest.json'), 'utf8')).files;
   assert.ok(bundleFiles.includes('js/focus-trap.js') || HTML.includes('js/focus-trap.js'),
     '没有加载 js/focus-trap.js（bundle 清单与 index.html 都没有）');
 });

@@ -74,7 +74,7 @@ jobs:
       - name: 提交前离线契约闸门（同 collect.yml 口径：契约不过不发布）
         id: gate
         continue-on-error: true
-        run: node _test/run-all.mjs --offline
+        run: node test/run-all.mjs
 
       - name: 推送 Meridian 产物到 data 分支
         # if: always()：monitor 步骤失败（如全部取数失败 exit 2）时不该推产物——用结果文件存在性判断。

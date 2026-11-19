@@ -31,10 +31,10 @@ await test('产业链唯一真源：10 链 · 49 环节 · 177 只去重成分�
   assert.deepEqual(bad, [], 'symbol 必须是腾讯格式（sh/sz/hk/us 前缀），异常: ' + bad.slice(0, 3).join(','));
 });
 
-await test('产业链与旧路径零漂移：core JSON === js/data/industry-chains.js 语义内容', () => {
-  // vm 抽取旧路径的 window.INDUSTRY_CHAINS（vm 沙箱数组过不了 deepStrictEqual，用 JSON 串比较）
+await test('产业链与旧路径零漂移：core JSON === apps/terminal/js/data/industry-chains.js 语义内容', () => {
+  // vm 抽取终端侧的 window.INDUSTRY_CHAINS（vm 沙箱数组过不了 deepStrictEqual，用 JSON 串比较）
   const ctx = vm.createContext({ window: {} });
-  vm.runInContext(read('js/data/industry-chains.js'), ctx, { filename: 'js/data/industry-chains.js' });
+  vm.runInContext(read('apps/terminal/js/data/industry-chains.js'), ctx, { filename: 'apps/terminal/js/data/industry-chains.js' });
   const legacy = ctx.window.INDUSTRY_CHAINS;
   assert.ok(Array.isArray(legacy) && legacy.length > 0);
   assert.equal(JSON.stringify(R.loadChains()), JSON.stringify(legacy));
@@ -62,11 +62,10 @@ await test('series-map：可解析且非空（当前快照来自 academy 编译�
   assert.ok(n > 0, 'series-map 不应为空对象');
 });
 
-await test('vendor：lightweight-charts 唯一 canonical = v4.2.3，与 lib/ 现役字节一致', () => {
+await test('vendor：lightweight-charts 唯一 canonical = v4.2.3（lib/ 已随 Phase 5 退役）', () => {
   const core = read('core/vendor/lightweight-charts.standalone.production.js');
   assert.match(core.slice(0, 200), /Lightweight Charts.*v4\.2\.3/, '头注必须是 v4.2.3');
-  assert.equal(core, read('lib/lightweight-charts.standalone.production.js'),
-    '过渡期 lib/ 与 core/vendor 必须逐字节一致（Phase 4 切换引用后此断言随旧路径退役）');
+  assert.ok(!existsSync(path.join(ROOT, 'lib')), '根 lib/ 已退役（全仓唯一第三方库副本在 core/vendor）');
 });
 
 await test('vendor：d3-geo/d3-array/topojson/THIRD_PARTY 就位', () => {

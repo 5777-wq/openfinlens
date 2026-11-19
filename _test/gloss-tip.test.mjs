@@ -12,7 +12,9 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 
-const ROOT = path.resolve(import.meta.dirname, '..');
+const ROOT = path.resolve(import.meta.dirname, '..', 'apps', 'terminal');   // 前端源（index/manifest）
+const DATA_ROOT = path.resolve(import.meta.dirname, '..');                  // 采集产物仍在仓库根 data/
+const REPO = path.resolve(ROOT, '..', '..');   // 仓库根（_scripts 共享设施）
 let pass = 0, fail = 0;
 const test = (name, fn) => {
   try { fn(); pass++; console.log('✓ ' + name); }
@@ -39,7 +41,7 @@ const EX = ctx.Explain;
    （data/academy-terms.json，采集流水线每天刷新）。以前这里是一份手抄的 39 条清单，
    科普站术语一多就必然过期，测试直接红；更糟的是它一红，人就会去改测试而不是改映射。
    现在：清单过期 = 映射真的指向了不存在的词条 = 确实该修。 */
-const MANIFEST = JSON.parse(readFileSync(path.join(ROOT, 'data/academy-terms.json'), 'utf8'));
+const MANIFEST = JSON.parse(readFileSync(path.join(DATA_ROOT, 'data/academy-terms.json'), 'utf8'));
 const ACADEMY_TERM_IDS = MANIFEST.ids;
 const ACADEMY_TERM_NAMES = MANIFEST.names;
 
@@ -232,7 +234,7 @@ test('index.html 必须同时挂上科普站入口与浮层脚本', () => {
   const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   assert.ok(html.includes('href="academy/'), '顶栏缺少科普站链接（相对挂载 academy/，双部署前缀通吃）');
   /* v3.3：脚本已打进 bundle，改成核对加载清单（未打包时仍看 index.html）。 */
-  const bundleFiles = JSON.parse(readFileSync(path.join(ROOT, '_scripts/js-bundle.manifest.json'), 'utf8')).files;
+  const bundleFiles = JSON.parse(readFileSync(path.join(REPO, '_scripts/js-bundle.manifest.json'), 'utf8')).files;
   const loaded = (f) => bundleFiles.includes(f) || html.includes(f);
   assert.ok(loaded('js/gloss-tip.js'), '没加载浮层脚本');
   assert.ok(loaded('js/data/academy-gloss.js'), '没加载映射表');
@@ -389,7 +391,7 @@ test('终端必须支持 #etf= 深链（科普站的动量/低波词条要落到
    而 getAttribute 不查祖先 → domName 恒为空 → OpenFinMeta 又查不到（行情里没有这 70 只）
    → meta.name 为空 → 整个浮层出不来。77 只成分股里 70 只的「?」当时完全没反应。 */
 
-const ETF_JSON = JSON.parse(readFileSync(path.join(ROOT, 'data/actors/etf.json'), 'utf8'));
+const ETF_JSON = JSON.parse(readFileSync(path.join(DATA_ROOT, 'data/actors/etf.json'), 'utf8'));
 
 /* 最小 DOM 桩：只需要 closest / getAttribute / createElement / 事件 */
 function makeNode(attrs = {}, parent = null) {

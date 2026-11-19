@@ -31,6 +31,7 @@ import { minifyCss } from '../_scripts/minify-css.mjs';
  * ================================================================== */
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+const TSRC = path.resolve(HERE, '..', 'apps', 'terminal');   // 前端源（Phase 5 根前端已删）
 const ROOT = path.resolve(HERE, '..');
 const MANIFEST = path.join(ROOT, '_scripts/js-bundle.manifest.json');
 const CSS_FILES = [
@@ -607,7 +608,7 @@ const jsRows = [];
 
 for (const rel of manifest.files) {
   test(rel, () => {
-    const src = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+    const src = fs.readFileSync(path.join(TSRC, rel), 'utf8');
     const out = minifyJs(src);
 
     // (1) token 序列（type + value）逐项相等 —— 证明只删了注释/空白
@@ -666,7 +667,7 @@ section('5. bundle 产物（存在则自证）');
 
 const bundleRows = [];
 for (const rel of ['js/bundle.js', 'js/bundle-lazy.js']) {
-  const file = path.join(ROOT, rel);
+  const file = path.join(TSRC, rel);
   if (!fs.existsSync(file)) {
     console.log('  -- ' + rel + ' 不存在，跳过');
     continue;
@@ -799,7 +800,7 @@ section('7. 核心自证：5 个 CSS 文件结构/词元一致 + 体积下降');
 const cssRows = [];
 for (const rel of CSS_FILES) {
   test(rel, () => {
-    const src = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+    const src = fs.readFileSync(path.join(TSRC, rel), 'utf8');
     const out = minifyCss(src);
 
     // (1) 字符级：只有注释和空白被删（字符串/url 内容原样）
