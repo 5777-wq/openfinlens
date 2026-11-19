@@ -207,14 +207,17 @@ jobs:
         # 采集失败不影响本步（continue-on-error）：能抓到就更新实时行情，抓不到就沿用
         # 上一次提交的快照并标 stale=true —— 宁缺毋假，绝不让 API 端点返回编造的数字。
         # 产物提交进 data 分支，Pages 拼装后直接分发，任何 agent/脚本无 key 即可 GET。
-        # 注意 api-commit-guard 的对照基准是 main 检出的冻结 api/（HEAD）：
-        #   语义无变化 → 还原成 HEAD 版本 → 产物树与 data 分支基点一致 → 不产生提交；
-        #   语义有变化 → 保留工作区版本 → data 分支照常追加。
-        #   （极端回归场景——新鲜快照恰好等于切仓日快照——提交回归态也是正确语义。）
+        # api-commit-guard 的对照基准（Phase 1.5）：data 分支存在时用 FETCH_HEAD（data 基点），
+        # 不存在时守卫内部回退 HEAD。切仓后 main 的 api/ 永久冻结，继续对照 HEAD 会让
+        # 「语义无变化」判定失效（每轮都被判"有变化"，噪声提交回来）——哨兵必须跟着数据走。
         continue-on-error: true
         env:
           OFL_TIMEOUT: "420"
         run: |
+          # fetch 放守卫里：data 分支尚不存在时静默回退，不阻塞首次采集
+          if git fetch --quiet --depth=1 origin refs/heads/data 2>/dev/null; then
+            export OFL_API_BASE_REF=FETCH_HEAD
+          fi
           # 阈值 30 分钟：行情快照够新，又不至于每 10 分钟造一次提交。
           bash "$RUNNER_TEMP/ofl-collect.sh" api-build api/v1/health.json 30 _scripts/build-api.mjs
           # 语义守卫：只有数据真的变了才让 api/ 进提交（否则 generatedAt 会把每轮都变成一次 1.6MB 提交）
@@ -239,27 +242,22 @@ jobs:
         # if: always()：哪怕某个采集步骤崩了，也要先把已经写盘的成功数据推上去。
         # 但闸门红的时候不提交——契约没过的东西不能上线。
         #
-        # 实现用「临时索引 + commit-tree」，全程不动 main 检出、不需要 worktree：
-        #   1. git fetch origin data 拿基点；分支尚不存在时走孤儿首建（首次成功采集
-        #      自动创建 data 分支，无需人工预建）；
-        #   2. GIT_INDEX_FILE 指向临时索引，read-tree --empty 后只 add 产物路径，
-        #      write-tree 得到「只含产物」的树（工作区/主检出/主索引均不受影响）；
-        #   3. 树与基点完全相同 → 无语义变化，跳过（等价旧流程的 diff --cached --quiet）；
-        #   4. commit-tree 挂基点为父提交生成提交对象，直接按 SHA 写入 refs/heads/data；
-        #      冲突（data 分支被并发推进）时重拉基点重挂父，最多 3 次。
+        # 写入实现统一在 _scripts/push-data-branch.sh（与 server-collect.sh、未来的
+        # collect-meridian.yml 共用，Phase 1.5 起抽成单处维护）。核心语义：
+        #   · read-tree FETCH_HEAD 把 data 基点树整体读进临时索引——data 分支是多采集链
+        #     的公共地盘（events/actors/api 本链负责，us-signals.json 等归未来 Meridian 链），
+        #     绝不能从空树重建清掉别家产物；
+        #   · 只 add -A 本链负责的路径（含删除），其余文件原样保留；
+        #   · 产物树与基点树一致 → no changes 跳过；
+        #   · commit-tree 挂基点为父 → 按 SHA 直写 refs/heads/data；
+        #   · 冲突时重拉基点、重读树、重新 add 后重试（防覆盖并发者刚写的邻近文件）。
+        # data 分支尚不存在时走孤儿首建（首次成功采集自动创建，无需人工预置）。
         if: always() && steps.gate.outcome != 'failure'
         env:
           DATA_BRANCH: data
         run: |
           git config user.name "openfinlens-bot"
           git config user.email "actions@users.noreply.github.com"
-
-          # 产物清单：与 data 分支内路径保持一致（deploy-pages 按同路径覆盖拼装）
-          PRODUCTS="data/events/global-events.json data/events/polymarket.json data/events/polymarket-history.json data/events/polymarket-i18n.json data/actors data/academy-terms.json js/data/academy-assets.js api/v1 api/openapi.json"
-
-          HAS_BASE=0
-          if git fetch --quiet origin "$DATA_BRANCH" 2>/dev/null; then HAS_BASE=1; fi
-          if [ "$HAS_BASE" = "1" ]; then PARENT=$(git rev-parse FETCH_HEAD); else PARENT=""; fi
 
           # 提交信息沿用旧约定：+成功 !失败，跳过与失败写进正文（不进标题避免噪音）
           MSG="data: refresh"; BODY=""
@@ -281,58 +279,13 @@ jobs:
             fi
           fi
 
-          build_tree() {
-            # 临时索引只装产物：read-tree --empty 后逐个 add；被守卫还原过的 api/
-            # 会拿到 HEAD 版本，语义无变化时产物树自然与基点一致
-            export GIT_INDEX_FILE="$RUNNER_TEMP/ofl-data.index"
-            git read-tree --empty
-            for p in $PRODUCTS; do
-              if [ -e "$p" ]; then git add -- "$p"; fi
-            done
-            TREE=$(git write-tree)
-            unset GIT_INDEX_FILE
-          }
-
-          ok=0
-          for i in 1 2 3; do
-            build_tree
-            if [ "$HAS_BASE" = "1" ] && [ "$TREE" = "$(git rev-parse FETCH_HEAD^{tree})" ]; then
-              echo "no changes（产物树与 data 分支基点一致，不产生提交）"
-              ok=2
-              break
-            fi
-            if [ "$HAS_BASE" = "1" ]; then
-              if [ -n "$BODY" ]; then
-                COMMIT=$(git commit-tree "$TREE" -p "$PARENT" -m "$MSG" -m "$BODY")
-              else
-                COMMIT=$(git commit-tree "$TREE" -p "$PARENT" -m "$MSG")
-              fi
-            else
-              # 孤儿首建：data 分支还不存在，无父提交
-              if [ -n "$BODY" ]; then
-                COMMIT=$(git commit-tree "$TREE" -m "$MSG" -m "$BODY")
-              else
-                COMMIT=$(git commit-tree "$TREE" -m "$MSG")
-              fi
-            fi
-            if git push origin "$COMMIT:refs/heads/$DATA_BRANCH"; then
-              ok=1
-              break
-            fi
-            echo "data 分支写入冲突（第 ${i} 次尝试失败），重拉基点重试"
-            if git fetch --quiet origin "$DATA_BRANCH" 2>/dev/null; then
-              PARENT=$(git rev-parse FETCH_HEAD)
-              HAS_BASE=1
-            else
-              PARENT=""
-              HAS_BASE=0
-            fi
-          done
-
-          if [ "$ok" = "0" ]; then
-            echo "::error::data 分支提交失败 3x — collected data did NOT reach remote"
-            exit 1
-          fi
+          # 产物清单：与 data 分支内路径保持一致（deploy-pages 按同路径覆盖拼装）
+          # 退出码透传：脚本内重试 3 次仍失败 → exit 1 → 本步骤红（不会静默断更）
+          bash _scripts/push-data-branch.sh -m "$MSG" -b "$BODY" \
+            data/events/global-events.json data/events/polymarket.json \
+            data/events/polymarket-history.json data/events/polymarket-i18n.json \
+            data/actors data/academy-terms.json \
+            js/data/academy-assets.js api/v1 api/openapi.json
 
       - name: 失败闸门（采集失败的脚本在这里让 workflow 变红）
         # 必须排在提交步骤之后：先把已经成功的数据推上远端，再把失败暴露成红。

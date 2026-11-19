@@ -56,8 +56,9 @@ jobs:
       - name: 拼装发布目录（main 为底，data 分支同路径覆盖）
         run: |
           mkdir -p _site
-          # 基底：main 的代码与静态资源。排除非站点目录控制体积；
-          # android/ 的 APK 保持现状继续随站发布（Phase 3/5 起改为只发 Releases）。
+          # 基底：main 的代码与静态资源。排除清单（Phase 1.5 加严，Gemini 审查裁定）：
+          # 内部脚本、测试桩、未编译内容源、骨架目录、私有配置一律不进 Pages；
+          # android/ 的 APK 按现状继续随站发布（Phase 3/5 起改为只发 Releases 后排除）。
           rsync -a \
             --exclude '.git' \
             --exclude '.github' \
@@ -65,9 +66,22 @@ jobs:
             --exclude 'data-src' \
             --exclude '_test' \
             --exclude '_qa' \
+            --exclude '_scripts' \
             --exclude 'docs' \
+            --exclude 'pipelines' \
+            --exclude 'content' \
+            --exclude 'scripts' \
+            --exclude 'test' \
+            --exclude 'mcp' \
+            --exclude 'miniprogram' \
+            --exclude '.data-local' \
+            --exclude 'config.local.json' \
+            --exclude '美股监控' \
+            --exclude 'keystore-*' \
+            --exclude '*.bundle' \
             main-src/ _site/
-          # 覆盖：data 分支的采集产物（缺失时先退回 main 静态副本，首采完成即恢复）
+          # 覆盖：data 分支的采集产物（data/**、api/**、js/data/academy-assets.js）。
+          # data 分支尚不存在时静默跳过，回退使用 main 里现有的 data/，保证首次部署不失败。
           if [ -d data-src ]; then
             rsync -a data-src/ _site/
             echo "已用 data 分支产物覆盖：$(cd data-src && git ls-files | head -3 | tr '\n' ' ')…"

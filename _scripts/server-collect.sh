@@ -14,13 +14,22 @@
 #   2. crontab -e 加一行（每 2 分钟）：
 #      */2 * * * * /path/to/openfinlens/_scripts/server-collect.sh >> $HOME/openfinlens-collect.log 2>&1
 #
+# 推送目标（2026-11-19 monorepo 分支解耦，Phase 1.5）：采集产物不再直推 main——
+# main 只保存代码，产物统一由 _scripts/push-data-branch.sh 写入 data 分支
+# （read-tree FETCH_HEAD 增量保留 + commit-tree + 冲突重试），线上站点由
+# deploy-pages.yml 把 main 与 data 分支拼装后发布。此前直推 main 的写法在切仓后
+# 会被拼装逻辑无视，生产端事件流会静默停更——所以必须同步改造。
+#
 # 说明：
 # - Polymarket 概率每 30 分钟窗口采一轮（gamma-api 国内大概率连不通：失败自动跳过，
 #   Actions 侧每 30 分钟兜底采集，两边幂等不撞车）。
 # - GDELT 国内服务器大概率连不通：collect-events.mjs 会自动降级为只用新浪财经7x24，
 #   数据源标签随之变化，属预期；需要 GDELT 时给 cron 环境配 HTTPS_PROXY 即可（脚本继承）。
-# - GitHub Actions 的 collect.yml 保留作备份（它跑得再慢也无害：无变化不提交；两边都用
-#   pull --rebase + 重试推送，撞车概率极低，撞上也只影响一轮）。
+# - GitHub Actions 的 collect.yml 保留作备份（它跑得再慢也无害：无变化不提交；
+#   两边写 data 分支都走 push-data-branch.sh 的增量保留与冲突重试，撞车概率极低，
+#   撞上也只影响一轮，且互不覆盖对方的产物路径）。
+# - main 的 pull --rebase 保留：只为了保持服务器 clone 的脚本本身新鲜（产物已不在
+#   main 上，不会再有数据提交冲突）。
 # - 依赖：Node ≥18、git、flock（util-linux，主流 Linux 自带）。
 
 set -euo pipefail
@@ -40,7 +49,7 @@ if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then
   echo "$(date -u +%FT%TZ) 清理遗留 rebase 中间态"
 fi
 
-# 1. 对齐远端（Actions 备份源仍可能提交）
+# 1. 对齐远端 main（保持脚本本身新鲜；产物已不在 main 上，不会再有数据提交冲突）
 if ! git pull --rebase origin main; then
   echo "$(date -u +%FT%TZ) pull --rebase 失败，本轮放弃（下一轮重试）"
   exit 1
@@ -59,26 +68,11 @@ if [ $(( MINS % 30 )) -lt 10 ]; then
   node _scripts/collect-polymarket.mjs || echo "$(date -u +%FT%TZ) polymarket 采集失败（保留旧数据，Actions 兜底）"
 fi
 
-# 3. 有变化才提交推送；推送重试 5 次（每次 rebase 对齐远端可能的 Actions 提交）
-git add data/events/global-events.json data/events/polymarket.json
-if git diff --cached --quiet; then
-  echo "$(date -u +%FT%TZ) no changes"
-  exit 0
-fi
-git commit -q -m "data: refresh global events [skip ci]"
-ok=0
-for i in 1 2 3 4 5; do
-  if git push origin main; then ok=1; break; fi
-  # -X theirs：撞车场景是双方都改 global-events.json 的同一行（单行 JSON），普通 rebase
-  # 必冲突并卡在中间态。rebase 语义里 theirs = 被重放的本地提交，即保留服务器刚采的新数据；
-  # Actions 侧 5 分钟内会再覆盖，谁新无所谓，关键是不能卡死。任何失败都不留中间态。
-  if ! git pull --rebase -X theirs origin main; then
-    git rebase --abort 2>/dev/null || true
-  fi
-  sleep 10
-done
-if [ "$ok" != "1" ]; then
-  echo "$(date -u +%FT%TZ) ✗ push 连续 5 次失败（检查服务器到 github.com 的连通性/PAT 是否过期）"
+# 3. 产物写入 data 分支（与 collect.yml / 未来 collect-meridian 共用同一实现；
+#    无变化时脚本内部判 no changes 并退出 0，写失败重试 3 次后退出 1）
+if ! bash "$SCRIPT_DIR/push-data-branch.sh" -m "data: refresh global events" \
+     data/events/global-events.json data/events/polymarket.json; then
+  echo "$(date -u +%FT%TZ) ✗ data 分支连续写入失败（检查服务器到 github.com 的连通性/PAT 是否过期）"
   exit 1
 fi
-echo "$(date -u +%FT%TZ) pushed"
+echo "$(date -u +%FT%TZ) data 分支已更新"
