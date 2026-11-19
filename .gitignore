@@ -38,3 +38,13 @@ _qa/classes.txt
 
 # 第三方项目调研产物（含对方 AGPL 内容，绝不入库）
 _qa/os/
+
+# ── monorepo Phase 1 加固（2026-11-19）────────────────────────────
+# UI 概念稿（P1 多图布局半成品）只留本地，不进仓库
+ui-concepts/
+# 任何层级的私有配置（真实持仓/推送密钥），公开仓库红线
+config.local.json
+# serve.mjs 的本地联调数据覆盖目录（优先于 data/，属个人环境）
+.data-local/
+# deploy-pages 拼装产物若在本地试跑，不进仓库
+_site/
