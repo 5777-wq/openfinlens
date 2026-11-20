@@ -31,7 +31,7 @@ MSG=""; BODY=""
 while [ $# -gt 0 ]; do
   case "$1" in
     -m) MSG="${2:?}"; shift 2 ;;
-    -b) BODY="${2:?}"; shift 2 ;;
+    -b) BODY="${2:-}"; shift 2 ;;   # BODY 允许空串（全绿轮无失败无跳过，2026-11-20 首次踩中）
     --) shift; break ;;
     -*) echo "[push-data] 未知参数 $1" >&2; exit 2 ;;
     *) break ;;
