@@ -8,66 +8,10 @@
       "day": {
         "interval": "day",
         "count": 160,
-        "asof": "2026-11-10",
+        "asof": "2026-11-20",
         "stale": false,
         "source": "tencent/eastmoney/binance（经 js/sources 适配器）",
         "rows": [
-          {
-            "time": "2026-03-19",
-            "open": 132.7,
-            "high": 134.2,
-            "low": 131.2,
-            "close": 132
-          },
-          {
-            "time": "2026-03-20",
-            "open": 123.5,
-            "high": 126.8,
-            "low": 122.4,
-            "close": 123.7
-          },
-          {
-            "time": "2026-03-23",
-            "open": 120.8,
-            "high": 121.6,
-            "low": 117.7,
-            "close": 119.7
-          },
-          {
-            "time": "2026-03-24",
-            "open": 122,
-            "high": 124,
-            "low": 119.8,
-            "close": 123.2
-          },
-          {
-            "time": "2026-03-25",
-            "open": 125.2,
-            "high": 131.4,
-            "low": 123.4,
-            "close": 128.9
-          },
-          {
-            "time": "2026-03-26",
-            "open": 128,
-            "high": 128,
-            "low": 122.6,
-            "close": 123
-          },
-          {
-            "time": "2026-03-27",
-            "open": 123,
-            "high": 124.1,
-            "low": 121.4,
-            "close": 122.6
-          },
-          {
-            "time": "2026-03-30",
-            "open": 118.2,
-            "high": 121.4,
-            "low": 117.9,
-            "close": 120.5
-          },
           {
             "time": "2026-03-31",
             "open": 120.8,
@@ -1131,23 +1075,72 @@
             "high": 104.7,
             "low": 100.5,
             "close": 101.6
+          },
+          {
+            "time": "2026-11-11",
+            "open": 100.6,
+            "high": 101.5,
+            "low": 100.1,
+            "close": 100.6
+          },
+          {
+            "time": "2026-11-12",
+            "open": 98.4,
+            "high": 99.05,
+            "low": 93.25,
+            "close": 93.8
+          },
+          {
+            "time": "2026-11-13",
+            "open": 93.35,
+            "high": 94.45,
+            "low": 89.6,
+            "close": 90.55
+          },
+          {
+            "time": "2026-11-16",
+            "open": 90.8,
+            "high": 92.1,
+            "low": 89.8,
+            "close": 90.15
+          },
+          {
+            "time": "2026-11-17",
+            "open": 87.2,
+            "high": 88.2,
+            "low": 85.1,
+            "close": 85.45
+          },
+          {
+            "time": "2026-11-18",
+            "open": 85.5,
+            "high": 86,
+            "low": 84.25,
+            "close": 85.25
+          },
+          {
+            "time": "2026-11-19",
+            "open": 82.25,
+            "high": 82.5,
+            "low": 80.2,
+            "close": 80.55
+          },
+          {
+            "time": "2026-11-20",
+            "open": 81.3,
+            "high": 83.1,
+            "low": 80.95,
+            "close": 82.45
           }
         ]
       },
       "week": {
         "interval": "week",
         "count": 104,
-        "asof": "2026-11-10",
+        "asof": "2026-11-20",
         "stale": false,
         "source": "tencent/eastmoney/binance（经 js/sources 适配器）",
         "rows": [
-          {
-            "time": "2024-11-22",
-            "open": 86.85,
-            "high": 87.45,
-            "low": 80.2,
-            "close": 80.7
-          },
           {
             "time": "2024-11-29",
             "open": 80.7,
@@ -1863,18 +1856,25 @@
             "close": 104.9
           },
           {
-            "time": "2026-11-10",
+            "time": "2026-11-13",
             "open": 107.2,
             "high": 108.1,
-            "low": 100.5,
-            "close": 101.6
+            "low": 89.6,
+            "close": 90.55
+          },
+          {
+            "time": "2026-11-20",
+            "open": 90.8,
+            "high": 92.1,
+            "low": 80.2,
+            "close": 82.45
           }
         ]
       },
       "month": {
         "interval": "month",
         "count": 60,
-        "asof": "2026-11-10",
+        "asof": "2026-11-20",
         "stale": false,
         "source": "tencent/eastmoney/binance（经 js/sources 适配器）",
         "rows": [
@@ -2292,11 +2292,11 @@
             "close": 97.05
           },
           {
-            "time": "2026-11-10",
+            "time": "2026-11-20",
             "open": 97.05,
             "high": 109.4,
-            "low": 96.9,
-            "close": 101.6
+            "low": 80.2,
+            "close": 82.45
           }
         ]
       }
@@ -2304,8 +2304,8 @@
   },
   "meta": {
     "dataset": "klines.symbol",
-    "asof": "2026-11-10",
-    "generatedAt": "2026-11-10T18:16:08.766Z",
+    "asof": "2026-11-20",
+    "generatedAt": "2026-11-20T03:00:17.734Z",
     "source": "腾讯 ifzq / 东方财富 push2his / 币安 klines（复用 js/sources 口径）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",

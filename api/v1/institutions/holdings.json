@@ -1,30 +1,30 @@
 {
   "ok": true,
   "data": {
-    "asOf": "2026-11-10T18:16:08.077Z",
+    "asOf": "2026-11-20T03:00:16.666Z",
     "institutions": [
       {
         "slug": "berkshire",
         "name": "伯克希尔·哈撒韦",
         "cik": "0001067983",
         "filingCik": "0001067983",
-        "reportDate": "2026-06-30",
-        "filedAt": "2026-08-14",
-        "lagDays": 45,
+        "reportDate": "2026-09-30",
+        "filedAt": "2026-11-16",
+        "lagDays": 47,
         "priorAvailable": true,
-        "priorReportDate": "2026-03-31",
+        "priorReportDate": "2026-06-30",
         "priorNote": null,
-        "totalValueUsd": 299253556246,
-        "holdingsCount": 29,
+        "totalValueUsd": 304196581325,
+        "holdingsCount": 30,
         "optionRows": 0,
         "holdings": [
           {
             "issuer": "APPLE INC",
             "cusip": "037833100",
             "kind": "SH",
-            "valueUsd": 65950296923,
+            "valueUsd": 75901188420,
             "shares": 227917808,
-            "pctOfTotal": 22.04,
+            "pctOfTotal": 24.95,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
@@ -33,9 +33,9 @@
             "issuer": "AMERICAN EXPRESS CO",
             "cusip": "025816109",
             "kind": "SH",
-            "valueUsd": 51282319275,
+            "valueUsd": 46104813870,
             "shares": 151610700,
-            "pctOfTotal": 17.14,
+            "pctOfTotal": 15.16,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
@@ -44,9 +44,9 @@
             "issuer": "COCA COLA CO",
             "cusip": "191216100",
             "kind": "SH",
-            "valueUsd": 32508000000,
+            "valueUsd": 34432000000,
             "shares": 400000000,
-            "pctOfTotal": 10.86,
+            "pctOfTotal": 11.32,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
@@ -55,31 +55,31 @@
             "issuer": "ALPHABET INC",
             "cusip": "02079K305",
             "kind": "SH",
-            "valueUsd": 28157599351,
+            "valueUsd": 27110464741,
             "shares": 78791167,
-            "pctOfTotal": 9.41,
-            "change": "ADD",
-            "sharesChange": 24541369,
-            "sharesChangePct": 45.24
+            "pctOfTotal": 8.91,
+            "change": "HOLD",
+            "sharesChange": 0,
+            "sharesChangePct": 0
           },
           {
             "issuer": "BANK OF AMER CORP",
             "cusip": "060505104",
             "kind": "SH",
-            "valueUsd": 27543790975,
-            "shares": 483394015,
-            "pctOfTotal": 9.2,
+            "valueUsd": 24812509222,
+            "shares": 455860908,
+            "pctOfTotal": 8.16,
             "change": "TRIM",
-            "sharesChange": -30230150,
-            "sharesChangePct": -5.89
+            "sharesChange": -27533107,
+            "sharesChangePct": -5.7
           },
           {
             "issuer": "CHEVRON CORPORATION",
             "cusip": "166764100",
             "kind": "SH",
-            "valueUsd": 13986141890,
+            "valueUsd": 17230393553,
             "shares": 84375856,
-            "pctOfTotal": 4.67,
+            "pctOfTotal": 5.66,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
@@ -88,20 +88,9 @@
             "issuer": "OCCIDENTAL PETE CORP",
             "cusip": "674599105",
             "kind": "SH",
-            "valueUsd": 12868205304,
+            "valueUsd": 14656559963,
             "shares": 264941431,
-            "pctOfTotal": 4.3,
-            "change": "HOLD",
-            "sharesChange": 0,
-            "sharesChangePct": 0
-          },
-          {
-            "issuer": "CHUBB LIMITED",
-            "cusip": "H1467J104",
-            "kind": "SH",
-            "valueUsd": 11670066615,
-            "shares": 34249183,
-            "pctOfTotal": 3.9,
+            "pctOfTotal": 4.82,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
@@ -110,9 +99,20 @@
             "issuer": "MOODYS CORP",
             "cusip": "615369105",
             "kind": "SH",
-            "valueUsd": 11173435852,
+            "valueUsd": 11203286284,
             "shares": 24669778,
-            "pctOfTotal": 3.73,
+            "pctOfTotal": 3.68,
+            "change": "HOLD",
+            "sharesChange": 0,
+            "sharesChangePct": 0
+          },
+          {
+            "issuer": "CHUBB LIMITED",
+            "cusip": "H1467J104",
+            "kind": "SH",
+            "valueUsd": 11139546771,
+            "shares": 34249183,
+            "pctOfTotal": 3.66,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
@@ -121,108 +121,108 @@
             "issuer": "ALPHABET INC",
             "cusip": "02079K107",
             "kind": "SH",
-            "valueUsd": 9606489032,
+            "valueUsd": 9264186660,
             "shares": 27188433,
-            "pctOfTotal": 3.21,
-            "change": "ADD",
-            "sharesChange": 23603218,
-            "sharesChangePct": 658.35
+            "pctOfTotal": 3.05,
+            "change": "HOLD",
+            "sharesChange": 0,
+            "sharesChangePct": 0
           },
           {
             "issuer": "KRAFT HEINZ CO",
             "cusip": "500754106",
             "kind": "SH",
-            "valueUsd": 7691494401,
+            "valueUsd": 7398423065,
             "shares": 325634818,
-            "pctOfTotal": 2.57,
+            "pctOfTotal": 2.43,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
-          },
-          {
-            "issuer": "DAVITA INC",
-            "cusip": "23918K108",
-            "kind": "SH",
-            "valueUsd": 6425268898,
-            "shares": 28880209,
-            "pctOfTotal": 2.15,
-            "change": "TRIM",
-            "sharesChange": -1220376,
-            "sharesChangePct": -4.05
           },
           {
             "issuer": "DELTA AIR LINES INC",
             "cusip": "247361702",
             "kind": "SH",
-            "valueUsd": 5368591200,
-            "shares": 57320000,
-            "pctOfTotal": 1.79,
+            "valueUsd": 5378997000,
+            "shares": 64450000,
+            "pctOfTotal": 1.77,
             "change": "ADD",
-            "sharesChange": 17510544,
-            "sharesChangePct": 43.99
+            "sharesChange": 7130000,
+            "sharesChangePct": 12.44
+          },
+          {
+            "issuer": "DAVITA INC",
+            "cusip": "23918K108",
+            "kind": "SH",
+            "valueUsd": 5019719296,
+            "shares": 28697229,
+            "pctOfTotal": 1.65,
+            "change": "TRIM",
+            "sharesChange": -182980,
+            "sharesChangePct": -0.63
           },
           {
             "issuer": "SIRIUSXM HOLDINGS INC",
             "cusip": "829933100",
             "kind": "SH",
-            "valueUsd": 3686802237,
+            "valueUsd": 3230008188,
             "shares": 124807117,
-            "pctOfTotal": 1.23,
+            "pctOfTotal": 1.06,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
-          },
-          {
-            "issuer": "VERISIGN INC",
-            "cusip": "92343E102",
-            "kind": "SH",
-            "valueUsd": 2261494212,
-            "shares": 8989880,
-            "pctOfTotal": 0.76,
-            "change": "HOLD",
-            "sharesChange": 0,
-            "sharesChangePct": 0
-          },
-          {
-            "issuer": "KROGER CO",
-            "cusip": "501044101",
-            "kind": "SH",
-            "valueUsd": 2165670000,
-            "shares": 39000000,
-            "pctOfTotal": 0.72,
-            "change": "TRIM",
-            "sharesChange": -11000000,
-            "sharesChangePct": -22
-          },
-          {
-            "issuer": "ALLY FINL INC",
-            "cusip": "02005N100",
-            "kind": "SH",
-            "valueUsd": 1240650000,
-            "shares": 27000000,
-            "pctOfTotal": 0.41,
-            "change": "TRIM",
-            "sharesChange": -2000000,
-            "sharesChangePct": -6.9
           },
           {
             "issuer": "LENNAR CORP",
             "cusip": "526057104",
             "kind": "SH",
-            "valueUsd": 1186481443,
-            "shares": 13111741,
-            "pctOfTotal": 0.4,
+            "valueUsd": 2124149633,
+            "shares": 26034436,
+            "pctOfTotal": 0.7,
             "change": "ADD",
-            "sharesChange": 3012099,
-            "sharesChangePct": 29.82
+            "sharesChange": 12922695,
+            "sharesChangePct": 98.56
+          },
+          {
+            "issuer": "KROGER CO",
+            "cusip": "501044101",
+            "kind": "SH",
+            "valueUsd": 2051700000,
+            "shares": 35000000,
+            "pctOfTotal": 0.67,
+            "change": "TRIM",
+            "sharesChange": -4000000,
+            "sharesChangePct": -10.26
+          },
+          {
+            "issuer": "VERISIGN INC",
+            "cusip": "92343E102",
+            "kind": "SH",
+            "valueUsd": 1670101573,
+            "shares": 5922136,
+            "pctOfTotal": 0.55,
+            "change": "TRIM",
+            "sharesChange": -3067744,
+            "sharesChangePct": -34.12
           },
           {
             "issuer": "LIBERTY LIVE HOLDINGS INC",
             "cusip": "530909308",
             "kind": "SH",
-            "valueUsd": 1118425787,
+            "valueUsd": 1029599657,
             "shares": 10587143,
-            "pctOfTotal": 0.37,
+            "pctOfTotal": 0.34,
+            "change": "HOLD",
+            "sharesChange": 0,
+            "sharesChangePct": 0
+          },
+          {
+            "issuer": "ALLY FINL INC",
+            "cusip": "02005N100",
+            "kind": "SH",
+            "valueUsd": 1015740001,
+            "shares": 27000000,
+            "pctOfTotal": 0.33,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
@@ -231,42 +231,31 @@
             "issuer": "NEW YORK TIMES CO MTN BE",
             "cusip": "650111107",
             "kind": "SH",
-            "valueUsd": 1098686000,
+            "valueUsd": 1000090000,
             "shares": 15700000,
-            "pctOfTotal": 0.37,
-            "change": "ADD",
-            "sharesChange": 553465,
-            "sharesChangePct": 3.65
-          },
-          {
-            "issuer": "CAPITAL ONE FINL CORP",
-            "cusip": "14040H105",
-            "kind": "SH",
-            "valueUsd": 601860000,
-            "shares": 3000000,
-            "pctOfTotal": 0.2,
-            "change": "TRIM",
-            "sharesChange": -4150000,
-            "sharesChangePct": -58.04
-          },
-          {
-            "issuer": "LIBERTY LIVE HOLDINGS INC",
-            "cusip": "530909100",
-            "kind": "SH",
-            "valueUsd": 504941901,
-            "shares": 4986588,
-            "pctOfTotal": 0.17,
+            "pctOfTotal": 0.33,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
           },
           {
-            "issuer": "LOUISIANA PAC CORP",
-            "cusip": "546347105",
+            "issuer": "BENDING SPOONS SPA",
+            "cusip": "T19377109",
             "kind": "SH",
-            "valueUsd": 445592617,
-            "shares": 5664793,
-            "pctOfTotal": 0.15,
+            "valueUsd": 689379305,
+            "shares": 20689655,
+            "pctOfTotal": 0.23,
+            "change": "NEW",
+            "sharesChange": null,
+            "sharesChangePct": null
+          },
+          {
+            "issuer": "LIBERTY LIVE HOLDINGS INC",
+            "cusip": "530909100",
+            "kind": "SH",
+            "valueUsd": 471930689,
+            "shares": 4986588,
+            "pctOfTotal": 0.16,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
@@ -275,31 +264,53 @@
             "issuer": "NUCOR CORP",
             "cusip": "670346105",
             "kind": "SH",
-            "valueUsd": 413814258,
-            "shares": 1857752,
-            "pctOfTotal": 0.14,
+            "valueUsd": 369506390,
+            "shares": 1580776,
+            "pctOfTotal": 0.12,
             "change": "TRIM",
-            "sharesChange": -2049323,
-            "sharesChangePct": -52.45
+            "sharesChange": -276976,
+            "sharesChangePct": -14.91
+          },
+          {
+            "issuer": "LOUISIANA PAC CORP",
+            "cusip": "546347105",
+            "kind": "SH",
+            "valueUsd": 365662388,
+            "shares": 5664793,
+            "pctOfTotal": 0.12,
+            "change": "HOLD",
+            "sharesChange": 0,
+            "sharesChangePct": 0
+          },
+          {
+            "issuer": "CAPITAL ONE FINL CORP",
+            "cusip": "14040H105",
+            "kind": "SH",
+            "valueUsd": 222030500,
+            "shares": 1150000,
+            "pctOfTotal": 0.07,
+            "change": "TRIM",
+            "sharesChange": -1850000,
+            "sharesChangePct": -61.67
           },
           {
             "issuer": "MACYS INC",
             "cusip": "55616P104",
             "kind": "SH",
-            "valueUsd": 173031882,
-            "shares": 7347426,
+            "valueUsd": 171658476,
+            "shares": 7538800,
             "pctOfTotal": 0.06,
             "change": "ADD",
-            "sharesChange": 4309071,
-            "sharesChangePct": 141.82
+            "sharesChange": 191374,
+            "sharesChangePct": 2.6
           },
           {
             "issuer": "NVR INC",
             "cusip": "62944T105",
             "kind": "SH",
-            "valueUsd": 75710501,
+            "valueUsd": 68387582,
             "shares": 11112,
-            "pctOfTotal": 0.03,
+            "pctOfTotal": 0.02,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
@@ -308,18 +319,18 @@
             "issuer": "LENNAR CORP",
             "cusip": "526057302",
             "kind": "SH",
-            "valueUsd": 26445959,
-            "shares": 298117,
+            "valueUsd": 44234470,
+            "shares": 553000,
             "pctOfTotal": 0.01,
             "change": "ADD",
-            "sharesChange": 60414,
-            "sharesChangePct": 25.42
+            "sharesChange": 254883,
+            "sharesChangePct": 85.5
           },
           {
             "issuer": "JEFFERIES FINANCIAL GROUP IN",
             "cusip": "47233W109",
             "kind": "SH",
-            "valueUsd": 21669229,
+            "valueUsd": 19826607,
             "shares": 433558,
             "pctOfTotal": 0.01,
             "change": "HOLD",
@@ -330,661 +341,742 @@
             "issuer": "D R HORTON INC",
             "cusip": "23331A109",
             "kind": "SH",
-            "valueUsd": 580504,
+            "valueUsd": 487021,
             "shares": 3564,
             "pctOfTotal": 0,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
+            "change": "HOLD",
+            "sharesChange": 0,
+            "sharesChangePct": 0
           }
         ],
-        "exits": [
-          {
-            "issuer": "CONSTELLATION BRANDS INC",
-            "cusip": "21036P108",
-            "kind": "SH",
-            "prevShares": 632890
-          }
-        ]
+        "exits": []
       },
       {
         "slug": "bridgewater",
         "name": "桥水基金",
         "cik": "0001350694",
         "filingCik": "0001350694",
-        "reportDate": "2026-06-30",
-        "filedAt": "2026-08-14",
-        "lagDays": 45,
+        "reportDate": "2026-09-30",
+        "filedAt": "2026-11-16",
+        "lagDays": 47,
         "priorAvailable": true,
-        "priorReportDate": "2026-03-31",
+        "priorReportDate": "2026-06-30",
         "priorNote": null,
-        "totalValueUsd": 24376086530,
-        "holdingsCount": 997,
+        "totalValueUsd": 22985792515,
+        "holdingsCount": 974,
         "optionRows": 0,
         "holdings": [
           {
             "issuer": "STATE STR SPDR S&amp;P 500 ETF T",
             "cusip": "78462F103",
             "kind": "SH",
-            "valueUsd": 3973046405,
-            "shares": 5320308,
-            "pctOfTotal": 16.3,
-            "change": "ADD",
-            "sharesChange": 955446,
-            "sharesChangePct": 21.89
+            "valueUsd": 2595471644,
+            "shares": 3403317,
+            "pctOfTotal": 11.29,
+            "change": "TRIM",
+            "sharesChange": -1916991,
+            "sharesChangePct": -36.03
           },
           {
             "issuer": "ISHARES TR",
             "cusip": "464287200",
             "kind": "SH",
-            "valueUsd": 2248381963,
-            "shares": 3002286,
-            "pctOfTotal": 9.22,
-            "change": "ADD",
-            "sharesChange": 323202,
-            "sharesChangePct": 12.06
+            "valueUsd": 1154942390,
+            "shares": 1508053,
+            "pctOfTotal": 5.02,
+            "change": "TRIM",
+            "sharesChange": -1494233,
+            "sharesChangePct": -49.77
           },
           {
             "issuer": "NVIDIA CORPORATION",
             "cusip": "67066G104",
             "kind": "SH",
-            "valueUsd": 773586958,
-            "shares": 3866195,
-            "pctOfTotal": 3.17,
+            "valueUsd": 613935912,
+            "shares": 2688221,
+            "pctOfTotal": 2.67,
             "change": "TRIM",
-            "sharesChange": -826808,
-            "sharesChangePct": -17.62
+            "sharesChange": -1177974,
+            "sharesChangePct": -30.47
           },
           {
             "issuer": "BROADCOM INC",
             "cusip": "11135F101",
             "kind": "SH",
-            "valueUsd": 497845413,
-            "shares": 1317923,
-            "pctOfTotal": 2.04,
+            "valueUsd": 461725648,
+            "shares": 1314746,
+            "pctOfTotal": 2.01,
             "change": "TRIM",
-            "sharesChange": -517457,
-            "sharesChangePct": -28.19
-          },
-          {
-            "issuer": "AMAZON COM INC",
-            "cusip": "023135106",
-            "kind": "SH",
-            "valueUsd": 482753142,
-            "shares": 2025481,
-            "pctOfTotal": 1.98,
-            "change": "TRIM",
-            "sharesChange": -2363230,
-            "sharesChangePct": -53.85
-          },
-          {
-            "issuer": "ALPHABET INC",
-            "cusip": "02079K305",
-            "kind": "SH",
-            "valueUsd": 472506037,
-            "shares": 1322176,
-            "pctOfTotal": 1.94,
-            "change": "TRIM",
-            "sharesChange": -675498,
-            "sharesChangePct": -33.81
+            "sharesChange": -3177,
+            "sharesChangePct": -0.24
           },
           {
             "issuer": "LAM RESEARCH CORP",
             "cusip": "512807306",
             "kind": "SH",
-            "valueUsd": 406560606,
-            "shares": 938224,
-            "pctOfTotal": 1.67,
-            "change": "TRIM",
-            "sharesChange": -633005,
-            "sharesChangePct": -40.29
-          },
-          {
-            "issuer": "VANGUARD INDEX FDS",
-            "cusip": "922908363",
-            "kind": "SH",
-            "valueUsd": 314820655,
-            "shares": 458381,
-            "pctOfTotal": 1.29,
+            "valueUsd": 348182821,
+            "shares": 1059885,
+            "pctOfTotal": 1.51,
             "change": "ADD",
-            "sharesChange": 299753,
-            "sharesChangePct": 188.97
+            "sharesChange": 121661,
+            "sharesChangePct": 12.97
           },
           {
             "issuer": "ADVANCED MICRO DEVICES INC",
             "cusip": "007903107",
             "kind": "SH",
-            "valueUsd": 312896715,
-            "shares": 538632,
-            "pctOfTotal": 1.28,
+            "valueUsd": 300580323,
+            "shares": 491337,
+            "pctOfTotal": 1.31,
             "change": "TRIM",
-            "sharesChange": -754135,
-            "sharesChangePct": -58.33
-          },
-          {
-            "issuer": "ISHARES INC",
-            "cusip": "464286772",
-            "kind": "SH",
-            "valueUsd": 279585467,
-            "shares": 1384772,
-            "pctOfTotal": 1.15,
-            "change": "TRIM",
-            "sharesChange": -381492,
-            "sharesChangePct": -21.6
-          },
-          {
-            "issuer": "MICROSOFT CORP",
-            "cusip": "594918104",
-            "kind": "SH",
-            "valueUsd": 265551446,
-            "shares": 711896,
-            "pctOfTotal": 1.09,
-            "change": "TRIM",
-            "sharesChange": -373083,
-            "sharesChangePct": -34.39
-          },
-          {
-            "issuer": "NEWMONT CORP",
-            "cusip": "651639106",
-            "kind": "SH",
-            "valueUsd": 251728878,
-            "shares": 2695170,
-            "pctOfTotal": 1.03,
-            "change": "ADD",
-            "sharesChange": 378529,
-            "sharesChangePct": 16.34
+            "sharesChange": -47295,
+            "sharesChangePct": -8.78
           },
           {
             "issuer": "APPLIED MATLS INC",
             "cusip": "038222105",
             "kind": "SH",
-            "valueUsd": 210700998,
-            "shares": 291426,
-            "pctOfTotal": 0.86,
-            "change": "TRIM",
-            "sharesChange": -268492,
-            "sharesChangePct": -47.95
-          },
-          {
-            "issuer": "ORACLE CORP",
-            "cusip": "68389X105",
-            "kind": "SH",
-            "valueUsd": 210001314,
-            "shares": 1432967,
-            "pctOfTotal": 0.86,
-            "change": "TRIM",
-            "sharesChange": -159102,
-            "sharesChangePct": -9.99
-          },
-          {
-            "issuer": "SEAGATE TECHNOLOGY HLDNGS PL",
-            "cusip": "G7997R103",
-            "kind": "SH",
-            "valueUsd": 192828230,
-            "shares": 199822,
-            "pctOfTotal": 0.79,
-            "change": "TRIM",
-            "sharesChange": -129295,
-            "sharesChangePct": -39.29
-          },
-          {
-            "issuer": "JOHNSON &amp; JOHNSON",
-            "cusip": "478160104",
-            "kind": "SH",
-            "valueUsd": 169940216,
-            "shares": 669135,
-            "pctOfTotal": 0.7,
-            "change": "TRIM",
-            "sharesChange": -27749,
-            "sharesChangePct": -3.98
-          },
-          {
-            "issuer": "VANGUARD INTL EQUITY INDEX F",
-            "cusip": "922042858",
-            "kind": "SH",
-            "valueUsd": 163957626,
-            "shares": 2746819,
-            "pctOfTotal": 0.67,
+            "valueUsd": 288100753,
+            "shares": 563379,
+            "pctOfTotal": 1.25,
             "change": "ADD",
-            "sharesChange": 25079,
-            "sharesChangePct": 0.92
-          },
-          {
-            "issuer": "GE VERNOVA INC",
-            "cusip": "36828A101",
-            "kind": "SH",
-            "valueUsd": 144235212,
-            "shares": 122768,
-            "pctOfTotal": 0.59,
-            "change": "TRIM",
-            "sharesChange": -312129,
-            "sharesChangePct": -71.77
-          },
-          {
-            "issuer": "UNION PAC CORP",
-            "cusip": "907818108",
-            "kind": "SH",
-            "valueUsd": 139880352,
-            "shares": 514266,
-            "pctOfTotal": 0.57,
-            "change": "TRIM",
-            "sharesChange": -18584,
-            "sharesChangePct": -3.49
+            "sharesChange": 271953,
+            "sharesChangePct": 93.32
           },
           {
             "issuer": "MICRON TECHNOLOGY INC",
             "cusip": "595112103",
             "kind": "SH",
-            "valueUsd": 134666397,
-            "shares": 116666,
-            "pctOfTotal": 0.55,
-            "change": "TRIM",
-            "sharesChange": -1359038,
-            "sharesChangePct": -92.09
-          },
-          {
-            "issuer": "ISHARES TR",
-            "cusip": "464288588",
-            "kind": "SH",
-            "valueUsd": 131080336,
-            "shares": 1386800,
-            "pctOfTotal": 0.54,
+            "valueUsd": 252557818,
+            "shares": 237119,
+            "pctOfTotal": 1.1,
             "change": "ADD",
-            "sharesChange": 26800,
-            "sharesChangePct": 1.97
+            "sharesChange": 120453,
+            "sharesChangePct": 103.25
           },
           {
-            "issuer": "ALTRIA GROUP INC",
-            "cusip": "02209S103",
+            "issuer": "NEWMONT CORP",
+            "cusip": "651639106",
             "kind": "SH",
-            "valueUsd": 124273191,
-            "shares": 1727216,
-            "pctOfTotal": 0.51,
-            "change": "ADD",
-            "sharesChange": 21705,
-            "sharesChangePct": 1.27
-          },
-          {
-            "issuer": "AMPHENOL CORP",
-            "cusip": "032095101",
-            "kind": "SH",
-            "valueUsd": 123002948,
-            "shares": 697612,
-            "pctOfTotal": 0.5,
+            "valueUsd": 242638682,
+            "shares": 2103682,
+            "pctOfTotal": 1.06,
             "change": "TRIM",
-            "sharesChange": -165436,
-            "sharesChangePct": -19.17
+            "sharesChange": -591488,
+            "sharesChangePct": -21.95
           },
           {
-            "issuer": "ASML HLDG NV",
-            "cusip": "N07059210",
+            "issuer": "AMAZON COM INC",
+            "cusip": "023135106",
             "kind": "SH",
-            "valueUsd": 122698712,
-            "shares": 61675,
-            "pctOfTotal": 0.5,
+            "valueUsd": 241863857,
+            "shares": 970756,
+            "pctOfTotal": 1.05,
             "change": "TRIM",
-            "sharesChange": -30521,
-            "sharesChangePct": -33.1
-          },
-          {
-            "issuer": "BARRICK MNG CORP",
-            "cusip": "06849F108",
-            "kind": "SH",
-            "valueUsd": 121387233,
-            "shares": 3304836,
-            "pctOfTotal": 0.5,
-            "change": "ADD",
-            "sharesChange": 225593,
-            "sharesChangePct": 7.33
-          },
-          {
-            "issuer": "CELESTICA INC",
-            "cusip": "15101Q207",
-            "kind": "SH",
-            "valueUsd": 120635278,
-            "shares": 330689,
-            "pctOfTotal": 0.49,
-            "change": "TRIM",
-            "sharesChange": -194932,
-            "sharesChangePct": -37.09
-          },
-          {
-            "issuer": "VISTRA CORP",
-            "cusip": "92840M102",
-            "kind": "SH",
-            "valueUsd": 119241378,
-            "shares": 751695,
-            "pctOfTotal": 0.49,
-            "change": "ADD",
-            "sharesChange": 403181,
-            "sharesChangePct": 115.69
-          },
-          {
-            "issuer": "SHELL PLC",
-            "cusip": "780259305",
-            "kind": "SH",
-            "valueUsd": 118338679,
-            "shares": 1526163,
-            "pctOfTotal": 0.49,
-            "change": "ADD",
-            "sharesChange": 1214006,
-            "sharesChangePct": 388.91
-          },
-          {
-            "issuer": "SEA LTD",
-            "cusip": "81141R100",
-            "kind": "SH",
-            "valueUsd": 115433272,
-            "shares": 1204563,
-            "pctOfTotal": 0.47,
-            "change": "TRIM",
-            "sharesChange": -133565,
-            "sharesChangePct": -9.98
-          },
-          {
-            "issuer": "ISHARES TR",
-            "cusip": "464287242",
-            "kind": "SH",
-            "valueUsd": 114578035,
-            "shares": 1050500,
-            "pctOfTotal": 0.47,
-            "change": "ADD",
-            "sharesChange": 28800,
-            "sharesChangePct": 2.82
-          },
-          {
-            "issuer": "NUCOR CORP",
-            "cusip": "670346105",
-            "kind": "SH",
-            "valueUsd": 114364973,
-            "shares": 513423,
-            "pctOfTotal": 0.47,
-            "change": "TRIM",
-            "sharesChange": -105105,
-            "sharesChangePct": -16.99
-          },
-          {
-            "issuer": "PACCAR INC",
-            "cusip": "693718108",
-            "kind": "SH",
-            "valueUsd": 113646373,
-            "shares": 946107,
-            "pctOfTotal": 0.47,
-            "change": "ADD",
-            "sharesChange": 169035,
-            "sharesChangePct": 21.75
-          },
-          {
-            "issuer": "WESTERN DIGITAL CORP",
-            "cusip": "958102105",
-            "kind": "SH",
-            "valueUsd": 110124909,
-            "shares": 172415,
-            "pctOfTotal": 0.45,
-            "change": "TRIM",
-            "sharesChange": -76624,
-            "sharesChangePct": -30.77
+            "sharesChange": -1054725,
+            "sharesChangePct": -52.07
           },
           {
             "issuer": "ISHARES INC",
-            "cusip": "46434G103",
+            "cusip": "464286772",
             "kind": "SH",
-            "valueUsd": 110034384,
-            "shares": 1328276,
-            "pctOfTotal": 0.45,
+            "valueUsd": 229577895,
+            "shares": 1256034,
+            "pctOfTotal": 1,
             "change": "TRIM",
-            "sharesChange": -14668,
-            "sharesChangePct": -1.09
-          },
-          {
-            "issuer": "CSX CORP",
-            "cusip": "126408103",
-            "kind": "SH",
-            "valueUsd": 105990236,
-            "shares": 2229965,
-            "pctOfTotal": 0.43,
-            "change": "TRIM",
-            "sharesChange": -145263,
-            "sharesChangePct": -6.12
-          },
-          {
-            "issuer": "PETROLEO BRASILEIRO S A",
-            "cusip": "71654V408",
-            "kind": "SH",
-            "valueUsd": 105436776,
-            "shares": 6524553,
-            "pctOfTotal": 0.43,
-            "change": "ADD",
-            "sharesChange": 5373569,
-            "sharesChangePct": 466.87
-          },
-          {
-            "issuer": "APPLE INC",
-            "cusip": "037833100",
-            "kind": "SH",
-            "valueUsd": 105436129,
-            "shares": 364377,
-            "pctOfTotal": 0.43,
-            "change": "TRIM",
-            "sharesChange": -199115,
-            "sharesChangePct": -35.34
-          },
-          {
-            "issuer": "ELI LILLY &amp; CO",
-            "cusip": "532457108",
-            "kind": "SH",
-            "valueUsd": 104377997,
-            "shares": 87023,
-            "pctOfTotal": 0.43,
-            "change": "ADD",
-            "sharesChange": 16211,
-            "sharesChangePct": 22.89
-          },
-          {
-            "issuer": "PG&amp;E CORP",
-            "cusip": "69331C108",
-            "kind": "SH",
-            "valueUsd": 99764701,
-            "shares": 5931314,
-            "pctOfTotal": 0.41,
-            "change": "ADD",
-            "sharesChange": 5906783,
-            "sharesChangePct": 24078.85
-          },
-          {
-            "issuer": "KLA CORP",
-            "cusip": "482480100",
-            "kind": "SH",
-            "valueUsd": 98982000,
-            "shares": 328070,
-            "pctOfTotal": 0.41,
-            "change": "ADD",
-            "sharesChange": 219396,
-            "sharesChangePct": 201.88
-          },
-          {
-            "issuer": "COMFORT SYS USA INC",
-            "cusip": "199908104",
-            "kind": "SH",
-            "valueUsd": 96136467,
-            "shares": 48506,
-            "pctOfTotal": 0.39,
-            "change": "TRIM",
-            "sharesChange": -37956,
-            "sharesChangePct": -43.9
-          },
-          {
-            "issuer": "NXP SEMICONDUCTORS N V",
-            "cusip": "N6596X109",
-            "kind": "SH",
-            "valueUsd": 94820927,
-            "shares": 337405,
-            "pctOfTotal": 0.39,
-            "change": "ADD",
-            "sharesChange": 74623,
-            "sharesChangePct": 28.4
-          },
-          {
-            "issuer": "WELLS FARGO &amp; CO",
-            "cusip": "949746101",
-            "kind": "SH",
-            "valueUsd": 94693375,
-            "shares": 1145854,
-            "pctOfTotal": 0.39,
-            "change": "ADD",
-            "sharesChange": 203274,
-            "sharesChangePct": 21.57
-          },
-          {
-            "issuer": "EDISON INTL",
-            "cusip": "281020107",
-            "kind": "SH",
-            "valueUsd": 91917012,
-            "shares": 1234614,
-            "pctOfTotal": 0.38,
-            "change": "ADD",
-            "sharesChange": 1093853,
-            "sharesChangePct": 777.1
-          },
-          {
-            "issuer": "ISHARES INC",
-            "cusip": "46434G764",
-            "kind": "SH",
-            "valueUsd": 90076787,
-            "shares": 880516,
-            "pctOfTotal": 0.37,
-            "change": "TRIM",
-            "sharesChange": -191764,
-            "sharesChangePct": -17.88
-          },
-          {
-            "issuer": "MARATHON PETE CORP",
-            "cusip": "56585A102",
-            "kind": "SH",
-            "valueUsd": 89286100,
-            "shares": 349224,
-            "pctOfTotal": 0.37,
-            "change": "ADD",
-            "sharesChange": 271941,
-            "sharesChangePct": 351.88
-          },
-          {
-            "issuer": "STEEL DYNAMICS INC",
-            "cusip": "858119100",
-            "kind": "SH",
-            "valueUsd": 86848315,
-            "shares": 378490,
-            "pctOfTotal": 0.36,
-            "change": "TRIM",
-            "sharesChange": -59589,
-            "sharesChangePct": -13.6
-          },
-          {
-            "issuer": "EVERSOURCE ENERGY",
-            "cusip": "30040W108",
-            "kind": "SH",
-            "valueUsd": 86372768,
-            "shares": 1195140,
-            "pctOfTotal": 0.35,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
-          },
-          {
-            "issuer": "TE CONNECTIVITY PLC",
-            "cusip": "G87052109",
-            "kind": "SH",
-            "valueUsd": 86030616,
-            "shares": 426718,
-            "pctOfTotal": 0.35,
-            "change": "ADD",
-            "sharesChange": 90544,
-            "sharesChangePct": 26.93
-          },
-          {
-            "issuer": "ANALOG DEVICES INC",
-            "cusip": "032654105",
-            "kind": "SH",
-            "valueUsd": 80708121,
-            "shares": 203208,
-            "pctOfTotal": 0.33,
-            "change": "ADD",
-            "sharesChange": 148135,
-            "sharesChangePct": 268.98
-          },
-          {
-            "issuer": "HCA HEALTHCARE INC",
-            "cusip": "40412C101",
-            "kind": "SH",
-            "valueUsd": 79227208,
-            "shares": 203204,
-            "pctOfTotal": 0.33,
-            "change": "ADD",
-            "sharesChange": 29403,
-            "sharesChangePct": 16.92
-          },
-          {
-            "issuer": "TAPESTRY INC",
-            "cusip": "876030107",
-            "kind": "SH",
-            "valueUsd": 78963813,
-            "shares": 539444,
-            "pctOfTotal": 0.32,
-            "change": "ADD",
-            "sharesChange": 219099,
-            "sharesChangePct": 68.39
+            "sharesChange": -128738,
+            "sharesChangePct": -9.3
           },
           {
             "issuer": "APPLOVIN CORP",
             "cusip": "03831W108",
             "kind": "SH",
-            "valueUsd": 75533748,
-            "shares": 146602,
-            "pctOfTotal": 0.31,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
-          },
-          {
-            "issuer": "VALERO ENERGY CORP",
-            "cusip": "91913Y100",
-            "kind": "SH",
-            "valueUsd": 74225660,
-            "shares": 285001,
-            "pctOfTotal": 0.3,
+            "valueUsd": 198375307,
+            "shares": 683040,
+            "pctOfTotal": 0.86,
             "change": "ADD",
-            "sharesChange": 151003,
-            "sharesChangePct": 112.69
+            "sharesChange": 536438,
+            "sharesChangePct": 365.91
           },
           {
-            "issuer": "CITIGROUP INC",
-            "cusip": "172967424",
+            "issuer": "SHELL PLC",
+            "cusip": "780259305",
             "kind": "SH",
-            "valueUsd": 73152333,
-            "shares": 522666,
-            "pctOfTotal": 0.3,
+            "valueUsd": 195929321,
+            "shares": 2061329,
+            "pctOfTotal": 0.85,
+            "change": "ADD",
+            "sharesChange": 535166,
+            "sharesChangePct": 35.07
+          },
+          {
+            "issuer": "VANGUARD INTL EQUITY INDEX F",
+            "cusip": "922042858",
+            "kind": "SH",
+            "valueUsd": 188419448,
+            "shares": 3176858,
+            "pctOfTotal": 0.82,
+            "change": "ADD",
+            "sharesChange": 430039,
+            "sharesChangePct": 15.66
+          },
+          {
+            "issuer": "SEAGATE TECHNOLOGY HLDNGS PL",
+            "cusip": "G7997R103",
+            "kind": "SH",
+            "valueUsd": 182523707,
+            "shares": 197892,
+            "pctOfTotal": 0.79,
             "change": "TRIM",
-            "sharesChange": -270748,
-            "sharesChangePct": -34.12
+            "sharesChange": -1930,
+            "sharesChangePct": -0.97
+          },
+          {
+            "issuer": "ORACLE CORP",
+            "cusip": "68389X105",
+            "kind": "SH",
+            "valueUsd": 162205259,
+            "shares": 1181393,
+            "pctOfTotal": 0.71,
+            "change": "TRIM",
+            "sharesChange": -251574,
+            "sharesChangePct": -17.56
+          },
+          {
+            "issuer": "QUALCOMM INC",
+            "cusip": "747525103",
+            "kind": "SH",
+            "valueUsd": 161608285,
+            "shares": 878115,
+            "pctOfTotal": 0.7,
+            "change": "ADD",
+            "sharesChange": 715649,
+            "sharesChangePct": 440.49
+          },
+          {
+            "issuer": "META PLATFORMS INC",
+            "cusip": "30303M102",
+            "kind": "SH",
+            "valueUsd": 159542501,
+            "shares": 220004,
+            "pctOfTotal": 0.69,
+            "change": "ADD",
+            "sharesChange": 109921,
+            "sharesChangePct": 99.85
+          },
+          {
+            "issuer": "PETROLEO BRASILEIRO S A",
+            "cusip": "71654V408",
+            "kind": "SH",
+            "valueUsd": 158731418,
+            "shares": 7605722,
+            "pctOfTotal": 0.69,
+            "change": "ADD",
+            "sharesChange": 1081169,
+            "sharesChangePct": 16.57
+          },
+          {
+            "issuer": "ALPHABET INC",
+            "cusip": "02079K305",
+            "kind": "SH",
+            "valueUsd": 158356971,
+            "shares": 460233,
+            "pctOfTotal": 0.69,
+            "change": "TRIM",
+            "sharesChange": -861943,
+            "sharesChangePct": -65.19
+          },
+          {
+            "issuer": "JOHNSON &amp; JOHNSON",
+            "cusip": "478160104",
+            "kind": "SH",
+            "valueUsd": 144953357,
+            "shares": 547531,
+            "pctOfTotal": 0.63,
+            "change": "TRIM",
+            "sharesChange": -121604,
+            "sharesChangePct": -18.17
+          },
+          {
+            "issuer": "ALTRIA GROUP INC",
+            "cusip": "02209S103",
+            "kind": "SH",
+            "valueUsd": 141460936,
+            "shares": 2100697,
+            "pctOfTotal": 0.62,
+            "change": "ADD",
+            "sharesChange": 373481,
+            "sharesChangePct": 21.62
+          },
+          {
+            "issuer": "ISHARES INC",
+            "cusip": "46434G103",
+            "kind": "SH",
+            "valueUsd": 133886324,
+            "shares": 1649659,
+            "pctOfTotal": 0.58,
+            "change": "ADD",
+            "sharesChange": 321383,
+            "sharesChangePct": 24.2
           },
           {
             "issuer": "EOG RES INC",
             "cusip": "26875P101",
             "kind": "SH",
-            "valueUsd": 69980124,
-            "shares": 539429,
-            "pctOfTotal": 0.29,
+            "valueUsd": 130643181,
+            "shares": 948339,
+            "pctOfTotal": 0.57,
             "change": "ADD",
-            "sharesChange": 526857,
-            "sharesChangePct": 4190.72
+            "sharesChange": 408910,
+            "sharesChangePct": 75.8
+          },
+          {
+            "issuer": "VISA INC",
+            "cusip": "92826C839",
+            "kind": "SH",
+            "valueUsd": 128554260,
+            "shares": 357761,
+            "pctOfTotal": 0.56,
+            "change": "ADD",
+            "sharesChange": 276224,
+            "sharesChangePct": 338.77
+          },
+          {
+            "issuer": "ISHARES TR",
+            "cusip": "464288588",
+            "kind": "SH",
+            "valueUsd": 126677870,
+            "shares": 1413500,
+            "pctOfTotal": 0.55,
+            "change": "ADD",
+            "sharesChange": 26700,
+            "sharesChangePct": 1.93
+          },
+          {
+            "issuer": "PG&amp;E CORP",
+            "cusip": "69331C108",
+            "kind": "SH",
+            "valueUsd": 126077723,
+            "shares": 10292059,
+            "pctOfTotal": 0.55,
+            "change": "ADD",
+            "sharesChange": 4360745,
+            "sharesChangePct": 73.52
+          },
+          {
+            "issuer": "QORVO INC",
+            "cusip": "74736K101",
+            "kind": "SH",
+            "valueUsd": 122320277,
+            "shares": 1068486,
+            "pctOfTotal": 0.53,
+            "change": "ADD",
+            "sharesChange": 1037470,
+            "sharesChangePct": 3344.95
+          },
+          {
+            "issuer": "BARRICK MNG CORP",
+            "cusip": "06849F108",
+            "kind": "SH",
+            "valueUsd": 120589072,
+            "shares": 2965062,
+            "pctOfTotal": 0.52,
+            "change": "TRIM",
+            "sharesChange": -339774,
+            "sharesChangePct": -10.28
+          },
+          {
+            "issuer": "SANDISK CORP",
+            "cusip": "80004C200",
+            "kind": "SH",
+            "valueUsd": 116148097,
+            "shares": 66756,
+            "pctOfTotal": 0.51,
+            "change": "ADD",
+            "sharesChange": 66439,
+            "sharesChangePct": 20958.68
+          },
+          {
+            "issuer": "KENVUE INC",
+            "cusip": "49177J102",
+            "kind": "SH",
+            "valueUsd": 115152648,
+            "shares": 6520535,
+            "pctOfTotal": 0.5,
+            "change": "ADD",
+            "sharesChange": 6209294,
+            "sharesChangePct": 1995.01
+          },
+          {
+            "issuer": "MICROSOFT CORP",
+            "cusip": "594918104",
+            "kind": "SH",
+            "valueUsd": 113484767,
+            "shares": 221261,
+            "pctOfTotal": 0.49,
+            "change": "TRIM",
+            "sharesChange": -490635,
+            "sharesChangePct": -68.92
+          },
+          {
+            "issuer": "ISHARES TR",
+            "cusip": "464287242",
+            "kind": "SH",
+            "valueUsd": 111958626,
+            "shares": 1095700,
+            "pctOfTotal": 0.49,
+            "change": "ADD",
+            "sharesChange": 45200,
+            "sharesChangePct": 4.3
+          },
+          {
+            "issuer": "EDISON INTL",
+            "cusip": "281020107",
+            "kind": "SH",
+            "valueUsd": 111387018,
+            "shares": 2073088,
+            "pctOfTotal": 0.48,
+            "change": "ADD",
+            "sharesChange": 838474,
+            "sharesChangePct": 67.91
+          },
+          {
+            "issuer": "GE VERNOVA INC",
+            "cusip": "36828A101",
+            "kind": "SH",
+            "valueUsd": 110453591,
+            "shares": 116207,
+            "pctOfTotal": 0.48,
+            "change": "TRIM",
+            "sharesChange": -6561,
+            "sharesChangePct": -5.34
+          },
+          {
+            "issuer": "ELI LILLY &amp; CO",
+            "cusip": "532457108",
+            "kind": "SH",
+            "valueUsd": 109600932,
+            "shares": 94722,
+            "pctOfTotal": 0.48,
+            "change": "ADD",
+            "sharesChange": 7699,
+            "sharesChangePct": 8.85
           },
           {
             "issuer": "CONSOLIDATED EDISON INC",
             "cusip": "209115104",
             "kind": "SH",
-            "valueUsd": 68993404,
-            "shares": 623641,
-            "pctOfTotal": 0.28,
+            "valueUsd": 104889231,
+            "shares": 1026213,
+            "pctOfTotal": 0.46,
+            "change": "ADD",
+            "sharesChange": 402572,
+            "sharesChangePct": 64.55
+          },
+          {
+            "issuer": "THERMO FISHER SCIENTIFIC INC",
+            "cusip": "883556102",
+            "kind": "SH",
+            "valueUsd": 104394457,
+            "shares": 154647,
+            "pctOfTotal": 0.45,
+            "change": "ADD",
+            "sharesChange": 141699,
+            "sharesChangePct": 1094.37
+          },
+          {
+            "issuer": "ESSENTIAL UTILS INC",
+            "cusip": "29670G102",
+            "kind": "SH",
+            "valueUsd": 102181067,
+            "shares": 2607325,
+            "pctOfTotal": 0.44,
+            "change": "ADD",
+            "sharesChange": 2529774,
+            "sharesChangePct": 3262.08
+          },
+          {
+            "issuer": "DUKE ENERGY CORP NEW",
+            "cusip": "26441C204",
+            "kind": "SH",
+            "valueUsd": 99647248,
+            "shares": 874022,
+            "pctOfTotal": 0.43,
+            "change": "ADD",
+            "sharesChange": 431924,
+            "sharesChangePct": 97.7
+          },
+          {
+            "issuer": "WESTERN DIGITAL CORP",
+            "cusip": "958102105",
+            "kind": "SH",
+            "valueUsd": 97266256,
+            "shares": 214026,
+            "pctOfTotal": 0.42,
+            "change": "ADD",
+            "sharesChange": 41611,
+            "sharesChangePct": 24.13
+          },
+          {
+            "issuer": "VALARIS LTD",
+            "cusip": "G9460G101",
+            "kind": "SH",
+            "valueUsd": 92940826,
+            "shares": 1183658,
+            "pctOfTotal": 0.4,
+            "change": "ADD",
+            "sharesChange": 861945,
+            "sharesChangePct": 267.92
+          },
+          {
+            "issuer": "MARATHON PETE CORP",
+            "cusip": "56585A102",
+            "kind": "SH",
+            "valueUsd": 92031237,
+            "shares": 232743,
+            "pctOfTotal": 0.4,
+            "change": "TRIM",
+            "sharesChange": -116481,
+            "sharesChangePct": -33.35
+          },
+          {
+            "issuer": "DOMINION ENERGY INC",
+            "cusip": "25746U109",
+            "kind": "SH",
+            "valueUsd": 91758306,
+            "shares": 1516165,
+            "pctOfTotal": 0.4,
+            "change": "NEW",
+            "sharesChange": null,
+            "sharesChangePct": null
+          },
+          {
+            "issuer": "NISOURCE INC",
+            "cusip": "65473P105",
+            "kind": "SH",
+            "valueUsd": 91599963,
+            "shares": 2348717,
+            "pctOfTotal": 0.4,
+            "change": "ADD",
+            "sharesChange": 938716,
+            "sharesChangePct": 66.58
+          },
+          {
+            "issuer": "DANAHER CORP DEL",
+            "cusip": "235851102",
+            "kind": "SH",
+            "valueUsd": 87786529,
+            "shares": 396238,
+            "pctOfTotal": 0.38,
+            "change": "ADD",
+            "sharesChange": 370554,
+            "sharesChangePct": 1442.74
+          },
+          {
+            "issuer": "ISHARES INC",
+            "cusip": "46434G764",
+            "kind": "SH",
+            "valueUsd": 87702941,
+            "shares": 885173,
+            "pctOfTotal": 0.38,
+            "change": "ADD",
+            "sharesChange": 4657,
+            "sharesChangePct": 0.53
+          },
+          {
+            "issuer": "REDDIT INC",
+            "cusip": "75734B100",
+            "kind": "SH",
+            "valueUsd": 87540490,
+            "shares": 614578,
+            "pctOfTotal": 0.38,
+            "change": "ADD",
+            "sharesChange": 357150,
+            "sharesChangePct": 138.74
+          },
+          {
+            "issuer": "HCA HEALTHCARE INC",
+            "cusip": "40412C101",
+            "kind": "SH",
+            "valueUsd": 86261650,
+            "shares": 202141,
+            "pctOfTotal": 0.38,
+            "change": "TRIM",
+            "sharesChange": -1063,
+            "sharesChangePct": -0.52
+          },
+          {
+            "issuer": "WELLS FARGO &amp; CO",
+            "cusip": "949746101",
+            "kind": "SH",
+            "valueUsd": 86241227,
+            "shares": 1077342,
+            "pctOfTotal": 0.38,
+            "change": "TRIM",
+            "sharesChange": -68512,
+            "sharesChangePct": -5.98
+          },
+          {
+            "issuer": "OCCIDENTAL PETE CORP",
+            "cusip": "674599105",
+            "kind": "SH",
+            "valueUsd": 85771392,
+            "shares": 1550459,
+            "pctOfTotal": 0.37,
+            "change": "NEW",
+            "sharesChange": null,
+            "sharesChangePct": null
+          },
+          {
+            "issuer": "APPLE INC",
+            "cusip": "037833100",
+            "kind": "SH",
+            "valueUsd": 84860489,
+            "shares": 254821,
+            "pctOfTotal": 0.37,
+            "change": "TRIM",
+            "sharesChange": -109556,
+            "sharesChangePct": -30.07
+          },
+          {
+            "issuer": "TERADYNE INC",
+            "cusip": "880770102",
+            "kind": "SH",
+            "valueUsd": 83611384,
+            "shares": 208554,
+            "pctOfTotal": 0.36,
+            "change": "ADD",
+            "sharesChange": 109927,
+            "sharesChangePct": 111.46
+          },
+          {
+            "issuer": "EVERSOURCE ENERGY",
+            "cusip": "30040W108",
+            "kind": "SH",
+            "valueUsd": 81198971,
+            "shares": 1265570,
+            "pctOfTotal": 0.35,
+            "change": "ADD",
+            "sharesChange": 70430,
+            "sharesChangePct": 5.89
+          },
+          {
+            "issuer": "CENTENE CORP DEL",
+            "cusip": "15135B101",
+            "kind": "SH",
+            "valueUsd": 80873780,
+            "shares": 1301896,
+            "pctOfTotal": 0.35,
+            "change": "ADD",
+            "sharesChange": 914671,
+            "sharesChangePct": 236.21
+          },
+          {
+            "issuer": "REGENERON PHARMACEUTICALS",
+            "cusip": "75886F107",
+            "kind": "SH",
+            "valueUsd": 80326574,
+            "shares": 105934,
+            "pctOfTotal": 0.35,
+            "change": "ADD",
+            "sharesChange": 54601,
+            "sharesChangePct": 106.37
+          },
+          {
+            "issuer": "CELESTICA INC",
+            "cusip": "15101Q207",
+            "kind": "SH",
+            "valueUsd": 80101383,
+            "shares": 221623,
+            "pctOfTotal": 0.35,
+            "change": "TRIM",
+            "sharesChange": -109066,
+            "sharesChangePct": -32.98
+          },
+          {
+            "issuer": "SYNAPTICS INC",
+            "cusip": "87157D109",
+            "kind": "SH",
+            "valueUsd": 78347207,
+            "shares": 772693,
+            "pctOfTotal": 0.34,
+            "change": "NEW",
+            "sharesChange": null,
+            "sharesChangePct": null
+          },
+          {
+            "issuer": "ROKU INC",
+            "cusip": "77543R102",
+            "kind": "SH",
+            "valueUsd": 78154664,
+            "shares": 513230,
+            "pctOfTotal": 0.34,
+            "change": "ADD",
+            "sharesChange": 487418,
+            "sharesChangePct": 1888.34
+          },
+          {
+            "issuer": "KLA CORP",
+            "cusip": "482480100",
+            "kind": "SH",
+            "valueUsd": 76515483,
+            "shares": 392528,
+            "pctOfTotal": 0.33,
+            "change": "ADD",
+            "sharesChange": 64458,
+            "sharesChangePct": 19.65
+          },
+          {
+            "issuer": "ASML HLDG NV",
+            "cusip": "N07059210",
+            "kind": "SH",
+            "valueUsd": 76505012,
+            "shares": 42229,
+            "pctOfTotal": 0.33,
+            "change": "TRIM",
+            "sharesChange": -19446,
+            "sharesChangePct": -31.53
+          },
+          {
+            "issuer": "OVINTIV INC",
+            "cusip": "69047Q102",
+            "kind": "SH",
+            "valueUsd": 75790862,
+            "shares": 1310807,
+            "pctOfTotal": 0.33,
+            "change": "ADD",
+            "sharesChange": 269491,
+            "sharesChangePct": 25.88
+          },
+          {
+            "issuer": "FORTINET INC",
+            "cusip": "34959E109",
+            "kind": "SH",
+            "valueUsd": 75414733,
+            "shares": 421877,
+            "pctOfTotal": 0.33,
+            "change": "NEW",
+            "sharesChange": null,
+            "sharesChangePct": null
+          },
+          {
+            "issuer": "DELL TECHNOLOGIES INC",
+            "cusip": "24703L202",
+            "kind": "SH",
+            "valueUsd": 72904598,
+            "shares": 135523,
+            "pctOfTotal": 0.32,
+            "change": "ADD",
+            "sharesChange": 123293,
+            "sharesChangePct": 1008.12
+          },
+          {
+            "issuer": "CISCO SYS INC",
+            "cusip": "17275R102",
+            "kind": "SH",
+            "valueUsd": 71195523,
+            "shares": 661484,
+            "pctOfTotal": 0.31,
             "change": "NEW",
             "sharesChange": null,
             "sharesChangePct": null
@@ -993,328 +1085,240 @@
             "issuer": "BAKER HUGHES COMPANY",
             "cusip": "05722G100",
             "kind": "SH",
-            "valueUsd": 67736751,
-            "shares": 1220482,
-            "pctOfTotal": 0.28,
-            "change": "TRIM",
-            "sharesChange": -161163,
-            "sharesChangePct": -11.66
-          },
-          {
-            "issuer": "NISOURCE INC",
-            "cusip": "65473P105",
-            "kind": "SH",
-            "valueUsd": 67045548,
-            "shares": 1410001,
-            "pctOfTotal": 0.28,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
-          },
-          {
-            "issuer": "TECHNIPFMC PLC",
-            "cusip": "G87110105",
-            "kind": "SH",
-            "valueUsd": 65626458,
-            "shares": 989841,
-            "pctOfTotal": 0.27,
+            "valueUsd": 69788605,
+            "shares": 1271195,
+            "pctOfTotal": 0.3,
             "change": "ADD",
-            "sharesChange": 739046,
-            "sharesChangePct": 294.68
+            "sharesChange": 50713,
+            "sharesChangePct": 4.16
           },
           {
-            "issuer": "SERVICENOW INC",
-            "cusip": "81762P102",
+            "issuer": "APA CORPORATION",
+            "cusip": "03743Q108",
             "kind": "SH",
-            "valueUsd": 63080626,
-            "shares": 635381,
-            "pctOfTotal": 0.26,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
-          },
-          {
-            "issuer": "SLB LIMITED",
-            "cusip": "806857108",
-            "kind": "SH",
-            "valueUsd": 62243090,
-            "shares": 1338849,
-            "pctOfTotal": 0.26,
+            "valueUsd": 69692323,
+            "shares": 1677716,
+            "pctOfTotal": 0.3,
             "change": "ADD",
-            "sharesChange": 594085,
-            "sharesChangePct": 79.77
+            "sharesChange": 233540,
+            "sharesChangePct": 16.17
           },
           {
-            "issuer": "META PLATFORMS INC",
-            "cusip": "30303M102",
+            "issuer": "CITIGROUP INC",
+            "cusip": "172967424",
             "kind": "SH",
-            "valueUsd": 62008653,
-            "shares": 110083,
-            "pctOfTotal": 0.25,
-            "change": "TRIM",
-            "sharesChange": -181582,
-            "sharesChangePct": -62.26
+            "valueUsd": 69102052,
+            "shares": 533689,
+            "pctOfTotal": 0.3,
+            "change": "ADD",
+            "sharesChange": 11023,
+            "sharesChangePct": 2.11
           },
           {
             "issuer": "UNITED THERAPEUTICS CORP DEL",
             "cusip": "91307C102",
             "kind": "SH",
-            "valueUsd": 60319767,
-            "shares": 111326,
-            "pctOfTotal": 0.25,
+            "valueUsd": 67949755,
+            "shares": 125394,
+            "pctOfTotal": 0.3,
             "change": "ADD",
-            "sharesChange": 157,
-            "sharesChangePct": 0.14
+            "sharesChange": 14068,
+            "sharesChangePct": 12.64
           },
           {
-            "issuer": "CITIZENS FINL GROUP INC",
-            "cusip": "174610105",
+            "issuer": "PERMIAN RESOURCES CORP",
+            "cusip": "71424F105",
             "kind": "SH",
-            "valueUsd": 59409410,
-            "shares": 847858,
-            "pctOfTotal": 0.24,
+            "valueUsd": 67502751,
+            "shares": 3196153,
+            "pctOfTotal": 0.29,
             "change": "ADD",
-            "sharesChange": 134220,
-            "sharesChangePct": 18.81
+            "sharesChange": 1679198,
+            "sharesChangePct": 110.7
           },
           {
-            "issuer": "MONSTER BEVERAGE CORP NEW",
-            "cusip": "61174X109",
+            "issuer": "SEA LTD",
+            "cusip": "81141R100",
             "kind": "SH",
-            "valueUsd": 58190471,
-            "shares": 605394,
-            "pctOfTotal": 0.24,
+            "valueUsd": 66624324,
+            "shares": 684309,
+            "pctOfTotal": 0.29,
             "change": "TRIM",
-            "sharesChange": -165380,
-            "sharesChangePct": -21.46
-          },
-          {
-            "issuer": "BANK OF AMER CORP",
-            "cusip": "060505104",
-            "kind": "SH",
-            "valueUsd": 58158005,
-            "shares": 1020674,
-            "pctOfTotal": 0.24,
-            "change": "TRIM",
-            "sharesChange": -22223,
-            "sharesChangePct": -2.13
-          },
-          {
-            "issuer": "DUKE ENERGY CORP NEW",
-            "cusip": "26441C204",
-            "kind": "SH",
-            "valueUsd": 55960765,
-            "shares": 442098,
-            "pctOfTotal": 0.23,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
-          },
-          {
-            "issuer": "OVINTIV INC",
-            "cusip": "69047Q102",
-            "kind": "SH",
-            "valueUsd": 54825287,
-            "shares": 1041316,
-            "pctOfTotal": 0.22,
-            "change": "ADD",
-            "sharesChange": 671351,
-            "sharesChangePct": 181.46
-          },
-          {
-            "issuer": "HALLIBURTON CO",
-            "cusip": "406216101",
-            "kind": "SH",
-            "valueUsd": 53990176,
-            "shares": 1590285,
-            "pctOfTotal": 0.22,
-            "change": "ADD",
-            "sharesChange": 1561587,
-            "sharesChangePct": 5441.45
-          },
-          {
-            "issuer": "MARVELL TECHNOLOGY INC",
-            "cusip": "573874104",
-            "kind": "SH",
-            "valueUsd": 53970519,
-            "shares": 181176,
-            "pctOfTotal": 0.22,
-            "change": "TRIM",
-            "sharesChange": -1767771,
-            "sharesChangePct": -90.7
-          },
-          {
-            "issuer": "ANGLOGOLD ASHANTI PLC",
-            "cusip": "G0378L100",
-            "kind": "SH",
-            "valueUsd": 53836987,
-            "shares": 665558,
-            "pctOfTotal": 0.22,
-            "change": "ADD",
-            "sharesChange": 68254,
-            "sharesChangePct": 11.43
-          },
-          {
-            "issuer": "TRUIST FINL CORP",
-            "cusip": "89832Q109",
-            "kind": "SH",
-            "valueUsd": 53741880,
-            "shares": 1078721,
-            "pctOfTotal": 0.22,
-            "change": "ADD",
-            "sharesChange": 347066,
-            "sharesChangePct": 47.44
-          },
-          {
-            "issuer": "PPL CORP",
-            "cusip": "69351T106",
-            "kind": "SH",
-            "valueUsd": 53393243,
-            "shares": 1468865,
-            "pctOfTotal": 0.22,
-            "change": "ADD",
-            "sharesChange": 1043244,
-            "sharesChangePct": 245.11
-          },
-          {
-            "issuer": "MCKESSON CORP",
-            "cusip": "58155Q103",
-            "kind": "SH",
-            "valueUsd": 53162505,
-            "shares": 70358,
-            "pctOfTotal": 0.22,
-            "change": "ADD",
-            "sharesChange": 2977,
-            "sharesChangePct": 4.42
-          },
-          {
-            "issuer": "ANTERO RESOURCES CORP",
-            "cusip": "03674X106",
-            "kind": "SH",
-            "valueUsd": 52979067,
-            "shares": 1507657,
-            "pctOfTotal": 0.22,
-            "change": "ADD",
-            "sharesChange": 1338903,
-            "sharesChangePct": 793.41
-          },
-          {
-            "issuer": "SOUTHWEST AIRLS CO",
-            "cusip": "844741108",
-            "kind": "SH",
-            "valueUsd": 52599883,
-            "shares": 1022946,
-            "pctOfTotal": 0.22,
-            "change": "ADD",
-            "sharesChange": 322578,
-            "sharesChangePct": 46.06
+            "sharesChange": -520254,
+            "sharesChangePct": -43.19
           },
           {
             "issuer": "METLIFE INC",
             "cusip": "59156R108",
             "kind": "SH",
-            "valueUsd": 52586723,
-            "shares": 621519,
-            "pctOfTotal": 0.22,
+            "valueUsd": 66354081,
+            "shares": 704695,
+            "pctOfTotal": 0.29,
+            "change": "ADD",
+            "sharesChange": 83176,
+            "sharesChangePct": 13.38
+          },
+          {
+            "issuer": "EXELON CORP",
+            "cusip": "30161N101",
+            "kind": "SH",
+            "valueUsd": 66165262,
+            "shares": 1637754,
+            "pctOfTotal": 0.29,
+            "change": "ADD",
+            "sharesChange": 1271458,
+            "sharesChangePct": 347.11
+          },
+          {
+            "issuer": "TE CONNECTIVITY PLC",
+            "cusip": "G87052109",
+            "kind": "SH",
+            "valueUsd": 64682722,
+            "shares": 306437,
+            "pctOfTotal": 0.28,
             "change": "TRIM",
-            "sharesChange": -5011,
-            "sharesChangePct": -0.8
+            "sharesChange": -120281,
+            "sharesChangePct": -28.19
+          },
+          {
+            "issuer": "SUNCOR ENERGY INC NEW",
+            "cusip": "867224107",
+            "kind": "SH",
+            "valueUsd": 62945814,
+            "shares": 926898,
+            "pctOfTotal": 0.27,
+            "change": "ADD",
+            "sharesChange": 218136,
+            "sharesChangePct": 30.78
+          },
+          {
+            "issuer": "PPL CORP",
+            "cusip": "69351T106",
+            "kind": "SH",
+            "valueUsd": 62666665,
+            "shares": 1905341,
+            "pctOfTotal": 0.27,
+            "change": "ADD",
+            "sharesChange": 436476,
+            "sharesChangePct": 29.72
+          },
+          {
+            "issuer": "TECHNIPFMC PLC",
+            "cusip": "G87110105",
+            "kind": "SH",
+            "valueUsd": 62588144,
+            "shares": 921498,
+            "pctOfTotal": 0.27,
+            "change": "TRIM",
+            "sharesChange": -68343,
+            "sharesChangePct": -6.9
+          },
+          {
+            "issuer": "MCKESSON CORP",
+            "cusip": "58155Q103",
+            "kind": "SH",
+            "valueUsd": 62081379,
+            "shares": 72711,
+            "pctOfTotal": 0.27,
+            "change": "ADD",
+            "sharesChange": 2353,
+            "sharesChangePct": 3.34
+          },
+          {
+            "issuer": "ARISTA NETWORKS INC",
+            "cusip": "040413205",
+            "kind": "SH",
+            "valueUsd": 61819900,
+            "shares": 303649,
+            "pctOfTotal": 0.27,
+            "change": "ADD",
+            "sharesChange": 49374,
+            "sharesChangePct": 19.42
+          },
+          {
+            "issuer": "HALLIBURTON CO",
+            "cusip": "406216101",
+            "kind": "SH",
+            "valueUsd": 61659977,
+            "shares": 1938993,
+            "pctOfTotal": 0.27,
+            "change": "ADD",
+            "sharesChange": 348708,
+            "sharesChangePct": 21.93
+          }
+        ],
+        "exits": [
+          {
+            "issuer": "UNION PAC CORP",
+            "cusip": "907818108",
+            "kind": "SH",
+            "prevShares": 514266
+          },
+          {
+            "issuer": "PACCAR INC",
+            "cusip": "693718108",
+            "kind": "SH",
+            "prevShares": 946107
           },
           {
             "issuer": "NUTANIX INC",
             "cusip": "67059N108",
             "kind": "SH",
-            "valueUsd": 50896861,
-            "shares": 998761,
-            "pctOfTotal": 0.21,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
+            "prevShares": 998761
           },
           {
-            "issuer": "CIENA CORP",
-            "cusip": "171779309",
+            "issuer": "TEVA PHARMACEUTICAL INDS LTD",
+            "cusip": "881624209",
             "kind": "SH",
-            "valueUsd": 49565201,
-            "shares": 101038,
-            "pctOfTotal": 0.2,
-            "change": "TRIM",
-            "sharesChange": -42808,
-            "sharesChangePct": -29.76
-          }
-        ],
-        "exits": [
-          {
-            "issuer": "CISCO SYS INC",
-            "cusip": "17275R102",
-            "kind": "SH",
-            "prevShares": 822892
+            "prevShares": 1326678
           },
           {
-            "issuer": "ASE TECHNOLOGY HLDG CO LTD",
-            "cusip": "00215W100",
+            "issuer": "S&amp;P GLOBAL INC",
+            "cusip": "78409V104",
             "kind": "SH",
-            "prevShares": 1547859
+            "prevShares": 95012
           },
           {
-            "issuer": "COREWEAVE INC",
-            "cusip": "21873S108",
+            "issuer": "EXXON MOBIL CORP",
+            "cusip": "30231G102",
             "kind": "SH",
-            "prevShares": 364025
+            "prevShares": 216225
           },
           {
-            "issuer": "PRIMORIS SVCS CORP",
-            "cusip": "74164F103",
+            "issuer": "CAPITAL ONE FINL CORP",
+            "cusip": "14040H105",
             "kind": "SH",
-            "prevShares": 136170
+            "prevShares": 145544
           },
           {
-            "issuer": "BROOKFIELD CORP",
-            "cusip": "11271J107",
+            "issuer": "AMETEK INC",
+            "cusip": "031100100",
             "kind": "SH",
-            "prevShares": 477453
+            "prevShares": 117720
           },
           {
-            "issuer": "APPLIED OPTOELECTRONICS INC",
-            "cusip": "03823U102",
+            "issuer": "SMURFIT WESTROCK PLC",
+            "cusip": "G8267P108",
             "kind": "SH",
-            "prevShares": 223935
+            "prevShares": 471953
           },
           {
-            "issuer": "PALANTIR TECHNOLOGIES INC",
-            "cusip": "69608A108",
+            "issuer": "PHILLIPS 66",
+            "cusip": "718546104",
             "kind": "SH",
-            "prevShares": 128186
+            "prevShares": 125491
           },
           {
-            "issuer": "NEBIUS GROUP N.V.",
-            "cusip": "N97284108",
+            "issuer": "FEDEX CORP",
+            "cusip": "31428X106",
             "kind": "SH",
-            "prevShares": 157064
+            "prevShares": 66349
           },
           {
-            "issuer": "SUN LIFE FINANCIAL INC.",
-            "cusip": "866796105",
+            "issuer": "CORTEVA INC",
+            "cusip": "22052L104",
             "kind": "SH",
-            "prevShares": 250635
-          },
-          {
-            "issuer": "BRISTOL-MYERS SQUIBB CO",
-            "cusip": "110122108",
-            "kind": "SH",
-            "prevShares": 241689
-          },
-          {
-            "issuer": "THOMSON REUTERS CORP",
-            "cusip": "884903808",
-            "kind": "SH",
-            "prevShares": 159909
-          },
-          {
-            "issuer": "CULLEN FROST BANKERS INC",
-            "cusip": "229899109",
-            "kind": "SH",
-            "prevShares": 92885
+            "prevShares": 243050
           }
         ]
       },
@@ -1323,950 +1327,980 @@
         "name": "ARK 投资",
         "cik": "0001697748",
         "filingCik": "0001697748",
-        "reportDate": "2026-06-30",
-        "filedAt": "2026-08-14",
-        "lagDays": 45,
+        "reportDate": "2026-09-30",
+        "filedAt": "2026-11-13",
+        "lagDays": 44,
         "priorAvailable": true,
-        "priorReportDate": "2026-03-31",
+        "priorReportDate": "2026-06-30",
         "priorNote": null,
-        "totalValueUsd": 15402788184,
-        "holdingsCount": 191,
+        "totalValueUsd": 17374380716,
+        "holdingsCount": 182,
         "optionRows": 1,
         "holdings": [
           {
             "issuer": "Tesla Inc",
             "cusip": "88160R101",
             "kind": "SH",
-            "valueUsd": 1160772073,
-            "shares": 2759800,
-            "pctOfTotal": 7.54,
-            "change": "TRIM",
-            "sharesChange": -71529,
-            "sharesChangePct": -2.53
+            "valueUsd": 1196306136,
+            "shares": 3371681,
+            "pctOfTotal": 6.89,
+            "change": "ADD",
+            "sharesChange": 611881,
+            "sharesChangePct": 22.17
           },
           {
-            "issuer": "Advanced Micro Devices Inc",
-            "cusip": "007903107",
-            "kind": "SH",
-            "valueUsd": 822826048,
-            "shares": 1416443,
-            "pctOfTotal": 5.34,
-            "change": "TRIM",
-            "sharesChange": -1296411,
-            "sharesChangePct": -47.79
-          },
-          {
-            "issuer": "Space Exploration Technologies Corp",
+            "issuer": "Space Exploration Technologies",
             "cusip": "84615Q103",
             "kind": "SH",
-            "valueUsd": 765113281,
-            "shares": 4478013,
-            "pctOfTotal": 4.97,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
+            "valueUsd": 1017764417,
+            "shares": 6746417,
+            "pctOfTotal": 5.86,
+            "change": "ADD",
+            "sharesChange": 2268404,
+            "sharesChangePct": 50.66
           },
           {
             "issuer": "Tempus AI Inc",
             "cusip": "88023B103",
             "kind": "SH",
-            "valueUsd": 580611200,
-            "shares": 10022634,
-            "pctOfTotal": 3.77,
-            "change": "ADD",
-            "sharesChange": 414889,
-            "sharesChangePct": 4.32
-          },
-          {
-            "issuer": "Robinhood Markets Inc",
-            "cusip": "770700102",
-            "kind": "SH",
-            "valueUsd": 525069168,
-            "shares": 5236031,
-            "pctOfTotal": 3.41,
+            "valueUsd": 766382941,
+            "shares": 9357545,
+            "pctOfTotal": 4.41,
             "change": "TRIM",
-            "sharesChange": -767030,
-            "sharesChangePct": -12.78
-          },
-          {
-            "issuer": "CRISPR Therapeutics AG",
-            "cusip": "H17182108",
-            "kind": "SH",
-            "valueUsd": 515999631,
-            "shares": 9460939,
-            "pctOfTotal": 3.35,
-            "change": "TRIM",
-            "sharesChange": -1852684,
-            "sharesChangePct": -16.38
-          },
-          {
-            "issuer": "Shopify Inc",
-            "cusip": "82509L107",
-            "kind": "SH",
-            "valueUsd": 474523465,
-            "shares": 4155925,
-            "pctOfTotal": 3.08,
-            "change": "TRIM",
-            "sharesChange": -21727,
-            "sharesChangePct": -0.52
+            "sharesChange": -665089,
+            "sharesChangePct": -6.64
           },
           {
             "issuer": "Twist Bioscience Corp",
             "cusip": "90184D100",
             "kind": "SH",
-            "valueUsd": 468083756,
-            "shares": 4549803,
-            "pctOfTotal": 3.04,
+            "valueUsd": 656640575,
+            "shares": 3398057,
+            "pctOfTotal": 3.78,
             "change": "TRIM",
-            "sharesChange": -1792930,
-            "sharesChangePct": -28.27
-          },
-          {
-            "issuer": "10X Genomics Inc",
-            "cusip": "88025U109",
-            "kind": "SH",
-            "valueUsd": 383517223,
-            "shares": 10003057,
-            "pctOfTotal": 2.49,
-            "change": "TRIM",
-            "sharesChange": -1714260,
-            "sharesChangePct": -14.63
-          },
-          {
-            "issuer": "Amazon.com Inc",
-            "cusip": "023135106",
-            "kind": "SH",
-            "valueUsd": 379241133,
-            "shares": 1591177,
-            "pctOfTotal": 2.46,
-            "change": "ADD",
-            "sharesChange": 235894,
-            "sharesChangePct": 17.41
-          },
-          {
-            "issuer": "Palantir Technologies Inc",
-            "cusip": "69608A108",
-            "kind": "SH",
-            "valueUsd": 374777381,
-            "shares": 3212286,
-            "pctOfTotal": 2.43,
-            "change": "ADD",
-            "sharesChange": 102405,
-            "sharesChangePct": 3.29
-          },
-          {
-            "issuer": "Alphabet Inc",
-            "cusip": "02079K107",
-            "kind": "SH",
-            "valueUsd": 368641312,
-            "shares": 1043334,
-            "pctOfTotal": 2.39,
-            "change": "ADD",
-            "sharesChange": 322920,
-            "sharesChangePct": 44.82
-          },
-          {
-            "issuer": "Coinbase Global Inc",
-            "cusip": "19260Q107",
-            "kind": "SH",
-            "valueUsd": 367129713,
-            "shares": 2511319,
-            "pctOfTotal": 2.38,
-            "change": "ADD",
-            "sharesChange": 138435,
-            "sharesChangePct": 5.83
-          },
-          {
-            "issuer": "ROBLOX Corp",
-            "cusip": "771049103",
-            "kind": "SH",
-            "valueUsd": 351615103,
-            "shares": 6465890,
-            "pctOfTotal": 2.28,
-            "change": "ADD",
-            "sharesChange": 569784,
-            "sharesChangePct": 9.66
-          },
-          {
-            "issuer": "Beam Therapeutics Inc",
-            "cusip": "07373V105",
-            "kind": "SH",
-            "valueUsd": 351260447,
-            "shares": 10234862,
-            "pctOfTotal": 2.28,
-            "change": "TRIM",
-            "sharesChange": -1898571,
-            "sharesChangePct": -15.65
-          },
-          {
-            "issuer": "Teradyne Inc",
-            "cusip": "880770102",
-            "kind": "SH",
-            "valueUsd": 311971420,
-            "shares": 644782,
-            "pctOfTotal": 2.03,
-            "change": "TRIM",
-            "sharesChange": -600340,
-            "sharesChangePct": -48.22
-          },
-          {
-            "issuer": "Intellia Therapeutics Inc",
-            "cusip": "45826J105",
-            "kind": "SH",
-            "valueUsd": 285536575,
-            "shares": 16875684,
-            "pctOfTotal": 1.85,
-            "change": "ADD",
-            "sharesChange": 2366437,
-            "sharesChangePct": 16.31
-          },
-          {
-            "issuer": "Circle Internet Group Inc",
-            "cusip": "172573107",
-            "kind": "SH",
-            "valueUsd": 285477674,
-            "shares": 4558162,
-            "pctOfTotal": 1.85,
-            "change": "ADD",
-            "sharesChange": 48680,
-            "sharesChangePct": 1.08
+            "sharesChange": -1151746,
+            "sharesChangePct": -25.31
           },
           {
             "issuer": "NVIDIA Corp",
             "cusip": "67066G104",
             "kind": "SH",
-            "valueUsd": 276373746,
-            "shares": 1381247,
-            "pctOfTotal": 1.79,
+            "valueUsd": 584932116,
+            "shares": 2561223,
+            "pctOfTotal": 3.37,
             "change": "ADD",
-            "sharesChange": 345821,
-            "sharesChangePct": 33.4
+            "sharesChange": 1179976,
+            "sharesChangePct": 85.43
+          },
+          {
+            "issuer": "10X Genomics Inc",
+            "cusip": "88025U109",
+            "kind": "SH",
+            "valueUsd": 566828112,
+            "shares": 6272998,
+            "pctOfTotal": 3.26,
+            "change": "TRIM",
+            "sharesChange": -3730059,
+            "sharesChangePct": -37.29
+          },
+          {
+            "issuer": "Circle Internet Group Inc",
+            "cusip": "172573107",
+            "kind": "SH",
+            "valueUsd": 563479299,
+            "shares": 6857482,
+            "pctOfTotal": 3.24,
+            "change": "ADD",
+            "sharesChange": 2299320,
+            "sharesChangePct": 50.44
+          },
+          {
+            "issuer": "CRISPR Therapeutics AG",
+            "cusip": "H17182108",
+            "kind": "SH",
+            "valueUsd": 556344632,
+            "shares": 10056844,
+            "pctOfTotal": 3.2,
+            "change": "ADD",
+            "sharesChange": 595905,
+            "sharesChangePct": 6.3
+          },
+          {
+            "issuer": "Coinbase Global Inc",
+            "cusip": "19260Q107",
+            "kind": "SH",
+            "valueUsd": 545771189,
+            "shares": 2927800,
+            "pctOfTotal": 3.14,
+            "change": "ADD",
+            "sharesChange": 416481,
+            "sharesChangePct": 16.58
+          },
+          {
+            "issuer": "Robinhood Markets Inc",
+            "cusip": "770700102",
+            "kind": "SH",
+            "valueUsd": 517972160,
+            "shares": 4604197,
+            "pctOfTotal": 2.98,
+            "change": "TRIM",
+            "sharesChange": -631834,
+            "sharesChangePct": -12.07
+          },
+          {
+            "issuer": "Palantir Technologies Inc",
+            "cusip": "69608A108",
+            "kind": "SH",
+            "valueUsd": 487773444,
+            "shares": 2607717,
+            "pctOfTotal": 2.81,
+            "change": "TRIM",
+            "sharesChange": -604569,
+            "sharesChangePct": -18.82
+          },
+          {
+            "issuer": "Shopify Inc",
+            "cusip": "82509L107",
+            "kind": "SH",
+            "valueUsd": 466477128,
+            "shares": 3145496,
+            "pctOfTotal": 2.68,
+            "change": "TRIM",
+            "sharesChange": -1010429,
+            "sharesChangePct": -24.31
+          },
+          {
+            "issuer": "Amazon.com Inc",
+            "cusip": "023135106",
+            "kind": "SH",
+            "valueUsd": 422994246,
+            "shares": 1697749,
+            "pctOfTotal": 2.43,
+            "change": "ADD",
+            "sharesChange": 106572,
+            "sharesChangePct": 6.7
+          },
+          {
+            "issuer": "Advanced Micro Devices Inc",
+            "cusip": "007903107",
+            "kind": "SH",
+            "valueUsd": 413346374,
+            "shares": 675668,
+            "pctOfTotal": 2.38,
+            "change": "TRIM",
+            "sharesChange": -740775,
+            "sharesChangePct": -52.3
           },
           {
             "issuer": "CoreWeave Inc",
             "cusip": "21873S108",
             "kind": "SH",
-            "valueUsd": 264496911,
-            "shares": 2657192,
-            "pctOfTotal": 1.72,
+            "valueUsd": 366812897,
+            "shares": 4210433,
+            "pctOfTotal": 2.11,
             "change": "ADD",
-            "sharesChange": 119067,
-            "sharesChangePct": 4.69
-          },
-          {
-            "issuer": "Deere &amp; Co",
-            "cusip": "244199105",
-            "kind": "SH",
-            "valueUsd": 249307586,
-            "shares": 393025,
-            "pctOfTotal": 1.62,
-            "change": "TRIM",
-            "sharesChange": -6049,
-            "sharesChangePct": -1.52
-          },
-          {
-            "issuer": "Block Inc",
-            "cusip": "852234103",
-            "kind": "SH",
-            "valueUsd": 235445950,
-            "shares": 3097973,
-            "pctOfTotal": 1.53,
-            "change": "ADD",
-            "sharesChange": 4037,
-            "sharesChangePct": 0.13
-          },
-          {
-            "issuer": "Kratos Defense &amp; Security Solutions Inc.",
-            "cusip": "50077B207",
-            "kind": "SH",
-            "valueUsd": 232974116,
-            "shares": 4672566,
-            "pctOfTotal": 1.51,
-            "change": "ADD",
-            "sharesChange": 1181372,
-            "sharesChangePct": 33.84
-          },
-          {
-            "issuer": "Taiwan Semiconductor Manufacturing Company Ltd",
-            "cusip": "874039100",
-            "kind": "SH",
-            "valueUsd": 230325325,
-            "shares": 482286,
-            "pctOfTotal": 1.5,
-            "change": "TRIM",
-            "sharesChange": -145418,
-            "sharesChangePct": -23.17
-          },
-          {
-            "issuer": "Natera Inc",
-            "cusip": "632307104",
-            "kind": "SH",
-            "valueUsd": 186989592,
-            "shares": 688855,
-            "pctOfTotal": 1.21,
-            "change": "ADD",
-            "sharesChange": 4600,
-            "sharesChangePct": 0.67
-          },
-          {
-            "issuer": "Illumina Inc",
-            "cusip": "452327109",
-            "kind": "SH",
-            "valueUsd": 183744158,
-            "shares": 1045010,
-            "pctOfTotal": 1.19,
-            "change": "TRIM",
-            "sharesChange": -84449,
-            "sharesChangePct": -7.48
-          },
-          {
-            "issuer": "Cerebras Systems Inc",
-            "cusip": "15675D103",
-            "kind": "SH",
-            "valueUsd": 168979473,
-            "shares": 764613,
-            "pctOfTotal": 1.1,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
-          },
-          {
-            "issuer": "Rocket Lab Corp",
-            "cusip": "773121108",
-            "kind": "SH",
-            "valueUsd": 165812192,
-            "shares": 1631207,
-            "pctOfTotal": 1.08,
-            "change": "TRIM",
-            "sharesChange": -612449,
-            "sharesChangePct": -27.3
-          },
-          {
-            "issuer": "Bullish",
-            "cusip": "G16910120",
-            "kind": "SH",
-            "valueUsd": 158063147,
-            "shares": 6746186,
-            "pctOfTotal": 1.03,
-            "change": "ADD",
-            "sharesChange": 184147,
-            "sharesChangePct": 2.81
-          },
-          {
-            "issuer": "Broadcom Inc",
-            "cusip": "11135F101",
-            "kind": "SH",
-            "valueUsd": 153820556,
-            "shares": 407202,
-            "pctOfTotal": 1,
-            "change": "TRIM",
-            "sharesChange": -601,
-            "sharesChangePct": -0.15
-          },
-          {
-            "issuer": "Recursion Pharmaceuticals Inc",
-            "cusip": "75629V104",
-            "kind": "SH",
-            "valueUsd": 151709111,
-            "shares": 41337632,
-            "pctOfTotal": 0.98,
-            "change": "ADD",
-            "sharesChange": 1124863,
-            "sharesChangePct": 2.8
-          },
-          {
-            "issuer": "Archer Aviation Inc",
-            "cusip": "03945R102",
-            "kind": "SH",
-            "valueUsd": 151189352,
-            "shares": 31963922,
-            "pctOfTotal": 0.98,
-            "change": "TRIM",
-            "sharesChange": -5473140,
-            "sharesChangePct": -14.62
-          },
-          {
-            "issuer": "Absci Corp",
-            "cusip": "00091E109",
-            "kind": "SH",
-            "valueUsd": 149803896,
-            "shares": 12925271,
-            "pctOfTotal": 0.97,
-            "change": "TRIM",
-            "sharesChange": -800898,
-            "sharesChangePct": -5.83
-          },
-          {
-            "issuer": "Veracyte Inc",
-            "cusip": "92337F107",
-            "kind": "SH",
-            "valueUsd": 134841222,
-            "shares": 2295951,
-            "pctOfTotal": 0.88,
-            "change": "TRIM",
-            "sharesChange": -757867,
-            "sharesChangePct": -24.82
+            "sharesChange": 1553241,
+            "sharesChangePct": 58.45
           },
           {
             "issuer": "Meta Platforms Inc",
             "cusip": "30303M102",
             "kind": "SH",
-            "valueUsd": 134610910,
-            "shares": 238973,
-            "pctOfTotal": 0.87,
+            "valueUsd": 355295103,
+            "shares": 489941,
+            "pctOfTotal": 2.04,
             "change": "ADD",
-            "sharesChange": 84977,
-            "sharesChangePct": 55.18
+            "sharesChange": 250968,
+            "sharesChangePct": 105.02
           },
           {
-            "issuer": "ARK 21Shares Bitcoin ETF",
-            "cusip": "040919102",
+            "issuer": "Alphabet Inc",
+            "cusip": "02079K107",
             "kind": "SH",
-            "valueUsd": 125605835,
-            "shares": 6454565,
-            "pctOfTotal": 0.82,
+            "valueUsd": 348550865,
+            "shares": 1022923,
+            "pctOfTotal": 2.01,
             "change": "TRIM",
-            "sharesChange": -243641,
-            "sharesChangePct": -3.64
+            "sharesChange": -20411,
+            "sharesChangePct": -1.96
           },
           {
-            "issuer": "L3Harris Technologies Inc",
-            "cusip": "502431109",
+            "issuer": "Block Inc",
+            "cusip": "852234103",
             "kind": "SH",
-            "valueUsd": 125296306,
-            "shares": 431179,
-            "pctOfTotal": 0.81,
+            "valueUsd": 339846908,
+            "shares": 4621881,
+            "pctOfTotal": 1.96,
             "change": "ADD",
-            "sharesChange": 41485,
-            "sharesChangePct": 10.65
+            "sharesChange": 1523908,
+            "sharesChangePct": 49.19
+          },
+          {
+            "issuer": "Beam Therapeutics Inc",
+            "cusip": "07373V105",
+            "kind": "SH",
+            "valueUsd": 288641356,
+            "shares": 11805372,
+            "pctOfTotal": 1.66,
+            "change": "ADD",
+            "sharesChange": 1570510,
+            "sharesChangePct": 15.34
+          },
+          {
+            "issuer": "Broadcom Inc",
+            "cusip": "11135F101",
+            "kind": "SH",
+            "valueUsd": 274672400,
+            "shares": 782119,
+            "pctOfTotal": 1.58,
+            "change": "ADD",
+            "sharesChange": 374917,
+            "sharesChangePct": 92.07
+          },
+          {
+            "issuer": "Cerebras Systems Inc",
+            "cusip": "15675D103",
+            "kind": "SH",
+            "valueUsd": 264522069,
+            "shares": 1489007,
+            "pctOfTotal": 1.52,
+            "change": "ADD",
+            "sharesChange": 724394,
+            "sharesChangePct": 94.74
+          },
+          {
+            "issuer": "Teradyne Inc",
+            "cusip": "880770102",
+            "kind": "SH",
+            "valueUsd": 259353089,
+            "shares": 646911,
+            "pctOfTotal": 1.49,
+            "change": "ADD",
+            "sharesChange": 2129,
+            "sharesChangePct": 0.33
+          },
+          {
+            "issuer": "Bullish",
+            "cusip": "G16910120",
+            "kind": "SH",
+            "valueUsd": 251173322,
+            "shares": 7199006,
+            "pctOfTotal": 1.45,
+            "change": "ADD",
+            "sharesChange": 452820,
+            "sharesChangePct": 6.71
+          },
+          {
+            "issuer": "Rocket Lab Corp",
+            "cusip": "773121108",
+            "kind": "SH",
+            "valueUsd": 247883675,
+            "shares": 3557458,
+            "pctOfTotal": 1.43,
+            "change": "ADD",
+            "sharesChange": 1926251,
+            "sharesChangePct": 118.09
           },
           {
             "issuer": "BitMine Immersion Technologies",
             "cusip": "09175A206",
             "kind": "SH",
-            "valueUsd": 117282236,
-            "shares": 8811588,
-            "pctOfTotal": 0.76,
+            "valueUsd": 244470945,
+            "shares": 9249752,
+            "pctOfTotal": 1.41,
+            "change": "ADD",
+            "sharesChange": 438164,
+            "sharesChangePct": 4.97
+          },
+          {
+            "issuer": "Taiwan Semiconductor Manufactu",
+            "cusip": "874039100",
+            "kind": "SH",
+            "valueUsd": 242997815,
+            "shares": 532668,
+            "pctOfTotal": 1.4,
+            "change": "ADD",
+            "sharesChange": 50382,
+            "sharesChangePct": 10.45
+          },
+          {
+            "issuer": "Illumina Inc",
+            "cusip": "452327109",
+            "kind": "SH",
+            "valueUsd": 233116470,
+            "shares": 851785,
+            "pctOfTotal": 1.34,
             "change": "TRIM",
-            "sharesChange": -887577,
-            "sharesChangePct": -9.15
+            "sharesChange": -193225,
+            "sharesChangePct": -18.49
           },
           {
-            "issuer": "Personalis Inc",
-            "cusip": "71535D106",
+            "issuer": "Natera Inc",
+            "cusip": "632307104",
             "kind": "SH",
-            "valueUsd": 110835941,
-            "shares": 8271339,
-            "pctOfTotal": 0.72,
-            "change": "ADD",
-            "sharesChange": 327227,
-            "sharesChangePct": 4.12
-          },
-          {
-            "issuer": "GeneDx Holdings Corp",
-            "cusip": "81663L200",
-            "kind": "SH",
-            "valueUsd": 110539494,
-            "shares": 1610189,
-            "pctOfTotal": 0.72,
-            "change": "ADD",
-            "sharesChange": 285606,
-            "sharesChangePct": 21.56
-          },
-          {
-            "issuer": "BWX Technologies Inc",
-            "cusip": "05605H100",
-            "kind": "SH",
-            "valueUsd": 107034337,
-            "shares": 549881,
-            "pctOfTotal": 0.69,
+            "valueUsd": 225726826,
+            "shares": 546144,
+            "pctOfTotal": 1.3,
             "change": "TRIM",
-            "sharesChange": -72665,
-            "sharesChangePct": -11.67
+            "sharesChange": -142711,
+            "sharesChangePct": -20.72
           },
           {
-            "issuer": "AeroVironment Inc",
-            "cusip": "008073108",
+            "issuer": "Kratos Defense &amp; Security Solu",
+            "cusip": "50077B207",
             "kind": "SH",
-            "valueUsd": 100280355,
-            "shares": 607502,
-            "pctOfTotal": 0.65,
+            "valueUsd": 224312131,
+            "shares": 5254442,
+            "pctOfTotal": 1.29,
             "change": "ADD",
-            "sharesChange": 48248,
-            "sharesChangePct": 8.63
-          },
-          {
-            "issuer": "X-Energy Inc",
-            "cusip": "98386P102",
-            "kind": "SH",
-            "valueUsd": 99361493,
-            "shares": 5411846,
-            "pctOfTotal": 0.65,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
-          },
-          {
-            "issuer": "Eli Lilly &amp; Co",
-            "cusip": "532457108",
-            "kind": "SH",
-            "valueUsd": 92660897,
-            "shares": 77254,
-            "pctOfTotal": 0.6,
-            "change": "ADD",
-            "sharesChange": 64578,
-            "sharesChangePct": 509.45
-          },
-          {
-            "issuer": "Roku Inc",
-            "cusip": "77543R102",
-            "kind": "SH",
-            "valueUsd": 82314834,
-            "shares": 595880,
-            "pctOfTotal": 0.53,
-            "change": "TRIM",
-            "sharesChange": -3224525,
-            "sharesChangePct": -84.4
-          },
-          {
-            "issuer": "Guardant Health Inc",
-            "cusip": "40131M109",
-            "kind": "SH",
-            "valueUsd": 75977634,
-            "shares": 506416,
-            "pctOfTotal": 0.49,
-            "change": "ADD",
-            "sharesChange": 19741,
-            "sharesChangePct": 4.06
-          },
-          {
-            "issuer": "DoorDash Inc",
-            "cusip": "25809K105",
-            "kind": "SH",
-            "valueUsd": 70147050,
-            "shares": 380139,
-            "pctOfTotal": 0.46,
-            "change": "ADD",
-            "sharesChange": 33992,
-            "sharesChangePct": 9.82
-          },
-          {
-            "issuer": "Snowflake Inc",
-            "cusip": "833445109",
-            "kind": "SH",
-            "valueUsd": 68597731,
-            "shares": 269539,
-            "pctOfTotal": 0.45,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
-          },
-          {
-            "issuer": "Trimble Inc",
-            "cusip": "896239100",
-            "kind": "SH",
-            "valueUsd": 68155382,
-            "shares": 1331680,
-            "pctOfTotal": 0.44,
-            "change": "ADD",
-            "sharesChange": 83755,
-            "sharesChangePct": 6.71
-          },
-          {
-            "issuer": "SoFi Technologies Inc",
-            "cusip": "83406F102",
-            "kind": "SH",
-            "valueUsd": 67102642,
-            "shares": 3742479,
-            "pctOfTotal": 0.44,
-            "change": "TRIM",
-            "sharesChange": -93524,
-            "sharesChangePct": -2.44
-          },
-          {
-            "issuer": "Iridium Communications Inc",
-            "cusip": "46269C102",
-            "kind": "SH",
-            "valueUsd": 66648948,
-            "shares": 1215113,
-            "pctOfTotal": 0.43,
-            "change": "TRIM",
-            "sharesChange": -511689,
-            "sharesChangePct": -29.63
-          },
-          {
-            "issuer": "Joby Aviation Inc",
-            "cusip": "G65163100",
-            "kind": "SH",
-            "valueUsd": 59713254,
-            "shares": 6694311,
-            "pctOfTotal": 0.39,
-            "change": "ADD",
-            "sharesChange": 520367,
-            "sharesChangePct": 8.43
-          },
-          {
-            "issuer": "Caterpillar Inc",
-            "cusip": "149123101",
-            "kind": "SH",
-            "valueUsd": 59642919,
-            "shares": 56008,
-            "pctOfTotal": 0.39,
-            "change": "TRIM",
-            "sharesChange": -2570,
-            "sharesChangePct": -4.39
-          },
-          {
-            "issuer": "Intuitive Machines Inc",
-            "cusip": "46125A100",
-            "kind": "SH",
-            "valueUsd": 57740187,
-            "shares": 2699401,
-            "pctOfTotal": 0.37,
-            "change": "ADD",
-            "sharesChange": 42870,
-            "sharesChangePct": 1.61
-          },
-          {
-            "issuer": "CareDx Inc",
-            "cusip": "14167L103",
-            "kind": "SH",
-            "valueUsd": 55675622,
-            "shares": 1953531,
-            "pctOfTotal": 0.36,
-            "change": "TRIM",
-            "sharesChange": -274025,
-            "sharesChangePct": -12.3
-          },
-          {
-            "issuer": "Figma Inc",
-            "cusip": "316841105",
-            "kind": "SH",
-            "valueUsd": 55030051,
-            "shares": 3042015,
-            "pctOfTotal": 0.36,
-            "change": "TRIM",
-            "sharesChange": -350854,
-            "sharesChangePct": -10.34
-          },
-          {
-            "issuer": "Datadog Inc",
-            "cusip": "23804L103",
-            "kind": "SH",
-            "valueUsd": 54714133,
-            "shares": 210148,
-            "pctOfTotal": 0.36,
-            "change": "TRIM",
-            "sharesChange": -16474,
-            "sharesChangePct": -7.27
-          },
-          {
-            "issuer": "Cerus Corp",
-            "cusip": "157085101",
-            "kind": "SH",
-            "valueUsd": 52361728,
-            "shares": 17932099,
-            "pctOfTotal": 0.34,
-            "change": "TRIM",
-            "sharesChange": -1229049,
-            "sharesChangePct": -6.41
-          },
-          {
-            "issuer": "Toast Inc",
-            "cusip": "888787108",
-            "kind": "SH",
-            "valueUsd": 51742056,
-            "shares": 1859887,
-            "pctOfTotal": 0.34,
-            "change": "ADD",
-            "sharesChange": 49133,
-            "sharesChangePct": 2.71
-          },
-          {
-            "issuer": "Alphabet Inc",
-            "cusip": "02079K305",
-            "kind": "SH",
-            "valueUsd": 50075399,
-            "shares": 140122,
-            "pctOfTotal": 0.33,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
-          },
-          {
-            "issuer": "Pacific Biosciences of California, Inc.",
-            "cusip": "69404D108",
-            "kind": "SH",
-            "valueUsd": 50032778,
-            "shares": 29781416,
-            "pctOfTotal": 0.32,
-            "change": "TRIM",
-            "sharesChange": -6491872,
-            "sharesChangePct": -17.9
-          },
-          {
-            "issuer": "Compass Pathways Plc",
-            "cusip": "20451W101",
-            "kind": "SH",
-            "valueUsd": 48845310,
-            "shares": 3451965,
-            "pctOfTotal": 0.32,
-            "change": "ADD",
-            "sharesChange": 150915,
-            "sharesChangePct": 4.57
-          },
-          {
-            "issuer": "Elbit Systems Ltd",
-            "cusip": "M3760D101",
-            "kind": "SH",
-            "valueUsd": 47578572,
-            "shares": 62709,
-            "pctOfTotal": 0.31,
-            "change": "ADD",
-            "sharesChange": 2428,
-            "sharesChangePct": 4.03
-          },
-          {
-            "issuer": "Adaptive Biotechnologies Corp",
-            "cusip": "00650F109",
-            "kind": "SH",
-            "valueUsd": 44837058,
-            "shares": 2090306,
-            "pctOfTotal": 0.29,
-            "change": "TRIM",
-            "sharesChange": -2663,
-            "sharesChangePct": -0.13
-          },
-          {
-            "issuer": "Nurix Therapeutics Inc",
-            "cusip": "67080M103",
-            "kind": "SH",
-            "valueUsd": 43502930,
-            "shares": 1793196,
-            "pctOfTotal": 0.28,
-            "change": "ADD",
-            "sharesChange": 72061,
-            "sharesChangePct": 4.19
+            "sharesChange": 581876,
+            "sharesChangePct": 12.45
           },
           {
             "issuer": "Cloudflare Inc",
             "cusip": "18915M107",
             "kind": "SH",
-            "valueUsd": 43101337,
-            "shares": 175723,
-            "pctOfTotal": 0.28,
+            "valueUsd": 195576483,
+            "shares": 563167,
+            "pctOfTotal": 1.13,
+            "change": "ADD",
+            "sharesChange": 387444,
+            "sharesChangePct": 220.49
+          },
+          {
+            "issuer": "Intellia Therapeutics Inc",
+            "cusip": "45826J105",
+            "kind": "SH",
+            "valueUsd": 192058167,
+            "shares": 15925221,
+            "pctOfTotal": 1.11,
             "change": "TRIM",
-            "sharesChange": -7921,
-            "sharesChangePct": -4.31
+            "sharesChange": -950463,
+            "sharesChangePct": -5.63
+          },
+          {
+            "issuer": "Recursion Pharmaceuticals Inc",
+            "cusip": "75629V104",
+            "kind": "SH",
+            "valueUsd": 184796952,
+            "shares": 44745025,
+            "pctOfTotal": 1.06,
+            "change": "ADD",
+            "sharesChange": 3407393,
+            "sharesChangePct": 8.24
+          },
+          {
+            "issuer": "Archer Aviation Inc",
+            "cusip": "03945R102",
+            "kind": "SH",
+            "valueUsd": 168096179,
+            "shares": 33822169,
+            "pctOfTotal": 0.97,
+            "change": "ADD",
+            "sharesChange": 1858247,
+            "sharesChangePct": 5.81
+          },
+          {
+            "issuer": "GeneDx Holdings Corp",
+            "cusip": "81663L200",
+            "kind": "SH",
+            "valueUsd": 138318822,
+            "shares": 1913123,
+            "pctOfTotal": 0.8,
+            "change": "ADD",
+            "sharesChange": 302934,
+            "sharesChangePct": 18.81
+          },
+          {
+            "issuer": "Veracyte Inc",
+            "cusip": "92337F107",
+            "kind": "SH",
+            "valueUsd": 136492485,
+            "shares": 2964650,
+            "pctOfTotal": 0.79,
+            "change": "ADD",
+            "sharesChange": 668699,
+            "sharesChangePct": 29.13
+          },
+          {
+            "issuer": "ARK 21Shares Bitcoin ETF",
+            "cusip": "040919102",
+            "kind": "SH",
+            "valueUsd": 135553266,
+            "shares": 4895387,
+            "pctOfTotal": 0.78,
+            "change": "TRIM",
+            "sharesChange": -1559178,
+            "sharesChangePct": -24.16
+          },
+          {
+            "issuer": "Absci Corp",
+            "cusip": "00091E109",
+            "kind": "SH",
+            "valueUsd": 128474441,
+            "shares": 11928917,
+            "pctOfTotal": 0.74,
+            "change": "TRIM",
+            "sharesChange": -996354,
+            "sharesChangePct": -7.71
+          },
+          {
+            "issuer": "X-Energy Inc",
+            "cusip": "98386P102",
+            "kind": "SH",
+            "valueUsd": 128389705,
+            "shares": 9054281,
+            "pctOfTotal": 0.74,
+            "change": "ADD",
+            "sharesChange": 3642435,
+            "sharesChangePct": 67.3
+          },
+          {
+            "issuer": "Eli Lilly &amp; Co",
+            "cusip": "532457108",
+            "kind": "SH",
+            "valueUsd": 124776742,
+            "shares": 107838,
+            "pctOfTotal": 0.72,
+            "change": "ADD",
+            "sharesChange": 30584,
+            "sharesChangePct": 39.59
+          },
+          {
+            "issuer": "Personalis Inc",
+            "cusip": "71535D106",
+            "kind": "SH",
+            "valueUsd": 115903674,
+            "shares": 7119390,
+            "pctOfTotal": 0.67,
+            "change": "TRIM",
+            "sharesChange": -1151949,
+            "sharesChangePct": -13.93
+          },
+          {
+            "issuer": "Guardant Health Inc",
+            "cusip": "40131M109",
+            "kind": "SH",
+            "valueUsd": 108295449,
+            "shares": 607173,
+            "pctOfTotal": 0.62,
+            "change": "ADD",
+            "sharesChange": 100757,
+            "sharesChangePct": 19.9
+          },
+          {
+            "issuer": "CareDx Inc",
+            "cusip": "14167L103",
+            "kind": "SH",
+            "valueUsd": 104588493,
+            "shares": 1609054,
+            "pctOfTotal": 0.6,
+            "change": "TRIM",
+            "sharesChange": -344477,
+            "sharesChangePct": -17.63
+          },
+          {
+            "issuer": "BWX Technologies Inc",
+            "cusip": "05605H100",
+            "kind": "SH",
+            "valueUsd": 103313618,
+            "shares": 754114,
+            "pctOfTotal": 0.59,
+            "change": "ADD",
+            "sharesChange": 204233,
+            "sharesChangePct": 37.14
+          },
+          {
+            "issuer": "Deere &amp; Co",
+            "cusip": "244199105",
+            "kind": "SH",
+            "valueUsd": 101874612,
+            "shares": 151701,
+            "pctOfTotal": 0.59,
+            "change": "TRIM",
+            "sharesChange": -241324,
+            "sharesChangePct": -61.4
+          },
+          {
+            "issuer": "L3Harris Technologies Inc",
+            "cusip": "502431109",
+            "kind": "SH",
+            "valueUsd": 100160308,
+            "shares": 423010,
+            "pctOfTotal": 0.58,
+            "change": "TRIM",
+            "sharesChange": -8169,
+            "sharesChangePct": -1.89
+          },
+          {
+            "issuer": "AeroVironment Inc",
+            "cusip": "008073108",
+            "kind": "SH",
+            "valueUsd": 88796764,
+            "shares": 624362,
+            "pctOfTotal": 0.51,
+            "change": "ADD",
+            "sharesChange": 16860,
+            "sharesChangePct": 2.78
+          },
+          {
+            "issuer": "Crowdstrike Holdings Inc",
+            "cusip": "22788C105",
+            "kind": "SH",
+            "valueUsd": 74472851,
+            "shares": 281295,
+            "pctOfTotal": 0.43,
+            "change": "ADD",
+            "sharesChange": 186795,
+            "sharesChangePct": 197.67
+          },
+          {
+            "issuer": "Schrodinger Inc/United States",
+            "cusip": "80810D103",
+            "kind": "SH",
+            "valueUsd": 73740830,
+            "shares": 2374906,
+            "pctOfTotal": 0.42,
+            "change": "ADD",
+            "sharesChange": 220888,
+            "sharesChangePct": 10.25
+          },
+          {
+            "issuer": "DoorDash Inc",
+            "cusip": "25809K105",
+            "kind": "SH",
+            "valueUsd": 71282927,
+            "shares": 388357,
+            "pctOfTotal": 0.41,
+            "change": "ADD",
+            "sharesChange": 8218,
+            "sharesChangePct": 2.16
+          },
+          {
+            "issuer": "Pacific Biosciences of Califor",
+            "cusip": "69404D108",
+            "kind": "SH",
+            "valueUsd": 70507247,
+            "shares": 29749893,
+            "pctOfTotal": 0.41,
+            "change": "TRIM",
+            "sharesChange": -31523,
+            "sharesChangePct": -0.11
+          },
+          {
+            "issuer": "Trimble Inc",
+            "cusip": "896239100",
+            "kind": "SH",
+            "valueUsd": 66101912,
+            "shares": 1157449,
+            "pctOfTotal": 0.38,
+            "change": "TRIM",
+            "sharesChange": -174231,
+            "sharesChangePct": -13.08
+          },
+          {
+            "issuer": "SoFi Technologies Inc",
+            "cusip": "83406F102",
+            "kind": "SH",
+            "valueUsd": 64927656,
+            "shares": 4130258,
+            "pctOfTotal": 0.37,
+            "change": "ADD",
+            "sharesChange": 387779,
+            "sharesChangePct": 10.36
+          },
+          {
+            "issuer": "Compass Pathways Plc",
+            "cusip": "20451W101",
+            "kind": "SH",
+            "valueUsd": 61025828,
+            "shares": 4905613,
+            "pctOfTotal": 0.35,
+            "change": "ADD",
+            "sharesChange": 1453648,
+            "sharesChangePct": 42.11
+          },
+          {
+            "issuer": "Datadog Inc",
+            "cusip": "23804L103",
+            "kind": "SH",
+            "valueUsd": 58953059,
+            "shares": 215275,
+            "pctOfTotal": 0.34,
+            "change": "ADD",
+            "sharesChange": 5127,
+            "sharesChangePct": 2.44
+          },
+          {
+            "issuer": "ROBLOX Corp",
+            "cusip": "771049103",
+            "kind": "SH",
+            "valueUsd": 58324453,
+            "shares": 1376551,
+            "pctOfTotal": 0.34,
+            "change": "TRIM",
+            "sharesChange": -5089339,
+            "sharesChangePct": -78.71
+          },
+          {
+            "issuer": "Toast Inc",
+            "cusip": "888787108",
+            "kind": "SH",
+            "valueUsd": 57679229,
+            "shares": 1989625,
+            "pctOfTotal": 0.33,
+            "change": "ADD",
+            "sharesChange": 129738,
+            "sharesChangePct": 6.98
+          },
+          {
+            "issuer": "Adaptive Biotechnologies Corp",
+            "cusip": "00650F109",
+            "kind": "SH",
+            "valueUsd": 55510311,
+            "shares": 1920772,
+            "pctOfTotal": 0.32,
+            "change": "TRIM",
+            "sharesChange": -169534,
+            "sharesChangePct": -8.11
+          },
+          {
+            "issuer": "Cerus Corp",
+            "cusip": "157085101",
+            "kind": "SH",
+            "valueUsd": 48809050,
+            "shares": 20508004,
+            "pctOfTotal": 0.28,
+            "change": "ADD",
+            "sharesChange": 2575905,
+            "sharesChangePct": 14.36
+          },
+          {
+            "issuer": "Intuitive Machines Inc",
+            "cusip": "46125A100",
+            "kind": "SH",
+            "valueUsd": 48238384,
+            "shares": 3387527,
+            "pctOfTotal": 0.28,
+            "change": "ADD",
+            "sharesChange": 688126,
+            "sharesChangePct": 25.49
           },
           {
             "issuer": "Butterfly Network Inc",
             "cusip": "124155102",
             "kind": "SH",
-            "valueUsd": 42819541,
-            "shares": 5085456,
-            "pctOfTotal": 0.28,
-            "change": "TRIM",
-            "sharesChange": -142047,
-            "sharesChangePct": -2.72
+            "valueUsd": 47077779,
+            "shares": 5254216,
+            "pctOfTotal": 0.27,
+            "change": "ADD",
+            "sharesChange": 168760,
+            "sharesChangePct": 3.32
           },
           {
-            "issuer": "Aurora Innovation Inc",
-            "cusip": "051774107",
+            "issuer": "Rubrik Inc",
+            "cusip": "781154109",
             "kind": "SH",
-            "valueUsd": 41819087,
-            "shares": 6131831,
-            "pctOfTotal": 0.27,
-            "change": "TRIM",
-            "sharesChange": -318932,
-            "sharesChangePct": -4.94
+            "valueUsd": 45348893,
+            "shares": 396164,
+            "pctOfTotal": 0.26,
+            "change": "ADD",
+            "sharesChange": 30738,
+            "sharesChangePct": 8.41
           },
           {
             "issuer": "MercadoLibre Inc",
             "cusip": "58733R102",
             "kind": "SH",
-            "valueUsd": 37417265,
-            "shares": 22044,
-            "pctOfTotal": 0.24,
-            "change": "TRIM",
-            "sharesChange": -1944,
-            "sharesChangePct": -8.1
-          },
-          {
-            "issuer": "Alamar Biosciences Inc",
-            "cusip": "010911105",
-            "kind": "SH",
-            "valueUsd": 37220549,
-            "shares": 1373959,
-            "pctOfTotal": 0.24,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
-          },
-          {
-            "issuer": "Cameco Corp",
-            "cusip": "13321L108",
-            "kind": "SH",
-            "valueUsd": 36829520,
-            "shares": 361570,
-            "pctOfTotal": 0.24,
-            "change": "TRIM",
-            "sharesChange": -5607,
-            "sharesChangePct": -1.53
-          },
-          {
-            "issuer": "Teledyne Technologies Inc",
-            "cusip": "879360105",
-            "kind": "SH",
-            "valueUsd": 36594804,
-            "shares": 54873,
-            "pctOfTotal": 0.24,
+            "valueUsd": 45244273,
+            "shares": 26175,
+            "pctOfTotal": 0.26,
             "change": "ADD",
-            "sharesChange": 3438,
-            "sharesChangePct": 6.68
-          },
-          {
-            "issuer": "Synopsys Inc",
-            "cusip": "871607107",
-            "kind": "SH",
-            "valueUsd": 36257908,
-            "shares": 81283,
-            "pctOfTotal": 0.24,
-            "change": "ADD",
-            "sharesChange": 5213,
-            "sharesChangePct": 6.85
-          },
-          {
-            "issuer": "Symbotic Inc",
-            "cusip": "87151X101",
-            "kind": "SH",
-            "valueUsd": 35813868,
-            "shares": 796749,
-            "pctOfTotal": 0.23,
-            "change": "ADD",
-            "sharesChange": 14526,
-            "sharesChangePct": 1.86
-          },
-          {
-            "issuer": "Schrodinger Inc",
-            "cusip": "80810D103",
-            "kind": "SH",
-            "valueUsd": 35002797,
-            "shares": 2154018,
-            "pctOfTotal": 0.23,
-            "change": "ADD",
-            "sharesChange": 86883,
-            "sharesChangePct": 4.2
-          },
-          {
-            "issuer": "Baidu Inc",
-            "cusip": "056752108",
-            "kind": "SH",
-            "valueUsd": 34508037,
-            "shares": 301934,
-            "pctOfTotal": 0.22,
-            "change": "TRIM",
-            "sharesChange": -818397,
-            "sharesChangePct": -73.05
-          },
-          {
-            "issuer": "Spotify Technology SA",
-            "cusip": "L8681T102",
-            "kind": "SH",
-            "valueUsd": 34484423,
-            "shares": 75108,
-            "pctOfTotal": 0.22,
-            "change": "ADD",
-            "sharesChange": 7330,
-            "sharesChangePct": 10.81
+            "sharesChange": 4131,
+            "sharesChangePct": 18.74
           },
           {
             "issuer": "Everpure Inc",
             "cusip": "74624M102",
             "kind": "SH",
-            "valueUsd": 31354638,
-            "shares": 397952,
-            "pctOfTotal": 0.2,
+            "valueUsd": 43960258,
+            "shares": 336139,
+            "pctOfTotal": 0.25,
             "change": "TRIM",
-            "sharesChange": -30664,
-            "sharesChangePct": -7.15
+            "sharesChange": -61813,
+            "sharesChangePct": -15.53
           },
           {
-            "issuer": "DraftKings Inc",
-            "cusip": "26142V105",
+            "issuer": "Nurix Therapeutics Inc",
+            "cusip": "67080M103",
             "kind": "SH",
-            "valueUsd": 31040642,
-            "shares": 1228846,
-            "pctOfTotal": 0.2,
+            "valueUsd": 43924834,
+            "shares": 1852587,
+            "pctOfTotal": 0.25,
+            "change": "ADD",
+            "sharesChange": 59391,
+            "sharesChangePct": 3.31
+          },
+          {
+            "issuer": "Freenome Inc",
+            "cusip": "35661P100",
+            "kind": "SH",
+            "valueUsd": 43906384,
+            "shares": 2787707,
+            "pctOfTotal": 0.25,
+            "change": "NEW",
+            "sharesChange": null,
+            "sharesChangePct": null
+          },
+          {
+            "issuer": "Alamar Biosciences Inc",
+            "cusip": "010911105",
+            "kind": "SH",
+            "valueUsd": 42258184,
+            "shares": 1240334,
+            "pctOfTotal": 0.24,
             "change": "TRIM",
-            "sharesChange": -124263,
-            "sharesChangePct": -9.18
+            "sharesChange": -133625,
+            "sharesChangePct": -9.73
+          },
+          {
+            "issuer": "Spotify Technology SA",
+            "cusip": "L8681T102",
+            "kind": "SH",
+            "valueUsd": 41852529,
+            "shares": 85872,
+            "pctOfTotal": 0.24,
+            "change": "ADD",
+            "sharesChange": 10764,
+            "sharesChangePct": 14.33
+          },
+          {
+            "issuer": "Ionis Pharmaceuticals Inc",
+            "cusip": "462222100",
+            "kind": "SH",
+            "valueUsd": 41219180,
+            "shares": 923162,
+            "pctOfTotal": 0.24,
+            "change": "ADD",
+            "sharesChange": 622392,
+            "sharesChangePct": 206.93
+          },
+          {
+            "issuer": "Arcturus Therapeutics Holdings",
+            "cusip": "03969T109",
+            "kind": "SH",
+            "valueUsd": 40995387,
+            "shares": 2994550,
+            "pctOfTotal": 0.24,
+            "change": "ADD",
+            "sharesChange": 92915,
+            "sharesChangePct": 3.2
+          },
+          {
+            "issuer": "Gitlab Inc",
+            "cusip": "37637K108",
+            "kind": "SH",
+            "valueUsd": 38768861,
+            "shares": 820505,
+            "pctOfTotal": 0.22,
+            "change": "ADD",
+            "sharesChange": 52507,
+            "sharesChangePct": 6.84
+          },
+          {
+            "issuer": "Securitize Corp",
+            "cusip": "81517B101",
+            "kind": "SH",
+            "valueUsd": 37696592,
+            "shares": 2583728,
+            "pctOfTotal": 0.22,
+            "change": "NEW",
+            "sharesChange": null,
+            "sharesChangePct": null
+          },
+          {
+            "issuer": "Joby Aviation Inc",
+            "cusip": "G65163100",
+            "kind": "SH",
+            "valueUsd": 36544009,
+            "shares": 6040332,
+            "pctOfTotal": 0.21,
+            "change": "TRIM",
+            "sharesChange": -653979,
+            "sharesChangePct": -9.77
+          },
+          {
+            "issuer": "Airbnb Inc",
+            "cusip": "009066101",
+            "kind": "SH",
+            "valueUsd": 35180613,
+            "shares": 218989,
+            "pctOfTotal": 0.2,
+            "change": "ADD",
+            "sharesChange": 70669,
+            "sharesChangePct": 47.65
+          },
+          {
+            "issuer": "Synopsys Inc",
+            "cusip": "871607107",
+            "kind": "SH",
+            "valueUsd": 32655730,
+            "shares": 75081,
+            "pctOfTotal": 0.19,
+            "change": "TRIM",
+            "sharesChange": -6202,
+            "sharesChangePct": -7.63
+          },
+          {
+            "issuer": "Aurora Innovation Inc",
+            "cusip": "051774107",
+            "kind": "SH",
+            "valueUsd": 31683803,
+            "shares": 5719098,
+            "pctOfTotal": 0.18,
+            "change": "TRIM",
+            "sharesChange": -412733,
+            "sharesChangePct": -6.73
+          },
+          {
+            "issuer": "Symbotic Inc",
+            "cusip": "87151X101",
+            "kind": "SH",
+            "valueUsd": 31254518,
+            "shares": 742917,
+            "pctOfTotal": 0.18,
+            "change": "TRIM",
+            "sharesChange": -53832,
+            "sharesChangePct": -6.76
+          },
+          {
+            "issuer": "Elbit Systems Ltd",
+            "cusip": "M3760D101",
+            "kind": "SH",
+            "valueUsd": 31221054,
+            "shares": 45778,
+            "pctOfTotal": 0.18,
+            "change": "TRIM",
+            "sharesChange": -16931,
+            "sharesChangePct": -27
           },
           {
             "issuer": "Prime Medicine Inc",
             "cusip": "74168J101",
             "kind": "SH",
-            "valueUsd": 30806875,
-            "shares": 8348746,
-            "pctOfTotal": 0.2,
+            "valueUsd": 30682919,
+            "shares": 10043509,
+            "pctOfTotal": 0.18,
             "change": "ADD",
-            "sharesChange": 2101919,
-            "sharesChangePct": 33.65
+            "sharesChange": 1694763,
+            "sharesChangePct": 20.3
+          },
+          {
+            "issuer": "Intuitive Surgical Inc",
+            "cusip": "46120E602",
+            "kind": "SH",
+            "valueUsd": 30252865,
+            "shares": 74399,
+            "pctOfTotal": 0.17,
+            "change": "ADD",
+            "sharesChange": 4024,
+            "sharesChangePct": 5.72
+          },
+          {
+            "issuer": "ARK Active Autocallable Income",
+            "cusip": "00214Q724",
+            "kind": "SH",
+            "valueUsd": 29782301,
+            "shares": 1470005,
+            "pctOfTotal": 0.17,
+            "change": "NEW",
+            "sharesChange": null,
+            "sharesChangePct": null
           },
           {
             "issuer": "ARK Innovation ETF",
             "cusip": "00214Q104",
             "kind": "CALL",
-            "valueUsd": 719298,
-            "shares": 8900,
+            "valueUsd": 766260,
+            "shares": 8600,
             "pctOfTotal": 0,
             "change": "TRIM",
-            "sharesChange": -100,
-            "sharesChangePct": -1.11
+            "sharesChange": -300,
+            "sharesChangePct": -3.37
           }
         ],
         "exits": [
           {
+            "issuer": "Strata Critical Medical Inc",
+            "cusip": "092667104",
+            "kind": "SH",
+            "prevShares": 2730855
+          },
+          {
             "issuer": "Honeywell International Inc",
-            "cusip": "438516106",
+            "cusip": "438516205",
             "kind": "SH",
-            "prevShares": 38709
+            "prevShares": 23262
           },
           {
-            "issuer": "Brera Holdings PLC",
-            "cusip": "G13311116",
+            "issuer": "Teva Pharmaceutical Industries",
+            "cusip": "881624209",
             "kind": "SH",
-            "prevShares": 9687877
+            "prevShares": 68653
           },
           {
-            "issuer": "Intercontinental Exchange Inc",
-            "cusip": "45866F104",
+            "issuer": "Kamada Ltd",
+            "cusip": "M6240T109",
             "kind": "SH",
-            "prevShares": 29181
+            "prevShares": 263304
           },
           {
-            "issuer": "Palo Alto Networks Inc",
-            "cusip": "697435105",
+            "issuer": "Enlivex Ltd",
+            "cusip": "M4130Y106",
             "kind": "SH",
-            "prevShares": 10866
+            "prevShares": 2382731
           },
           {
-            "issuer": "Salesforce Inc",
-            "cusip": "79466L302",
+            "issuer": "Nano-X Imaging Ltd",
+            "cusip": "M70700105",
             "kind": "SH",
-            "prevShares": 6062
+            "prevShares": 806614
           },
           {
-            "issuer": "Pinterest Inc",
-            "cusip": "72352L106",
+            "issuer": "Octave Intelligence PLC",
+            "cusip": "G22845104",
             "kind": "SH",
-            "prevShares": 36028
+            "prevShares": 8897
           },
           {
-            "issuer": "iShares Russell 1000 ETF",
-            "cusip": "464287622",
+            "issuer": "ARK Genomic Revolution ETF",
+            "cusip": "00214Q302",
             "kind": "SH",
-            "prevShares": 0
+            "prevShares": 1659
+          },
+          {
+            "issuer": "Vanguard Growth ETF",
+            "cusip": "922908736",
+            "kind": "SH",
+            "prevShares": 768
+          },
+          {
+            "issuer": "Dauch Corporation",
+            "cusip": "024061103",
+            "kind": "SH",
+            "prevShares": 6386
+          },
+          {
+            "issuer": "State Street SPDR S&amp;P Biotech ETF",
+            "cusip": "78464A870",
+            "kind": "SH",
+            "prevShares": 94
+          },
+          {
+            "issuer": "iShares Expanded Tech-Software Sector ETF",
+            "cusip": "464287515",
+            "kind": "SH",
+            "prevShares": 56
           }
         ]
       },
@@ -2275,133 +2309,166 @@
         "name": "Pershing Square",
         "cik": "0001336528",
         "filingCik": "0002026053",
-        "reportDate": "2026-06-30",
-        "filedAt": "2026-08-14",
-        "lagDays": 45,
+        "reportDate": "2026-09-30",
+        "filedAt": "2026-11-16",
+        "lagDays": 47,
         "priorAvailable": true,
-        "priorReportDate": "2026-03-31",
+        "priorReportDate": "2026-06-30",
         "priorNote": null,
-        "totalValueUsd": 19465692772,
-        "holdingsCount": 14,
+        "totalValueUsd": 30796550126,
+        "holdingsCount": 16,
         "optionRows": 0,
         "holdings": [
+          {
+            "issuer": "PERSHING SQUARE INC",
+            "cusip": "71531U102",
+            "kind": "SH",
+            "valueUsd": 10309165762,
+            "shares": 184289699,
+            "pctOfTotal": 33.48,
+            "change": "NEW",
+            "sharesChange": null,
+            "sharesChangePct": null
+          },
           {
             "issuer": "UBER TECHNOLOGIES INC",
             "cusip": "90353T100",
             "kind": "SH",
-            "valueUsd": 2476978592,
-            "shares": 34326200,
-            "pctOfTotal": 12.72,
-            "change": "ADD",
-            "sharesChange": 4367429,
-            "sharesChangePct": 14.58
-          },
-          {
-            "issuer": "BROOKFIELD CORP",
-            "cusip": "11271J107",
-            "kind": "SH",
-            "valueUsd": 2448117792,
-            "shares": 57481047,
-            "pctOfTotal": 12.58,
+            "valueUsd": 2347719794,
+            "shares": 34268279,
+            "pctOfTotal": 7.62,
             "change": "TRIM",
-            "sharesChange": -2216161,
-            "sharesChangePct": -3.71
-          },
-          {
-            "issuer": "MICROSOFT CORP",
-            "cusip": "594918104",
-            "kind": "SH",
-            "valueUsd": 2315234425,
-            "shares": 6206730,
-            "pctOfTotal": 11.89,
-            "change": "ADD",
-            "sharesChange": 552652,
-            "sharesChangePct": 9.77
+            "sharesChange": -57921,
+            "sharesChangePct": -0.17
           },
           {
             "issuer": "AMAZON COM INC",
             "cusip": "023135106",
             "kind": "SH",
-            "valueUsd": 2041109677,
-            "shares": 8563857,
-            "pctOfTotal": 10.49,
+            "valueUsd": 2119214838,
+            "shares": 8505779,
+            "pctOfTotal": 6.88,
             "change": "TRIM",
-            "sharesChange": -2888124,
-            "sharesChangePct": -25.22
+            "sharesChange": -58078,
+            "sharesChangePct": -0.68
           },
           {
-            "issuer": "HOWARD HUGHES HOLDINGS INC",
-            "cusip": "44267T102",
+            "issuer": "MICROSOFT CORP",
+            "cusip": "594918104",
             "kind": "SH",
-            "valueUsd": 1991144055,
-            "shares": 27852064,
-            "pctOfTotal": 10.23,
-            "change": "HOLD",
-            "sharesChange": 0,
-            "sharesChangePct": 0
-          },
-          {
-            "issuer": "RESTAURANT BRANDS INTL INC",
-            "cusip": "76131D103",
-            "kind": "SH",
-            "valueUsd": 1872301303,
-            "shares": 25821284,
-            "pctOfTotal": 9.62,
-            "change": "ADD",
-            "sharesChange": 3175801,
-            "sharesChangePct": 14.02
+            "valueUsd": 2084825149,
+            "shares": 4064779,
+            "pctOfTotal": 6.77,
+            "change": "TRIM",
+            "sharesChange": -2141951,
+            "sharesChangePct": -34.51
           },
           {
             "issuer": "META PLATFORMS INC",
             "cusip": "30303M102",
             "kind": "SH",
-            "valueUsd": 1800309764,
-            "shares": 3196062,
-            "pctOfTotal": 9.25,
-            "change": "ADD",
-            "sharesChange": 535201,
-            "sharesChangePct": 20.11
+            "valueUsd": 2054651769,
+            "shares": 2833299,
+            "pctOfTotal": 6.67,
+            "change": "TRIM",
+            "sharesChange": -362763,
+            "sharesChangePct": -11.35
           },
           {
-            "issuer": "VISA INC",
-            "cusip": "92826C839",
+            "issuer": "HOWARD HUGHES HOLDINGS INC",
+            "cusip": "44267T102",
             "kind": "SH",
-            "valueUsd": 1122065552,
-            "shares": 3270470,
-            "pctOfTotal": 5.76,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
+            "valueUsd": 2050468952,
+            "shares": 27852064,
+            "pctOfTotal": 6.66,
+            "change": "HOLD",
+            "sharesChange": 0,
+            "sharesChangePct": 0
           },
           {
-            "issuer": "MASTERCARD INCORPORATED",
-            "cusip": "57636Q104",
+            "issuer": "BROOKFIELD CORP",
+            "cusip": "11271J107",
             "kind": "SH",
-            "valueUsd": 1091218186,
-            "shares": 2124646,
-            "pctOfTotal": 5.61,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
+            "valueUsd": 1871531870,
+            "shares": 51331099,
+            "pctOfTotal": 6.08,
+            "change": "TRIM",
+            "sharesChange": -6149948,
+            "sharesChangePct": -10.7
           },
           {
-            "issuer": "S&amp;P GLOBAL INC",
-            "cusip": "78409V104",
+            "issuer": "RESTAURANT BRANDS INTL INC",
+            "cusip": "76131D103",
             "kind": "SH",
-            "valueUsd": 1056088305,
-            "shares": 2593155,
-            "pctOfTotal": 5.43,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
+            "valueUsd": 1564263175,
+            "shares": 22007079,
+            "pctOfTotal": 5.08,
+            "change": "TRIM",
+            "sharesChange": -3814205,
+            "sharesChangePct": -14.77
           },
           {
             "issuer": "NETFLIX INC.",
             "cusip": "64110L106",
             "kind": "SH",
-            "valueUsd": 934016601,
-            "shares": 13081465,
-            "pctOfTotal": 4.8,
+            "valueUsd": 1072418728,
+            "shares": 15412744,
+            "pctOfTotal": 3.48,
+            "change": "ADD",
+            "sharesChange": 2331279,
+            "sharesChangePct": 17.82
+          },
+          {
+            "issuer": "MASTERCARD INCORPORATED",
+            "cusip": "57636Q104",
+            "kind": "SH",
+            "valueUsd": 1041406426,
+            "shares": 1888419,
+            "pctOfTotal": 3.38,
+            "change": "TRIM",
+            "sharesChange": -236227,
+            "sharesChangePct": -11.12
+          },
+          {
+            "issuer": "VISA INC",
+            "cusip": "92826C839",
+            "kind": "SH",
+            "valueUsd": 1031535818,
+            "shares": 2870720,
+            "pctOfTotal": 3.35,
+            "change": "TRIM",
+            "sharesChange": -399750,
+            "sharesChangePct": -12.22
+          },
+          {
+            "issuer": "S&amp;P GLOBAL INC",
+            "cusip": "78409V104",
+            "kind": "SH",
+            "valueUsd": 1022921853,
+            "shares": 2593155,
+            "pctOfTotal": 3.32,
+            "change": "HOLD",
+            "sharesChange": 0,
+            "sharesChangePct": 0
+          },
+          {
+            "issuer": "INTERCONTINENTAL EXCHANGE IN",
+            "cusip": "45866F104",
+            "kind": "SH",
+            "valueUsd": 1008855725,
+            "shares": 6635899,
+            "pctOfTotal": 3.28,
+            "change": "NEW",
+            "sharesChange": null,
+            "sharesChangePct": null
+          },
+          {
+            "issuer": "ALCON AG",
+            "cusip": "H01301128",
+            "kind": "SH",
+            "valueUsd": 954175943,
+            "shares": 14736308,
+            "pctOfTotal": 3.1,
             "change": "NEW",
             "sharesChange": null,
             "sharesChangePct": null
@@ -2410,56 +2477,39 @@
             "issuer": "PERSHING SQUARE USA LTD",
             "cusip": "71531T105",
             "kind": "SH",
-            "valueUsd": 149520000,
+            "valueUsd": 148400000,
             "shares": 4000000,
-            "pctOfTotal": 0.77,
-            "change": "NEW",
-            "sharesChange": null,
-            "sharesChangePct": null
-          },
-          {
-            "issuer": "SEAPORT ENTMT GROUP INC",
-            "cusip": "812215200",
-            "kind": "SH",
-            "valueUsd": 133632548,
-            "shares": 5023780,
-            "pctOfTotal": 0.69,
+            "pctOfTotal": 0.48,
             "change": "HOLD",
             "sharesChange": 0,
             "sharesChangePct": 0
           },
           {
-            "issuer": "HERTZ GLOBAL HLDGS INC",
-            "cusip": "42806J700",
+            "issuer": "SEAPORT ENTMT GROUP INC",
+            "cusip": "812215200",
             "kind": "SH",
-            "valueUsd": 33955972,
-            "shares": 14991599,
-            "pctOfTotal": 0.17,
-            "change": "TRIM",
-            "sharesChange": -249528,
-            "sharesChangePct": -1.64
+            "valueUsd": 114994324,
+            "shares": 5023780,
+            "pctOfTotal": 0.37,
+            "change": "HOLD",
+            "sharesChange": 0,
+            "sharesChangePct": 0
           }
         ],
         "exits": [
           {
-            "issuer": "ALPHABET INC",
-            "cusip": "02079K107",
+            "issuer": "HERTZ GLOBAL HLDGS INC",
+            "cusip": "42806J700",
             "kind": "SH",
-            "prevShares": 311726
-          },
-          {
-            "issuer": "ALPHABET INC",
-            "cusip": "02079K305",
-            "kind": "SH",
-            "prevShares": 32376
+            "prevShares": 14991599
           }
         ]
       }
     ],
     "etf": {
-      "asOf": "2026-11-09",
-      "published": "2026-11-09",
-      "lagDays": 1,
+      "asOf": "2026-11-18",
+      "published": "2026-11-18",
+      "lagDays": 2,
       "funds": [
         {
           "key": "spmo",
@@ -2468,11 +2518,11 @@
           "name": "Invesco S&P 500 Momentum ETF",
           "indexName": "S&P 500 Momentum",
           "cusip": "46138E339",
-          "effectiveDate": "2026-11-09",
-          "total": 104,
+          "effectiveDate": "2026-11-18",
+          "total": 107,
           "equityCount": 99,
           "shownCount": 40,
-          "shownPct": 84.29,
+          "shownPct": 84.16,
           "holdings": [
             {
               "zh": "苹果",
@@ -2480,9 +2530,9 @@
               "sym": "usAAPL",
               "cusip": "037833100",
               "type": "COM",
-              "pct": 11.039563,
-              "valueUsd": 2250778919.36,
-              "units": 6418144
+              "pct": 11.372587,
+              "valueUsd": 2264957893.8,
+              "units": 6426324
             },
             {
               "zh": "美光科技",
@@ -2490,19 +2540,9 @@
               "sym": "usMU",
               "cusip": "595112103",
               "type": "COM",
-              "pct": 7.62726,
-              "valueUsd": 1555068335.7,
-              "units": 2121078
-            },
-            {
-              "zh": "强生",
-              "ticker": "JNJ",
-              "sym": "usJNJ",
-              "cusip": "478160104",
-              "type": "COM",
-              "pct": 5.602727,
-              "valueUsd": 1142300628.52,
-              "units": 4049132
+              "pct": 7.520794,
+              "valueUsd": 1497836910.06,
+              "units": 2123778
             },
             {
               "zh": "超威半导体",
@@ -2510,9 +2550,19 @@
               "sym": "usAMD",
               "cusip": "007903107",
               "type": "COM",
-              "pct": 5.457512,
-              "valueUsd": 1112693701.52,
-              "units": 2187844
+              "pct": 5.831195,
+              "valueUsd": 1161337407.36,
+              "units": 2190624
+            },
+            {
+              "zh": "强生",
+              "ticker": "JNJ",
+              "sym": "usJNJ",
+              "cusip": "478160104",
+              "type": "COM",
+              "pct": 5.551359,
+              "valueUsd": 1105605428.4,
+              "units": 4054292
             },
             {
               "zh": "谷歌-A",
@@ -2520,9 +2570,9 @@
               "sym": "usGOOGL",
               "cusip": "02079K305",
               "type": "COM",
-              "pct": 4.6983,
-              "valueUsd": 957903384.3,
-              "units": 3324322
+              "pct": 4.720435,
+              "valueUsd": 940119051.28,
+              "units": 3328562
             },
             {
               "zh": "谷歌-C",
@@ -2530,9 +2580,9 @@
               "sym": "usGOOG",
               "cusip": "02079K107",
               "type": "COM",
-              "pct": 3.7871,
-              "valueUsd": 772125180.44,
-              "units": 2699644
+              "pct": 3.789432,
+              "valueUsd": 754701052.8,
+              "units": 2703084
             },
             {
               "zh": "埃克森美孚",
@@ -2540,9 +2590,9 @@
               "sym": "usXOM",
               "cusip": "30233Q108",
               "type": "COM",
-              "pct": 3.588931,
-              "valueUsd": 731721929.31,
-              "units": 4441947
+              "pct": 3.609949,
+              "valueUsd": 714196732.06,
+              "units": 4447607
             },
             {
               "zh": "英特尔",
@@ -2550,19 +2600,9 @@
               "sym": "usINTC",
               "cusip": "458140100",
               "type": "COM",
-              "pct": 3.198532,
-              "valueUsd": 652126195.11,
-              "units": 10984103
-            },
-            {
-              "zh": "默沙东",
-              "ticker": "MRK",
-              "sym": "usMRK",
-              "cusip": "58933Y105",
-              "type": "COM",
-              "pct": 2.556418,
-              "valueUsd": 521210114.48,
-              "units": 3503698
+              "pct": 3.01902,
+              "valueUsd": 601266291.01,
+              "units": 10998103
             },
             {
               "zh": "思科",
@@ -2570,9 +2610,19 @@
               "sym": "usCSCO",
               "cusip": "17275R102",
               "type": "COM",
-              "pct": 2.455619,
-              "valueUsd": 500658812.3,
-              "units": 5075102
+              "pct": 2.479552,
+              "valueUsd": 493826195.16,
+              "units": 5081562
+            },
+            {
+              "zh": "默沙东",
+              "ticker": "MRK",
+              "sym": "usMRK",
+              "cusip": "58933Y105",
+              "type": "COM",
+              "pct": 2.42697,
+              "valueUsd": 483354009.24,
+              "units": 3508158
             },
             {
               "zh": "泛林集团",
@@ -2580,9 +2630,9 @@
               "sym": "usLRCX",
               "cusip": "512807306",
               "type": "COM",
-              "pct": 2.350501,
-              "valueUsd": 479227108.41,
-              "units": 2165411
+              "pct": 2.304369,
+              "valueUsd": 458936755.57,
+              "units": 2168171
             },
             {
               "zh": "应用材料",
@@ -2590,9 +2640,9 @@
               "sym": "usAMAT",
               "cusip": "038222105",
               "type": "COM",
-              "pct": 2.342984,
-              "valueUsd": 477694532.5,
-              "units": 1289150
+              "pct": 2.283323,
+              "valueUsd": 454745317,
+              "units": 1290790
             },
             {
               "zh": "可口可乐",
@@ -2600,29 +2650,9 @@
               "sym": "usKO",
               "cusip": "191216100",
               "type": "COM",
-              "pct": 1.962463,
-              "valueUsd": 400112740.17,
-              "units": 4166539
-            },
-            {
-              "zh": "联合健康",
-              "ticker": "UNH",
-              "sym": "usUNH",
-              "cusip": "91324P102",
-              "type": "COM",
-              "pct": 1.943292,
-              "valueUsd": 396204075.18,
-              "units": 996439
-            },
-            {
-              "zh": "卡特彼勒",
-              "ticker": "CAT",
-              "sym": "usCAT",
-              "cusip": "149123101",
-              "type": "COM",
-              "pct": 1.736048,
-              "valueUsd": 352997239.52,
-              "units": 589429
+              "pct": 2.054714,
+              "valueUsd": 409215687.51,
+              "units": 4171839
             },
             {
               "zh": "派拓网络",
@@ -2630,19 +2660,29 @@
               "sym": "usPANW",
               "cusip": "697435105",
               "type": "COM",
-              "pct": 1.685038,
-              "valueUsd": 343550513.18,
-              "units": 1038262
+              "pct": 1.774331,
+              "valueUsd": 353374713.44,
+              "units": 1039582
             },
             {
-              "zh": "闪迪",
-              "ticker": "SNDK",
-              "sym": "usSNDK",
-              "cusip": "80004C200",
+              "zh": "联合健康",
+              "ticker": "UNH",
+              "sym": "usUNH",
+              "cusip": "91324P102",
               "type": "COM",
-              "pct": 1.638146,
-              "valueUsd": 333989982.97,
-              "units": 376747
+              "pct": 1.752892,
+              "valueUsd": 349104857.09,
+              "units": 997699
+            },
+            {
+              "zh": "卡特彼勒",
+              "ticker": "CAT",
+              "sym": "usCAT",
+              "cusip": "149123101",
+              "type": "COM",
+              "pct": 1.660646,
+              "valueUsd": 329779907.53,
+              "units": 590189
             },
             {
               "zh": "希捷科技",
@@ -2650,9 +2690,19 @@
               "sym": "usSTX",
               "cusip": "G7997R103",
               "type": "COM",
-              "pct": 1.451748,
-              "valueUsd": 295986622.88,
-              "units": 584792
+              "pct": 1.516755,
+              "valueUsd": 302075958.8,
+              "units": 585532
+            },
+            {
+              "zh": "闪迪",
+              "ticker": "SNDK",
+              "sym": "usSNDK",
+              "cusip": "80004C200",
+              "type": "COM",
+              "pct": 1.470235,
+              "valueUsd": 292811141.94,
+              "units": 377227
             },
             {
               "zh": "西部数据",
@@ -2660,9 +2710,9 @@
               "sym": "usWDC",
               "cusip": "958102105",
               "type": "COM",
-              "pct": 1.322243,
-              "valueUsd": 269582913.56,
-              "units": 930302
+              "pct": 1.347884,
+              "valueUsd": 268443797.58,
+              "units": 931482
             },
             {
               "zh": "雷神技术",
@@ -2670,9 +2720,9 @@
               "sym": "usRTX",
               "cusip": "75513E101",
               "type": "COM",
-              "pct": 1.275463,
-              "valueUsd": 260045182.46,
-              "units": 1324666
+              "pct": 1.314962,
+              "valueUsd": 261887017.7,
+              "units": 1326346
             },
             {
               "zh": "摩根士丹利",
@@ -2680,9 +2730,9 @@
               "sym": "usMS",
               "cusip": "617446448",
               "type": "COM",
-              "pct": 1.229891,
-              "valueUsd": 249223748.5,
-              "units": 1332035
+              "pct": 1.213263,
+              "valueUsd": 241632769.95,
+              "units": 1333735
             },
             {
               "zh": "高盛",
@@ -2690,9 +2740,9 @@
               "sym": "usGS",
               "cusip": "38141G104",
               "type": "COM",
-              "pct": 1.206196,
-              "valueUsd": 245922733.84,
-              "units": 271372
+              "pct": 1.191274,
+              "valueUsd": 237253484.16,
+              "units": 271712
             },
             {
               "zh": "科磊",
@@ -2700,19 +2750,9 @@
               "sym": "usKLAC",
               "cusip": "482480100",
               "type": "COM",
-              "pct": 1.082583,
-              "valueUsd": 220720214.52,
-              "units": 1458054
-            },
-            {
-              "zh": "亚德诺",
-              "ticker": "ADI",
-              "sym": "usADI",
-              "cusip": "032654105",
-              "type": "COM",
-              "pct": 1.061798,
-              "valueUsd": 216482455.14,
-              "units": 548529
+              "pct": 1.063711,
+              "valueUsd": 211512340.32,
+              "units": 1459914
             },
             {
               "zh": "Welltower Inc.",
@@ -2720,9 +2760,19 @@
               "sym": "usWELL",
               "cusip": "95040Q104",
               "type": "REIT",
-              "pct": 1.028097,
-              "valueUsd": 209611563.15,
-              "units": 847429
+              "pct": 1.057016,
+              "valueUsd": 209793850.25,
+              "units": 848509
+            },
+            {
+              "zh": "亚德诺",
+              "ticker": "ADI",
+              "sym": "usADI",
+              "cusip": "032654105",
+              "type": "COM",
+              "pct": 1.0534,
+              "valueUsd": 209794493.42,
+              "units": 549229
             },
             {
               "zh": "花旗集团",
@@ -2730,9 +2780,9 @@
               "sym": "usC",
               "cusip": "172967424",
               "type": "COM",
-              "pct": 0.99902,
-              "valueUsd": 202569849.49,
-              "units": 1660817
+              "pct": 0.985353,
+              "valueUsd": 195129027.58,
+              "units": 1662937
             },
             {
               "zh": "瓦莱罗能源",
@@ -2740,19 +2790,9 @@
               "sym": "usVLO",
               "cusip": "91913Y100",
               "type": "COM",
-              "pct": 0.946516,
-              "valueUsd": 192978561.25,
-              "units": 540935
-            },
-            {
-              "zh": "戴尔科技",
-              "ticker": "DELL",
-              "sym": "usDELL",
-              "cusip": "24703L202",
-              "type": "COM",
-              "pct": 0.812079,
-              "valueUsd": 165569079.45,
-              "units": 478095
+              "pct": 0.934694,
+              "valueUsd": 186153075.5,
+              "units": 541615
             },
             {
               "zh": "马拉松石油",
@@ -2760,9 +2800,19 @@
               "sym": "usMPC",
               "cusip": "56585A102",
               "type": "COM",
-              "pct": 0.798105,
-              "valueUsd": 162719926.92,
-              "units": 417359
+              "pct": 0.786784,
+              "valueUsd": 156235720.14,
+              "units": 417899
+            },
+            {
+              "zh": "戴尔科技",
+              "ticker": "DELL",
+              "sym": "usDELL",
+              "cusip": "24703L202",
+              "type": "COM",
+              "pct": 0.752584,
+              "valueUsd": 149884191.45,
+              "units": 478695
             },
             {
               "zh": "施贵宝",
@@ -2770,9 +2820,9 @@
               "sym": "usBMY",
               "cusip": "110122108",
               "type": "COM",
-              "pct": 0.758233,
-              "valueUsd": 154590773.48,
-              "units": 2487782
+              "pct": 0.744933,
+              "valueUsd": 148360505.52,
+              "units": 2490942
             },
             {
               "zh": "纽约梅隆银行",
@@ -2780,9 +2830,9 @@
               "sym": "usBNY",
               "cusip": "064058100",
               "type": "COM",
-              "pct": 0.730834,
-              "valueUsd": 149004650.55,
-              "units": 985285
+              "pct": 0.732134,
+              "valueUsd": 145811351,
+              "units": 986545
             },
             {
               "zh": "西维斯健康",
@@ -2790,29 +2840,9 @@
               "sym": "usCVS",
               "cusip": "126650100",
               "type": "COM",
-              "pct": 0.724854,
-              "valueUsd": 147785478.5,
-              "units": 1733554
-            },
-            {
-              "zh": "迈威尔科技",
-              "ticker": "MRVL",
-              "sym": "usMRVL",
-              "cusip": "573874104",
-              "type": "COM",
-              "pct": 0.709582,
-              "valueUsd": 144671588,
-              "units": 935780
-            },
-            {
-              "zh": "Phillips 66",
-              "ticker": "PSX",
-              "sym": "usPSX",
-              "cusip": "718546104",
-              "type": "COM",
-              "pct": 0.697759,
-              "valueUsd": 142261254.06,
-              "units": 562253
+              "pct": 0.708998,
+              "valueUsd": 141203587.9,
+              "units": 1735754
             },
             {
               "zh": "安达保险",
@@ -2820,19 +2850,29 @@
               "sym": "usCB",
               "cusip": "H1467J104",
               "type": "COM",
-              "pct": 0.673482,
-              "valueUsd": 137311410,
-              "units": 377800
+              "pct": 0.704709,
+              "valueUsd": 140349445.6,
+              "units": 378280
             },
             {
-              "zh": "Lumentum",
-              "ticker": "LITE",
-              "sym": "usLITE",
-              "cusip": "55024U109",
+              "zh": "Phillips 66",
+              "ticker": "PSX",
+              "sym": "usPSX",
+              "cusip": "718546104",
               "type": "COM",
-              "pct": 0.668691,
-              "valueUsd": 136334638.08,
-              "units": 228688
+              "pct": 0.695832,
+              "valueUsd": 137832679.59,
+              "units": 562973
+            },
+            {
+              "zh": "迈威尔科技",
+              "ticker": "MRVL",
+              "sym": "usMRVL",
+              "cusip": "573874104",
+              "type": "COM",
+              "pct": 0.684718,
+              "valueUsd": 136368069.2,
+              "units": 936980
             },
             {
               "zh": "安博",
@@ -2840,9 +2880,19 @@
               "sym": "usPLD",
               "cusip": "74340W103",
               "type": "REIT",
-              "pct": 0.664559,
-              "valueUsd": 135492361.9,
-              "units": 1037858
+              "pct": 0.653375,
+              "valueUsd": 130125869.16,
+              "units": 1039178
+            },
+            {
+              "zh": "Lumentum",
+              "ticker": "LITE",
+              "sym": "usLITE",
+              "cusip": "55024U109",
+              "type": "COM",
+              "pct": 0.633605,
+              "valueUsd": 126188417.16,
+              "units": 228988
             },
             {
               "zh": "罗斯百货",
@@ -2850,9 +2900,9 @@
               "sym": "usROST",
               "cusip": "778296103",
               "type": "COM",
-              "pct": 0.637627,
-              "valueUsd": 130001373,
-              "units": 548529
+              "pct": 0.627771,
+              "valueUsd": 125026489.56,
+              "units": 549229
             },
             {
               "zh": "洛克希德马丁",
@@ -2860,19 +2910,19 @@
               "sym": "usLMT",
               "cusip": "539830109",
               "type": "COM",
-              "pct": 0.584373,
-              "valueUsd": 119143766.4,
-              "units": 202560
+              "pct": 0.588817,
+              "valueUsd": 117268495.8,
+              "units": 202820
             },
             {
-              "zh": "美国合众银行",
-              "ticker": "USB",
-              "sym": "usUSB",
-              "cusip": "902973304",
+              "zh": "CSX运输",
+              "ticker": "CSX",
+              "sym": "usCSX",
+              "cusip": "126408103",
               "type": "COM",
-              "pct": 0.554001,
-              "valueUsd": 112951381.95,
-              "units": 1853181
+              "pct": 0.546201,
+              "valueUsd": 108780999.84,
+              "units": 2119248
             }
           ]
         },
@@ -2883,11 +2933,11 @@
           "name": "Invesco S&P 500 Low Volatility ETF",
           "indexName": "S&P 500 Low Volatility",
           "cusip": "46138E354",
-          "effectiveDate": "2026-11-09",
+          "effectiveDate": "2026-11-18",
           "total": 113,
           "equityCount": 100,
           "shownCount": 40,
-          "shownPct": 46.06,
+          "shownPct": 46.3,
           "holdings": [
             {
               "zh": "伯克希尔B",
@@ -2895,9 +2945,9 @@
               "sym": "usBRK.B",
               "cusip": "084670702",
               "type": "COM",
-              "pct": 1.491494,
-              "valueUsd": 113301240,
-              "units": 196960
+              "pct": 1.501351,
+              "valueUsd": 112407164.4,
+              "units": 195620
             },
             {
               "zh": "威州能源",
@@ -2905,19 +2955,9 @@
               "sym": "usWEC",
               "cusip": "92939U106",
               "type": "COM",
-              "pct": 1.332877,
-              "valueUsd": 101251924.95,
-              "units": 864293
-            },
-            {
-              "zh": "Evergy, Inc.",
-              "ticker": "EVRG",
-              "sym": "usEVRG",
-              "cusip": "30034W106",
-              "type": "COM",
-              "pct": 1.28968,
-              "valueUsd": 97970441.73,
-              "units": 1113427
+              "pct": 1.357666,
+              "valueUsd": 100828025.1,
+              "units": 858330
             },
             {
               "zh": "杜克能源",
@@ -2925,39 +2965,19 @@
               "sym": "usDUK",
               "cusip": "26441C204",
               "type": "COM",
-              "pct": 1.288699,
-              "valueUsd": 97895941.5,
-              "units": 764215
+              "pct": 1.329409,
+              "valueUsd": 98706519.45,
+              "units": 758989
             },
             {
-              "zh": "美国联合能源",
-              "ticker": "LNT",
-              "sym": "usLNT",
-              "cusip": "018802108",
+              "zh": "Evergy, Inc.",
+              "ticker": "EVRG",
+              "sym": "usEVRG",
+              "cusip": "30034W106",
               "type": "COM",
-              "pct": 1.270409,
-              "valueUsd": 95800508.28,
-              "units": 1304118
-            },
-            {
-              "zh": "ATMOS能源公司",
-              "ticker": "ATO",
-              "sym": "usATO",
-              "cusip": "049560105",
-              "type": "COM",
-              "pct": 1.240182,
-              "valueUsd": 94210351.15,
-              "units": 543469
-            },
-            {
-              "zh": "爱迪生联合电气",
-              "ticker": "ED",
-              "sym": "usED",
-              "cusip": "209115104",
-              "type": "COM",
-              "pct": 1.235942,
-              "valueUsd": 93888242.38,
-              "units": 793042
+              "pct": 1.287737,
+              "valueUsd": 96413742.91,
+              "units": 1105789
             },
             {
               "zh": "第一能源",
@@ -2965,9 +2985,39 @@
               "sym": "usFE",
               "cusip": "337932107",
               "type": "COM",
-              "pct": 1.230374,
-              "valueUsd": 92545128.9,
-              "units": 1985095
+              "pct": 1.268063,
+              "valueUsd": 94020548.86,
+              "units": 1971494
+            },
+            {
+              "zh": "爱迪生联合电气",
+              "ticker": "ED",
+              "sym": "usED",
+              "cusip": "209115104",
+              "type": "COM",
+              "pct": 1.264018,
+              "valueUsd": 93938841.05,
+              "units": 787615
+            },
+            {
+              "zh": "美国联合能源",
+              "ticker": "LNT",
+              "sym": "usLNT",
+              "cusip": "018802108",
+              "type": "COM",
+              "pct": 1.246866,
+              "valueUsd": 93353691.2,
+              "units": 1295140
+            },
+            {
+              "zh": "ATMOS能源公司",
+              "ticker": "ATO",
+              "sym": "usATO",
+              "cusip": "049560105",
+              "type": "COM",
+              "pct": 1.237438,
+              "valueUsd": 92647820.22,
+              "units": 539717
             },
             {
               "zh": "西帕纳卡资本",
@@ -2975,9 +3025,9 @@
               "sym": "usPNW",
               "cusip": "723484101",
               "type": "COM",
-              "pct": 1.227226,
-              "valueUsd": 92410911.8,
-              "units": 877930
+              "pct": 1.228068,
+              "valueUsd": 91130988,
+              "units": 871900
             },
             {
               "zh": "Regency Centers Corporation",
@@ -2985,19 +3035,9 @@
               "sym": "usREG",
               "cusip": "758849103",
               "type": "REIT",
-              "pct": 1.22589,
-              "valueUsd": 93124694.94,
-              "units": 1223554
-            },
-            {
-              "zh": "美国家庭寿险",
-              "ticker": "AFL",
-              "sym": "usAFL",
-              "cusip": "001055102",
-              "type": "COM",
-              "pct": 1.193821,
-              "valueUsd": 90688581.48,
-              "units": 724234
+              "pct": 1.2202,
+              "valueUsd": 91357157.22,
+              "units": 1215179
             },
             {
               "zh": "共和废品处理",
@@ -3005,29 +3045,19 @@
               "sym": "usRSG",
               "cusip": "760759100",
               "type": "COM",
-              "pct": 1.192293,
-              "valueUsd": 90572455.26,
-              "units": 367017
+              "pct": 1.213702,
+              "valueUsd": 90870645.28,
+              "units": 364708
             },
             {
-              "zh": "阿曼瑞恩",
-              "ticker": "AEE",
-              "sym": "usAEE",
-              "cusip": "023608102",
+              "zh": "美国家庭寿险",
+              "ticker": "AFL",
+              "sym": "usAFL",
+              "cusip": "001055102",
               "type": "COM",
-              "pct": 1.191175,
-              "valueUsd": 90487526.22,
-              "units": 793611
-            },
-            {
-              "zh": "中点能源",
-              "ticker": "CNP",
-              "sym": "usCNP",
-              "cusip": "15189T107",
-              "type": "COM",
-              "pct": 1.190702,
-              "valueUsd": 90451651.29,
-              "units": 2216409
+              "pct": 1.209318,
+              "valueUsd": 90103704.52,
+              "units": 719276
             },
             {
               "zh": "宝洁",
@@ -3035,9 +3065,9 @@
               "sym": "usPG",
               "cusip": "742718109",
               "type": "COM",
-              "pct": 1.17977,
-              "valueUsd": 89044983.04,
-              "units": 529022
+              "pct": 1.195008,
+              "valueUsd": 89471047.16,
+              "units": 525404
             },
             {
               "zh": "美国南方公司",
@@ -3045,29 +3075,19 @@
               "sym": "usSO",
               "cusip": "842587107",
               "type": "COM",
-              "pct": 1.159177,
-              "valueUsd": 88056855.6,
-              "units": 941080
+              "pct": 1.188119,
+              "valueUsd": 88240117.68,
+              "units": 934648
             },
             {
-              "zh": "洛斯公司",
-              "ticker": "L",
-              "sym": "usL",
-              "cusip": "540424108",
+              "zh": "阿曼瑞恩",
+              "ticker": "AEE",
+              "sym": "usAEE",
+              "cusip": "023608102",
               "type": "COM",
-              "pct": 1.158966,
-              "valueUsd": 88040831.52,
-              "units": 800808
-            },
-            {
-              "zh": "印北瓦电",
-              "ticker": "NI",
-              "sym": "usNI",
-              "cusip": "65473P105",
-              "type": "COM",
-              "pct": 1.151117,
-              "valueUsd": 86859323.22,
-              "units": 1927637
+              "pct": 1.187687,
+              "valueUsd": 88922918.88,
+              "units": 788184
             },
             {
               "zh": "可口可乐",
@@ -3075,9 +3095,29 @@
               "sym": "usKO",
               "cusip": "191216100",
               "type": "COM",
-              "pct": 1.151062,
-              "valueUsd": 87440404.59,
-              "units": 910553
+              "pct": 1.184776,
+              "valueUsd": 88704944.98,
+              "units": 904322
+            },
+            {
+              "zh": "中点能源",
+              "ticker": "CNP",
+              "sym": "usCNP",
+              "cusip": "15189T107",
+              "type": "COM",
+              "pct": 1.172473,
+              "valueUsd": 87783856,
+              "units": 2201200
+            },
+            {
+              "zh": "洛斯公司",
+              "ticker": "L",
+              "sym": "usL",
+              "cusip": "540424108",
+              "type": "COM",
+              "pct": 1.168263,
+              "valueUsd": 87468633.72,
+              "units": 795314
             },
             {
               "zh": "CMS能源",
@@ -3085,69 +3125,19 @@
               "sym": "usCMS",
               "cusip": "125896100",
               "type": "COM",
-              "pct": 1.148804,
-              "valueUsd": 86561651.8,
-              "units": 1244596
+              "pct": 1.160827,
+              "valueUsd": 86204707.38,
+              "units": 1236087
             },
             {
-              "zh": "DTE能源",
-              "ticker": "DTE",
-              "sym": "usDTE",
-              "cusip": "233331107",
+              "zh": "印北瓦电",
+              "ticker": "NI",
+              "sym": "usNI",
+              "cusip": "65473P105",
               "type": "COM",
-              "pct": 1.142555,
-              "valueUsd": 86794149.2,
-              "units": 627352
-            },
-            {
-              "zh": "强生",
-              "ticker": "JNJ",
-              "sym": "usJNJ",
-              "cusip": "478160104",
-              "type": "COM",
-              "pct": 1.142207,
-              "valueUsd": 86767726.37,
-              "units": 307567
-            },
-            {
-              "zh": "Realty Income Corporation",
-              "ticker": "O",
-              "sym": "usO",
-              "cusip": "756109104",
-              "type": "REIT",
-              "pct": 1.127534,
-              "valueUsd": 85259335,
-              "units": 1432930
-            },
-            {
-              "zh": "林德",
-              "ticker": "LIN",
-              "sym": "usLIN",
-              "cusip": "G54950103",
-              "type": "COM",
-              "pct": 1.124938,
-              "valueUsd": 85455877.22,
-              "units": 164234
-            },
-            {
-              "zh": "宾州电力",
-              "ticker": "PPL",
-              "sym": "usPPL",
-              "cusip": "69351T106",
-              "type": "COM",
-              "pct": 1.117176,
-              "valueUsd": 84866254.2,
-              "units": 2377206
-            },
-            {
-              "zh": "金科",
-              "ticker": "KIM",
-              "sym": "usKIM",
-              "cusip": "49446R109",
-              "type": "REIT",
-              "pct": 1.113984,
-              "valueUsd": 84623778.08,
-              "units": 3282536
+              "pct": 1.156418,
+              "valueUsd": 85996554.96,
+              "units": 1914438
             },
             {
               "zh": "好市多",
@@ -3155,29 +3145,69 @@
               "sym": "usCOST",
               "cusip": "22160K105",
               "type": "COM",
-              "pct": 1.10154,
-              "valueUsd": 83561857.5,
-              "units": 78375
+              "pct": 1.140097,
+              "valueUsd": 85359804.18,
+              "units": 77839
             },
             {
-              "zh": "麦当劳",
-              "ticker": "MCD",
-              "sym": "usMCD",
-              "cusip": "580135101",
+              "zh": "DTE能源",
+              "ticker": "DTE",
+              "sym": "usDTE",
+              "cusip": "233331107",
               "type": "COM",
-              "pct": 1.100375,
-              "valueUsd": 83589931.52,
-              "units": 297008
+              "pct": 1.138931,
+              "valueUsd": 85272539.04,
+              "units": 623064
             },
             {
-              "zh": "FRT信托",
-              "ticker": "FRT",
-              "sym": "usFRT",
-              "cusip": "313745101",
+              "zh": "金科",
+              "ticker": "KIM",
+              "sym": "usKIM",
+              "cusip": "49446R109",
               "type": "REIT",
-              "pct": 1.095366,
-              "valueUsd": 83209450.06,
-              "units": 731126
+              "pct": 1.11729,
+              "valueUsd": 83652215.84,
+              "units": 3260024
+            },
+            {
+              "zh": "林德",
+              "ticker": "LIN",
+              "sym": "usLIN",
+              "cusip": "G54950103",
+              "type": "COM",
+              "pct": 1.116433,
+              "valueUsd": 83588097.12,
+              "units": 163207
+            },
+            {
+              "zh": "强生",
+              "ticker": "JNJ",
+              "sym": "usJNJ",
+              "cusip": "478160104",
+              "type": "COM",
+              "pct": 1.113194,
+              "valueUsd": 83345573.7,
+              "units": 305631
+            },
+            {
+              "zh": "Realty Income Corporation",
+              "ticker": "O",
+              "sym": "usO",
+              "cusip": "756109104",
+              "type": "REIT",
+              "pct": 1.107739,
+              "valueUsd": 82937160.68,
+              "units": 1423081
+            },
+            {
+              "zh": "宾州电力",
+              "ticker": "PPL",
+              "sym": "usPPL",
+              "cusip": "69351T106",
+              "type": "COM",
+              "pct": 1.10679,
+              "valueUsd": 82866115.8,
+              "units": 2360858
             },
             {
               "zh": "安达保险",
@@ -3185,9 +3215,29 @@
               "sym": "usCB",
               "cusip": "H1467J104",
               "type": "COM",
-              "pct": 1.073457,
-              "valueUsd": 81545095.8,
-              "units": 224364
+              "pct": 1.104195,
+              "valueUsd": 82671789.46,
+              "units": 222823
+            },
+            {
+              "zh": "FRT信托",
+              "ticker": "FRT",
+              "sym": "usFRT",
+              "cusip": "313745101",
+              "type": "REIT",
+              "pct": 1.089384,
+              "valueUsd": 81562925.33,
+              "units": 726101
+            },
+            {
+              "zh": "麦当劳",
+              "ticker": "MCD",
+              "sym": "usMCD",
+              "cusip": "580135101",
+              "type": "COM",
+              "pct": 1.079706,
+              "valueUsd": 80838301.94,
+              "units": 294998
             },
             {
               "zh": "美国电力",
@@ -3195,9 +3245,9 @@
               "sym": "usAEP",
               "cusip": "025537101",
               "type": "COM",
-              "pct": 1.070026,
-              "valueUsd": 81284478.66,
-              "units": 633402
+              "pct": 1.071053,
+              "valueUsd": 79574445.5,
+              "units": 629047
             },
             {
               "zh": "西蒙地产",
@@ -3205,9 +3255,9 @@
               "sym": "usSPG",
               "cusip": "828806109",
               "type": "REIT",
-              "pct": 1.062013,
-              "valueUsd": 80675751.33,
-              "units": 346233
+              "pct": 1.063532,
+              "valueUsd": 79627344.58,
+              "units": 344141
             },
             {
               "zh": "Veralto Corp",
@@ -3215,19 +3265,9 @@
               "sym": "usVLTO",
               "cusip": "92338C103",
               "type": "COM",
-              "pct": 1.04788,
-              "valueUsd": 79602191.12,
-              "units": 674252
-            },
-            {
-              "zh": "Visa",
-              "ticker": "V",
-              "sym": "usV",
-              "cusip": "92826C839",
-              "type": "COM",
-              "pct": 1.042699,
-              "valueUsd": 79208614.32,
-              "units": 187627
+              "pct": 1.054207,
+              "valueUsd": 78929170.23,
+              "units": 669629
             },
             {
               "zh": "埃克西尔能源",
@@ -3235,29 +3275,9 @@
               "sym": "usXEL",
               "cusip": "98389B100",
               "type": "COM",
-              "pct": 1.032166,
-              "valueUsd": 78408424.59,
-              "units": 978027
-            },
-            {
-              "zh": "Vici Properties Inc.",
-              "ticker": "VICI",
-              "sym": "usVICI",
-              "cusip": "925652109",
-              "type": "REIT",
-              "pct": 1.031593,
-              "valueUsd": 78364946.24,
-              "units": 3114664
-            },
-            {
-              "zh": "万事达",
-              "ticker": "MA",
-              "sym": "usMA",
-              "cusip": "57636Q104",
-              "type": "COM",
-              "pct": 1.027067,
-              "valueUsd": 78021059.89,
-              "units": 118969
+              "pct": 1.046305,
+              "valueUsd": 78337522.55,
+              "units": 971327
             },
             {
               "zh": "爱克斯龙电力",
@@ -3265,19 +3285,29 @@
               "sym": "usEXC",
               "cusip": "30161N101",
               "type": "COM",
-              "pct": 1.026188,
-              "valueUsd": 77954313.8,
-              "units": 1707652
+              "pct": 1.042419,
+              "valueUsd": 78046560.54,
+              "units": 1695927
             },
             {
-              "zh": "公务集团",
-              "ticker": "PEG",
-              "sym": "usPEG",
-              "cusip": "744573106",
+              "zh": "Visa",
+              "ticker": "V",
+              "sym": "usV",
+              "cusip": "92826C839",
               "type": "COM",
-              "pct": 1.019752,
-              "valueUsd": 77465398.77,
-              "units": 1032459
+              "pct": 1.035447,
+              "valueUsd": 77377907.88,
+              "units": 186354
+            },
+            {
+              "zh": "美国废物管理",
+              "ticker": "WM",
+              "sym": "usWM",
+              "cusip": "94106L109",
+              "type": "COM",
+              "pct": 1.03337,
+              "valueUsd": 77369072.34,
+              "units": 320754
             },
             {
               "zh": "艾奇资本",
@@ -3285,9 +3315,29 @@
               "sym": "usACGL",
               "cusip": "G0450A105",
               "type": "COM",
-              "pct": 1.014017,
-              "valueUsd": 77029769.64,
-              "units": 712447
+              "pct": 1.0265,
+              "valueUsd": 76854732.72,
+              "units": 707556
+            },
+            {
+              "zh": "公务集团",
+              "ticker": "PEG",
+              "sym": "usPEG",
+              "cusip": "744573106",
+              "type": "COM",
+              "pct": 1.020645,
+              "valueUsd": 76416347.92,
+              "units": 1026136
+            },
+            {
+              "zh": "辛市金融",
+              "ticker": "CINF",
+              "sym": "usCINF",
+              "cusip": "172062101",
+              "type": "COM",
+              "pct": 1.017386,
+              "valueUsd": 76172322.53,
+              "units": 403391
             }
           ]
         }
@@ -3309,8 +3359,8 @@
             "cusip": "478160104",
             "type": "COM",
             "pcts": {
-              "spmo": 5.602727,
-              "splv": 1.142207
+              "spmo": 5.551359,
+              "splv": 1.113194
             }
           },
           {
@@ -3320,8 +3370,8 @@
             "cusip": "191216100",
             "type": "COM",
             "pcts": {
-              "spmo": 1.962463,
-              "splv": 1.151062
+              "spmo": 2.054714,
+              "splv": 1.184776
             }
           },
           {
@@ -3331,8 +3381,8 @@
             "cusip": "95040Q104",
             "type": "REIT",
             "pcts": {
-              "spmo": 1.028097,
-              "splv": 0.940422
+              "spmo": 1.057016,
+              "splv": 0.950431
             }
           },
           {
@@ -3342,19 +3392,8 @@
             "cusip": "H1467J104",
             "type": "COM",
             "pcts": {
-              "spmo": 0.673482,
-              "splv": 1.073457
-            }
-          },
-          {
-            "zh": "纽约梅隆银行",
-            "ticker": "BNY",
-            "sym": "usBNY",
-            "cusip": "064058100",
-            "type": "COM",
-            "pcts": {
-              "spmo": 0.730834,
-              "splv": 0.848768
+              "spmo": 0.704709,
+              "splv": 1.104195
             }
           },
           {
@@ -3364,8 +3403,19 @@
             "cusip": "828806109",
             "type": "REIT",
             "pcts": {
-              "spmo": 0.498516,
-              "splv": 1.062013
+              "spmo": 0.50742,
+              "splv": 1.063532
+            }
+          },
+          {
+            "zh": "纽约梅隆银行",
+            "ticker": "BNY",
+            "sym": "usBNY",
+            "cusip": "064058100",
+            "type": "COM",
+            "pcts": {
+              "spmo": 0.732134,
+              "splv": 0.835822
             }
           },
           {
@@ -3375,8 +3425,8 @@
             "cusip": "89417E109",
             "type": "COM",
             "pcts": {
-              "spmo": 0.516391,
-              "splv": 1.00784
+              "spmo": 0.524464,
+              "splv": 1.006969
             }
           },
           {
@@ -3386,8 +3436,8 @@
             "cusip": "001055102",
             "type": "COM",
             "pcts": {
-              "spmo": 0.303206,
-              "splv": 1.193821
+              "spmo": 0.312425,
+              "splv": 1.209318
             }
           },
           {
@@ -3397,19 +3447,8 @@
             "cusip": "74340W103",
             "type": "REIT",
             "pcts": {
-              "spmo": 0.664559,
-              "splv": 0.808422
-            }
-          },
-          {
-            "zh": "Evergy, Inc.",
-            "ticker": "EVRG",
-            "sym": "usEVRG",
-            "cusip": "30034W106",
-            "type": "COM",
-            "pcts": {
-              "spmo": 0.09037,
-              "splv": 1.28968
+              "spmo": 0.653375,
+              "splv": 0.781371
             }
           },
           {
@@ -3419,8 +3458,19 @@
             "cusip": "126408103",
             "type": "COM",
             "pcts": {
-              "spmo": 0.524043,
-              "splv": 0.853767
+              "spmo": 0.546201,
+              "splv": 0.874769
+            }
+          },
+          {
+            "zh": "Evergy, Inc.",
+            "ticker": "EVRG",
+            "sym": "usEVRG",
+            "cusip": "30034W106",
+            "type": "COM",
+            "pcts": {
+              "spmo": 0.091786,
+              "splv": 1.287737
             }
           },
           {
@@ -3430,19 +3480,8 @@
             "cusip": "902973304",
             "type": "COM",
             "pcts": {
-              "spmo": 0.554001,
-              "splv": 0.806655
-            }
-          },
-          {
-            "zh": "PNC金融",
-            "ticker": "PNC",
-            "sym": "usPNC",
-            "cusip": "693475105",
-            "type": "COM",
-            "pcts": {
-              "spmo": 0.467499,
-              "splv": 0.809573
+              "spmo": 0.542987,
+              "splv": 0.77722
             }
           },
           {
@@ -3452,8 +3491,19 @@
             "cusip": "540424108",
             "type": "COM",
             "pcts": {
-              "spmo": 0.095402,
-              "splv": 1.158966
+              "spmo": 0.097822,
+              "splv": 1.168263
+            }
+          },
+          {
+            "zh": "PNC金融",
+            "ticker": "PNC",
+            "sym": "usPNC",
+            "cusip": "693475105",
+            "type": "COM",
+            "pcts": {
+              "spmo": 0.458142,
+              "splv": 0.780723
             }
           },
           {
@@ -3463,8 +3513,8 @@
             "cusip": "92276F100",
             "type": "REIT",
             "pcts": {
-              "spmo": 0.265973,
-              "splv": 0.923607
+              "spmo": 0.268702,
+              "splv": 0.918048
             }
           },
           {
@@ -3474,19 +3524,8 @@
             "cusip": "313745101",
             "type": "REIT",
             "pcts": {
-              "spmo": 0.058627,
-              "splv": 1.095366
-            }
-          },
-          {
-            "zh": "诺信",
-            "ticker": "NDSN",
-            "sym": "usNDSN",
-            "cusip": "655663102",
-            "type": "COM",
-            "pcts": {
-              "spmo": 0.096026,
-              "splv": 0.95209
+              "spmo": 0.059316,
+              "splv": 1.089384
             }
           },
           {
@@ -3496,19 +3535,19 @@
             "cusip": "74834L100",
             "type": "COM",
             "pcts": {
-              "spmo": 0.151211,
-              "splv": 0.896128
+              "spmo": 0.155018,
+              "splv": 0.903021
             }
           },
           {
-            "zh": "信安金融",
-            "ticker": "PFG",
-            "sym": "usPFG",
-            "cusip": "74251V102",
+            "zh": "诺信",
+            "ticker": "NDSN",
+            "sym": "usNDSN",
+            "cusip": "655663102",
             "type": "COM",
             "pcts": {
-              "spmo": 0.144964,
-              "splv": 0.901358
+              "spmo": 0.097978,
+              "splv": 0.955671
             }
           },
           {
@@ -3518,8 +3557,19 @@
             "cusip": "04621X108",
             "type": "COM",
             "pcts": {
-              "spmo": 0.094241,
-              "splv": 0.913364
+              "spmo": 0.097136,
+              "splv": 0.925547
+            }
+          },
+          {
+            "zh": "信安金融",
+            "ticker": "PFG",
+            "sym": "usPFG",
+            "cusip": "74251V102",
+            "type": "COM",
+            "pcts": {
+              "spmo": 0.142124,
+              "splv": 0.869468
             }
           },
           {
@@ -3529,8 +3579,8 @@
             "cusip": "45167R104",
             "type": "COM",
             "pcts": {
-              "spmo": 0.095093,
-              "splv": 0.823487
+              "spmo": 0.096314,
+              "splv": 0.820778
             }
           }
         ]
@@ -3539,7 +3589,7 @@
     "fundHoldings": {
       "reportDate": "2026-09-30",
       "reportDateName": "2026年三季报",
-      "lagDays": 42,
+      "lagDays": 51,
       "partial": false,
       "disclosureScope": "TOP10",
       "fundsReporting": 9260,
@@ -4671,8 +4721,8 @@
   },
   "meta": {
     "dataset": "institutions.holdings",
-    "asof": "2026-11-10T18:16:08.077Z",
-    "generatedAt": "2026-11-10T18:16:08.766Z",
+    "asof": "2026-11-20T03:00:16.666Z",
+    "generatedAt": "2026-11-20T03:00:17.734Z",
     "source": "SEC EDGAR 13F · 发行方公开 ETF 持仓 · 东方财富基金持仓统计",
     "stale": false,
     "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
