@@ -2,16 +2,16 @@
   "ok": true,
   "data": {
     "status": "ok",
-    "generatedAt": "2026-11-20T12:39:11.063Z",
-    "durationMs": 78125,
+    "generatedAt": "2026-11-20T12:48:14.999Z",
+    "durationMs": 8424,
     "mode": "live",
     "staleDatasets": [],
     "datasets": [
       {
         "id": "index",
         "path": "api/v1/index.json",
-        "lastBuilt": "2026-11-20T12:39:11.063Z",
-        "asof": "2026-11-20T12:39:11.063Z",
+        "lastBuilt": "2026-11-20T12:48:14.999Z",
+        "asof": "2026-11-20T12:48:14.999Z",
         "count": 11,
         "ms": 0,
         "stale": false
@@ -19,8 +19,8 @@
       {
         "id": "manifest",
         "path": "api/v1/manifest.json",
-        "lastBuilt": "2026-11-20T12:39:11.063Z",
-        "asof": "2026-11-20T12:39:11.063Z",
+        "lastBuilt": "2026-11-20T12:48:14.999Z",
+        "asof": "2026-11-20T12:48:14.999Z",
         "count": 11,
         "ms": 0,
         "stale": false
@@ -28,8 +28,8 @@
       {
         "id": "universe",
         "path": "api/v1/universe.json",
-        "lastBuilt": "2026-11-20T12:39:11.063Z",
-        "asof": "2026-11-20T12:39:11.063Z",
+        "lastBuilt": "2026-11-20T12:48:14.999Z",
+        "asof": "2026-11-20T12:48:14.999Z",
         "count": 194,
         "ms": 0,
         "stale": false
@@ -37,44 +37,44 @@
       {
         "id": "quotes.latest",
         "path": "api/v1/quotes/latest.json",
-        "lastBuilt": "2026-11-20T12:39:11.063Z",
-        "asof": "2026-11-20T12:39:12.329Z",
+        "lastBuilt": "2026-11-20T12:48:14.999Z",
+        "asof": "2026-11-20T12:48:16.318Z",
         "count": 194,
-        "ms": 1249,
+        "ms": 1302,
         "stale": false
       },
       {
         "id": "klines.catalog",
         "path": "api/v1/markets/klines.json",
-        "lastBuilt": "2026-11-20T12:39:11.063Z",
+        "lastBuilt": "2026-11-20T12:48:14.999Z",
         "asof": "2026-11-20T00:00:00.000Z",
         "count": 19,
-        "ms": 7064,
+        "ms": 6859,
         "stale": false
       },
       {
         "id": "klines.symbol",
         "path": "api/v1/klines/{symbol}.json",
-        "lastBuilt": "2026-11-20T12:39:11.063Z",
+        "lastBuilt": "2026-11-20T12:48:14.999Z",
         "asof": "2026-11-20T00:00:00.000Z",
         "count": 19,
-        "ms": 7064,
+        "ms": 6859,
         "stale": false
       },
       {
         "id": "events.global",
         "path": "api/v1/events/global.json",
-        "lastBuilt": "2026-11-20T12:39:11.063Z",
-        "asof": "2026-11-20T12:36:34.744Z",
-        "count": 61,
+        "lastBuilt": "2026-11-20T12:48:14.999Z",
+        "asof": "2026-11-20T12:45:25.954Z",
+        "count": 98,
         "ms": 3,
         "stale": false
       },
       {
         "id": "prediction.markets",
         "path": "api/v1/prediction/markets.json",
-        "lastBuilt": "2026-11-20T12:39:11.063Z",
-        "asof": "2026-11-20T12:37:09.040Z",
+        "lastBuilt": "2026-11-20T12:48:14.999Z",
+        "asof": "2026-11-20T12:46:01.567Z",
         "count": 30,
         "ms": 2,
         "stale": false
@@ -82,8 +82,8 @@
       {
         "id": "institutions.holdings",
         "path": "api/v1/institutions/holdings.json",
-        "lastBuilt": "2026-11-20T12:39:11.063Z",
-        "asof": "2026-11-20T12:39:10.092Z",
+        "lastBuilt": "2026-11-20T12:48:14.999Z",
+        "asof": "2026-11-20T12:48:14.068Z",
         "count": 4,
         "ms": 5,
         "stale": false
@@ -91,17 +91,17 @@
       {
         "id": "macro.series",
         "path": "api/v1/macro/series.json",
-        "lastBuilt": "2026-11-20T12:39:11.063Z",
+        "lastBuilt": "2026-11-20T12:48:14.999Z",
         "asof": "2025-01-01T00:00:00.000Z",
-        "count": 16,
-        "ms": 69781,
+        "count": 44,
+        "ms": 233,
         "stale": false
       },
       {
         "id": "health",
         "path": "api/v1/health.json",
-        "lastBuilt": "2026-11-20T12:39:11.063Z",
-        "asof": "2026-11-20T12:39:11.063Z",
+        "lastBuilt": "2026-11-20T12:48:14.999Z",
+        "asof": "2026-11-20T12:48:14.999Z",
         "count": 11,
         "ms": 0,
         "stale": false
@@ -110,8 +110,8 @@
   },
   "meta": {
     "dataset": "health",
-    "asof": "2026-11-20T12:39:11.063Z",
-    "generatedAt": "2026-11-20T12:39:11.063Z",
+    "asof": "2026-11-20T12:48:14.999Z",
+    "generatedAt": "2026-11-20T12:48:14.999Z",
     "source": "构建脚本自检",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",

@@ -44,7 +44,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-20T12:39:11.063Z",
+          "generatedAt": "2026-11-20T12:48:14.999Z",
           "count": 11,
           "datasets": [
             {
@@ -60,7 +60,7 @@
             "openapi": "api/openapi.json"
           }
         },
-        "asof": "2026-11-20T12:39:11.063Z",
+        "asof": "2026-11-20T12:48:14.999Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -100,7 +100,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-20T12:39:11.063Z",
+          "generatedAt": "2026-11-20T12:48:14.999Z",
           "base": "api/v1",
           "datasets": [
             {
@@ -111,7 +111,7 @@
             }
           ]
         },
-        "asof": "2026-11-20T12:39:11.063Z",
+        "asof": "2026-11-20T12:48:14.999Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -203,7 +203,7 @@
             "中石化"
           ]
         },
-        "asof": "2026-11-20T12:39:11.063Z",
+        "asof": "2026-11-20T12:48:14.999Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -314,10 +314,10 @@
           "change": 0.11,
           "changePct": 1.86,
           "quoteAt": 1795162500000,
-          "updatedAt": 1795178351953,
+          "updatedAt": 1795178896088,
           "source": "tencent"
         },
-        "asof": "2026-11-20T12:39:12.329Z",
+        "asof": "2026-11-20T12:48:16.318Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -559,25 +559,23 @@
           }
         ],
         "sample": {
-          "id": "11月20日 全球基金净买入1031亿印度卢比 约合73 7亿元人民币 的印度股票||1795177480000",
+          "id": "美国国债收益率延续跌势 当日下跌6至9个基点||1795178412000",
           "category": "market",
-          "title": "11月20日，全球基金净买入1031亿印度卢比（约合73.7亿元人民币）的印度股票。",
+          "title": "美国国债收益率延续跌势，当日下跌6至9个基点。",
           "source": "新浪财经7x24",
           "sourceUrl": "https://finance.sina.com.cn/7x24/",
-          "publishedAt": "2026-11-20T12:24:40.000Z",
-          "country": "印度",
-          "lat": 28.61,
-          "lng": 77.21,
+          "publishedAt": "2026-11-20T12:40:12.000Z",
+          "country": "美国",
+          "lat": 38.895,
+          "lng": -77.036,
           "severity": 30,
           "importance": "low",
-          "relatedSymbols": [
-            "EM:133.USDCNH"
-          ],
+          "relatedSymbols": [],
           "relatedAssets": []
         },
-        "asof": "2026-11-20T12:36:34.744Z",
+        "asof": "2026-11-20T12:45:25.954Z",
         "stale": false,
-        "count": 61,
+        "count": 98,
         "license": "GDELT 免费开放数据（gdeltproject.org）· 新浪财经7x24 公开快讯；坐标为本项目关键词地理定位，精度为国家/地区级",
         "note": "severity 是把上游 importance 映射成 0-100 的展示口径；坐标为关键词地理定位，精度为国家/地区级，定位不到时为 null。"
       },
@@ -650,57 +648,64 @@
           }
         ],
         "sample": {
-          "id": "ev:770450",
-          "title": "Fed Decision in December?",
-          "titleZh": "美联储12月份的决定？",
-          "category": "central_bank",
-          "partition": true,
-          "endDate": 1796878740000,
-          "updatedAt": 1795178144101,
-          "outcomeCount": 5,
+          "id": "ev:478472",
+          "title": "Russia x Ukraine ceasefire agreement by...?",
+          "titleZh": "俄罗斯x乌克兰停火协议由... ？",
+          "category": "geopolitics",
+          "partition": false,
+          "endDate": 1814414340000,
+          "updatedAt": 1795178623425,
+          "outcomeCount": 14,
           "outcomes": [
             {
-              "id": "pm:3215008",
-              "label": "25 bps increase",
-              "labelZh": "增加25个基点",
-              "probability": 0.925,
-              "change24h": 1
+              "id": "pm:4338140",
+              "label": "December 31, 2027",
+              "labelZh": "2027年12月31日",
+              "probability": 0.68,
+              "change24h": 0.5
             },
             {
-              "id": "pm:3215007",
-              "label": "No change",
-              "labelZh": "不变",
-              "probability": 0.04,
-              "change24h": 1.7
+              "id": "pm:4338142",
+              "label": "November 30, 2027",
+              "labelZh": "2027年11月30日",
+              "probability": 0.67,
+              "change24h": null
             },
             {
-              "id": "pm:3215009",
-              "label": "50+ bps increase",
-              "labelZh": "增加50 +个基点",
-              "probability": 0.04,
-              "change24h": -2.4
+              "id": "pm:4338137",
+              "label": "October 31, 2027",
+              "labelZh": "2027年10月31日",
+              "probability": 0.665,
+              "change24h": 0.5
             },
             {
-              "id": "pm:3215006",
-              "label": "25 bps decrease",
-              "labelZh": "下降25个基点",
-              "probability": 0.003,
-              "change24h": -0.1
+              "id": "pm:4338139",
+              "label": "September 30, 2027",
+              "labelZh": "9月30日",
+              "probability": 0.625,
+              "change24h": -2
             },
             {
-              "id": "pm:3215005",
-              "label": "50+ bps decrease",
-              "labelZh": "降低50 +个基点",
-              "probability": 0.002,
+              "id": "pm:4338141",
+              "label": "August 31, 2027",
+              "labelZh": "2027年8月31日",
+              "probability": 0.62,
+              "change24h": -1
+            },
+            {
+              "id": "pm:4338138",
+              "label": "July 31, 2027",
+              "labelZh": "2027年7月31日",
+              "probability": 0.605,
               "change24h": null
             }
           ],
           "rest": {
-            "probability": 0,
-            "count": 0
+            "probability": 2.28,
+            "count": 8
           }
         },
-        "asof": "2026-11-20T12:37:09.040Z",
+        "asof": "2026-11-20T12:46:01.567Z",
         "stale": false,
         "count": 30,
         "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
@@ -739,7 +744,7 @@
           }
         ],
         "sample": {
-          "asOf": "2026-11-20T12:39:10.092Z",
+          "asOf": "2026-11-20T12:48:14.068Z",
           "institutions": [
             {
               "slug": "berkshire",
@@ -774,7 +779,7 @@
           "fundHoldings": {
             "reportDate": "2026-09-30",
             "reportDateName": "2026年三季报",
-            "lagDays": 52,
+            "lagDays": 42,
             "topAdd": [
               {
                 "code": "688825",
@@ -809,7 +814,7 @@
             ]
           }
         },
-        "asof": "2026-11-20T12:39:10.092Z",
+        "asof": "2026-11-20T12:48:14.068Z",
         "stale": false,
         "count": 4,
         "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
@@ -848,7 +853,7 @@
           }
         ],
         "sample": {
-          "count": 16,
+          "count": 44,
           "catalog": [
             {
               "key": "gdp",
@@ -894,7 +899,7 @@
         },
         "asof": "2025-01-01T00:00:00.000Z",
         "stale": false,
-        "count": 16,
+        "count": 44,
         "license": "世界银行公开数据（CC BY 4.0）；仅用于信息展示。",
         "note": "世界银行年度指标，最新非空年份为准；不同国家的发布滞后 1 年属正常。FRED 序列因前端不内置访问密钥默认未启用，只给出口径目录。"
       },
@@ -932,19 +937,19 @@
         ],
         "sample": {
           "status": "ok",
-          "generatedAt": "2026-11-20T12:39:11.063Z",
+          "generatedAt": "2026-11-20T12:48:14.999Z",
           "durationMs": 0,
           "datasets": [
             {
               "id": "quotes.latest",
-              "lastBuilt": "2026-11-20T12:39:11.063Z",
+              "lastBuilt": "2026-11-20T12:48:14.999Z",
               "count": 1,
               "ms": 0,
               "stale": false
             }
           ]
         },
-        "asof": "2026-11-20T12:39:11.063Z",
+        "asof": "2026-11-20T12:48:14.999Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -954,8 +959,8 @@
   },
   "meta": {
     "dataset": "manifest",
-    "asof": "2026-11-20T12:39:11.063Z",
-    "generatedAt": "2026-11-20T12:39:11.063Z",
+    "asof": "2026-11-20T12:48:14.999Z",
+    "generatedAt": "2026-11-20T12:48:14.999Z",
     "source": "本项目构建产物（data/** 与 js/data/universe.js）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",

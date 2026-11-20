@@ -1,20 +1,24 @@
 {
   "ok": true,
   "data": {
-    "count": 61,
+    "count": 98,
     "windowHours": 6,
     "categories": [
       {
         "id": "market",
-        "count": 29
+        "count": 30
+      },
+      {
+        "id": "macro",
+        "count": 26
+      },
+      {
+        "id": "trade",
+        "count": 18
       },
       {
         "id": "geopolitics",
         "count": 13
-      },
-      {
-        "id": "macro",
-        "count": 9
       },
       {
         "id": "conflict",
@@ -22,7 +26,7 @@
       },
       {
         "id": "central_bank",
-        "count": 3
+        "count": 4
       }
     ],
     "countries": [
@@ -32,7 +36,19 @@
       },
       {
         "name": "印度",
+        "count": 9
+      },
+      {
+        "name": "中国",
+        "count": 7
+      },
+      {
+        "name": "美国",
         "count": 6
+      },
+      {
+        "name": "英国",
+        "count": 5
       },
       {
         "name": "俄罗斯",
@@ -43,24 +59,16 @@
         "count": 4
       },
       {
-        "name": "英国",
-        "count": 4
-      },
-      {
         "name": "乌克兰",
         "count": 4
       },
       {
-        "name": "美国",
-        "count": 3
-      },
-      {
-        "name": "中国",
-        "count": 3
-      },
-      {
         "name": "澳大利亚",
-        "count": 3
+        "count": 4
+      },
+      {
+        "name": "哥伦比亚",
+        "count": 2
       },
       {
         "name": "日本",
@@ -69,10 +77,6 @@
       {
         "name": "欧元区",
         "count": 2
-      },
-      {
-        "name": "哥伦比亚",
-        "count": 1
       },
       {
         "name": "瑞士",
@@ -105,13 +109,24 @@
       {
         "name": "香港",
         "count": 1
-      },
-      {
-        "name": "沙特",
-        "count": 1
       }
     ],
     "events": [
+      {
+        "id": "美国国债收益率延续跌势 当日下跌6至9个基点||1795178412000",
+        "category": "market",
+        "title": "美国国债收益率延续跌势，当日下跌6至9个基点。",
+        "source": "新浪财经7x24",
+        "sourceUrl": "https://finance.sina.com.cn/7x24/",
+        "publishedAt": "2026-11-20T12:40:12.000Z",
+        "country": "美国",
+        "lat": 38.895,
+        "lng": -77.036,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
       {
         "id": "11月20日 全球基金净买入1031亿印度卢比 约合73 7亿元人民币 的印度股票||1795177480000",
         "category": "market",
@@ -533,6 +548,21 @@
         "lng": 8.68,
         "severity": 30,
         "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "法兴银行预计2027年美联储将再加息两次 每次25个基点||1795174931000",
+        "category": "central_bank",
+        "title": "法兴银行预计2027年美联储将再加息两次，每次25个基点。",
+        "source": "新浪财经7x24",
+        "sourceUrl": "https://finance.sina.com.cn/7x24/",
+        "publishedAt": "2026-11-20T11:42:11.000Z",
+        "country": "美国",
+        "lat": 38.895,
+        "lng": -77.036,
+        "severity": 55,
+        "importance": "med",
         "relatedSymbols": [],
         "relatedAssets": []
       },
@@ -972,32 +1002,64 @@
         "relatedAssets": []
       },
       {
-        "id": "uganda targets january 2027 financial closure for shs12 trillion sgr|2027|1795157100000",
+        "id": "pretty bad recession already a reality for many||1795157100000",
         "category": "macro",
-        "title": "Uganda targets January 2027 financial closure for shs12 trillion SGR project",
-        "source": "independent.co.ug",
-        "sourceUrl": "https://www.independent.co.ug/uganda-targets-january-2027-financial-closure-for-shs12-trillion-sgr-project/",
+        "title": "Pretty bad : recession already a reality for many",
+        "source": "juneesoutherncross.com.au",
+        "sourceUrl": "https://www.juneesoutherncross.com.au/story/9395012/pretty-bad-recession-already-a-reality-for-many/",
         "publishedAt": "2026-11-20T06:45:00.000Z",
         "country": null,
         "lat": null,
         "lng": null,
-        "severity": 30,
-        "importance": "low",
+        "severity": 85,
+        "importance": "high",
         "relatedSymbols": [],
         "relatedAssets": []
       },
       {
-        "id": "oil prices gain as houthi attacks on riyadh raise supply||1795157100000",
-        "category": "macro",
-        "title": "Oil prices gain as Houthi attacks on Riyadh raise supply concerns",
-        "source": "tribune.com.pk",
-        "sourceUrl": "https://tribune.com.pk/story/2641333/oil-prices-gain-as-houthi-attacks-on-riyadh-raise-supply-concerns",
+        "id": "xi lauds pm for full turnaround in china relationship||1795157100000",
+        "category": "trade",
+        "title": "Xi lauds PM for  full turnaround  in China relationship",
+        "source": "juneesoutherncross.com.au",
+        "sourceUrl": "https://www.juneesoutherncross.com.au/story/9395015/xi-lauds-pm-for-full-turnaround-in-china-relationship/",
         "publishedAt": "2026-11-20T06:45:00.000Z",
-        "country": "沙特",
-        "lat": 24.71,
-        "lng": 46.68,
-        "severity": 30,
-        "importance": "low",
+        "country": "中国",
+        "lat": 39.904,
+        "lng": 116.407,
+        "severity": 85,
+        "importance": "high",
+        "relatedSymbols": [
+          "sh000001"
+        ],
+        "relatedAssets": []
+      },
+      {
+        "id": "asx runners of the week black rock mayne pharma metal||1795157100000",
+        "category": "macro",
+        "title": "ASX Runners of the Week : Black Rock , Mayne Pharma & Metal Hawk",
+        "source": "smh.com.au",
+        "sourceUrl": "https://www.smh.com.au/business/companies/asx-runners-of-the-week-black-rock-mayne-pharma-and-metal-hawk-20261120-p61g1o.html",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 55,
+        "importance": "med",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "textile imports hit n1 06trn as stakeholders seek reforms to||1795157100000",
+        "category": "macro",
+        "title": "Textile Imports Hit N1 . 06trn As Stakeholders Seek Reforms To Create 2m Jobs",
+        "source": "leadership.ng",
+        "sourceUrl": "https://leadership.ng/textile-imports-hit-n1-06trn-as-stakeholders-seek-reforms-to-create-2m-jobs/",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 55,
+        "importance": "med",
         "relatedSymbols": [],
         "relatedAssets": []
       },
@@ -1011,6 +1073,252 @@
         "country": "中国",
         "lat": 39.904,
         "lng": 116.407,
+        "severity": 55,
+        "importance": "med",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "ten years on is the united kingdom preparing to undo||1795157100000",
+        "category": "trade",
+        "title": "Ten years on , is the united kingdom preparing to undo Brexit ?",
+        "source": "kvia.com",
+        "sourceUrl": "https://kvia.com/news/us-world/cnn-world/2026/11/19/ten-years-on-is-the-uk-preparing-to-undo-brexit/",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": "英国",
+        "lat": 51.51,
+        "lng": -0.13,
+        "severity": 55,
+        "importance": "med",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "sikh grandmother deportation to india inspires us bill to protect||1795157100000",
+        "category": "trade",
+        "title": "Sikh grandmother deportation to India inspires US bill to protect long - term immigrants",
+        "source": "timesofindia.indiatimes.com",
+        "sourceUrl": "https://timesofindia.indiatimes.com/india/sikh-grandmothers-deportation-to-india-inspires-us-bill-to-protect-long-term-immigrants/articleshow/136015174.cms",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": "印度",
+        "lat": 28.61,
+        "lng": 77.21,
+        "severity": 55,
+        "importance": "med",
+        "relatedSymbols": [
+          "usINX"
+        ],
+        "relatedAssets": []
+      },
+      {
+        "id": "asian shares head for worst week since 2020 as ai|2020|1795157100000",
+        "category": "macro",
+        "title": "Asian shares head for worst week since 2020 as AI rout deepens",
+        "source": "asiaone.com",
+        "sourceUrl": "https://www.asiaone.com:443/money/asian-shares-head-worst-week-2020-ai-rout-deepens",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "gold plunges from record high as rising interest rates reshape||1795157100000",
+        "category": "macro",
+        "title": "Gold Plunges from Record High as Rising Interest Rates Reshape Global Investment Appeal",
+        "source": "slguardian.org",
+        "sourceUrl": "https://slguardian.org/gold-plunges-from-record-high-as-rising-interest-rates-reshape-global-investment-appeal/",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [
+          "EM:101.GC00Y"
+        ],
+        "relatedAssets": []
+      },
+      {
+        "id": "ril sail indusind bank among top upgrades tmpv waaree acc||1795157100000",
+        "category": "macro",
+        "title": "RIL , SAIL , IndusInd Bank among top upgrades , TMPV , Waaree , ACC among top downgrades post Q2",
+        "source": "businesstoday.in",
+        "sourceUrl": "https://www.businesstoday.in/markets/trending-stocks/story/ril-sail-indusind-bank-among-top-upgrades-tmpv-waaree-acc-among-top-downgrades-post-q2-568693-2026-11-20",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "grim week wipes billions from australian share market||1795157100000",
+        "category": "macro",
+        "title": "Grim week wipes billions from Australian share market",
+        "source": "standard.net.au",
+        "sourceUrl": "https://www.standard.net.au/story/9395619/grim-week-wipes-billions-from-australian-share-market/",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": "澳大利亚",
+        "lat": -35.28,
+        "lng": 149.13,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "oil prices rebound as houthi attacks reignite middle east supply||1795157100000",
+        "category": "macro",
+        "title": "Oil Prices Rebound as Houthi Attacks Reignite Middle East Supply Fears",
+        "source": "oilprice.com",
+        "sourceUrl": "https://oilprice.com/Latest-Energy-News/World-News/Oil-Prices-Rebound-as-Houthi-Attacks-Reignite-Middle-East-Supply-Fears.html",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "gold crashes 5 to 3 538 as waller floats 50bp|3,5,538|1795157100000",
+        "category": "macro",
+        "title": "Gold Crashes 5 % to $3 , 538 as Waller Floats 50bp December Hike",
+        "source": "zerohedge.com",
+        "sourceUrl": "http://www.zerohedge.com/news/2026-11-19/gold-crashes-5-3538-waller-floats-50bp-december-hike",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [
+          "EM:101.GC00Y"
+        ],
+        "relatedAssets": []
+      },
+      {
+        "id": "has the rba gone too far||1795157100000",
+        "category": "macro",
+        "title": "Has the RBA gone too far ?",
+        "source": "smh.com.au",
+        "sourceUrl": "https://www.smh.com.au/business/the-economy/has-the-rba-gone-too-far-20261120-p61g06.html",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "with rising debts students rethink the value of higher education||1795157100000",
+        "category": "macro",
+        "title": "With rising debts , students rethink the value of higher education",
+        "source": "statepress.com",
+        "sourceUrl": "https://www.statepress.com/article/2026/11/higher-education-debt",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "aladdin printing owner cindy mathis dies unexpectedly||1795157100000",
+        "category": "macro",
+        "title": "Aladdin Printing Owner Cindy Mathis Dies Unexpectedly",
+        "source": "chattanoogan.com",
+        "sourceUrl": "https://www.chattanoogan.com/2026/11/19/526394/Aladdin-Printing-Owner-Cindy-Mathis.aspx",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "how rising grocery bills have begun pinching the middle class||1795157100000",
+        "category": "macro",
+        "title": "How rising grocery bills have begun pinching the middle class",
+        "source": "timesofindia.indiatimes.com",
+        "sourceUrl": "https://timesofindia.indiatimes.com/toi-plus/business-economy/how-rising-grocery-bills-have-begun-pinching-the-middle-class/articleshow/135987655.cms",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "india wheat area set for biggest drop in 26 years|1,104,26|1795157100000",
+        "category": "macro",
+        "title": "India wheat area set for biggest drop in 26 years as farmers switch crops | 104 . 1 WIKY",
+        "source": "wiky.com",
+        "sourceUrl": "https://wiky.com/2026/11/20/indias-wheat-area-set-for-biggest-drop-in-26-years-as-farmers-switch-crops/",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": "印度",
+        "lat": 28.61,
+        "lng": 77.21,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "tennessee lawmaker files property tax cap bill as group pledges||1795157100000",
+        "category": "macro",
+        "title": "Tennessee lawmaker files property tax cap bill as group pledges six - figure campaign",
+        "source": "newschannel9.com",
+        "sourceUrl": "https://newschannel9.com/news/local/state-lawmaker-files-property-tax-cap-bill-as-group-pledges-six-figure-campaign",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "asean power grid could boost economy and investment||1795157100000",
+        "category": "macro",
+        "title": "ASEAN Power Grid could boost economy and investment",
+        "source": "straitstimes.com",
+        "sourceUrl": "https://www.straitstimes.com/singapore/environment/asean-power-grid-can-boost-regions-economy-bring-in-couple-of-trillions-tan-see-leng",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "producer inflation rises to 5 2 on mining sector pressures|2,5|1795157100000",
+        "category": "macro",
+        "title": "Producer inflation rises to 5 . 2 % on mining sector pressures",
+        "source": "ghanaiantimes.com.gh",
+        "sourceUrl": "https://ghanaiantimes.com.gh/producer-inflation-rises-to-5-2-on-mining-sector-pressures/",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
         "severity": 30,
         "importance": "low",
         "relatedSymbols": [],
@@ -1030,13 +1338,279 @@
         "importance": "low",
         "relatedSymbols": [],
         "relatedAssets": []
+      },
+      {
+        "id": "the final dollar spike before the crack up boom||1795157100000",
+        "category": "macro",
+        "title": "The Final Dollar Spike Before the Crack - Up Boom",
+        "source": "zerohedge.com",
+        "sourceUrl": "http://www.zerohedge.com/news/2026-11-19/final-dollar-spike-crack-boom",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "no job creation no pay hike for employees despite tax||1795157100000",
+        "category": "macro",
+        "title": "No Job Creation , No Pay Hike For Employees Despite Tax Cuts : Modi Big Question To India Inc As Layoffs Hit Companies",
+        "source": "oneindia.com",
+        "sourceUrl": "https://www.oneindia.com/india/no-job-creation-no-pay-hike-for-employees-despite-tax-cuts-modis-big-question-to-india-inc-as-lay-8264841.html",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": "印度",
+        "lat": 28.61,
+        "lng": 77.21,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "st louis park eden prairie teens launch global student government||1795157100000",
+        "category": "trade",
+        "title": "St . Louis Park , Eden Prairie teens launch global student government network",
+        "source": "hometownsource.com",
+        "sourceUrl": "https://www.hometownsource.com/sun_sailor/community/eden_prairie/st-louis-park-eden-prairie-teens-launch-global-student-government-network/article_1d1739fe-13ec-4499-8066-bfcfd603f26e.html",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "trillion dollar debut 1887|1887|1795157100000",
+        "category": "trade",
+        "title": "Trillion - Dollar Debut # 1887",
+        "source": "geeknewscentral.com",
+        "sourceUrl": "https://geeknewscentral.com/2026/11/19/trillion-dollar-debut-1887/",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "thursday final word||1795157100000",
+        "category": "trade",
+        "title": "Thursday Final Word",
+        "source": "hotair.com",
+        "sourceUrl": "https://hotair.com/ed-morrissey/2026/11/19/thursdays-final-word-n3821167",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "us accuses minnesota lawmaker elect wife of illegal entry||1795157100000",
+        "category": "trade",
+        "title": "US accuses Minnesota lawmaker - elect wife of illegal entry",
+        "source": "punchng.com",
+        "sourceUrl": "https://punchng.com/us-accuses-minnesota-lawmaker-elects-wife-of-illegal-entry/",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [
+          "usINX"
+        ],
+        "relatedAssets": []
+      },
+      {
+        "id": "ken sai customs and logistical terminal opens on kyrgyz uzbek||1795157100000",
+        "category": "trade",
+        "title": "Ken - Sai customs and logistical terminal opens on Kyrgyz - Uzbek border",
+        "source": "akipress.com",
+        "sourceUrl": "https://akipress.com/news:932400:Ken-Sai_customs_and_logistical_terminal_opens_on_Kyrgyz-Uzbek_border/",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "chip supply chain warns of broader disruption from new us||1795157100000",
+        "category": "trade",
+        "title": "Chip supply chain warns of broader disruption from new US export controls",
+        "source": "asia.nikkei.com",
+        "sourceUrl": "https://asia.nikkei.com/business/tech/semiconductors/chip-supply-chain-warns-of-broader-disruption-from-new-us-export-controls",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [
+          "usINX"
+        ],
+        "relatedAssets": []
+      },
+      {
+        "id": "tsmc tightens china ai chip curbs the straits times||1795157100000",
+        "category": "trade",
+        "title": "TSMC tightens China AI chip curbs | The Straits Times",
+        "source": "straitstimes.com",
+        "sourceUrl": "https://www.straitstimes.com/asia/east-asia/tsmc-tightens-china-ai-chip-curbs-as-new-us-rules-close-manufacturing-loophole-sources-say",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": "中国",
+        "lat": 39.904,
+        "lng": 116.407,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [
+          "sh000001"
+        ],
+        "relatedAssets": []
+      },
+      {
+        "id": "the vanishing rhythm of weddings||1795157100000",
+        "category": "trade",
+        "title": "The vanishing rhythm of weddings",
+        "source": "tribune.com.pk",
+        "sourceUrl": "https://tribune.com.pk/story/2641272/the-vanishing-rhythm-of-weddings",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "filipino migrant healthcare workers denounce ice detention deportation threats||1795157100000",
+        "category": "trade",
+        "title": "Filipino migrant healthcare workers denounce ICE detention , deportation threats",
+        "source": "bulatlat.com",
+        "sourceUrl": "https://www.bulatlat.com/2026/11/20/filipino-migrant-healthcare-workers-denounce-ice-detention-deportation-threats/",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "tsmc tightens china ai chip curbs as new us rules||1795157100000",
+        "category": "trade",
+        "title": "TSMC tightens China AI chip curbs as new US rules close manufacturing loophole , sources say",
+        "source": "asiaone.com",
+        "sourceUrl": "https://www.asiaone.com:443/money/tsmc-tightens-china-ai-chip-curbs-new-us-rules-close-manufacturing-loophole-sources-say",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": "中国",
+        "lat": 39.904,
+        "lng": 116.407,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [
+          "sh000001",
+          "usINX"
+        ],
+        "relatedAssets": []
+      },
+      {
+        "id": "colombia economy posts its weakest quarter in two and a||1795157100000",
+        "category": "trade",
+        "title": "Colombia Economy Posts Its Weakest Quarter in Two and a Half Years : What It Means for Full - Year Forecasts",
+        "source": "latinpost.com",
+        "sourceUrl": "https://www.latinpost.com/articles/167756/20261119/colombias-economy-posts-its-weakest-quarter-two-half-years-what-it-means-full-year-forecasts.htm",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": "哥伦比亚",
+        "lat": 4.71,
+        "lng": -74.07,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "rapid expansion of ice came with a cost safety||1795157100000",
+        "category": "trade",
+        "title": "Rapid expansion of ICE came with a cost : safety",
+        "source": "dailypress.net",
+        "sourceUrl": "https://www.dailypress.net/opinion/editorial/2026/11/rapid-expansion-of-ice-came-with-a-cost-safety/",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "amd shares slide 7 72 as short seller raises china|7,72|1795157100000",
+        "category": "trade",
+        "title": "AMD Shares Slide 7 . 72 % as Short Seller Raises China Export Concerns",
+        "source": "slguardian.org",
+        "sourceUrl": "https://slguardian.org/amd-shares-slide-7-72-as-short-seller-raises-china-export-concerns/",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": "中国",
+        "lat": 39.904,
+        "lng": 116.407,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [
+          "sh000001"
+        ],
+        "relatedAssets": []
+      },
+      {
+        "id": "wall street tumbles as investors seek cover amid growing uncertainty||1795157100000",
+        "category": "trade",
+        "title": "Wall Street tumbles as investors seek cover amid growing uncertainty",
+        "source": "milwaukeesun.com",
+        "sourceUrl": "http://www.milwaukeesun.com/news/279444422/wall-street-tumbles-as-investors-seek-cover-amid-growing-uncertainty",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": "美国",
+        "lat": 38.895,
+        "lng": -77.036,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "fcc quashes provincial infrastructure cess||1795157100000",
+        "category": "trade",
+        "title": "FCC quashes provincial infrastructure cess",
+        "source": "tribune.com.pk",
+        "sourceUrl": "https://tribune.com.pk/story/2641287/fcc-quashes-provincial-infrastructure-cess",
+        "publishedAt": "2026-11-20T06:45:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
       }
     ]
   },
   "meta": {
     "dataset": "events.global",
-    "asof": "2026-11-20T12:36:34.744Z",
-    "generatedAt": "2026-11-20T12:39:11.063Z",
+    "asof": "2026-11-20T12:45:25.954Z",
+    "generatedAt": "2026-11-20T12:48:14.999Z",
     "source": "GDELT DOC 2.0 (artlist) + 新浪财经7x24",
     "stale": false,
     "license": "GDELT 免费开放数据（gdeltproject.org）· 新浪财经7x24 公开快讯；坐标为本项目关键词地理定位，精度为国家/地区级",
