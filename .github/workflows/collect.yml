@@ -42,6 +42,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   # data 分支的唯一写入口都要串行：本 workflow 与未来的 meridian 采集链共用这个组，
@@ -239,6 +240,7 @@ jobs:
           node test/run-all.mjs
 
       - name: 提交采集产物到 data 分支（main 只留代码）
+        id: push
         # if: always()：哪怕某个采集步骤崩了，也要先把已经写盘的成功数据推上去。
         # 但闸门红的时候不提交——契约没过的东西不能上线。
         #
@@ -286,6 +288,16 @@ jobs:
             data/events/polymarket-history.json data/events/polymarket-i18n.json \
             data/actors data/academy-terms.json \
             js/data/academy-assets.js api/v1 api/openapi.json
+
+      - name: 触发站点重新拼装（GITHUB_TOKEN 直推不触发 push 事件，必须显式踢 deploy-pages）
+        # GitHub 防递归规则：workflow 用 GITHUB_TOKEN 推的分支不会触发其他 workflow 的
+        # on:push——data 分支更新后 deploy-pages 永远不会自己醒来（2026-11-20 上线首日
+        # 实测）。推送成功后在这里显式 dispatch；deploy 幂等且 concurrency group pages
+        # 串行，无变化的空踢无副作用。
+        if: always() && steps.push.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-pages.yml --repo "${GITHUB_REPOSITORY}" --ref main
 
       - name: 失败闸门（采集失败的脚本在这里让 workflow 变红）
         # 必须排在提交步骤之后：先把已经成功的数据推上远端，再把失败暴露成红。

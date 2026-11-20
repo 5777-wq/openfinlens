@@ -32,6 +32,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: data-branch-write
@@ -77,6 +78,7 @@ jobs:
         run: node test/run-all.mjs
 
       - name: 推送 Meridian 产物到 data 分支
+        id: push
         # if: always()：monitor 步骤失败（如全部取数失败 exit 2）时不该推产物——用结果文件存在性判断。
         # push-data-branch.sh：read-tree FETCH_HEAD 增量保留 + commit-tree + 冲突重试，
         # 无变化时静默退出 0（不产生空提交）。
@@ -86,6 +88,16 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           bash _scripts/push-data-branch.sh -m "data: refresh +meridian" \
             data/us-signals.json data/us-signals-latest.csv
+
+      - name: 触发站点重新拼装（GITHUB_TOKEN 直推不触发 push 事件，必须显式踢 deploy-pages）
+        # GitHub 防递归规则：workflow 用 GITHUB_TOKEN 推的分支不会触发其他 workflow 的
+        # on:push——data 分支更新后 deploy-pages 永远不会自己醒来（2026-11-20 上线首日
+        # 实测）。推送成功后在这里显式 dispatch；deploy 幂等且 concurrency group pages
+        # 串行，无变化的空踢无副作用。
+        if: always() && steps.push.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-pages.yml --repo "${GITHUB_REPOSITORY}" --ref main
 
       - name: 心跳检查（us-signals.json 的 marketDate 必须等于最近已收盘交易日）
         id: fresh

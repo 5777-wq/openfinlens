@@ -204,8 +204,12 @@ const Polymarket = (() => {
       if (!q || /\.\.\.|…/.test(q)) return;
       const mVol = num(m.volume24hr);
       const mLiq = num(m.liquidity);
-      // 零成交零流动性的槽位即便有报价也是噪声（Polymarket 默认挂 0.5）
-      if (isPlaceholderLabel(label) && !(mVol || mLiq)) return;
+      // 零成交零流动性的槽位即便有报价也是噪声（Polymarket 默认挂 0.5）：
+      // 占位名（Person A/Candidate N…）之外，"恰好默认价 0.5 且无成交无流动性"的
+      // 具名档位同样按占位剔除——Spain 大选这类候选几十个、绝大多数从未交易的
+      // negRisk 事件全靠这条拦住，否则默认价 0.5 会把 rest 概率质量撑爆，
+      // 互斥书的合计直接报废（2026-11-10 起 CI 契约闸门连红数日的根因）。
+      if (!(mVol || mLiq) && (isPlaceholderLabel(label) || p === 0.5)) return;
       outcomes.push({
         id: 'pm:' + (typeof m.id === 'string' || typeof m.id === 'number' ? m.id : dedupeKey(label)),
         label,
@@ -240,13 +244,17 @@ const Polymarket = (() => {
 
     const end = toMs(ev.endDate);
     const updated = toMs(ev.updatedAt);
+    // 书一致性自证：negRisk 标记的互斥事件，具名 + rest 合计应 ≈ 1；
+    // 偏离过远（上游坏书/默认价残留）就降级为概率条——宁缺毋假，
+    // 不用坏数据冒充互斥画环图（契约测试按同口径 0.5~1.5 验收）。
+    const bookSum = named.reduce((s, o) => s + o.probability, 0) + restProb;
     return {
       id: 'ev:' + (typeof ev.id === 'string' || typeof ev.id === 'number' ? ev.id : dedupeKey(title)),
       title,
       stem: titleStem(title),      // 省略号之前的词干（模板题的公共部分）
       category: cat,
       // negRisk：Polymarket 官方标记的"档位互斥"事件。决定能不能画环图。
-      partition: ev.negRisk === true,
+      partition: ev.negRisk === true && bookSum > 0.5 && bookSum < 1.5,
       volume24hr: vol24 === null ? null : Math.round(vol24),
       liquidity: liq === null ? null : Math.round(liq),
       endDate: end,
