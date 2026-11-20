@@ -16,18 +16,19 @@ AJAR=$TC/android16.jar   # 编译平台 jar（阿里云镜像 API16；壳只依�
 rm -rf "$OUT"
 mkdir -p "$OUT/classes" "$OUT/dex" "$OUT/gen"
 
-# 0) 工具链解压
+# 0) 工具链解压。Phase 5：CI（Linux）与本地（Windows）双环境——aapt2 可执行文件名
+#    由环境变量 OFL_AAPT2 覆盖（Linux 上是 aapt2 无后缀，文件也从 aapt2-linux.zip 解出）。
 if [ ! -d "$TC/jdk" ]; then
   echo "[0/6] 解压 JDK…"
   mkdir -p "$TC/jdk"
   unzip -q "$TC/jdk17.zip" -d "$TC/jdk"
 fi
 JDK_BIN=$(ls -d "$TC"/jdk/jdk-*/bin | head -1)
-if [ ! -f "$TC/aapt2/aapt2.exe" ]; then
+if [ ! -f "$TC/aapt2/aapt2.exe" ] && [ ! -f "$TC/aapt2/aapt2" ]; then
   mkdir -p "$TC/aapt2"
   unzip -q -o "$TC/aapt2.zip" -d "$TC/aapt2"
 fi
-AAPT2="$TC/aapt2/aapt2.exe"
+AAPT2="${OFL_AAPT2:-$TC/aapt2/aapt2.exe}"
 
 # 1) 图标（PIL）——已生成则跳过（构建机未必装 PIL，图标入库可复现）
 if [ ! -f res/mipmap-xxhdpi/ic_launcher.png ]; then
@@ -83,5 +84,5 @@ fi
 
 echo "[6/6] 完成：$OUT/app.apk（已对齐+签名）"
 VERSION="${OFL_VERSION:-1.0.2}"
-cp "$OUT/app.apk" "OpenFinLens-v${VERSION}.apk"
-ls -la "OpenFinLens-v${VERSION}.apk"
+# Phase 5：APK 只发 GitHub Releases，不再提交入库（本地构建者手动 gh release upload）
+ls -la "$OUT/app.apk"

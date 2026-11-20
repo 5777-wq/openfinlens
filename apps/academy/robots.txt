@@ -1,0 +1,6 @@
+# OpenFin Academy —— 允许搜索引擎抓取全站
+User-agent: *
+Allow: /
+
+# 本站部署在 GitHub Pages 子路径；sitemap 里是 hash URL，收录能力有限，仅作尽力而为
+Sitemap: https://5777-wq.github.io/openfinlens/academy/sitemap.xml

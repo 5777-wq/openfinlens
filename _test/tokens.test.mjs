@@ -11,7 +11,8 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
-const ROOT = path.resolve(import.meta.dirname, '..');
+const ROOT = path.resolve(import.meta.dirname, '..', 'apps', 'terminal');
+const REPO = path.resolve(ROOT, '..', '..');   // 仓库根（_scripts 共享设施）
 let pass = 0, fail = 0;
 const test = (name, fn) => {
   try { fn(); pass++; console.log('✓ ' + name); }
@@ -326,8 +327,8 @@ test('index.html 的业务资源 ?v= 必须全部同版本（防缓存穿透失�
   assert.equal(uniq.length, 1, `版本号不统一（漏 bump 会导致用户看到旧缓存）：${uniq.join(' ')}`);
 });
 
-test('vendor 库的 ?v= 必须是锁定的语义化版本，不被业务版本号覆盖', () => {
-  const vendor = [...HTML.matchAll(/lib\/[^"?]+\?v=([^"&]+)/g)].map(m => m[1]);
+test('vendor 库的 ?v= 必须是锁定的语义化版本，不被业务版本号覆盖（monorepo 后路径在 core/vendor/）', () => {
+  const vendor = [...HTML.matchAll(/(?:lib|core\/vendor)\/[^"?]+\?v=([^"&]+)/g)].map(m => m[1]);
   assert.ok(vendor.length >= 3, '没扫到 vendor 资源');
   vendor.forEach(v => assert.ok(/^\d+\.\d+\.\d+$/.test(v), `vendor 版本应形如 1.2.3，实际 "${v}"`));
 });
@@ -660,7 +661,7 @@ test('三个弹层都接了公共焦点陷阱（js/focus-trap.js）', () => {
   });
   /* v3.3：业务脚本打成一个 bundle 后，index.html 不再有单独的 focus-trap 标签。
      判据改成「加载清单里有它」——打包或未打包都成立。 */
-  const bundleFiles = JSON.parse(readFileSync(path.join(ROOT, '_scripts/js-bundle.manifest.json'), 'utf8')).files;
+  const bundleFiles = JSON.parse(readFileSync(path.join(REPO, '_scripts/js-bundle.manifest.json'), 'utf8')).files;
   assert.ok(bundleFiles.includes('js/focus-trap.js') || HTML.includes('js/focus-trap.js'),
     '没有加载 js/focus-trap.js（bundle 清单与 index.html 都没有）');
 });

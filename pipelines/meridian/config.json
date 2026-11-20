@@ -1,0 +1,33 @@
+{
+  "universe": {
+    "topN": 150,
+    "candidatesFile": "core/registry/sp500-candidates.json",
+    "quoteBatch": 60
+  },
+  "rsi": { "period": 6, "period2": 14, "overbought": 70, "oversold": 30 },
+  "tunnels": [
+    { "key": "短通道", "n": [144, 169] },
+    { "key": "中通道", "n": [288, 338] },
+    { "key": "长通道", "n": [576, 676] }
+  ],
+  "sources": {
+    "bootstrapLmt": 2000,
+    "refreshLmt": 120,
+    "eastProxy": ""
+  },
+  "watchlist": {
+    "tickers": ["NVDA", "ASML", { "ticker": "QQQ", "note": "池外ETF" }]
+  },
+  "report": {
+    "console": true,
+    "csv": true
+  },
+  "notify": {
+    "enabled": false,
+    "onlySignals": true,
+    "serverchanSendkey": "",
+    "barkUrl": "",
+    "telegramToken": "",
+    "telegramChatId": ""
+  }
+}

@@ -43,6 +43,12 @@ const groups = [
   { file: 'insight.test.mjs', net: false },
   { file: 'evolve.test.mjs', net: false },  // 市场时段/情绪历史/请求去重（纯函数）
   { file: 'technical.test.mjs', net: false }, // 技术面指标手算核对（纯函数）
+  { file: 'core-engine.test.mjs', net: false },   // core/engine：三仓指标引擎唯一真源（Wilder RSI/Vegas/MACD/KDJ/BOLL/周线/ET 时钟/归一对比）
+  { file: 'core-sources.test.mjs', net: false },  // core/sources：三级降级链（注入传输层，全离线）+ 东财熔断 + 后复权锚定
+  { file: 'core-registry.test.mjs', net: false }, // core/registry：产业链 10链49环节177股零缺口 + 候选池 + vendor 收敛 v4.2.3 防漂移
+  { file: 'core-bridge.test.mjs', net: false },   // core/bridge：ESM→window 桥接契约（老视图零改动接入的保险丝）
+  { file: 'meridian-engine.test.mjs', net: false },  // Meridian 引擎套件移植：黄金值/状态机/ET时钟/排名/周线/信号（证明 core/ 真源与旧仓逐点一致）
+  { file: 'meridian-pipeline.test.mjs', net: false }, // Meridian 管线：us-signals Schema/CSV BOM/固定名原子写出/mock 离线试跑护栏/心跳
   { file: 'events.test.mjs', net: false },  // 事件数据模型/聚类/时间语义/Bus（纯函数）
   { file: 'auniverse.test.mjs', net: false }, // 全市场行分类：指数 vs 个股（漏判与误判都要钉死）
   { file: 'option.test.mjs', net: false },  // 期权数据源：合约月/行权价网格/secid 白名单/探针保留/OKX→Deribit 降级/熔断（离线组；不注册实网组——EM WAF 会 IP 级拉黑打红 CI，实网验证走手动 curl）

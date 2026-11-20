@@ -8,7 +8,8 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 
-const ROOT = path.resolve(import.meta.dirname, '..');
+const ROOT = path.resolve(import.meta.dirname, '..', 'apps', 'terminal');
+const REPO = path.resolve(ROOT, '..', '..');   // 仓库根（core/vendor 共享设施）
 let pass = 0, fail = 0;
 async function test(name, fn) {
   try { await fn(); pass++; console.log('✓ ' + name); }
@@ -38,7 +39,7 @@ function loadModule(rel, globalName, extraCtx = {}, libs = []) {
   ctx.window = ctx; ctx.globalThis = ctx; ctx.self = ctx;
   // 与浏览器同一套加载方式：UMD 挂到 self.d3 / self.topojson 上
   for (const lib of libs) {
-    vm.runInContext(readFileSync(path.join(ROOT, lib), 'utf8'), ctx, { filename: lib });
+    vm.runInContext(readFileSync(path.join(REPO, lib), 'utf8'), ctx, { filename: lib });
   }
   vm.runInContext(readFileSync(path.join(ROOT, rel), 'utf8'), ctx, { filename: rel });
   return ctx.window[globalName];
@@ -48,7 +49,7 @@ function loadModule(rel, globalName, extraCtx = {}, libs = []) {
 const WM = loadModule('js/worldmap.js', 'WorldMapView', {
   U: { escapeHTML: (s) => String(s == null ? '' : s) },   // utils.js 的最小 stub
   Path2D: FakePath2D,
-}, ['lib/d3-array.min.js', 'lib/d3-geo.min.js']);
+}, ['core/vendor/d3-array.min.js', 'core/vendor/d3-geo.min.js']);
 
 // 真实 atlas → Feature[]（topojson 在浏览器里是全局库，这里单独起一个上下文取）
 let _feats = null;
@@ -57,7 +58,7 @@ function realFeatures() {
   const topo = JSON.parse(readFileSync(path.join(ROOT, 'assets/globe/countries-110m.json'), 'utf8'));
   const ctx = vm.createContext(baseCtx());
   ctx.window = ctx; ctx.globalThis = ctx; ctx.self = ctx;
-  vm.runInContext(readFileSync(path.join(ROOT, 'lib/topojson-client.min.js'), 'utf8'), ctx, { filename: 'topojson' });
+  vm.runInContext(readFileSync(path.join(REPO, 'core/vendor/topojson-client.min.js'), 'utf8'), ctx, { filename: 'topojson' });
   _feats = ctx.topojson.feature(topo, topo.objects.countries).features;
   return _feats;
 }

@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 
-const ROOT = path.resolve(import.meta.dirname, '..');
+const ROOT = path.resolve(import.meta.dirname, '..', 'apps', 'terminal');
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0';
 let pass = 0, fail = 0;
 async function test(name, fn) {

@@ -410,7 +410,9 @@ function makeEnv(opts = {}) {
     requestAnimationFrame: (f) => setTimeout(f, 0),
   });
   ctx.window = ctx; ctx.globalThis = ctx;
-  SCRIPTS.forEach(f => vm.runInContext(readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f }));
+  // 前端脚本源在 apps/terminal（Phase 5 根前端删除后唯一来源）；数据夹具仍走仓库根 data/
+  const TSRC = path.resolve(import.meta.dirname, '..', 'apps', 'terminal');
+  SCRIPTS.forEach(f => vm.runInContext(readFileSync(path.join(TSRC, f), 'utf8'), ctx, { filename: f }));
   return { W: vm.runInContext('window', ctx), blocked: o.blocked, netErrors: o.netErrors, storage: o.storage };
 }
 

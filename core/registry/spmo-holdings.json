@@ -1,0 +1,170 @@
+{
+ "asOf": "2026-09-16",
+ "effectiveDate": "2026-09-16",
+ "total": 103,
+ "equityCount": 99,
+ "shownCount": 40,
+ "shownPct": 87.9,
+ "holdings": [
+  {
+   "ticker": "MU",
+   "pct": 10.71664
+  },
+  {
+   "ticker": "NVDA",
+   "pct": 8.98226
+  },
+  {
+   "ticker": "AVGO",
+   "pct": 6.029852
+  },
+  {
+   "ticker": "JNJ",
+   "pct": 4.78324
+  },
+  {
+   "ticker": "GOOGL",
+   "pct": 4.539319
+  },
+  {
+   "ticker": "AMD",
+   "pct": 4.306581
+  },
+  {
+   "ticker": "GOOG",
+   "pct": 3.600915
+  },
+  {
+   "ticker": "XOM",
+   "pct": 3.271594
+  },
+  {
+   "ticker": "LRCX",
+   "pct": 3.133648
+  },
+  {
+   "ticker": "INTC",
+   "pct": 2.724837
+  },
+  {
+   "ticker": "CAT",
+   "pct": 2.437115
+  },
+  {
+   "ticker": "SNDK",
+   "pct": 2.311404
+  },
+  {
+   "ticker": "CSCO",
+   "pct": 1.891365
+  },
+  {
+   "ticker": "STX",
+   "pct": 1.754969
+  },
+  {
+   "ticker": "AMAT",
+   "pct": 1.714074
+  },
+  {
+   "ticker": "GE",
+   "pct": 1.654557
+  },
+  {
+   "ticker": "PLTR",
+   "pct": 1.620139
+  },
+  {
+   "ticker": "RTX",
+   "pct": 1.601547
+  },
+  {
+   "ticker": "PM",
+   "pct": 1.464772
+  },
+  {
+   "ticker": "WDC",
+   "pct": 1.453273
+  },
+  {
+   "ticker": "KO",
+   "pct": 1.41823
+  },
+  {
+   "ticker": "APH",
+   "pct": 1.413052
+  },
+  {
+   "ticker": "GS",
+   "pct": 1.373547
+  },
+  {
+   "ticker": "GEV",
+   "pct": 1.332286
+  },
+  {
+   "ticker": "NEM",
+   "pct": 1.274187
+  },
+  {
+   "ticker": "KLAC",
+   "pct": 1.267277
+  },
+  {
+   "ticker": "C",
+   "pct": 1.075683
+  },
+  {
+   "ticker": "MS",
+   "pct": 0.982614
+  },
+  {
+   "ticker": "GILD",
+   "pct": 0.955674
+  },
+  {
+   "ticker": "WELL",
+   "pct": 0.910808
+  },
+  {
+   "ticker": "GLW",
+   "pct": 0.793819
+  },
+  {
+   "ticker": "ADI",
+   "pct": 0.748081
+  },
+  {
+   "ticker": "SCHW",
+   "pct": 0.694728
+  },
+  {
+   "ticker": "BNY",
+   "pct": 0.578123
+  },
+  {
+   "ticker": "MCK",
+   "pct": 0.574145
+  },
+  {
+   "ticker": "LMT",
+   "pct": 0.528548
+  },
+  {
+   "ticker": "MO",
+   "pct": 0.508101
+  },
+  {
+   "ticker": "HWM",
+   "pct": 0.507904
+  },
+  {
+   "ticker": "GD",
+   "pct": 0.494088
+  },
+  {
+   "ticker": "MNST",
+   "pct": 0.472067
+  }
+ ]
+}

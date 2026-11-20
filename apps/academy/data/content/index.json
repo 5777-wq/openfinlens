@@ -1,0 +1,2578 @@
+{
+  "items": [
+    {
+      "id": "CL00Y",
+      "section": "assets",
+      "title": "NYMEX原油：工业的血液，也是最会坐过山车的商品",
+      "dek": "加油机、机票、快递费的成本都连着它；供给一有风吹草动，价格就容易猛跳。",
+      "tag": "标的百科",
+      "tags": [
+        "NYMEX原油",
+        "大宗商品",
+        "能源",
+        "通胀"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/CL00Y.md"
+    },
+    {
+      "id": "CN10Y",
+      "section": "assets",
+      "title": "中债10年：中国债券市场的那把总尺子",
+      "dek": "10年期国债收益率是国内给长期资金定价的基准线，它一路往下，说明市场愿意用更低的回报把钱借给国家十年。",
+      "tag": "标的百科",
+      "tags": [
+        "中债10年",
+        "国债收益率",
+        "利率",
+        "中国债券",
+        "基准"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/CN10Y.md"
+    },
+    {
+      "id": "CN2Y",
+      "section": "assets",
+      "title": "中债2年：离央行最近的那一端",
+      "dek": "2年期国债收益率紧跟政策利率的脸色，是观察货币政策最灵敏的一扇窗。",
+      "tag": "标的百科",
+      "tags": [
+        "中债2年",
+        "国债收益率",
+        "短端利率",
+        "货币政策",
+        "中国债券"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/CN2Y.md"
+    },
+    {
+      "id": "CN30Y",
+      "section": "assets",
+      "title": "中债30年：最怕利率反弹的那一端",
+      "dek": "30年期国债把回报锁到三十年后，收益率每动一下，它被放大的程度是短债的好几倍。",
+      "tag": "标的百科",
+      "tags": [
+        "中债30年",
+        "超长债",
+        "久期",
+        "利率",
+        "保险配置"
+      ],
+      "readMinutes": 7,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/CN30Y.md"
+    },
+    {
+      "id": "CN5Y",
+      "section": "assets",
+      "title": "中债5年：夹在短端和长端中间那一段",
+      "dek": "5年期是收益率曲线的中段，既看央行的脸色，也看经济的远近，它的样本低点就落在最近一个月。",
+      "tag": "标的百科",
+      "tags": [
+        "中债5年",
+        "国债收益率",
+        "收益率曲线",
+        "中期利率",
+        "中国债券"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/CN5Y.md"
+    },
+    {
+      "id": "DE10Y",
+      "section": "assets",
+      "title": "德债10年：欧元区给钱定价的那根基准线",
+      "dek": "德国十年期国债是欧元区的定价基准，它的收益率由欧洲央行和欧元区通胀说了大半，和中国国债走的是两套逻辑。",
+      "tag": "标的百科",
+      "tags": [
+        "德债10年",
+        "欧元区",
+        "欧洲央行",
+        "国债收益率",
+        "基准"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/DE10Y.md"
+    },
+    {
+      "id": "DJIA",
+      "section": "assets",
+      "title": "道琼斯：最老牌的美股门面",
+      "dek": "它装的是美国一批老牌大公司，覆盖广但数量少；它常被当成美股的代名词，却和标普500 不是一回事。",
+      "tag": "标的百科",
+      "tags": [
+        "道琼斯",
+        "美股",
+        "指数",
+        "蓝筹"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/DJIA.md"
+    },
+    {
+      "id": "EURUSD",
+      "section": "assets",
+      "title": "欧元美元：全球交易最多的一对货币",
+      "dek": "一欧元能换几美元，是全球成交最活跃的汇价；数字变大是欧元变贵，方向别记反。",
+      "tag": "标的百科",
+      "tags": [
+        "欧元美元",
+        "外汇",
+        "欧元",
+        "美元"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-16",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/EURUSD.md"
+    },
+    {
+      "id": "FCHI",
+      "section": "assets",
+      "title": "法国CAC40：巴黎大公司的体温计",
+      "dek": "它装的是法国最有门面的那批跨国公司，欧元和全球需求比法国本土景气更能摇动它。",
+      "tag": "标的百科",
+      "tags": [
+        "法国CAC40",
+        "欧洲",
+        "指数",
+        "跨国公司"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/FCHI.md"
+    },
+    {
+      "id": "FTSE",
+      "section": "assets",
+      "title": "英国富时100：老牌经济的一篮子门面",
+      "dek": "它装着英国最大的一批上市公司，很多收入来自海外；英镑一晃，它的数字就跟着晃。",
+      "tag": "标的百科",
+      "tags": [
+        "英国富时100",
+        "欧洲",
+        "指数",
+        "英镑"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/FTSE.md"
+    },
+    {
+      "id": "GBPUSD",
+      "section": "assets",
+      "title": "英镑美元：脾气最急的老牌货币",
+      "dek": "一英镑换几美元，报法和欧元一样，但它格外吃英国自家的政治经济冲击。",
+      "tag": "标的百科",
+      "tags": [
+        "英镑美元",
+        "外汇",
+        "英镑",
+        "美元"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-16",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/GBPUSD.md"
+    },
+    {
+      "id": "GDAXI",
+      "section": "assets",
+      "title": "德国DAX：一台出口机器的股价刻度",
+      "dek": "它装着德国制造业的头部公司，全球贸易和欧洲工业景气比德国消费更能决定它的方向。",
+      "tag": "标的百科",
+      "tags": [
+        "德国DAX",
+        "欧洲",
+        "指数",
+        "制造业"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/GDAXI.md"
+    },
+    {
+      "id": "gold",
+      "section": "assets",
+      "title": "黄金：它到底在防什么，又不防什么",
+      "dek": "不靠任何公司担保，只靠\"大家都认\"。但它不产生现金流，利率上行时它会先跌给你看。",
+      "tag": "标的百科",
+      "tags": [
+        "黄金",
+        "白银",
+        "避险",
+        "家庭资产"
+      ],
+      "readMinutes": 7,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": null,
+      "difficulty": 2,
+      "updatedAt": "2026-10-21",
+      "file": "assets/gold.md"
+    },
+    {
+      "id": "HG00Y",
+      "section": "assets",
+      "title": "COMEX铜：全球工厂的体温计",
+      "dek": "盖楼、铺电网、造新能源车都要用铜，它的价格常被当成制造业冷热的读数；可它自己也大起大落。",
+      "tag": "标的百科",
+      "tags": [
+        "COMEX铜",
+        "大宗商品",
+        "工业金属",
+        "制造业"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/HG00Y.md"
+    },
+    {
+      "id": "hk00005",
+      "section": "assets",
+      "title": "汇丰控股：一家靠息差吃饭的全球银行",
+      "dek": "它把钱借出去赚利差，利率高低直接决定它赚多赚少；分红是它给股东的主要回报。",
+      "tag": "标的百科",
+      "tags": [
+        "汇丰控股",
+        "港股",
+        "银行",
+        "高股息"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk00005.md"
+    },
+    {
+      "id": "hk00016",
+      "section": "assets",
+      "title": "新鸿基地产：两条腿走路的香港地产商",
+      "dek": "卖楼的钱是一次性的，收租的钱每个月都来；利率和香港楼市是它绕不开的两个变量。",
+      "tag": "标的百科",
+      "tags": [
+        "新鸿基地产",
+        "港股",
+        "香港地产",
+        "收租"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk00016.md"
+    },
+    {
+      "id": "hk00027",
+      "section": "assets",
+      "title": "银河娱乐：赌桌流水牵着走的澳门度假村",
+      "dek": "它的命脉是澳门博彩收入和内地客流；政策与通关直接改写它的流水，不是间接情绪。",
+      "tag": "标的百科",
+      "tags": [
+        "银河娱乐",
+        "港股",
+        "澳门博彩",
+        "度假村"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk00027.md"
+    },
+    {
+      "id": "hk00291",
+      "section": "assets",
+      "title": "华润啤酒：从卖得多到卖得贵",
+      "dek": "它的故事是高端化——把便宜啤酒换成贵一点的牌子，靠结构升级而不是多卖桶数提利润。",
+      "tag": "标的百科",
+      "tags": [
+        "华润啤酒",
+        "港股",
+        "啤酒",
+        "消费升级"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk00291.md"
+    },
+    {
+      "id": "hk00386",
+      "section": "assets",
+      "title": "中国石油化工：油价涨，它未必跟着赚",
+      "dek": "它是把原油变成成品油和化工品的下游公司，利润看的是成品油售价减原油成本这道价差。",
+      "tag": "标的百科",
+      "tags": [
+        "中国石油化工",
+        "港股",
+        "石油",
+        "炼化"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk00386.md"
+    },
+    {
+      "id": "hk00700",
+      "section": "assets",
+      "title": "腾讯：它同时是游戏公司、社交公司和投资公司",
+      "dek": "微信的社交、游戏的现金流、对外投资——三块加起来才是腾讯。",
+      "tag": "标的百科",
+      "tags": [
+        "腾讯",
+        "港股",
+        "互联网",
+        "游戏"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-10-21",
+      "file": "assets/hk00700.md"
+    },
+    {
+      "id": "hk00857",
+      "section": "assets",
+      "title": "中国石油股份：油价牵着的上游巨头",
+      "dek": "它以勘探开采为主，油价一涨上游利润弹性最大；上市后最狂热的那段也在 2007 年。",
+      "tag": "标的百科",
+      "tags": [
+        "中国石油股份",
+        "港股",
+        "石油",
+        "上游开采"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk00857.md"
+    },
+    {
+      "id": "hk00883",
+      "section": "assets",
+      "title": "中国海洋石油：三桶油里最纯的上游",
+      "dek": "它几乎只做海上找油采油，油价变化原原本本传给它；回撤在三桶油里最浅。",
+      "tag": "标的百科",
+      "tags": [
+        "中国海洋石油",
+        "港股",
+        "石油",
+        "海上开采"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk00883.md"
+    },
+    {
+      "id": "hk00939",
+      "section": "assets",
+      "title": "建设银行：高股息的国有大行",
+      "dek": "它靠存贷利差吃饭，但和汇丰相反——国内降息时它的息差常被压窄；分红是重要回报。",
+      "tag": "标的百科",
+      "tags": [
+        "建设银行",
+        "港股",
+        "银行",
+        "高股息"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk00939.md"
+    },
+    {
+      "id": "hk00941",
+      "section": "assets",
+      "title": "中国移动：用户最多的高股息防御股",
+      "dek": "用户和话费收入很稳，但建网络的钱很贵；看它要看每户收入和资本开支，不是用户数。",
+      "tag": "标的百科",
+      "tags": [
+        "中国移动",
+        "港股",
+        "电信",
+        "高股息"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk00941.md"
+    },
+    {
+      "id": "hk01024",
+      "section": "assets",
+      "title": "快手：上市即高点的短视频平台",
+      "dek": "它的钱来自广告、电商和直播打赏；上市时间短，可查月线只有从 2021 年 2 月起的这段。",
+      "tag": "标的百科",
+      "tags": [
+        "快手",
+        "港股",
+        "短视频",
+        "新股"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk01024.md"
+    },
+    {
+      "id": "hk01113",
+      "section": "assets",
+      "title": "长实集团：资产摊在海外的香港地产商",
+      "dek": "它不只在香港盖楼收租，英国、加拿大也有大量物业和基建；汇率和海外利率都要看。",
+      "tag": "标的百科",
+      "tags": [
+        "长实集团",
+        "港股",
+        "香港地产",
+        "多元资产"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk01113.md"
+    },
+    {
+      "id": "hk01299",
+      "section": "assets",
+      "title": "友邦保险：一张长期保单，为什么股价会随利率上下",
+      "dek": "它卖的是几十年的保障，收进来的钱要投资几十年——利率一动，它的估值就跟着动。",
+      "tag": "标的百科",
+      "tags": [
+        "友邦保险",
+        "港股",
+        "保险",
+        "寿险"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk01299.md"
+    },
+    {
+      "id": "hk01398",
+      "section": "assets",
+      "title": "工商银行：赚的是存贷利差，股价却跟着股息率走",
+      "dek": "大银行的生意很简单——低息收存款、高息放贷款。真正让它股价动的，是分红相对债券值不值。",
+      "tag": "标的百科",
+      "tags": [
+        "工商银行",
+        "港股",
+        "银行",
+        "高股息"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk01398.md"
+    },
+    {
+      "id": "hk01810",
+      "section": "assets",
+      "title": "小米集团：手机是入口，硬件走量，服务赚钱",
+      "dek": "它用低毛利的硬件把人圈进来，再靠互联网服务和汽车把钱赚回来——这条链每一环波动都很大。",
+      "tag": "标的百科",
+      "tags": [
+        "小米集团",
+        "港股",
+        "消费电子",
+        "智能汽车"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk01810.md"
+    },
+    {
+      "id": "hk02020",
+      "section": "assets",
+      "title": "安踏体育：它卖的是品牌，库存才是它的命门",
+      "dek": "多品牌让它长大了，也让它在库存积压时跌得特别深——体育服饰不是防御生意。",
+      "tag": "标的百科",
+      "tags": [
+        "安踏体育",
+        "港股",
+        "运动服饰",
+        "消费"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk02020.md"
+    },
+    {
+      "id": "hk02318",
+      "section": "assets",
+      "title": "中国平安：它不是一家保险公司，是一堆金融生意的包",
+      "dek": "保险、银行、科技装在同一个壳里——估值难，跌起来也难拆清楚是哪块出的事。",
+      "tag": "标的百科",
+      "tags": [
+        "中国平安",
+        "港股",
+        "保险",
+        "综合金融"
+      ],
+      "readMinutes": 7,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk02318.md"
+    },
+    {
+      "id": "hk03690",
+      "section": "assets",
+      "title": "美团：外卖是现金牛，新业务是烧钱坑",
+      "dek": "平台越大，规模效应越强——但每一笔订单的利润很薄，竞争一来就被打回去。",
+      "tag": "标的百科",
+      "tags": [
+        "美团",
+        "港股",
+        "本地生活",
+        "平台经济"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk03690.md"
+    },
+    {
+      "id": "hk03988",
+      "section": "assets",
+      "title": "中国银行：同样是大行，它比工商银行多了一层汇率",
+      "dek": "它近一年涨得比同组的工行还猛——同为国有大行，海外业务和弹性并不一样。",
+      "tag": "标的百科",
+      "tags": [
+        "中国银行",
+        "港股",
+        "银行",
+        "高股息"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk03988.md"
+    },
+    {
+      "id": "hk06618",
+      "section": "assets",
+      "title": "京东健康：卖药的生意，增长快但毛利薄",
+      "dek": "它把药和在线问诊搬到线上——需求是真的，但线上卖药本质是零售，利润不厚。",
+      "tag": "标的百科",
+      "tags": [
+        "京东健康",
+        "港股",
+        "医药电商",
+        "互联网医疗"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk06618.md"
+    },
+    {
+      "id": "hk06862",
+      "section": "assets",
+      "title": "海底捞：服务做得再好，也挡不住一串火锅店随周期起伏",
+      "dek": "它靠服务和口碑起家——但扩张、翻台和成本，才是决定它股价的那几件事。",
+      "tag": "标的百科",
+      "tags": [
+        "海底捞",
+        "港股",
+        "餐饮",
+        "消费"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk06862.md"
+    },
+    {
+      "id": "hk09618",
+      "section": "assets",
+      "title": "京东集团：卖货又送货，重资产换来的护城河很贵",
+      "dek": "自营电商加自建物流，让它体验好、成本高——这是一门薄利走量的生意。",
+      "tag": "标的百科",
+      "tags": [
+        "京东集团",
+        "港股",
+        "电商",
+        "物流"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk09618.md"
+    },
+    {
+      "id": "hk09988",
+      "section": "assets",
+      "title": "阿里巴巴：它的问题从来不是生意",
+      "dek": "电商、云计算、国际业务三块都在赚钱，股价却被\"叙事\"压着。",
+      "tag": "标的百科",
+      "tags": [
+        "阿里巴巴",
+        "港股",
+        "电商",
+        "云计算"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-10-21",
+      "file": "assets/hk09988.md"
+    },
+    {
+      "id": "hk09999",
+      "section": "assets",
+      "title": "网易：游戏是现金牛，爆款节奏决定它的心跳",
+      "dek": "它靠少数几款长青游戏吃饭——游戏上线的节奏，比公司大不大更能决定它的股价。",
+      "tag": "标的百科",
+      "tags": [
+        "网易",
+        "港股",
+        "游戏",
+        "互联网"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/hk09999.md"
+    },
+    {
+      "id": "HSI",
+      "section": "assets",
+      "title": "恒生指数：一头连着内地的港股门面",
+      "dek": "它装着香港上市的大公司，内地经济与美元利率两头拉扯；和恒生科技比，它更宽也更偏旧经济。",
+      "tag": "标的百科",
+      "tags": [
+        "恒生指数",
+        "港股",
+        "指数",
+        "内地经济"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/HSI.md"
+    },
+    {
+      "id": "HSTECH",
+      "section": "assets",
+      "title": "恒生科技：一批高弹性科技股的集合",
+      "dek": "它只装香港上市的科技龙头，集中度高、波动大；和更宽的恒生指数比，它把成长与政策的赌注押得更重。",
+      "tag": "标的百科",
+      "tags": [
+        "恒生科技",
+        "港股",
+        "指数",
+        "科技成长"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/HSTECH.md"
+    },
+    {
+      "id": "IXIC",
+      "section": "assets",
+      "title": "纳斯达克综合指数：一篮子科技股的集体成绩单",
+      "dek": "它不是某一家公司，自己不会赚钱；它涨的是篮子里公司的分量。利率上行时，靠未来利润撑身价的科技股最先把指数往下拽。",
+      "tag": "标的百科",
+      "tags": [
+        "纳斯达克",
+        "美股",
+        "科技股",
+        "指数"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/IXIC.md"
+    },
+    {
+      "id": "JP10Y",
+      "section": "assets",
+      "title": "日债10年：从零利率世界里慢慢走出来的那一条",
+      "dek": "日本十年期国债收益率长期贴着零，这段样本里却抬升得很猛，它是观察日本货币政策转向的窗口。",
+      "tag": "标的百科",
+      "tags": [
+        "日债10年",
+        "日本央行",
+        "收益率曲线控制",
+        "国债收益率",
+        "零利率"
+      ],
+      "readMinutes": 7,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/JP10Y.md"
+    },
+    {
+      "id": "KS11",
+      "section": "assets",
+      "title": "韩国KOSPI：一个出口经济体的情绪表",
+      "dek": "它装的是韩国大公司的集合，存储芯片周期和全球贸易冷暖能在短短几段行情里把它翻个方向。",
+      "tag": "标的百科",
+      "tags": [
+        "韩国KOSPI",
+        "亚洲",
+        "指数",
+        "半导体"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/KS11.md"
+    },
+    {
+      "id": "N225",
+      "section": "assets",
+      "title": "日经225：泡沫长影里的一篮子股票",
+      "dek": "它装着日本的大公司，出口和日元决定短期方向；它身上还挂着一段拖了很久的泡沫后遗症。",
+      "tag": "标的百科",
+      "tags": [
+        "日经225",
+        "亚洲",
+        "指数",
+        "日元"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/N225.md"
+    },
+    {
+      "id": "NG00Y",
+      "section": "assets",
+      "title": "天然气：看天吃饭的能源",
+      "dek": "冬天取暖、夏天发电都靠它，天气一变需求就跳；它和原油虽同叫能源，走势常常相反。",
+      "tag": "标的百科",
+      "tags": [
+        "天然气",
+        "大宗商品",
+        "能源",
+        "季节性"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/NG00Y.md"
+    },
+    {
+      "id": "SENSEX",
+      "section": "assets",
+      "title": "印度SENSEX：新兴市场的长坡与急弯",
+      "dek": "它装着印度头部公司的集合，国内消费和服务出口是两条主线；卢比和资金流常决定短期节奏。",
+      "tag": "标的百科",
+      "tags": [
+        "印度SENSEX",
+        "亚洲",
+        "指数",
+        "新兴市场"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/SENSEX.md"
+    },
+    {
+      "id": "SH000001",
+      "section": "assets",
+      "title": "上证指数：A 股最被盯着的那条线",
+      "dek": "它装的是上交所上市的股票，承载了很多人对 A 股的印象；它历史久、波动大，和政策与资金面贴得很近。",
+      "tag": "标的百科",
+      "tags": [
+        "上证指数",
+        "A股",
+        "指数",
+        "大盘"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/SH000001.md"
+    },
+    {
+      "id": "SH000688",
+      "section": "assets",
+      "title": "科创50：硬科技公司的集中展示窗",
+      "dek": "它装的是科创板里最有代表性的公司，半导体、高端制造扎堆；成长性强，估值和情绪的摆动也大。",
+      "tag": "标的百科",
+      "tags": [
+        "科创50",
+        "A股",
+        "指数",
+        "硬科技"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/SH000688.md"
+    },
+    {
+      "id": "sh600028",
+      "section": "assets",
+      "title": "中国石化：油价涨，它未必跟着赚",
+      "dek": "它炼油、开加油站，原油是原料不是产品——和采油公司的逻辑正好反过来。",
+      "tag": "标的百科",
+      "tags": [
+        "中国石化",
+        "A股",
+        "石油",
+        "炼化"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh600028.md"
+    },
+    {
+      "id": "sh600030",
+      "section": "assets",
+      "title": "中信证券：股市的放大器，涨跌都比大盘狠",
+      "dek": "牛市里它靠交易和上市赚得盆满钵满，熊市里成交冷清，业绩和股价一起缩。",
+      "tag": "标的百科",
+      "tags": [
+        "中信证券",
+        "A股",
+        "券商",
+        "金融"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh600030.md"
+    },
+    {
+      "id": "sh600036",
+      "section": "assets",
+      "title": "招商银行：银行股里偏零售的那一只",
+      "dek": "靠存贷差赚钱，以服务个人客户出名，降息压薄利差，坏账担忧压股价。",
+      "tag": "标的百科",
+      "tags": [
+        "招商银行",
+        "A股",
+        "银行",
+        "金融"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh600036.md"
+    },
+    {
+      "id": "sh600276",
+      "section": "assets",
+      "title": "恒瑞医药：制药听着稳，其实是一场研发豪赌",
+      "dek": "新药审批、医保谈判、集采压价，三股力量拉扯着它的股价。",
+      "tag": "标的百科",
+      "tags": [
+        "恒瑞医药",
+        "A股",
+        "医药",
+        "创新药"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh600276.md"
+    },
+    {
+      "id": "sh600519",
+      "section": "assets",
+      "title": "贵州茅台：A 股最贵的一门生意",
+      "dek": "它靠一个牌子赚走行业里大部分利润，股价对\"消费信心\"比对\"产量\"更敏感。",
+      "tag": "标的百科",
+      "tags": [
+        "贵州茅台",
+        "A股",
+        "白酒",
+        "消费"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-10-21",
+      "file": "assets/sh600519.md"
+    },
+    {
+      "id": "sh600900",
+      "section": "assets",
+      "title": "长江电力：水电站，A股里有名的低波动资产",
+      "dek": "靠长江的水发电卖电，来水多少定收入，低波动不等于不跌。",
+      "tag": "标的百科",
+      "tags": [
+        "长江电力",
+        "A股",
+        "水电",
+        "公用事业"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh600900.md"
+    },
+    {
+      "id": "sh601012",
+      "section": "assets",
+      "title": "隆基绿能：行业在长大，股票可以在下跌",
+      "dek": "卖硅片和组件的光伏龙头，需求、价格、产能三个开关一起决定它的利润。",
+      "tag": "标的百科",
+      "tags": [
+        "隆基绿能",
+        "A股",
+        "光伏",
+        "新能源"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh601012.md"
+    },
+    {
+      "id": "sh601088",
+      "section": "assets",
+      "title": "中国神华：煤炭里的收租人，上市就赶上了景气顶",
+      "dek": "挖煤、运煤、发电一条龙，长协锁住量价，但它在景气最高点上市。",
+      "tag": "标的百科",
+      "tags": [
+        "中国神华",
+        "A股",
+        "煤炭",
+        "周期"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh601088.md"
+    },
+    {
+      "id": "sh601138",
+      "section": "assets",
+      "title": "工业富联：替大厂组装服务器，AI热了它订单多",
+      "dek": "电子代工厂，靠规模和效率赚加工费，代工利润薄，订单一变就放大到业绩。",
+      "tag": "标的百科",
+      "tags": [
+        "工业富联",
+        "A股",
+        "电子代工",
+        "AI服务器"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh601138.md"
+    },
+    {
+      "id": "sh601288",
+      "section": "assets",
+      "title": "农业银行：网点铺到乡镇的大银行，买它图的是分红",
+      "dek": "客群更下沉、盘子大波动小，但便宜股也会跌上三四年。",
+      "tag": "标的百科",
+      "tags": [
+        "农业银行",
+        "A股",
+        "银行",
+        "红利"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh601288.md"
+    },
+    {
+      "id": "sh601318",
+      "section": "assets",
+      "title": "中国平安：保险公司，牛市弹得比银行高，跌得也比银行狠",
+      "dek": "收保费、拿去投资，利差是利润大头，它带着投资杠杆，不是银行股。",
+      "tag": "标的百科",
+      "tags": [
+        "中国平安",
+        "A股",
+        "保险",
+        "金融"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh601318.md"
+    },
+    {
+      "id": "sh601398",
+      "section": "assets",
+      "title": "工商银行：被称为「宇宙行」，也会套人近二十年",
+      "dek": "体量全球前列的国有大行，靠存贷差赚钱，可近二十年过去股价还没回高点。",
+      "tag": "标的百科",
+      "tags": [
+        "工商银行",
+        "A股",
+        "银行",
+        "红利"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh601398.md"
+    },
+    {
+      "id": "sh601857",
+      "section": "assets",
+      "title": "中国石油：上市首月就是历史最高，此后跌了十三年",
+      "dek": "上游采油，跟着国际油价走，油价贵它赚得多，但别用油价倒推股价贵贱。",
+      "tag": "标的百科",
+      "tags": [
+        "中国石油",
+        "A股",
+        "石油",
+        "周期"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh601857.md"
+    },
+    {
+      "id": "sh601888",
+      "section": "assets",
+      "title": "中国中免：故事最满的时候，往往也是股价最高的时候",
+      "dek": "免税店运营商，靠客流和政策吃饭，牌照和额度一变，蛋糕大小就变。",
+      "tag": "标的百科",
+      "tags": [
+        "中国中免",
+        "A股",
+        "免税",
+        "消费"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh601888.md"
+    },
+    {
+      "id": "sh601899",
+      "section": "assets",
+      "title": "紫金矿业：把石头变成钱的生意",
+      "dek": "它挖的是金和铜，赚的是金属价格乘以产量；金铜一跌，它比谁都疼。",
+      "tag": "标的百科",
+      "tags": [
+        "紫金矿业",
+        "A股",
+        "黄金",
+        "铜",
+        "有色金属"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh601899.md"
+    },
+    {
+      "id": "sh601988",
+      "section": "assets",
+      "title": "中国银行：一家把息差当主食的银行",
+      "dek": "它靠存贷利差吃饭，也靠外汇和分红；近年股价走强，靠的更多是估值和资金偏好。",
+      "tag": "标的百科",
+      "tags": [
+        "中国银行",
+        "A股",
+        "银行",
+        "高股息"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh601988.md"
+    },
+    {
+      "id": "sh603288",
+      "section": "assets",
+      "title": "海天味业：一瓶酱油的高光与退潮",
+      "dek": "它是厨房里的刚需，但股价杀的不是销量，是当年被推得太高的估值。",
+      "tag": "标的百科",
+      "tags": [
+        "海天味业",
+        "A股",
+        "调味品",
+        "消费"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh603288.md"
+    },
+    {
+      "id": "sh688981",
+      "section": "assets",
+      "title": "中芯国际：中国大陆最会造芯片的厂",
+      "dek": "它和台积电做同一门生意，但制程落后、设备受限，估值里始终扣着一块。",
+      "tag": "标的百科",
+      "tags": [
+        "中芯国际",
+        "A股",
+        "芯片",
+        "半导体",
+        "科创板"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sh688981.md"
+    },
+    {
+      "id": "SI00Y",
+      "section": "assets",
+      "title": "COMEX白银：一半黄金，一半工业原料",
+      "dek": "它跟着金价和投资情绪走，又是光伏、电子的原料；行情好时涨得比黄金猛，差时跌得比黄金狠。",
+      "tag": "标的百科",
+      "tags": [
+        "COMEX白银",
+        "大宗商品",
+        "贵金属",
+        "光伏"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/SI00Y.md"
+    },
+    {
+      "id": "SPX",
+      "section": "assets",
+      "title": "标普500：被引用最多的美股基准",
+      "dek": "它装的是美国大批大公司的集合，覆盖广、代表性强；很多基金拿它当美股平均收益的参照。",
+      "tag": "标的百科",
+      "tags": [
+        "标普500",
+        "美股",
+        "指数",
+        "宽基"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/SPX.md"
+    },
+    {
+      "id": "sz000002",
+      "section": "assets",
+      "title": "万科A：高杠杆周期里的一艘大船",
+      "dek": "它靠借钱拿地、盖房、预售回款滚动扩张；融资一收紧，这个循环就卡住。",
+      "tag": "标的百科",
+      "tags": [
+        "万科A",
+        "A股",
+        "房地产",
+        "高杠杆"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sz000002.md"
+    },
+    {
+      "id": "sz000333",
+      "section": "assets",
+      "title": "美的集团：把家电卖到全世界的成本高手",
+      "dek": "它靠规模和成本在成熟行业里赚钱，也靠出口和地产交付；近一年它是这组消费股里少见的上涨。",
+      "tag": "标的百科",
+      "tags": [
+        "美的集团",
+        "A股",
+        "家电",
+        "制造业"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sz000333.md"
+    },
+    {
+      "id": "sz000725",
+      "section": "assets",
+      "title": "京东方A：一块屏幕里的重资产周期",
+      "dek": "面板是标准化产品，价格由全行业供需决定；它先砸钱建线，再等价格回暖收成本。",
+      "tag": "标的百科",
+      "tags": [
+        "京东方A",
+        "A股",
+        "面板",
+        "半导体显示"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sz000725.md"
+    },
+    {
+      "id": "sz000858",
+      "section": "assets",
+      "title": "五粮液：高端白酒的第二把交椅",
+      "dek": "它靠品牌和渠道赚厚差，但溢价弱于第一名，批价和库存一松，反应更明显。",
+      "tag": "标的百科",
+      "tags": [
+        "五粮液",
+        "A股",
+        "白酒",
+        "消费"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sz000858.md"
+    },
+    {
+      "id": "sz002415",
+      "section": "assets",
+      "title": "海康威视：把「看住场面」做成生意",
+      "dek": "它的客户是政府、企业和海外，订单跟着预算走；磨损是三年多慢慢发生的。",
+      "tag": "标的百科",
+      "tags": [
+        "海康威视",
+        "A股",
+        "安防",
+        "电子设备"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sz002415.md"
+    },
+    {
+      "id": "sz002475",
+      "section": "assets",
+      "title": "立讯精密：跟着大客户长大的代工厂",
+      "dek": "它的订单绑在少数大客户身上，客户卖得多它就多赚，客户砍单它就掉排产。",
+      "tag": "标的百科",
+      "tags": [
+        "立讯精密",
+        "A股",
+        "消费电子",
+        "果链"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sz002475.md"
+    },
+    {
+      "id": "sz002594",
+      "section": "assets",
+      "title": "比亚迪：把电池和整车都自己造",
+      "dek": "它靠垂直整合压成本，营销量、单车利润和电池成本三条线；价格战里销量和利润会背离。",
+      "tag": "标的百科",
+      "tags": [
+        "比亚迪",
+        "A股",
+        "新能源汽车",
+        "动力电池"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sz002594.md"
+    },
+    {
+      "id": "sz300059",
+      "section": "assets",
+      "title": "东方财富：A股成交额的放大器",
+      "dek": "佣金、基金代销、两融利息都跟同一个东西走——成交额和行情。市场一冷，三块收入一起缩。",
+      "tag": "标的百科",
+      "tags": [
+        "东方财富",
+        "A股",
+        "券商",
+        "创业板"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sz300059.md"
+    },
+    {
+      "id": "sz300750",
+      "section": "assets",
+      "title": "宁德时代：它给电动车供应链装上了\"标准件\"",
+      "dek": "全球动力电池装机量第一。它的对手是车企自研电池的决心。",
+      "tag": "标的百科",
+      "tags": [
+        "宁德时代",
+        "A股",
+        "新能源车",
+        "电池"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-10-21",
+      "file": "assets/sz300750.md"
+    },
+    {
+      "id": "sz300760",
+      "section": "assets",
+      "title": "迈瑞医疗：医院里的设备生意",
+      "dek": "它靠医院采购和海外市场赚钱，需求跟着医院预算走；集采是反复出现的长期变量。",
+      "tag": "标的百科",
+      "tags": [
+        "迈瑞医疗",
+        "A股",
+        "医疗器械",
+        "创业板"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/sz300760.md"
+    },
+    {
+      "id": "SZ399001",
+      "section": "assets",
+      "title": "深证成指：和上证不一样的那半边 A 股",
+      "dek": "它装的是深交所的代表性公司，制造业和成长股比上证更重；同为 A 股，节奏却常常不同。",
+      "tag": "标的百科",
+      "tags": [
+        "深证成指",
+        "A股",
+        "指数",
+        "制造业"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/SZ399001.md"
+    },
+    {
+      "id": "SZ399006",
+      "section": "assets",
+      "title": "创业板指：成长股的高波动试验场",
+      "dek": "它装的是创业板里最有代表性的成长公司，新能源、医药、科技扎堆；弹性大，回撤也深。",
+      "tag": "标的百科",
+      "tags": [
+        "创业板指",
+        "A股",
+        "指数",
+        "成长股"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/SZ399006.md"
+    },
+    {
+      "id": "UDI",
+      "section": "assets",
+      "title": "美元指数：一把量美元强弱的尺子",
+      "dek": "它不直接买到，却决定了很多以美元计价资产的冷暖；篮子里没有人民币，别拿它判断人民币方向。",
+      "tag": "标的百科",
+      "tags": [
+        "美元指数",
+        "外汇",
+        "美元",
+        "利率"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-16",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/UDI.md"
+    },
+    {
+      "id": "US10Y",
+      "section": "assets",
+      "title": "美债10年：全世界盯着的那一个利率",
+      "dek": "它是全球资产定价的锚，房贷、企业融资、股票估值都绕着它转；这份月线从1990年一路记到现在。",
+      "tag": "标的百科",
+      "tags": [
+        "美债10年",
+        "国债收益率",
+        "全球基准",
+        "美联储",
+        "定价之锚"
+      ],
+      "readMinutes": 7,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/US10Y.md"
+    },
+    {
+      "id": "US2Y",
+      "section": "assets",
+      "title": "美债2年：离美联储最近的那一档",
+      "dek": "两年期收益率几乎是市场对美联储未来两年动作的直接投票，短债基金和货币基金都盯着它。",
+      "tag": "标的百科",
+      "tags": [
+        "美债2年",
+        "国债收益率",
+        "美联储",
+        "政策利率",
+        "短债"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/US2Y.md"
+    },
+    {
+      "id": "US30Y",
+      "section": "assets",
+      "title": "美债30年：对通胀最敏感的那根长线",
+      "dek": "三十年锁住了太久的未来，通胀预期动一点，它的价格就被放大一大截，是国债里起伏最猛的一端。",
+      "tag": "标的百科",
+      "tags": [
+        "美债30年",
+        "超长债",
+        "久期",
+        "通胀预期",
+        "国债收益率"
+      ],
+      "readMinutes": 7,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/US30Y.md"
+    },
+    {
+      "id": "US3M",
+      "section": "assets",
+      "title": "美债3月：最接近现金的那一张借条",
+      "dek": "三个月期国债几乎是美元现金的近亲，收益率紧跟美联储当下的政策利率，是这组里最短、最稳的一端。",
+      "tag": "标的百科",
+      "tags": [
+        "美债3月",
+        "短期国债",
+        "国库券",
+        "美联储",
+        "现金管理"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/US3M.md"
+    },
+    {
+      "id": "US5Y",
+      "section": "assets",
+      "title": "美债5年：不长不短，正好卡在中间",
+      "dek": "五年期既吃美联储的政策预期，又掺着长期通胀判断，是企业发债和不少贷款定价常用的参考线。",
+      "tag": "标的百科",
+      "tags": [
+        "美债5年",
+        "国债收益率",
+        "中期利率",
+        "收益率曲线",
+        "定价参考"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/US5Y.md"
+    },
+    {
+      "id": "usAAPL",
+      "section": "assets",
+      "title": "苹果：它已经不只是卖手机的了",
+      "dek": "一家把利润藏在服务里的硬件公司，复权后涨了一百多倍，也真的跌过 57%。",
+      "tag": "标的百科",
+      "tags": [
+        "苹果",
+        "美股",
+        "消费电子",
+        "科技"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-10-21",
+      "file": "assets/usAAPL.md"
+    },
+    {
+      "id": "usAMD",
+      "section": "assets",
+      "title": "超威半导体：不建厂的芯片挑战者",
+      "dek": "它和英特尔卖同一类处理器，却把制造外包了出去；AI 热潮里，它是被点名最多的名字之一。",
+      "tag": "标的百科",
+      "tags": [
+        "超威半导体",
+        "美股",
+        "芯片",
+        "AI"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usAMD.md"
+    },
+    {
+      "id": "usAMZN",
+      "section": "assets",
+      "title": "亚马逊：真正赚钱的是云和广告",
+      "dek": "一开始它靠\"网上卖书\"打败巴诺克；现在它的利润结构里，广告和 AWS 各占一块。",
+      "tag": "标的百科",
+      "tags": [
+        "亚马逊",
+        "美股",
+        "电商",
+        "云"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-10-21",
+      "file": "assets/usAMZN.md"
+    },
+    {
+      "id": "usAVGO",
+      "section": "assets",
+      "title": "博通：芯片加软件，靠两条腿站稳",
+      "dek": "它卖网络芯片和定制加速卡，还把 VMware 收进了门下；这批美股里，它的回撤算浅的。",
+      "tag": "标的百科",
+      "tags": [
+        "博通",
+        "美股",
+        "芯片",
+        "半导体"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usAVGO.md"
+    },
+    {
+      "id": "usBA",
+      "section": "assets",
+      "title": "波音：把飞机造出来，也要扛住停飞",
+      "dek": "全球只剩两家能造大客机；它从高点跌去七成多，靠的不是估值，是一连串安全事故和停飞。",
+      "tag": "标的百科",
+      "tags": [
+        "波音",
+        "美股",
+        "航空",
+        "制造业"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usBA.md"
+    },
+    {
+      "id": "usCOIN",
+      "section": "assets",
+      "title": "Coinbase：加密世界的交易所收费站",
+      "dek": "它的收入跟着加密货币的交易热闹程度走；上市没几年，就经历了一轮八成多的回撤。",
+      "tag": "标的百科",
+      "tags": [
+        "Coinbase",
+        "美股",
+        "加密货币",
+        "交易所"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usCOIN.md"
+    },
+    {
+      "id": "USDCNH",
+      "section": "assets",
+      "title": "美元离岸人民币：方向最容易看反的一条线",
+      "dek": "一美元换多少离岸人民币；这条线跌，是人民币在升值，把方向记反判断就全错。",
+      "tag": "标的百科",
+      "tags": [
+        "美元离岸人民币",
+        "外汇",
+        "人民币",
+        "在岸离岸"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-16",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/USDCNH.md"
+    },
+    {
+      "id": "USDHKD",
+      "section": "assets",
+      "title": "美元港币：外汇里最不动的一条线",
+      "dek": "港币主动钉住美元，兑换价被按在很窄的区间里；靠它赚差价，基本没戏。",
+      "tag": "标的百科",
+      "tags": [
+        "美元港币",
+        "外汇",
+        "港币",
+        "联系汇率"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-16",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/USDHKD.md"
+    },
+    {
+      "id": "usDIS",
+      "section": "assets",
+      "title": "迪士尼：乐园、电影和流媒体，三件事一起拉扯",
+      "dek": "它一半是线下的人和门票，一半是内容和订阅；疫情把线下那半按了暂停，恢复后又遇上流媒体烧钱。",
+      "tag": "标的百科",
+      "tags": [
+        "迪士尼",
+        "美股",
+        "传媒",
+        "娱乐"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usDIS.md"
+    },
+    {
+      "id": "USDJPY",
+      "section": "assets",
+      "title": "美元日元：利差交易的主战场",
+      "dek": "一美元换几日元，数字涨是美元强、日元弱；日本常年低息，让它成了借低息买高息的必经之路。",
+      "tag": "标的百科",
+      "tags": [
+        "美元日元",
+        "外汇",
+        "日元",
+        "利差交易"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-16",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/USDJPY.md"
+    },
+    {
+      "id": "usGOOG",
+      "section": "assets",
+      "title": "谷歌：搜索还在，但收钱的方式变了",
+      "dek": "广告还是它的命根子。AI 时代最大的悬念：搜索流量会不会被聊天机器人截走。",
+      "tag": "标的百科",
+      "tags": [
+        "谷歌",
+        "美股",
+        "互联网",
+        "AI",
+        "搜索"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-10-21",
+      "file": "assets/usGOOG.md"
+    },
+    {
+      "id": "usINTC",
+      "section": "assets",
+      "title": "英特尔：自己建厂的芯片巨头，走到路口",
+      "dek": "曾经是个人电脑处理器的代名词；错过了移动和 AI 两班车，从 2021 年到 2025 年跌了近七成。",
+      "tag": "标的百科",
+      "tags": [
+        "英特尔",
+        "美股",
+        "芯片",
+        "半导体"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usINTC.md"
+    },
+    {
+      "id": "usIXIC",
+      "section": "assets",
+      "title": "纳斯达克：科技成长股的集中营",
+      "dek": "它装的是纳斯达克上市的一大批公司，科技成长权重高；利率和风险偏好一动，它的振幅就比别的指数大。",
+      "tag": "标的百科",
+      "tags": [
+        "纳斯达克",
+        "美股",
+        "指数",
+        "科技成长"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usIXIC.md"
+    },
+    {
+      "id": "usJPM",
+      "section": "assets",
+      "title": "摩根大通：美国最大的银行，利率是它的开关",
+      "dek": "它靠放贷和手续费赚钱；利率上行时，银行的处境和科技股正好相反。",
+      "tag": "标的百科",
+      "tags": [
+        "摩根大通",
+        "美股",
+        "银行",
+        "金融"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usJPM.md"
+    },
+    {
+      "id": "usMETA",
+      "section": "assets",
+      "title": "Meta：它曾经把互联网的时间都抢走了",
+      "dek": "靠\"免费让你用、你把注意力给它\"赚广告钱，代价是产品必须不停改。",
+      "tag": "标的百科",
+      "tags": [
+        "Meta",
+        "美股",
+        "社交",
+        "广告",
+        "AI"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-10-21",
+      "file": "assets/usMETA.md"
+    },
+    {
+      "id": "usMSFT",
+      "section": "assets",
+      "title": "微软：它同时是三条完全不同的生意",
+      "dek": "办公软件、云、AI 三条线周期完全不同，当成\"一家科技公司\"看最误判。",
+      "tag": "标的百科",
+      "tags": [
+        "微软",
+        "美股",
+        "软件",
+        "云",
+        "AI"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-10-21",
+      "file": "assets/usMSFT.md"
+    },
+    {
+      "id": "usMU",
+      "section": "assets",
+      "title": "美光科技：卖内存条的公司，价格由供需说了算",
+      "dek": "内存是标准品，没有品牌溢价；它的股价跟着存储芯片的涨跌起落，比谁都剧烈。",
+      "tag": "标的百科",
+      "tags": [
+        "美光科技",
+        "美股",
+        "芯片",
+        "存储"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usMU.md"
+    },
+    {
+      "id": "usNFLX",
+      "section": "assets",
+      "title": "奈飞：订阅制的甜与苦",
+      "dek": "它可能最早靠邮寄 DVD 起家，后来靠订阅流媒体翻身；用户增长一停，估值就翻脸。",
+      "tag": "标的百科",
+      "tags": [
+        "奈飞",
+        "美股",
+        "流媒体",
+        "订阅"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usNFLX.md"
+    },
+    {
+      "id": "usNVDA",
+      "section": "assets",
+      "title": "英伟达：涨过 100 倍，也从 [0.23](#/series/usNVDA) 美元起来过",
+      "dek": "AI 算力的卖铲人。复权月线从 [0.23](#/series/usNVDA) 美元涨到 228.38 美元，中途跌过 63%。",
+      "tag": "标的百科",
+      "tags": [
+        "英伟达",
+        "美股",
+        "芯片",
+        "AI"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-10-21",
+      "file": "assets/usNVDA.md"
+    },
+    {
+      "id": "usORCL",
+      "section": "assets",
+      "title": "甲骨文：老牌软件公司，重注押向云",
+      "dek": "它靠数据库起家，如今砸钱建云基础设施；最深的一次回撤，就发生在最近一年。",
+      "tag": "标的百科",
+      "tags": [
+        "甲骨文",
+        "美股",
+        "软件",
+        "云计算"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usORCL.md"
+    },
+    {
+      "id": "usPFE",
+      "section": "assets",
+      "title": "辉瑞：爆款药退潮之后",
+      "dek": "疫情时它的疫苗和药家喻户晓；爆款退去、老药专利到期，它从高点跌了六成。",
+      "tag": "标的百科",
+      "tags": [
+        "辉瑞",
+        "美股",
+        "医药",
+        "制药"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usPFE.md"
+    },
+    {
+      "id": "usPLTR",
+      "section": "assets",
+      "title": "Palantir：给政府和军队做数据大脑",
+      "dek": "它把杂乱的数据整理成能用的信息，客户多是政府机构；从高点跌去八成，再涨回新高。",
+      "tag": "标的百科",
+      "tags": [
+        "Palantir",
+        "美股",
+        "软件",
+        "大数据"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usPLTR.md"
+    },
+    {
+      "id": "usQCOM",
+      "section": "assets",
+      "title": "高通：收手机过路费的芯片公司",
+      "dek": "它一边卖手机芯片，一边靠专利授权收钱；专利这块让它和纯芯片公司很不一样。",
+      "tag": "标的百科",
+      "tags": [
+        "高通",
+        "美股",
+        "芯片",
+        "专利"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usQCOM.md"
+    },
+    {
+      "id": "usTSLA",
+      "section": "assets",
+      "title": "特斯拉：它的估值从来不靠卖车",
+      "dek": "销量曾占全球汽车市场 1% 出头的公司，估值一度超过很多车企总和。它在为什么定价？",
+      "tag": "标的百科",
+      "tags": [
+        "特斯拉",
+        "美股",
+        "新能源车",
+        "汽车"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-10-21",
+      "file": "assets/usTSLA.md"
+    },
+    {
+      "id": "usTSM",
+      "section": "assets",
+      "title": "台积电：全世界最会做一件事的公司",
+      "dek": "几乎所有先进芯片都出自它的厂，护城河不是技术，是产能与良率。",
+      "tag": "标的百科",
+      "tags": [
+        "台积电",
+        "美股",
+        "芯片",
+        "半导体"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-10-21",
+      "file": "assets/usTSM.md"
+    },
+    {
+      "id": "usV",
+      "section": "assets",
+      "title": "Visa：刷卡背后的过路费生意",
+      "dek": "它不借钱、不担信用风险，只按交易额收一点点费；这条线的最高点就是现在。",
+      "tag": "标的百科",
+      "tags": [
+        "Visa",
+        "美股",
+        "支付",
+        "金融科技"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usV.md"
+    },
+    {
+      "id": "usWMT",
+      "section": "assets",
+      "title": "沃尔玛：经济再差，人也要买菜",
+      "dek": "它卖的是日用品，靠规模和低价立身；这批美股里，它的回撤算最浅的之一。",
+      "tag": "标的百科",
+      "tags": [
+        "沃尔玛",
+        "美股",
+        "零售",
+        "消费"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 1,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usWMT.md"
+    },
+    {
+      "id": "usXOM",
+      "section": "assets",
+      "title": "埃克森美孚：油价牵着走的能源巨头",
+      "dek": "从勘探到炼油它全做，利润跟着油价和炼油利润走；它的低点不在 2008 年，而在 2020 年。",
+      "tag": "标的百科",
+      "tags": [
+        "埃克森美孚",
+        "美股",
+        "石油",
+        "能源"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/usXOM.md"
+    },
+    {
+      "id": "VIX",
+      "section": "assets",
+      "title": "VIX 恐慌指数：给市场情绪量体温的温度计",
+      "dek": "它不是股票也不是商品，是把大家对市场抖动的预期折成的一个数。股市慌，它跳高；股市太平，它慢慢落回去——长期囤着赌涨，是拿错了工具。",
+      "tag": "标的百科",
+      "tags": [
+        "VIX",
+        "恐慌指数",
+        "波动率",
+        "市场情绪"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 3,
+      "updatedAt": "2026-11-16",
+      "file": "assets/VIX.md"
+    },
+    {
+      "id": "ZC00Y",
+      "section": "assets",
+      "title": "玉米连续：肉蛋价格背后的那粒粮食",
+      "dek": "它喂猪、喂鸡、做淀粉和酒精，价格跟着天气和收成走，跟经济景气关系不大。",
+      "tag": "标的百科",
+      "tags": [
+        "玉米",
+        "大宗商品",
+        "农产品",
+        "粮食"
+      ],
+      "readMinutes": 5,
+      "dataAsOf": "2026-11-16",
+      "dataAsOfActual": "2026-11-13",
+      "difficulty": 2,
+      "updatedAt": "2026-11-16",
+      "file": "assets/ZC00Y.md"
+    },
+    {
+      "id": "inflation",
+      "section": "concepts",
+      "title": "通胀：钱为什么放着放着就不值钱了",
+      "dek": "不是钱变少了，是尺子变短了。学会用实际利率算真实的到手收益。",
+      "tag": "货币与利率",
+      "tags": [
+        "通胀",
+        "实际利率",
+        "存款",
+        "家庭"
+      ],
+      "readMinutes": 6,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": null,
+      "difficulty": 1,
+      "updatedAt": "2026-10-21",
+      "file": "concepts/inflation.md"
+    },
+    {
+      "id": "interest-rate",
+      "section": "concepts",
+      "title": "利率：为什么它一动，所有资产都要重新定价",
+      "dek": "利率是钱的价格，也是估值的折扣率。把这条链条理顺，很多财经新闻就不用背结论。",
+      "tag": "货币与利率",
+      "tags": [
+        "利率",
+        "贴现率",
+        "债券",
+        "估值",
+        "货币政策"
+      ],
+      "readMinutes": 8,
+      "dataAsOf": "2026-11-10",
+      "dataAsOfActual": null,
+      "difficulty": 2,
+      "updatedAt": "2026-11-10",
+      "file": "concepts/interest-rate.md"
+    },
+    {
+      "id": "risk-free-rate",
+      "section": "concepts",
+      "title": "为什么美债收益率是\"全球无风险利率\"",
+      "dek": "全球资产定价的那把尺子。它涨 1 个百分点，几乎所有东西的估值都要重算一遍。",
+      "tag": "货币与利率",
+      "tags": [
+        "利率",
+        "美债",
+        "定价",
+        "入门必读"
+      ],
+      "readMinutes": 8,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": null,
+      "difficulty": 2,
+      "updatedAt": "2026-10-21",
+      "file": "concepts/risk-free-rate.md"
+    },
+    {
+      "id": "risk-volatility",
+      "section": "concepts",
+      "title": "波动、回撤与回本：三道完全不同的数学题",
+      "dek": "价格上下摆、从高点跌下来、跌完要涨回去，是三件不同的事。把它们混在一起，风险就会被低估。",
+      "tag": "货币与利率",
+      "tags": [
+        "波动率",
+        "最大回撤",
+        "风险",
+        "复利",
+        "回本"
+      ],
+      "readMinutes": 9,
+      "dataAsOf": "2026-11-10",
+      "dataAsOfActual": null,
+      "difficulty": 2,
+      "updatedAt": "2026-11-10",
+      "file": "concepts/risk-volatility.md"
+    },
+    {
+      "id": "yield-curve",
+      "section": "concepts",
+      "title": "收益率曲线：倒挂到底在警告什么",
+      "dek": "把不同期限的国债收益率连成一条线，能看出市场怎么给未来定价。倒挂不是预言，但它是一个值得读懂的信号。",
+      "tag": "货币与利率",
+      "tags": [
+        "收益率曲线",
+        "倒挂",
+        "美债",
+        "利率",
+        "经济周期"
+      ],
+      "readMinutes": 8,
+      "dataAsOf": "2026-11-10",
+      "dataAsOfActual": null,
+      "difficulty": 3,
+      "updatedAt": "2026-11-10",
+      "file": "concepts/yield-curve.md"
+    },
+    {
+      "id": "1987",
+      "section": "crisis",
+      "title": "1987 黑色星期一：一天跌掉五分之一",
+      "dek": "没有预警，没有解释，事后所有人都在找理由。两年后，美联储主席说了那句名言。",
+      "tag": "危机复盘",
+      "tags": [
+        "1987",
+        "黑色星期一",
+        "组合保险",
+        "监管"
+      ],
+      "readMinutes": 8,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "1988-12-30",
+      "difficulty": 2,
+      "updatedAt": "2026-10-21",
+      "file": "crisis/1987.md"
+    },
+    {
+      "id": "1990",
+      "section": "crisis",
+      "title": "1990 日本泡沫：跌了三年才跌完",
+      "dek": "慢刀子割肉，才是最难受的那种。全球最著名的一次泡沫破裂，过程比想象中平静得多。",
+      "tag": "危机复盘",
+      "tags": [
+        "日本",
+        "泡沫",
+        "慢跌",
+        "央行"
+      ],
+      "readMinutes": 11,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "1993-06-30",
+      "difficulty": 3,
+      "updatedAt": "2026-10-21",
+      "file": "crisis/1990.md"
+    },
+    {
+      "id": "1994",
+      "section": "crisis",
+      "title": "1994 墨西哥比索危机：小国惹出的全球紧缩",
+      "dek": "这一年股市和黄金几乎没动，只有美债收益率飙升。这是一次债券危机。",
+      "tag": "危机复盘",
+      "tags": [
+        "1994",
+        "墨西哥",
+        "加息",
+        "美债"
+      ],
+      "readMinutes": 7,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "1995-12-29",
+      "difficulty": 2,
+      "updatedAt": "2026-10-21",
+      "file": "crisis/1994.md"
+    },
+    {
+      "id": "1998",
+      "section": "crisis",
+      "title": "1998 亚洲金融危机：恒指一天跌 13.7%",
+      "dek": "这一年，亚洲的钱在流血，美国的钱在上涨，黄金也在跌。三件事同时发生才最反直觉。",
+      "tag": "危机复盘",
+      "tags": [
+        "亚洲金融危机",
+        "香港",
+        "俄罗斯",
+        "LTCM",
+        "避险"
+      ],
+      "readMinutes": 12,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "1999-06-30",
+      "difficulty": 3,
+      "updatedAt": "2026-10-21",
+      "file": "crisis/1998.md"
+    },
+    {
+      "id": "2008",
+      "section": "crisis",
+      "title": "2008 年那场金融危机，到底发生了什么",
+      "dek": "从房价见顶到雷曼倒闭，危机是怎么沿着资产负债表一路传导到每个家庭的。",
+      "tag": "危机复盘",
+      "tags": [
+        "2008",
+        "次贷",
+        "美债",
+        "危机"
+      ],
+      "readMinutes": 12,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": "2010-06-30",
+      "difficulty": 3,
+      "updatedAt": "2026-10-21",
+      "file": "crisis/2008.md"
+    },
+    {
+      "id": "2020",
+      "section": "crisis",
+      "title": "2020 疫情熔断：流动性先崩，政策后救",
+      "dek": "十个交易日四次熔断，原油期货跌成负数。同一段时间里，黄金先被卖、后来才创新高。",
+      "tag": "危机复盘",
+      "tags": [
+        "2020",
+        "疫情",
+        "熔断",
+        "流动性",
+        "原油",
+        "黄金"
+      ],
+      "readMinutes": 10,
+      "dataAsOf": "2026-10-29",
+      "dataAsOfActual": "2021-03-31",
+      "difficulty": 3,
+      "updatedAt": "2026-10-29",
+      "file": "crisis/2020.md"
+    },
+    {
+      "id": "2022",
+      "section": "crisis",
+      "title": "2022 暴力加息：股票和债券为什么一起跌",
+      "dek": "一年加息 425 个基点。股票跌估值，债券跌价格——「股债搭配」第一次在很多人账户里同时失效。",
+      "tag": "危机复盘",
+      "tags": [
+        "2022",
+        "加息",
+        "通胀",
+        "美债",
+        "股债双杀"
+      ],
+      "readMinutes": 10,
+      "dataAsOf": "2026-10-29",
+      "dataAsOfActual": "2023-06-30",
+      "difficulty": 3,
+      "updatedAt": "2026-10-29",
+      "file": "crisis/2022.md"
+    },
+    {
+      "id": "2000-dotcom",
+      "section": "cycles",
+      "title": "2000 年互联网泡沫：本轮 AI 周期像不像",
+      "dek": "不预测，只对照。六个维度逐项打分，相似的地方和不一样的地方都说清楚。",
+      "tag": "周期与镜鉴",
+      "tags": [
+        "2000",
+        "互联网泡沫",
+        "AI",
+        "周期",
+        "纳指"
+      ],
+      "readMinutes": 10,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": null,
+      "difficulty": 4,
+      "updatedAt": "2026-10-21",
+      "file": "cycles/2000-dotcom.md"
+    },
+    {
+      "id": "rate-cycle",
+      "section": "cycles",
+      "title": "加息周期：为什么股票和债券会一起跌",
+      "dek": "股票跌估值、债券跌价格，平时互补的两类资产，在通胀冲击里可能同时受伤。理解利率周期，才能理解资产之间的相关性为什么会变。",
+      "tag": "周期与镜鉴",
+      "tags": [
+        "加息",
+        "利率周期",
+        "股债双杀",
+        "通胀",
+        "资产配置"
+      ],
+      "readMinutes": 10,
+      "dataAsOf": "2026-11-10",
+      "dataAsOfActual": null,
+      "difficulty": 3,
+      "updatedAt": "2026-11-10",
+      "file": "cycles/rate-cycle.md"
+    },
+    {
+      "id": "emergency-fund",
+      "section": "family",
+      "title": "应急金：家里先留多少钱，放在哪里",
+      "dek": "在考虑收益之前，先把「随时能拿出来的钱」准备好。应急金不是投资，它买的是选择权。",
+      "tag": "家庭理财",
+      "tags": [
+        "应急金",
+        "现金管理",
+        "流动性",
+        "家庭预算",
+        "风险"
+      ],
+      "readMinutes": 8,
+      "dataAsOf": "2026-11-10",
+      "dataAsOfActual": null,
+      "difficulty": 1,
+      "updatedAt": "2026-11-10",
+      "file": "family/emergency-fund.md"
+    },
+    {
+      "id": "money-jar",
+      "section": "family",
+      "title": "家里的钱怎么分：四只罐子",
+      "dek": "应急、稳健、进攻、长期。不谈买什么，只谈先分对桶。",
+      "tag": "家庭理财",
+      "tags": [
+        "家庭",
+        "配置",
+        "期限",
+        "入门"
+      ],
+      "readMinutes": 7,
+      "dataAsOf": "2026-10-21",
+      "dataAsOfActual": null,
+      "difficulty": 1,
+      "updatedAt": "2026-10-21",
+      "file": "family/money-jar.md"
+    },
+    {
+      "id": "reading-reports",
+      "section": "reports",
+      "title": "看懂财报：三张表和 PE、ROE 这些词到底在说什么",
+      "dek": "财报不是给会计看的，是给「想知道这家公司是不是真赚钱」的人看的。三张表各回答一个问题，PE、ROE 这些指标全是从三张表里算出来的。",
+      "tag": "读懂财报",
+      "tags": [
+        "财报",
+        "入门",
+        "PE",
+        "ROE",
+        "三张表"
+      ],
+      "readMinutes": 12,
+      "dataAsOf": "2026-10-23",
+      "dataAsOfActual": null,
+      "difficulty": 2,
+      "updatedAt": "2026-10-23",
+      "file": "reports/reading-reports.md"
+    },
+    {
+      "id": "three-statements",
+      "section": "reports",
+      "title": "三张表怎么读：利润、资产和现金流要互相验证",
+      "dek": "利润表回答「赚没赚」，资产负债表回答「欠多少」，现金流量表回答「钱到没到」。把三张表放在一起，财报才开始说话。",
+      "tag": "读懂财报",
+      "tags": [
+        "财报",
+        "利润表",
+        "资产负债表",
+        "现金流量表",
+        "财务分析"
+      ],
+      "readMinutes": 11,
+      "dataAsOf": "2026-11-10",
+      "dataAsOfActual": null,
+      "difficulty": 3,
+      "updatedAt": "2026-11-10",
+      "file": "reports/three-statements.md"
+    }
+  ]
+}

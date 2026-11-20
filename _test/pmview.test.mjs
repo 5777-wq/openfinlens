@@ -9,7 +9,8 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 
-const ROOT = path.resolve(import.meta.dirname, '..');
+const ROOT = path.resolve(import.meta.dirname, '..', 'apps', 'terminal');   // 前端源
+const DATA_ROOT = path.resolve(import.meta.dirname, '..');                  // 采集产物（data/events）
 let pass = 0, fail = 0;
 async function test(name, fn) {
   try { await fn(); pass++; console.log('✓ ' + name); }
@@ -159,7 +160,7 @@ await test('合规回归：渲染结果里不出现任何链接/交易入口', (
 });
 
 await test('真实产物：polymarket.json 渲染出环图 + 档位行（无历史的卡不出现走势区）', () => {
-  const f = path.join(ROOT, 'data/events/polymarket.json');
+  const f = path.join(DATA_ROOT, 'data/events/polymarket.json');
   if (!readFileSync) return;
   let d;
   try { d = JSON.parse(readFileSync(f, 'utf8')); } catch { console.log('   （产物尚未生成，跳过）'); return; }
@@ -180,8 +181,8 @@ await test('真实产物：polymarket.json 渲染出环图 + 档位行（无历�
 });
 
 await test('真实历史产物：有数据的档位能画出走势图（前端确实用上了采集数据）', () => {
-  const fh = path.join(ROOT, 'data/events/polymarket-history.json');
-  const fp = path.join(ROOT, 'data/events/polymarket.json');
+  const fh = path.join(DATA_ROOT, 'data/events/polymarket-history.json');
+  const fp = path.join(DATA_ROOT, 'data/events/polymarket.json');
   if (!readFileSync) return;
   let grid, d;
   try {

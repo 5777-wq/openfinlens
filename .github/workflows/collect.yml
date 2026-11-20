@@ -4,6 +4,13 @@
 # 海外源只在 Actions 侧访问；浏览器永远不直连 GDELT/SEC/Polymarket
 # （见 js/sources/gdelt.js、js/sources/sec.js、js/sources/polymarket.js）。
 #
+# ── 分支解耦（2026-11-19 monorepo Phase 1）──────────────────────────────
+# 此前产物直接提交回 main，与人工代码提交共用一条历史：rebase 冲突、40 跳回溯、
+# 「数据提交触发 CI」三类问题都源于此。现在 main 只保存代码，采集产物统一改写
+# 独立的 data 分支（孤儿首建 + 顶部追加，不 force）；线上站点由 deploy-pages.yml
+# 把 main（代码）与 data（产物）按同路径拼装后发布。产物在 data 分支里保持与
+# 仓库一致的路径（data/**、api/**、js/data/academy-assets.js），拼装即覆盖。
+#
 # ── 调度判据：从"墙钟时间窗"换成"产物年龄" ─────────────────────────────
 # 旧写法用 `date -u +%H` 取模决定本档跑不跑，但 GitHub schedule 在高负载下会
 # 拖延/丢弃（本仓库最近 200 次运行实测：collect 中位间隔 85 分钟、最大 488 分钟；
@@ -25,7 +32,7 @@
 # 的其它数据**（事件流是主数据，不能被 13F 的失败连累），提交完成后再由最后
 # 一个 gate 步骤 exit 1 —— CI 变红，Actions 界面能看出来。
 #
-# 数据无变化时不产生提交；push 冲突时 rebase 重试（用户可能同时手推代码）。
+# 数据无变化时不产生提交；data 分支写冲突时重拉基点重试（人工干预或并发写）。
 name: collect
 
 on:
@@ -37,7 +44,9 @@ permissions:
   contents: write
 
 concurrency:
-  group: collect
+  # data 分支的唯一写入口都要串行：本 workflow 与未来的 meridian 采集链共用这个组，
+  # cancel-in-progress: false 保证排队而非互掐（手册 §四 数据分支并发写冲突条目）。
+  group: data-branch-write
   cancel-in-progress: false
 
 jobs:
@@ -197,11 +206,18 @@ jobs:
         # Agent 数据链路（REST + MCP）：把 data/ 与实时源编译成静态 JSON 端点。
         # 采集失败不影响本步（continue-on-error）：能抓到就更新实时行情，抓不到就沿用
         # 上一次提交的快照并标 stale=true —— 宁缺毋假，绝不让 API 端点返回编造的数字。
-        # 产物提交进仓库，Pages 直接分发，任何 agent/脚本无 key 即可 GET。
+        # 产物提交进 data 分支，Pages 拼装后直接分发，任何 agent/脚本无 key 即可 GET。
+        # api-commit-guard 的对照基准（Phase 1.5）：data 分支存在时用 FETCH_HEAD（data 基点），
+        # 不存在时守卫内部回退 HEAD。切仓后 main 的 api/ 永久冻结，继续对照 HEAD 会让
+        # 「语义无变化」判定失效（每轮都被判"有变化"，噪声提交回来）——哨兵必须跟着数据走。
         continue-on-error: true
         env:
           OFL_TIMEOUT: "420"
         run: |
+          # fetch 放守卫里：data 分支尚不存在时静默回退，不阻塞首次采集
+          if git fetch --quiet --depth=1 origin refs/heads/data 2>/dev/null; then
+            export OFL_API_BASE_REF=FETCH_HEAD
+          fi
           # 阈值 30 分钟：行情快照够新，又不至于每 10 分钟造一次提交。
           bash "$RUNNER_TEMP/ofl-collect.sh" api-build api/v1/health.json 30 _scripts/build-api.mjs
           # 语义守卫：只有数据真的变了才让 api/ 进提交（否则 generatedAt 会把每轮都变成一次 1.6MB 提交）
@@ -209,73 +225,67 @@ jobs:
 
       - name: 提交前的数据契约闸门
         id: gate
-        # 闸门必须挡在 push 前面。
-        # 数据提交带 [skip ci]，push 触发的 CI 直接跳过，于是「某个来源静默挂了、
-        # 产物少一大块」这种问题只能等某个人手动推代码才暴露——而坏数据已经上线好几天。
+        # 闸门必须挡在提交前面。
+        # 数据提交不带 [skip ci]，但产物已不进 main，push main 触发的 CI 看不到采集轮；
+        # 「某个来源静默挂了、产物少一大块」这种问题由两道防线兜住：
+        #   1) 这里：提交 data 分支前对刚采出来的工作区跑离线契约测试，不通过就不提交；
+        #   2) deploy-pages.yml：每次部署前跑数据新鲜度哨兵（从 ci.yml 迁来）。
         # 采集脚本自己也会失败（保留旧数据），但「成功写盘」不等于「写出来的是对的」：
         # 新浪要 Referer、本机常被掐，某次新浪挂而 GDELT 正常 → 产物里 80 条中文快讯
         # 整段消失，脚本 exit 0，页面照旧显示，只是少了一大块。
         # 所以这里再跑一遍离线契约测试，不通过就不提交（宁缺毋假，不要发残次品）。
         continue-on-error: true
         run: |
-          node _test/run-all.mjs --offline
+          node test/run-all.mjs
 
-      - name: 提交已变化的数据（失败不牵连已成功的数据）
+      - name: 提交采集产物到 data 分支（main 只留代码）
         # if: always()：哪怕某个采集步骤崩了，也要先把已经写盘的成功数据推上去。
         # 但闸门红的时候不提交——契约没过的东西不能上线。
+        #
+        # 写入实现统一在 _scripts/push-data-branch.sh（与 server-collect.sh、未来的
+        # collect-meridian.yml 共用，Phase 1.5 起抽成单处维护）。核心语义：
+        #   · read-tree FETCH_HEAD 把 data 基点树整体读进临时索引——data 分支是多采集链
+        #     的公共地盘（events/actors/api 本链负责，us-signals.json 等归未来 Meridian 链），
+        #     绝不能从空树重建清掉别家产物；
+        #   · 只 add -A 本链负责的路径（含删除），其余文件原样保留；
+        #   · 产物树与基点树一致 → no changes 跳过；
+        #   · commit-tree 挂基点为父 → 按 SHA 直写 refs/heads/data；
+        #   · 冲突时重拉基点、重读树、重新 add 后重试（防覆盖并发者刚写的邻近文件）。
+        # data 分支尚不存在时走孤儿首建（首次成功采集自动创建，无需人工预置）。
         if: always() && steps.gate.outcome != 'failure'
+        env:
+          DATA_BRANCH: data
         run: |
           git config user.name "openfinlens-bot"
           git config user.email "actions@users.noreply.github.com"
-          # 整个 data/actors 目录都进 add：此前只 add 两个文件，13f.json/fundholds.json
-          # 采集成功却从不提交（上线数据全靠手动推的那一次），CI 侧更新会被静默丢掉
-          # polymarket-history.json 是概率走势的数据源，polymarket-i18n.json 是翻译缓存
-          # （没有缓存就是每轮重复请求翻译接口），两者缺一则对应功能退化
-          git add data/events/global-events.json data/events/polymarket.json data/events/polymarket-history.json data/events/polymarket-i18n.json data/actors data/academy-terms.json js/data/academy-assets.js
-          # Agent API 产物随采集一起提交：agent 侧读到的永远是最近一轮的真实数据
-          git add api/v1 api/openapi.json
-          if git diff --cached --quiet; then
-            echo "no changes"
-          else
-            # commit message 区分本轮成败：+成功 !失败（跳过的写进正文，不进标题避免噪音）
-            # 旧写法是写死的 "refresh global events + berkshire 13f + polymarket"，
-            # 残缺轮次和完整轮次一模一样，事后分不出哪一轮缺了数据。
-            STATUS_FILE="$RUNNER_TEMP/ofl-status.tsv"
+
+          # 提交信息沿用旧约定：+成功 !失败，跳过与失败写进正文（不进标题避免噪音）
+          MSG="data: refresh"; BODY=""
+          STATUS_FILE="$RUNNER_TEMP/ofl-status.tsv"
+          if [ -f "$STATUS_FILE" ]; then
             OK=""; BAD=""; BADNAMES=""; SKIPPED=""
-            if [ -f "$STATUS_FILE" ]; then
-              while IFS=$'\t' read -r n s d; do
-                case "$s" in
-                  ok)   OK="$OK +$n" ;;
-                  fail) BAD="$BAD !$n"; BADNAMES="$BADNAMES $n" ;;
-                  skip) SKIPPED="$SKIPPED $n" ;;
-                esac
-              done < "$STATUS_FILE"
-            fi
+            while IFS=$'\t' read -r n s d; do
+              case "$s" in
+                ok)   OK="$OK +$n" ;;
+                fail) BAD="$BAD !$n"; BADNAMES="$BADNAMES $n" ;;
+                skip) SKIPPED="$SKIPPED $n" ;;
+              esac
+            done < "$STATUS_FILE"
             MSG="data: refresh${OK}${BAD}"
-            BODY=""
             if [ -n "$SKIPPED" ]; then BODY="skipped(age not reached): ${SKIPPED# }"; fi
             if [ -n "$BADNAMES" ]; then
               FAILBODY="failed(kept old data): ${BADNAMES# }"
               if [ -n "$BODY" ]; then BODY="${BODY}"$'\n'"${FAILBODY}"; else BODY="${FAILBODY}"; fi
             fi
-            if [ -n "$BODY" ]; then
-              git commit -m "$MSG" -m "$BODY"
-            else
-              git commit -m "$MSG"
-            fi
-            # 三连败必须红：本 workflow 是项目唯一的"后端"，commit 只在 runner 上，
-            # 推不上去=数据静默断更（旧写法循环最后是 sleep 5，步骤恒绿）
-            ok=0
-            for i in 1 2 3; do
-              if git push; then ok=1; break; fi
-              git pull --rebase origin main || true
-              sleep 5
-            done
-            if [ "$ok" != "1" ]; then
-              echo "::error::git push failed 3x — collected data did NOT reach remote"
-              exit 1
-            fi
           fi
+
+          # 产物清单：与 data 分支内路径保持一致（deploy-pages 按同路径覆盖拼装）
+          # 退出码透传：脚本内重试 3 次仍失败 → exit 1 → 本步骤红（不会静默断更）
+          bash _scripts/push-data-branch.sh -m "$MSG" -b "$BODY" \
+            data/events/global-events.json data/events/polymarket.json \
+            data/events/polymarket-history.json data/events/polymarket-i18n.json \
+            data/actors data/academy-terms.json \
+            js/data/academy-assets.js api/v1 api/openapi.json
 
       - name: 失败闸门（采集失败的脚本在这里让 workflow 变红）
         # 必须排在提交步骤之后：先把已经成功的数据推上远端，再把失败暴露成红。

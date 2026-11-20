@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<!-- UI v2：一套语言两个模式。首帧静态写 nexus（深空，默认），JS 起来后按存量设置修正；
+     存量里可能是旧皮肤名（swiss/dark/…/random），app.js 的 applyTheme 会 sanitize 到 nexus。 -->
+<html lang="zh-CN" data-theme="daylight">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>OpenFinLens · 全球金融看板</title>
+<meta name="description" content="全球金融情报终端：A股/港股/美股/加密/外汇/指数/大宗商品/宏观利率，3D 全球事件地图、热力图、K线事件标记、龙虎榜资金动向、新闻流与产业链。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%2335e1ff'/%3E%3C/svg%3E">
+<!-- PWA：手机浏览器"添加到主屏幕"后以独立窗口+品牌图标运行（个人主体上不了小程序 web-view 的替代体验） -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#ffffff">
+<!-- 设计语言四件套字体：Inter (瑞士) / Jost (包豪斯) / Newsreader + Instrument Sans (纸感) / Righteous (孟菲斯)。
+     系统回退栈已在 CSS 内补全，Google Fonts 加载失败时也不会塌。
+     字体 CSS 非阻塞加载（preload + media 切换）：跨境链路慢时不再阻塞首屏渲染，
+     display=swap 保证字体到达前后都有字；禁 JS 时由 noscript 回退为阻塞加载 -->
+<!-- v3.3 首屏提速：行情源预连接（DNS+TLS 握手提前做，首屏 fetch 少 1~2 个 RTT）。
+     只挑首屏真正会打的四个域名，多了反而抢连接。 -->
+<link rel="preconnect" href="https://qt.gtimg.cn">
+<link rel="preconnect" href="https://web.ifzq.gtimg.cn">
+<link rel="preconnect" href="https://push2.eastmoney.com">
+<link rel="preconnect" href="https://push2his.eastmoney.com">
+<link rel="dns-prefetch" href="//qt.gtimg.cn">
+<link rel="dns-prefetch" href="//push2.eastmoney.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style"
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'"
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<noscript>
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+</noscript>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OpenFinLens">
+<!-- 开屏（splash）于 2026-09-15 移除：进度条 + "正在连接行情源…" 是落地页语法，
+     对数据终端来说只是把数据推迟 0.6~2.6s 才显示。现在首屏骨架（.sk）直接可见。 -->
+<!-- v3.4 首屏提速：5 个 CSS 层合成 1 个（css/bundle.css）。
+     原来是 5 个渲染阻塞请求、合计 88KB(gzip)，最后一个文件把 FCP 卡在 1.1s（TTFB 才 0.5s）；
+     合成 1 个、再去注释压空白后 ≈34KB。层叠顺序不变（style → shell → market → panels → motion），
+     源码仍分层放 css/ 与 css/ui/，改完样式跑 `node _scripts/build-css.mjs`。 -->
+<link rel="stylesheet" href="css/bundle.css?v=20261110a">
+</head>
+<body data-updown="red">
+
+<!-- 顶栏（UI v2）：左品牌 → 中 5 个一级入口（滑动胶囊指示器）→ 右命令/状态/设置。
+     一级入口 12→5：市场 / 事件 / 资产 / 基金 / 洞察，内部 state.tab 仍是旧 12 个 key
+     （由 js/ui/navmap.js 做纯函数映射），深链与既有模块不受影响。 -->
+<header class="topbar">
+  <a class="logo" id="brandHome" href="#tab=market&amp;sub=all" title="OpenFinLens · 回到市场总览">
+    <span class="logo-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+           stroke-linecap="round" stroke-linejoin="round"><path d="M5 16.5 L10 11 L13.6 14 L19 7.6"/></svg>
+    </span>
+    <span class="logo-word">OpenFinLens</span>
+  </a>
+  <!-- 一级栏用 role=tablist + roving tabindex（同一时刻只有一个在 Tab 序里，方向键横向移动）。
+       .nav-ink 是那枚滑动的胶囊高亮：app.js 用 transform/width 把它定位到当前一级，
+       动效交给 css/ui/04-motion.css（motion 层会接管已存在的 .nav-ink，不重复创建）。 -->
+  <div class="primary-nav" id="primaryNav" role="tablist" aria-label="一级板块">
+    <span class="nav-ink" id="navInk" aria-hidden="true"></span>
+    <button class="nav-primary active" id="pnav-market" data-primary="market" role="tab" aria-controls="view-market" aria-selected="true" tabindex="0">市场</button>
+    <button class="nav-primary" id="pnav-events" data-primary="events" role="tab" aria-controls="view-events" aria-selected="false" tabindex="-1">事件</button>
+    <button class="nav-primary" id="pnav-assets" data-primary="assets" role="tab" aria-controls="view-watch" aria-selected="false" tabindex="-1">资产</button>
+    <button class="nav-primary" id="pnav-fund" data-primary="fund" role="tab" aria-controls="view-compare" aria-selected="false" tabindex="-1">基金</button>
+    <button class="nav-primary" id="pnav-insight" data-primary="insight" role="tab" aria-controls="view-chain" aria-selected="false" tabindex="-1">洞察</button>
+    <button class="nav-primary" id="pnav-ussig" data-primary="ussig" role="tab" aria-controls="view-ussig" aria-selected="false" tabindex="-1">美股信号</button>
+  </div>
+  <div class="topbar-actions">
+    <a class="topbar-link" id="academyLink" href="academy/" target="_blank" rel="noopener"
+       title="白话金融 OpenFin Academy · 给小白和家庭的金融说明书">白话金融 ↗</a>
+    <div class="search-wrap">
+      <span class="search-icon" aria-hidden="true">⌕</span>
+      <!-- role=combobox：searchbox 角色不支持 aria-expanded / aria-autocomplete，
+           不加 combobox 的话读屏不知道这是个可展开的候选框。
+           ↑↓ 用 aria-activedescendant 指向当前选中项（焦点始终留在输入框）。 -->
+      <input id="searchInput" class="search-input" type="search" placeholder="搜索代码 / 名称"
+             autocomplete="off" aria-label="搜索行情" role="combobox" aria-expanded="false"
+             aria-controls="searchResults" aria-autocomplete="list" aria-activedescendant="">
+      <div id="searchResults" class="search-results" role="listbox" aria-label="搜索结果"></div>
+    </div>
+    <!-- 命令面板入口：按钮只是可见入口，⌘K / Ctrl+K 由 js/ui/command.js 全局绑定 -->
+    <button id="cmdOpen" class="cmd-btn" type="button" title="命令面板（⌘K / Ctrl+K）" aria-keyshortcuts="Control+K Meta+K"
+            aria-haspopup="dialog" aria-controls="cmdPalette" aria-expanded="false">
+      <span class="cmd-btn-key" aria-hidden="true">⌘K</span>
+      <span class="cmd-btn-label">命令</span>
+    </button>
+    <div class="live-stat" id="liveStat" title="行情刷新状态：轮询间隔 / 数据到达">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span class="live-label num" id="liveLabel">--</span>
+    </div>
+    <button id="alertBell" class="icon-btn" title="到价提醒" aria-haspopup="true" aria-expanded="false"
+            aria-controls="alertPanel">提醒<span id="alertBadge" class="alert-badge num" hidden>0</span></button>
+    <div id="alertPanel" class="alert-panel" role="dialog" aria-label="到价提醒" tabindex="-1" hidden>
+      <div class="al-head">
+        <span>到价提醒</span>
+        <button class="pill" id="alertPerm" hidden>开启浏览器通知</button>
+      </div>
+      <div id="alertList" class="al-list"></div>
+      <p class="al-hint" id="alertHint"></p>
+    </div>
+    <button id="settingsBtn" class="icon-btn" title="设置" aria-label="设置">设置</button>
+  </div>
+</header>
+
+<!-- 二级 segmented control：只在当前一级有 ≥2 个子项时出现（市场/资产），
+     单子项的一级（事件/基金/洞察）不为了"有导航"而造导航。
+     12 个按钮仍是 state.tab 的唯一控制器（id/data-tab/aria 与旧版完全一致），
+     显隐与顺序由 app.js 按 Navmap.childrenOf(当前一级) ∩ tabscope 配置落地。 -->
+<div class="subbar" id="subbar" hidden>
+  <div class="subbar-inner">
+    <nav class="tabs subnav-tabs" id="tabs" role="tablist" aria-label="二级板块">
+      <!-- 每个 tab 有自己的 id：面板用 aria-labelledby 指向**当前**那个 tab，
+           六个市场 tab 共用一个面板时读屏才不会一直念"全球市场"。
+           tabindex 由 app.js 的 roving tabindex 维护（同一时刻只有一个在 Tab 序里）。 -->
+      <button class="tab active" id="tab-all" data-tab="all" role="tab" aria-selected="true" aria-controls="view-market" tabindex="0">全部</button>
+      <button class="tab" id="tab-cn" data-tab="cn" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">A股</button>
+      <button class="tab" id="tab-hk" data-tab="hk" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">港股</button>
+      <button class="tab" id="tab-us" data-tab="us" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">美股</button>
+      <button class="tab crypto-only" id="tab-crypto" data-tab="crypto" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">加密</button>
+      <button class="tab" id="tab-fxmacro" data-tab="fxmacro" role="tab" aria-selected="false" aria-controls="view-market" tabindex="-1">宏观</button>
+      <button class="tab options-only" id="tab-option" data-tab="option" role="tab" aria-selected="false" aria-controls="view-option" tabindex="-1">期权</button>
+      <button class="tab" id="tab-events" data-tab="events" role="tab" aria-selected="false" aria-controls="view-events" tabindex="-1">事件</button>
+      <button class="tab" id="tab-chain" data-tab="chain" role="tab" aria-selected="false" aria-controls="view-chain" tabindex="-1">产业链</button>
+      <button class="tab" id="tab-watch" data-tab="watch" role="tab" aria-selected="false" aria-controls="view-watch" tabindex="-1">自选</button>
+      <button class="tab" id="tab-portfolio" data-tab="portfolio" role="tab" aria-selected="false" aria-controls="view-portfolio" tabindex="-1">持仓</button>
+      <button class="tab" id="tab-compare" data-tab="compare" role="tab" aria-selected="false" aria-controls="view-compare" tabindex="-1">基金</button>
+    </nav>
+  </div>
+</div>
+
+<!-- 吸顶全球指数跑马条（TradingView ticker tape 的终端版）：数据零额外请求，
+     全部来自已轮询的 universe 指数；点击任一格进该指数详情。窄屏隐藏（顶栏已两行）。 -->
+<div class="tape" id="tape" role="group" aria-label="全球指数速览"></div>
+
+<noscript>
+  <div class="noscript-box">
+    <strong>请启用 JavaScript</strong><br>
+    本看板的行情、热力图与新闻均在浏览器端实时抓取，需要 JavaScript 才能运行。
+  </div>
+</noscript>
+
+<main class="main" id="main">
+
+  <!-- ========== 市场总览 ========== -->
+  <section class="view active tab-panel" id="view-market" role="tabpanel" tabindex="-1" aria-labelledby="tab-all">
+    <div class="page-head">
+      <h1 class="page-title" id="marketTitle">全球市场</h1>
+      <p class="page-sub" id="marketSub">加载中…</p>
+    </div>
+    <!-- 全球总览（大指数 + 全球指数条）只在「全部」出现；A股/港股/美股/宏观只看各自的分区 -->
+    <div id="globalOverview">
+      <!-- 市场简报：首屏先给答案（全球几涨几跌 + A股全市场什么温度），再给详情。
+           仪表条语言（终端顶部的 annunciator panel）：左标签 / 中间连续分布条 / 右数字。
+           零新增请求：全球指数用已加载的指数行情，A股用宽度调度器已算好的结果。 -->
+      <!-- v3（2026-11-09）：市场简报带已删除。它把「全球指数几涨几跌」和「A股宽度」
+           用两条长条再讲一遍，与下方指数卡完全重复；用户原话「这个玩意啥用都没有」。
+           市场宽度仍在「市场 → 情绪」分区里完整保留。 -->
+      <div class="hero-cap" id="heroCap" hidden></div>
+      <!-- v3.3：骨架写进静态 HTML。JS 执行前（慢网下可能 1~2s）先给位置和呼吸感，
+           否则首屏是一块空白，看起来像页面坏了。数据一到由 renderHero 整块替换。 -->
+      <div class="hero" id="heroStrip" role="group" aria-label="关键指数"><div class="hero-cell"><div class="sk sk-hero-a"></div><div class="sk sk-hero-b"></div><div class="sk sk-hero-c"></div></div><div class="hero-cell"><div class="sk sk-hero-a"></div><div class="sk sk-hero-b"></div><div class="sk sk-hero-c"></div></div><div class="hero-cell"><div class="sk sk-hero-a"></div><div class="sk sk-hero-b"></div><div class="sk sk-hero-c"></div></div><div class="hero-cell"><div class="sk sk-hero-a"></div><div class="sk sk-hero-b"></div><div class="sk sk-hero-c"></div></div></div>
+      <div class="globe-grid" id="globeBar" aria-label="全球指数"><span class="gcell gcell-sk"><i class="sk"></i><i class="sk"></i></span><span class="gcell gcell-sk"><i class="sk"></i><i class="sk"></i></span><span class="gcell gcell-sk"><i class="sk"></i><i class="sk"></i></span><span class="gcell gcell-sk"><i class="sk"></i><i class="sk"></i></span><span class="gcell gcell-sk"><i class="sk"></i><i class="sk"></i></span><span class="gcell gcell-sk"><i class="sk"></i><i class="sk"></i></span></div>
+    </div>
+
+    <!-- ===== 分区导航：一级 tab → 二级分区 =====
+         原来 view-market 里十来个板块纵向平铺，滚三四屏才能看完，信息熵过高。
+         现在把"结论层"（简报带 + 关键指数 + 全球指数条）留在上面常驻，
+         下面的重内容收成分区：概览 / 焦点 / 热力图 / 情绪 / 披露。
+         分区按钮按当前 tab 实际有内容的分区动态生成（app.js 的 syncZones），
+         只有一个分区时整条栏隐藏——不为了"有导航"而造导航。 -->
+    <nav class="zone-bar" id="zoneBar" role="tablist" aria-label="市场分区切换" hidden></nav>
+
+    <!-- ===== 我的自选（首屏下方独立板块：用户要求"先指数、再自选"）===== -->
+    <div class="section" id="watchSection" data-zone="overview" hidden>
+      <div class="section-head">
+        <h2 class="section-title">我的自选</h2>
+        <span class="sec-line"></span>
+        <span class="section-sub" id="watchSub">—</span>
+        <button class="pill" id="watchMore" title="去自选页排序 / 管理">全部自选 →</button>
+      </div>
+      <div class="wgrid" id="watchGrid"></div>
+    </div>
+
+    <div id="cardWall" data-zone="overview"></div>
+
+    <!-- ===== Movers 三榜（涨幅榜 / 跌幅榜 / 成交额榜）：TradingView 式"零配置预设"，
+         数据复用热力图的全市场行（state.heatItems），不新增任何网络请求。
+         只在 A股/港股/美股 tab 显示（全部/加密/宏观无全市场行）。 ===== -->
+    <div class="section" id="moversSection" data-zone="focus" hidden data-fold>
+      <div class="section-head">
+        <h2 class="section-title" id="moversTitle">市场焦点</h2>
+        <span class="sec-line"></span>
+        <span class="section-sub" id="moversSub">—</span>
+      </div>
+      <div class="movers-grid" id="moversGrid"></div>
+    </div>
+
+    <div class="section" id="heatSection" data-zone="heat" data-fold>
+      <div class="section-head">
+        <h2 class="section-title">热力图</h2>
+        <span class="section-sub" id="heatSub">—</span>
+      </div>
+      <div class="heat-toolbar">
+        <!-- 市场切换组：只在「全部」页出现（一级 tab 已经定死市场时再给一套是矛盾的，
+             见 js/marketscope.js）。app.js 按 tab 显隐这组按钮。
+             用 chip 而非 pill：它和事件页的类型筛选是同一语义（从一组里选一个），
+             而旁边的「面积/范围」是参数切换（.pill）——两种语义不能长得一样。 -->
+        <span class="heat-mkt-switch" id="heatMktSwitch">
+          <button class="chip active" data-heat="cn">A股全市场</button>
+          <button class="chip" data-heat="hk">港股全市场</button>
+          <button class="chip" data-heat="us">美股全市场</button>
+          <button class="chip crypto-only" data-heat="crypto">加密市值</button>
+        </span>
+        <!-- 市场标签：具体市场页显示它，说明"这张图是谁的"。
+             两个元素互斥出现（见 js/marketscope.js 的 showsMarketSwitcher）。 -->
+        <span class="heat-mkt-tag" id="heatMktTag" hidden></span>
+        <!-- 指数成分筛选（Coinglass 式）：只属于美股模式，app.js 按 heatMode 显隐。
+             语义与左侧市场切换相同（从一组里选一个），同样用 chip。
+             清单在 js/data/us-indexes.js，季度级手工刷新。 -->
+        <span class="heat-mkt-switch" id="heatIdxSwitch" hidden>
+          <button class="chip active" data-usidx="all">市值 Top500</button>
+          <button class="chip" data-usidx="sp500">标普500</button>
+          <button class="chip" data-usidx="dj30">道指30</button>
+          <button class="chip" data-usidx="ndx100">纳指100</button>
+        </span>
+        <button class="pill" id="heatSizeToggle" data-size="cap">面积：市值</button>
+        <button class="pill" id="heatTopToggle">范围：市值 Top 500</button>
+        <div class="heat-legend" id="heatLegend" role="group" aria-label="涨跌幅区间筛选（点击可隐藏该区间）"></div>
+        <button class="pill" id="heatTableToggle" aria-pressed="false"
+                title="把热力图换成可读表格（Top 涨/跌榜）">表格视图</button>
+        <button class="pill" id="heatFull" title="热力图全屏（Esc 退出）">全屏</button>
+        <button class="pill" id="heatReset" hidden>复位 ×<span id="heatZoom" class="num">1.0</span></button>
+      </div>
+      <div class="heat-wrap" id="heatWrap">
+        <div class="sk heat-sk" id="heatSk" aria-hidden="true"></div>
+        <!-- 热力图是本站核心视图，canvas 对读屏和纯键盘用户等于不存在：
+             给它 tabindex + 键盘操作（←→↑↓ 移动游标、+/- 缩放、Home 复位），
+             游标所在格由下面的 aria-live 播报。表格视图是它的等价替代。 -->
+        <canvas id="heatCanvas" role="img" tabindex="0"
+                aria-label="市场涨跌热力图。方向键移动游标，加号减号缩放，Home 复位；也可以切换到表格视图。"
+                aria-describedby="heatHint"></canvas>
+        <div class="heat-logo" aria-hidden="true"><span class="logo-dot"></span>OpenFinLens</div>
+        <div class="heat-hint" id="heatHint">缩放：滚轮 / + - 键 · 平移：拖拽 / 方向键 · 复位：右键 / Home 键 · 也可切「表格视图」</div>
+        <div class="heat-tip" id="heatTip"></div>
+      </div>
+      <!-- 键盘/读屏用户读热力图的等价入口：Top 涨/跌榜的表格（数据同源，零新增请求） -->
+      <div id="heatTable" class="heat-table" hidden></div>
+      <!-- 游标播报区：只播当前选中格（名称 + 涨跌幅 + 方向） -->
+      <div id="heatCursorLive" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+    </div>
+
+    <!-- ========== 情绪与市场宽度（原独立「情绪」tab 并入 A股板块底部） ========== -->
+    <div class="section" id="moodPanel" data-zone="sentiment" hidden data-fold>
+      <div class="section-head">
+        <h2 class="section-title">情绪与市场宽度</h2>
+        <span class="section-sub" id="moodSub">—</span>
+      </div>
+      <div class="mood-top">
+        <div class="thermo-card" id="thermoCard">
+          <div class="thermo-label">情绪指数</div>
+          <div class="thermo-score num" id="moodScore">--</div>
+          <div class="thermo-band" id="moodBand">—</div>
+          <div class="thermo-track" aria-hidden="true">
+            <span class="thermo-fill" id="moodFill"></span>
+          </div>
+          <div class="thermo-scale" aria-hidden="true"><span>0 恐慌</span><span>50</span><span>100 亢奋</span></div>
+          <div class="thermo-note">上涨家数 ÷ (上涨 + 下跌) × 100</div>
+        </div>
+        <div class="breadth-grid" id="breadthGrid"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <h2 class="section-title">涨跌幅分布</h2>
+          <span class="section-sub" id="distSub">—</span>
+        </div>
+        <div class="dist-wrap" id="distWrap"></div>
+      </div>
+
+      <div class="section">
+        <div class="spark-box" id="moodSpark"></div>
+      </div>
+    </div>
+
+    <!-- ===== 加密宽度：只在 加密 tab 显示（原挂在 A股 的"情绪与市场宽度"里，与 A股 无关）===== -->
+    <div id="cryptoMoodPanel" data-zone="sentiment" hidden style="margin-bottom:var(--sp-32)">
+      <div class="mood-crypto crypto-only" id="moodCrypto"></div>
+    </div>
+
+    <!-- ===== 美股宽度：只在 美股 tab 显示（同上）===== -->
+    <div id="usMoodPanel" data-zone="sentiment" hidden style="margin-bottom:var(--sp-32)">
+      <div class="mood-crypto" id="moodUS"></div>
+    </div>
+
+    <!-- ===== A股披露类：席位动向 / 今日龙虎榜 / 基金持仓（原"聪明钱"tab，按市场归位）=====
+         三块竖排会让这一屏越滚越长，所以用子页按钮切换（用户要求"别都堆在一起"）。
+         按钮 data-fundssub="<key>" ↔ 内容 data-fundspane="<key>"，由 app.js 统一切换。 -->
+    <div id="aFundsPanel" data-zone="disclosure" hidden>
+      <div class="heat-toolbar" id="aFundsBar" role="tablist" aria-label="A股披露数据切换">
+        <button class="pill active" data-fundssub="seat" role="tab" aria-selected="true">席位动向</button>
+        <button class="pill" data-fundssub="lhb" role="tab" aria-selected="false">今日龙虎榜</button>
+        <button class="pill" data-fundssub="fund" role="tab" aria-selected="false">基金持仓</button>
+      </div>
+      <div data-fundspane="seat">
+        <div class="section" data-fold id="seatSection">
+          <div class="section-head">
+            <h2 class="section-title">席位动向</h2>
+            <span class="sec-line"></span>
+            <span class="section-sub" id="seatDirVia">—</span>
+          </div>
+          <div id="seatDir"><div class="sk sk-row"></div></div>
+          <p class="insight-disclaimer">席位 = 交易所龙虎榜披露的营业部，档案页展示其近 90 天公开上榜轨迹（点击行进席位档案）。席位是营业部口径，不代表任何自然人账户。「通道合计」（深股通/沪股通/机构专用）是聚合口径，不是可识别席位，故单列且不可点入档案。</p>
+        </div>
+      </div>
+      <div data-fundspane="lhb" hidden>
+        <div class="section" data-fold id="lhbSection">
+          <div class="section-head">
+            <h2 class="section-title">今日龙虎榜</h2>
+            <span class="sec-line"></span>
+            <span class="section-sub" id="lhbVia">—</span>
+          </div>
+          <div id="lhbBox"><div class="sk sk-row"></div></div>
+          <p class="insight-disclaimer">龙虎榜是交易所公开披露的营业部/机构席位汇总（日频，次日常更新），不代表任何个人账户的实时交易；「次日/5日」为该股上榜后 T+1 / T+5 的涨跌幅，数据源在对应交易日收盘后才补齐，所以最新披露日这两列必然为空——是延迟，不是字段缺失。点击行进 K 线详情并叠加「龙虎榜」标记。</p>
+        </div>
+      </div>
+      <div data-fundspane="fund" hidden>
+        <div class="section" data-fold id="fundSection">
+          <div class="section-head">
+            <h2 class="section-title">基金持仓变动</h2>
+            <span class="sec-line"></span>
+            <span class="section-sub" id="fundVia">—</span>
+          </div>
+          <div class="heat-toolbar" role="tablist" aria-label="基金持仓方向">
+            <button class="pill active" data-funddir="add" role="tab" aria-selected="true">增仓最多</button>
+            <button class="pill" data-funddir="trim" role="tab" aria-selected="false">减仓最多</button>
+          </div>
+          <div id="fundBox"><div class="sk sk-row"></div></div>
+          <p class="insight-disclaimer">口径是<strong>基金合计持仓</strong>（东财「基金」口径，<strong>含 ETF / 指数基金</strong>）——被动申赎同样体现为加仓/减仓，所以榜单前列常是宽基权重股，<strong>不能读成"主动基金经理在买"</strong>。季度披露、滞后大（标题写的是距报告期末的天数）。排序列是<strong>变动金额</strong>（变动股数 × 隐含单价，隐含单价 = 该股基金合计持仓市值 ÷ 持股数）。该接口按股票聚合，所以本页回答的是"哪些股票被基金整体增减持"，回答不了"某只基金买了什么"。历史事实陈述，不构成任何建议。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 美股披露类：机构 13F / 因子 ETF 持仓（原"聪明钱"tab，仅 美股 tab 显示）
+         两块数据性质不同（季度 SEC 披露 vs 日更官方持仓），竖排堆一屏会乱——分子页 ===== -->
+    <div id="usFundsPanel" data-zone="disclosure" hidden>
+      <div class="heat-toolbar" id="usFundsBar" role="tablist" aria-label="美股披露数据切换">
+        <button class="pill active" data-fundssub="13f" role="tab" aria-selected="true">机构 13F</button>
+        <button class="pill" data-fundssub="etf" role="tab" aria-selected="false">因子 ETF 持仓</button>
+      </div>
+      <div data-fundspane="13f">
+        <div class="section" data-fold id="brkSection">
+          <div class="section-head">
+            <h2 class="section-title">机构持仓 · 13F</h2>
+            <span class="sec-line"></span>
+            <span class="section-sub" id="brkVia">—</span>
+          </div>
+          <div id="brkBox"><div class="sk sk-row"></div></div>
+          <p class="insight-disclaimer">多家机构的美国 SEC 13F-HR 季度披露（伯克希尔·哈撒韦 / 桥水 / ARK / Pershing Square，面板上用按钮切换）。<strong>报告期末到提交日实测滞后 34~45 天</strong>——标题里写的是真实滞后天数，它是几个季度前的持仓快照，不是当前仓位。标记为「看涨期权 / 看跌期权」的行是期权（<strong>股数是名义合约股数，不是持股</strong>），与正股分开统计。不含非美资产；「环比」是与上一期同 CUSIP 同类型的股数对比。全部为历史事实陈述，不构成任何建议。</p>
+        </div>
+      </div>
+      <div data-fundspane="etf" hidden>
+        <div class="section" data-fold id="etfSection">
+          <div class="section-head">
+            <h2 class="section-title" data-gloss="factor-etf" tabindex="0">因子 ETF 持仓</h2>
+            <span class="sec-line"></span>
+            <span class="section-sub" id="etfVia">—</span>
+          </div>
+          <div class="heat-toolbar" role="tablist" aria-label="因子 ETF 切换">
+            <button class="pill active" data-etfsub="spmo" data-gloss="momentum" role="tab" aria-selected="true">动量 SPMO</button>
+            <button class="pill" data-etfsub="splv" data-gloss="low-vol" role="tab" aria-selected="false">低波 SPLV</button>
+            <button class="pill" data-etfsub="both" data-gloss="factor-etf" role="tab" aria-selected="false">双因子交集</button>
+          </div>
+          <div class="etf-gloss" id="etfGloss">
+            <span class="eg-label">看不懂这些基金</span>
+            <a href="academy/#/term/etf" target="_blank" rel="noopener">ETF 是什么 ↗</a>
+            <a href="academy/#/term/momentum" target="_blank" rel="noopener">动量策略 ↗</a>
+            <a href="academy/#/term/low-vol" target="_blank" rel="noopener">低波策略 ↗</a>
+            <a href="academy/#/term/qqq" target="_blank" rel="noopener">纳指100 QQQ ↗</a>
+            <a href="academy/#/term/spy" target="_blank" rel="noopener">标普500 SPY ↗</a>
+            <a href="academy/#/data?cat=fund" target="_blank" rel="noopener">全部基金与策略 →</a>
+            <!-- 期权单列一行：它不是基金，混在基金那一组里读起来像「期权属于基金策略」 -->
+            <span class="eg-label eg-break">期权（终端没有这个功能，科普站讲得全）</span>
+            <a href="academy/#/term/options" target="_blank" rel="noopener">期权是什么 ↗</a>
+            <a href="academy/#/data?cat=option" target="_blank" rel="noopener">20 条期权与经典策略 →</a>
+          </div>
+          <div id="etfBox"><div class="sk sk-row"></div></div>
+          <p class="insight-disclaimer">规则化因子 ETF 的<strong>每日全量持仓</strong>（Invesco 官方发布）：动量 ETF 的持仓回答"趋势资金集中在哪"，低波 ETF 回答"防御资金在哪"，交集是<strong>同时被两类因子选中</strong>的股票。这是编制规则定期调仓（半年/季度）后的<strong>被动持仓</strong>，不是某位基金经理的主观判断。已剔除官方 feed 里的现金 / 货币基金 / 指数期货等非股票行；「占净值」合计不足 100% 是因为只列 Top 40（低波近乎等权，Top 40 只占约一半净值，这不是缺数据）。点击行进 K 线详情。历史事实陈述，不构成任何建议。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 港股披露类：南向（港股通）持股，仅 港股 tab 显示 =====
+         注：港股没有美股 13F 那种可按机构拆分的免费结构化披露——HKEX 权益披露只有 HTML 交互，
+         CCASS 明细虽细但使用条款 2.3 明文禁止程序化访问。所以这一块是**通道合计**口径，如实标注。 -->
+    <div id="hkFundsPanel" data-zone="disclosure" hidden>
+      <div class="section" data-fold id="sbSection">
+        <div class="section-head">
+          <h2 class="section-title">南向资金持股 · 港股通</h2>
+          <span class="sec-line"></span>
+          <span class="section-sub" id="sbVia">—</span>
+        </div>
+        <div id="sbBox"><div class="sk sk-row"></div></div>
+        <p class="insight-disclaimer">内地资金经港股通持有港股的合计（交易所/结算披露口径，日频，当日收盘后发布）。这是<strong>通道合计</strong>，不是某家机构的持仓：港股没有按机构拆分的免费结构化披露源，所以本页不呈现"某基金持有什么"。增减按当日持仓市值变动排序，供判断南向资金的流向，不构成任何建议。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 详情 ========== -->
+  <section class="view tab-panel" id="view-detail" role="tabpanel" tabindex="-1" aria-label="标的详情">
+    <div class="detail-head">
+      <button class="back-btn" id="detailBack">← 返回</button>
+      <!-- 页内最高层级用 h1 承载（视觉样式不变）：详情页原来直接跳到 h2，
+           读屏用户拿不到"这一页是什么"的第一层标题。 -->
+      <h1 class="detail-name" id="detailName">—</h1>
+      <span class="detail-code num" id="detailCode"></span>
+      <span class="detail-price num" id="detailPrice">--</span>
+      <span class="detail-chg num" id="detailChg">--</span>
+      <a class="detail-gloss" id="detailGloss" href="#" target="_blank" rel="noopener" hidden>在白话金融里看解释 ↗</a>
+      <button class="star" id="detailStar" title="收藏" aria-label="收藏" aria-pressed="false">☆</button>
+    </div>
+    <div class="detail-stats num" id="detailStats"></div>
+      <div class="heat-toolbar k-toolbar">
+        <button class="pill" data-period="min">分时</button>
+        <span id="intradaySeg" role="group" aria-label="分钟级周期（A股/港股/美股/加密有数据源）">
+          <button class="pill" data-period="m5">5分</button>
+          <button class="pill" data-period="m15">15分</button>
+          <button class="pill" data-period="m60">60分</button>
+        </span>
+        <button class="pill active" data-period="day">日K</button>
+        <button class="pill" data-period="week">周K</button>
+        <button class="pill" data-period="month">月K</button>
+        <span class="ma-wrap">
+          <button class="pill active" id="maToggle" title="指标设置：主图叠加指标可增删，副图指标可增删排序（最多 3 个）">指标 ▾</button>
+          <span class="ma-menu" id="maMenu" hidden>
+            <!-- 副图指标：成交量 / RSI / MACD（TradingView 的主图+副图模型） -->
+            <div class="ma-sec">
+              <div class="ma-sec-t">副图指标</div>
+              <div class="ma-pane" id="maPaneBox"></div>
+            </div>
+            <!-- 主图叠加指标：可增删（原来固定 6 槽，只能开关与改周期） -->
+            <div class="ma-sec">
+              <div class="ma-sec-t">主图指标</div>
+              <div class="ma-lines" id="maLinesBox"></div>
+              <button type="button" class="ma-add" id="maAdd">+ 添加指标</button>
+              <button type="button" class="ma-add" id="maReset">恢复默认</button>
+            </div>
+          </span>
+        </span>
+        <!-- 价格标尺（普通/对数/百分比）：TradingView 同款三档；打开菜单时按当前档位回显 -->
+        <span class="ma-wrap">
+          <button class="pill" id="scaleToggle" title="价格标尺：普通/对数/百分比">标尺 ▾</button>
+          <span class="ma-menu" id="scaleMenu" hidden>
+            <label class="ma-pane-row" data-scale="normal"><input type="radio" name="kscale" value="normal" checked><span>普通</span></label>
+            <label class="ma-pane-row" data-scale="log"><input type="radio" name="kscale" value="log"><span>对数</span></label>
+            <label class="ma-pane-row" data-scale="pct"><input type="radio" name="kscale" value="pct"><span>百分比</span></label>
+          </span>
+        </span>
+        <!-- 图表类型（蜡烛/美式棒/线/面积/平均K）：TradingView 同款五档；打开菜单时按当前类型回显 -->
+        <span class="ma-wrap">
+          <button class="pill" id="ktypeToggle" title="图表类型：蜡烛/美式棒/线/面积/平均K">类型 ▾</button>
+          <span class="ma-menu" id="ktypeMenu" hidden>
+            <label class="ma-pane-row" data-ktype="candle"><input type="radio" name="ktype" value="candle" checked><span>蜡烛</span></label>
+            <label class="ma-pane-row" data-ktype="bar"><input type="radio" name="ktype" value="bar"><span>美式棒</span></label>
+            <label class="ma-pane-row" data-ktype="line"><input type="radio" name="ktype" value="line"><span>线</span></label>
+            <label class="ma-pane-row" data-ktype="area"><input type="radio" name="ktype" value="area"><span>面积</span></label>
+            <label class="ma-pane-row" data-ktype="ha"><input type="radio" name="ktype" value="ha"><span>平均K（HA）</span></label>
+          </span>
+        </span>
+        <!-- 多图布局（1×1/1×2/2×2）与跨图联动：菜单复用 .ma-pane-row 语言（scaleMenu 同款），
+             打开时按当前布局回显；「联动」是十字线/缩放范围同步的开关（aria-pressed 供读屏） -->
+        <span class="ma-wrap">
+          <button class="pill" id="layoutToggle" title="多图布局：单图 / 1×2 双图 / 2×2 四宫格">布局 ▾</button>
+          <span class="ma-menu" id="layoutMenu" hidden>
+            <label class="ma-pane-row" data-layout="1x1"><input type="radio" name="klayout" value="1x1" checked><span>单图</span></label>
+            <label class="ma-pane-row" data-layout="1x2"><input type="radio" name="klayout" value="1x2"><span>1×2 双图</span></label>
+            <label class="ma-pane-row" data-layout="2x2"><input type="radio" name="klayout" value="2x2"><span>2×2 四宫格</span></label>
+          </span>
+        </span>
+        <button type="button" class="pill" id="syncToggle" title="十字线与缩放范围在多图间同步" aria-pressed="true">联动</button>
+        <!-- 对比叠加（compare overlay）：第二个标的重定基到主图价格单位，虚线共用右轴 -->
+        <span class="ma-wrap">
+          <button class="pill" id="kcmpToggle" title="叠加第二个标的的归一化走势到主图">对比</button>
+          <span class="ma-menu kcmp-menu" id="kcmpMenu" hidden>
+            <div class="ma-sec">
+              <div class="ma-sec-t">对比标的</div>
+              <input class="search-input" id="kcmpInput" type="search" placeholder="输入代码或名称" autocomplete="off" aria-label="搜索对比标的">
+              <div id="kcmpResults" aria-label="对比标的候选"></div>
+              <div class="kcmp-status" id="kcmpStatus" role="status"></div>
+              <button type="button" class="ma-add" id="kcmpClear" hidden>清除对比</button>
+            </div>
+          </span>
+        </span>
+        <button class="pill active" id="evtToggle" title="在K线上叠加事件标记（宏观/新闻/龙虎榜）">事件</button>
+        <button class="pill" id="alertDetailBtn" title="为此标的设置到价提醒（价格线上画虚线）">提醒</button>
+        <!-- 移动端折叠：390px 下二十多个控件平铺会折成四五行，六件画线工具收进可展开组。
+             桌面端保持平铺、这个开关不显示；六个 [data-draw] 始终在 DOM 里（键盘与测试都找得到）。 -->
+        <button type="button" class="pill k-toolbar-more" id="kToolbarMore" aria-expanded="false"
+                aria-controls="kDrawGroup" title="展开画线工具" aria-label="展开画线工具">画线 ▾</button>
+        <!-- 画线工具基础六件（吸附K线，按代码 localStorage 持久化；Esc 取消/退出）：
+             字形即工具语义，title/aria 全中文。入口白名单由 _test/charts.test.mjs
+             （data-draw ∈ Charts.DRAW_TOOLS）与 _test/tokens.test.mjs（6 个按钮不许被误删）双守卫 -->
+        <span class="k-draw-group" id="kDrawGroup">
+          <button class="pill draw-btn" data-draw="trend" title="趋势线（吸附K线，Esc退出）" aria-label="趋势线">╱</button>
+          <button class="pill draw-btn" data-draw="hline" title="水平线（吸附K线，Esc退出）" aria-label="水平线">─</button>
+          <button class="pill draw-btn" data-draw="vline" title="垂直线（吸附K线，Esc退出）" aria-label="垂直线">│</button>
+          <button class="pill draw-btn" data-draw="rect" title="矩形（吸附K线，Esc退出）" aria-label="矩形">▭</button>
+          <button class="pill draw-btn" data-draw="fib" title="斐波那契回撤（吸附K线，Esc退出）" aria-label="斐波那契回撤">ƒ</button>
+          <button class="pill draw-btn" data-draw="text" title="文字标注（吸附K线，Esc退出）" aria-label="文字标注">T</button>
+        </span>
+        <!-- 「隐藏全部画线」：只藏不删（画线保留在 localStorage），不带 data-draw——
+             不进画线工具白名单（上面 charts.test.mjs 按 data-draw 属性计数守卫 6 件） -->
+        <button type="button" class="pill draw-btn" id="drawHide" title="隐藏全部画线（画线保留，再次点击显示）" aria-label="隐藏全部画线" aria-pressed="false">◉</button>
+      </div>
+    <div class="chart-box" id="chartBox">
+      <!-- 主格包装：paneStack（副图 stack 挂在 #klineChart 的父层）落在这里面，
+           chartBox 的 grid 子元素才只有 .kcell（多图布局 1×2/2×2 的网格单元） -->
+      <div class="kcell" id="kcellMain">
+        <div id="klineChart"></div>
+      </div>
+    </div>
+    <div class="chart-event" id="chartEventCard" hidden></div>
+    <div class="section mt32" id="detailInsight"></div>
+  </section>
+
+  <!-- ========== 美股信号（Meridian）——消费 data/us-signals.json，js/us-signals.js 自渲染 ========== -->
+  <section class="view tab-panel" id="view-ussig" role="tabpanel" tabindex="-1" aria-label="美股信号">
+    <h1 class="page-title">美股信号 <span class="mut" style="font-size:14px;font-weight:500">Meridian · SPMO + SP500 前 150</span></h1>
+    <div class="ussig-head">
+      <div class="ussig-clock" id="ussig-clock"></div>
+      <div class="ussig-chips" id="ussig-chips" role="group" aria-label="信号筛选"></div>
+    </div>
+    <div class="ussig-tools">
+      <span class="ussig-switch" id="ussig-rsi" role="group" aria-label="RSI 周期切换">
+        <button class="chip on" type="button" data-ussig-p="6" aria-pressed="true">RSI6</button>
+        <button class="chip" type="button" data-ussig-p="14" aria-pressed="false">RSI14</button>
+      </span>
+      <span class="ussig-switch" id="ussig-cycle" role="group" aria-label="周期切换">
+        <button class="chip on" type="button" data-ussig-cycle="daily" aria-pressed="true">日线</button>
+        <button class="chip" type="button" data-ussig-cycle="weekly" aria-pressed="false">周线</button>
+      </span>
+      <span class="ussig-note mut" id="ussig-note"></span>
+    </div>
+    <div class="ussig-body" id="ussig-body"><div class="ussig-empty">切到本页时自动载入 data/us-signals.json…</div></div>
+  </section>
+
+  <!-- ========== 全球事件（3D 地球 + 事件流 + 快讯） ========== -->
+  <section class="view tab-panel" id="view-events" role="tabpanel" tabindex="-1" aria-label="全球事件">
+    <h1 class="page-title">全球事件</h1>
+    <!-- v3：「事件→新闻→资产→K线，四层联动」是实现口径，用户不需要在标题下读它。 -->
+    <p class="page-sub" id="eventsSub" hidden></p>
+    <!-- 子视图切换用分段控件（.seg）：它是"去哪个视图"的导航，
+         与下方的筛选器行（.chip，带计数/色点）必须能一眼分开。
+         两者曾经都用 .pill，导致"平面地图"和"全部类型220"看起来是同一类东西。
+         顺序：市场预测排最前（用户 2026-10-20 要求：默认页是市场预测） -->
+    <div class="heat-toolbar">
+      <div class="seg seg-lg" role="tablist" aria-label="事件视图切换">
+        <button data-evsub="pm" role="tab" aria-selected="false">市场预测</button>
+        <button class="active" data-evsub="map" role="tab" aria-selected="true">平面地图</button>
+        <button data-evsub="news" role="tab" aria-selected="false">实时快讯</button>
+      </div>
+      <span class="tool-status num" id="globeStatus">等待采集数据…</span>
+    </div>
+    <div id="evGlobePane">
+      <div class="heat-toolbar chipbar" id="evTypeBar"></div>
+      <div class="globe-stage" id="mapStage">
+        <div class="map-layers" id="mapLayers" role="group" aria-label="地图图层"></div>
+        <div class="globe-legend" id="mapLegend" aria-hidden="true"></div>
+        <div class="globe-hint" aria-hidden="true"><span id="mapStatusPts"></span>拖动平移 · 滚轮/双指缩放 · 双击放大 · 点事件看详情 · 点空白看国家</div>
+      </div>
+      <div class="event-detail" id="eventDetail" hidden></div>
+      <div class="event-detail" id="countryDetail" hidden></div>
+      <div class="news-list" id="eventList"></div>
+    </div>
+    <div id="evNewsPane" hidden>
+      <p class="page-sub" id="newsSub">—</p>
+      <!-- 市场过滤与下面的板块过滤是**同级**筛选器（都在筛这一条列表），
+           所以用同一种 chip 视觉。之前一个用 .pill 一个用 .chip，
+           同一页两行筛选器长得不一样，层级读不出来。 -->
+      <div class="heat-toolbar chipbar">
+        <button class="chip active" data-newsmkt="all">全部</button>
+        <button class="chip" data-newsmkt="cn">A股</button>
+        <button class="chip" data-newsmkt="global">港美</button>
+        <button class="chip crypto-only" data-newsmkt="crypto">加密</button>
+      </div>
+      <div class="heat-toolbar news-catbar chipbar" id="newsCatBar"></div>
+      <div class="news-list" id="newsList"></div>
+
+      <!-- 公开言论（原"聪明钱"tab 第 4 块）：它本来就是"新闻流里出现了人名"，
+           与事件页同源同性质，放这里比单独占一个 tab 合理；口径照旧标注"发言 ≠ 交易" -->
+      <div class="section" data-fold id="voicesSection" style="margin-top:var(--sp-32)">
+        <div class="section-head">
+          <h2 class="section-title">公开言论</h2>
+          <span class="sec-line"></span>
+          <span class="section-sub">Public Statements · 发言 ≠ 交易</span>
+        </div>
+        <p class="page-sub" id="voicesSub">马斯克 · 特朗普 · 黄仁勋 · 奥尔特曼 等的公开发言动向</p>
+        <div class="news-list" id="voicesList"></div>
+      </div>
+    </div>
+    <!-- 市场预测（公开预测市场隐含概率，只读展示）：合规口径——仅显示"事件发生概率"，
+         行数据不含任何链接，UI 不提供、不引导交易；类别只保留可能影响市场的
+         央行/宏观/贸易/地缘/选举/能源（过滤在 js/polymarket.js，采集与展示同一份定义）；
+         页面文案不出现数据源品牌（来源记录在数据文件与代码注释里） -->
+    <div id="evPmPane" hidden>
+      <p class="page-sub" id="pmSub">—</p>
+      <div class="pm-overview" id="pmOverview"></div>
+      <div class="news-list pm-list" id="pmList"></div>
+      <p class="pm-note">概率为公开预测市场的隐含定价，仅供参考；不构成预测或投资建议，本站不提供任何交易入口。</p>
+    </div>
+  </section>
+
+  <!-- ========== 席位档案（Actor Profile，hash #actor= 深链） ========== -->
+  <section class="view tab-panel" id="view-actor" role="tabpanel" tabindex="-1" aria-label="席位档案">
+    <div class="detail-head">
+      <button class="back-btn" id="actorBack">← 返回</button>
+      <h1 class="detail-name" id="actorName">—</h1>
+      <span class="actor-type" id="actorType">A股席位</span>
+    </div>
+    <div class="detail-stats num" id="actorMeta"></div>
+    <div class="section">
+      <div class="section-head">
+        <span class="sec-no">01</span>
+        <h2 class="section-title">近 90 天轨迹</h2>
+        <span class="sec-line"></span>
+        <span class="section-sub" id="actorStatsSub">—</span>
+      </div>
+      <div class="breadth-grid" id="actorStats"></div>
+    </div>
+    <div class="section">
+      <div class="section-head">
+        <span class="sec-no">02</span>
+        <h2 class="section-title">上榜记录</h2>
+        <span class="sec-line"></span>
+        <span class="section-sub">点击行进个股 K 线并叠加席位标记</span>
+      </div>
+      <div id="actorTimeline"><div class="sk sk-row"></div></div>
+      <p class="insight-disclaimer">上榜记录来自交易所龙虎榜公开披露（日频），"3日上涨概率"为该席位历史上榜个股的披露统计，不构成预测。席位是营业部口径，"某席位=某游资"属市场传闻，本页不做此推断。</p>
+    </div>
+  </section>
+
+  <!-- ========== 产业链 ========== -->
+  <section class="view tab-panel" id="view-chain" role="tabpanel" tabindex="-1" aria-label="产业链追踪">
+    <h1 class="page-title" data-gloss="industry-chain" tabindex="0">产业链追踪</h1>
+    <p class="page-sub" id="chainSub">环节强度 = 成分股涨跌简单平均 · 点开看成分</p>
+    <div class="board-wrap">
+      <div class="board-head"><span class="board-title">今日热门概念</span><span class="board-via num" id="boardVia"></span></div>
+      <div class="board-strip" id="boardStrip"><div class="sk sk-row"></div></div>
+      <div class="board-drawer" id="boardDrawer" hidden></div>
+    </div>
+    <div id="chainList"></div>
+  </section>
+
+  <!-- 期权（T型报价）：受 OPTIONS_ON 合规开关管辖；加密标的另受 CRYPTO_ON 管辖 -->
+  <section class="view tab-panel" id="view-option" role="tabpanel" tabindex="-1" aria-label="期权">
+    <h1 class="page-title">期权</h1>
+    <p class="page-sub">期权为高风险衍生品 · 数据仅供学习参考 · 不构成投资建议</p>
+    <div class="heat-toolbar">
+      <span class="heat-mkt-switch" id="optKindBar" role="group" aria-label="期权标的切换">
+        <button class="chip active" data-optkind="IO">沪深300 IO</button>
+        <button class="chip" data-optkind="MO">中证1000 MO</button>
+        <button class="chip" data-optkind="HO">上证50 HO</button>
+        <button class="chip crypto-only" data-optkind="BTC-USD">BTC</button>
+        <button class="chip crypto-only" data-optkind="ETH-USD">ETH</button>
+      </span>
+      <span class="tool-status num" id="optUnder">—</span>
+    </div>
+    <div class="heat-toolbar" id="optMonthBar" role="group" aria-label="到期月切换" hidden></div>
+    <div class="section-head">
+      <h2 class="section-title">T 型报价</h2><span class="sec-line"></span>
+      <span class="section-sub num" id="optVia">—</span>
+    </div>
+    <div class="opt-scroll">
+      <div class="opt-table" id="optTable" role="table" aria-label="期权 T 型报价，左认购右认沽"><div class="sk sk-row"></div></div>
+    </div>
+    <p class="insight-disclaimer" id="optPcr">认购/认沽成交量比为描述性统计，仅报数不下结论。</p>
+  </section>
+
+  <!-- ========== 自选 ========== -->
+  <section class="view tab-panel" id="view-watch" role="tabpanel" tabindex="-1" aria-label="我的自选">
+    <h1 class="page-title">我的自选</h1>
+    <p class="page-sub">跨市场收藏，保存在本机浏览器</p>
+    <div id="watchWall"></div>
+  </section>
+
+  <!-- ========== 持仓跟踪（本机记账 + 实时盈亏；视图模块 portfolio.js 自持内部 DOM） ========== -->
+  <section class="view tab-panel" id="view-portfolio" role="tabpanel" tabindex="-1" aria-label="持仓跟踪">
+    <h1 class="page-title">持仓跟踪</h1>
+    <p class="page-sub">记录数量与成本价，行情到位后实时算市值与盈亏 · 数据只存本机浏览器，不上传</p>
+    <div id="portRoot"></div>
+  </section>
+
+  <!-- ========== 基金（对比 + 画像两个子面板） ========== -->
+  <section class="view tab-panel" id="view-compare" role="tabpanel" tabindex="-1" aria-label="基金对比">
+    <div class="page-head">
+      <h1 class="page-title">基金</h1>
+      <p class="page-sub" id="cmpSub">多标的归一化对比 + 单基金画像（档案 / 净值 / 排名 / 规模 / 持有人 / 重仓股）</p>
+    </div>
+
+    <div class="cmp-bar" id="cmpBar">
+      <div class="search-wrap cmp-search">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="cmpInput" class="search-input" type="search" autocomplete="off"
+               placeholder="输入代码或名称后回车（SPY / 510300 / 02800 / 贵州茅台）"
+               aria-label="添加对比标的" aria-controls="cmpResults" aria-autocomplete="list">
+        <div id="cmpResults" class="search-results" role="listbox"></div>
+      </div>
+      <button id="cmpAdd" class="icon-btn">添加</button>
+      <span class="tool-status" id="cmpStatus">—</span>
+      <button id="cmpRetry" class="pill cmp-retry" title="重新取数（数据源限流时用）">重新取数</button>
+    </div>
+
+    <div class="heat-toolbar" id="cmpModeBar" role="tablist" aria-label="基金页子视图切换">
+      <button class="pill active" data-cmpmode="compare" role="tab" aria-selected="true">对比</button>
+      <button class="pill" data-cmpmode="profile" role="tab" aria-selected="false">画像</button>
+      <button class="pill" data-cmpmode="quiz" role="tab" aria-selected="false">风格测评</button>
+    </div>
+
+    <div id="cmpComparePane">
+    <div class="cmp-presets" id="cmpPresets" role="group" aria-label="常用组合"></div>
+    <div class="cmp-chips-head">
+      <span class="cmp-chips-cap">对比标的</span>
+      <span class="tool-status num" id="cmpChipsSub">0 / 8</span>
+    </div>
+    <div class="cmp-chips" id="cmpChips"></div>
+
+    <div class="heat-toolbar cmp-toolbar">
+      <span class="cmp-field"><label for="cmpStart">起</label><input type="date" id="cmpStart" class="cmp-date"></span>
+      <span class="cmp-field"><label for="cmpEnd">止</label><input type="date" id="cmpEnd" class="cmp-date"></span>
+      <span class="cmp-quick" id="cmpQuick" role="group" aria-label="快速区间">
+        <button class="pill" data-range="1">近 1 年</button>
+        <button class="pill" data-range="3">近 3 年</button>
+        <button class="pill" data-range="5">近 5 年</button>
+        <button class="pill" data-range="10">近 10 年</button>
+        <button class="pill" data-range="0">全部</button>
+      </span>
+    </div>
+
+    <div class="heat-toolbar cmp-toolbar">
+      <span class="cmp-seg" id="cmpGran" role="group" aria-label="粒度">
+        <button class="pill active" data-cmpgran="auto">自动</button>
+        <button class="pill" data-cmpgran="day">日线</button>
+        <button class="pill" data-cmpgran="week">周线</button>
+        <button class="pill" data-cmpgran="month">月线</button>
+      </span>
+      <span class="cmp-seg" id="cmpNorm" role="group" aria-label="归一方式">
+        <button class="pill active" data-cmpnorm="index">归一 100</button>
+        <button class="pill" data-cmpnorm="pct">累计收益 %</button>
+        <button class="pill" data-cmpnorm="mult">增长倍数</button>
+      </span>
+      <span class="cmp-seg" id="cmpAlign" role="group" aria-label="起点对齐">
+        <button class="pill active" data-cmpalign="own">各自起点</button>
+        <button class="pill" data-cmpalign="common">共同起点</button>
+      </span>
+      <button class="pill" id="cmpLog" aria-pressed="false">对数轴</button>
+      <span class="tool-status" id="cmpNormHint">起点 = 100</span>
+    </div>
+
+    <div class="chart-box cmp-chart" id="cmpChartBox">
+      <div id="cmpChart"></div>
+    </div>
+    <div class="cmp-legend" id="cmpLegend" role="group" aria-label="曲线读数"></div>
+
+    <div class="section" data-fold id="cmpMetricsSec">
+      <div class="section-head">
+        <span class="sec-no">01</span>
+        <h2 class="section-title">区间指标</h2>
+        <span class="sec-line"></span>
+        <span class="section-sub" id="cmpMetricsSub">—</span>
+      </div>
+      <div class="cmp-scroll"><div id="cmpMetrics"></div></div>
+    </div>
+
+    <div class="section" data-fold id="cmpYearSec">
+      <div class="section-head">
+        <span class="sec-no">02</span>
+        <h2 class="section-title">年度收益</h2>
+        <span class="sec-line"></span>
+        <span class="section-sub">按自然年 · 分红再投资近似</span>
+      </div>
+      <div class="cmp-scroll"><div id="cmpYearly"></div></div>
+    </div>
+
+    <div class="section" data-fold id="cmpCorrSec">
+      <div class="section-head">
+        <span class="sec-no">03</span>
+        <h2 class="section-title">相关性</h2>
+        <span class="sec-line"></span>
+        <span class="section-sub">公共交易日收益率 · 1 = 同涨同跌</span>
+      </div>
+      <div class="cmp-scroll"><div id="cmpCorr"></div></div>
+    </div>
+
+    <div class="cmp-note" id="cmpNote"></div>
+    </div><!-- /cmpComparePane -->
+
+    <!-- 画像子面板（fundprofile.js 自持内部 DOM）：档案/收益/净值/五维/规模/持有人/重仓股 -->
+    <div id="fundProfilePane" hidden></div>
+
+    <!-- 投资风格测评 → 品类清单（fundquiz.js）：
+         6 道题测"能承受多少波动 + 更想要什么"，映射成一组公开可查的品类。
+         风险闸门是硬规则（保守用户绝不可能看到行业主题基金），每条都带"主要风险"，
+         点"看画像"进已有的基金画像面板看真实回撤/排名/规模/持仓。 -->
+    <div id="fundQuizPane" hidden>
+      <div class="fq-intro" id="fqIntro">
+        <p class="fq-intro-t">6 道题，约 1 分钟</p>
+        <p class="fq-intro-p">测的是<b>你能承受多少波动</b>和<b>你更想要什么</b>，不是预测收益。
+          答完给你一份公开可查的<b>品类清单</b>——每只的真实回撤、同类排名、规模、持仓，点开画像自己看。</p>
+        <p class="fq-intro-warn"><b>不构成投资建议。</b>历史业绩不代表未来；清单里的"波动档"是按该品类资产的
+          典型波动特征标注，不是官方评级，也不代表任何收益预期。</p>
+        <p class="fq-intro-go">测一测，看看你落在哪一档。</p>
+      </div>
+      <div class="fq-form" id="fqForm" hidden></div>
+      <div class="fq-result" id="fqResult" hidden></div>
+    </div>
+  </section>
+
+  <!-- ========== 宏观策略（曲线/矩阵/读数，macroview.js 自持 DOM）+ 世界经济仪表盘 ========== -->
+  <div class="macro-wrap" id="macroStrategy" hidden></div>
+  <div class="macro-wrap" id="macroBox" hidden></div>
+
+  <footer class="footer">
+    <!-- 数据源状态：正常时整行不出现（"全部正常"是噪音，用户不需要知道），
+         只有真出问题时才显示一行提示。异常内容由 app.js 的 renderStatus 填。 -->
+    <div class="status-line" id="sourceStatus" hidden></div>
+    <details class="foot-src">
+      <summary>数据来源与免责声明</summary>
+      <p>
+        腾讯财经（A股/港股/美股/全球指数、K线、分时）· 东方财富（A股全市场、外汇、大宗商品、国债收益率、搜索、板块榜、龙虎榜）·
+        币安（加密行情与K线）· 新浪财经（滚动新闻）· 世界银行（宏观年度指标）·
+        GDELT + 新浪7x24（全球事件，GitHub Actions 采集为静态 JSON，浏览器不直连）· SEC EDGAR（13F 季度持仓，静态 JSON）·
+        中金所股指期权经东方财富 · 加密期权 OKX/Deribit。
+        行情为第三方公开接口数据，可能延迟，仅供参考，不构成投资建议。
+      </p>
+    </details>
+    <div id="updatedLine" style="margin-top:var(--sp-8)"></div>
+    <div class="foot-links">
+      <a href="https://github.com/5777-wq/openfinlens" target="_blank" rel="noopener">GitHub 开源仓库</a>
+      <span aria-hidden="true">·</span>
+      <a href="https://github.com/5777-wq/openfinlens/releases/latest/download/OpenFinLens-v1.0.2.apk"
+         download title="安卓 WebView 壳，仅 INTERNET 权限，与网页数据完全一致">Android 应用 v1.0.2（APK）</a>
+    </div>
+  </footer>
+</main>
+
+<!-- ========== 设置弹层 ========== -->
+<div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-label="设置">
+  <div class="modal">
+    <h2>设置</h2>
+    <!-- 模式（唯一一套设计语言的两个模式）：旧 8 套皮肤与随机换肤已删除 -->
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">模式</div>
+        <div class="setting-hint">日光（默认）/ 深空 · 只改外观，数据与图表完全一致</div>
+      </div>
+      <div class="seg seg-mode" id="segTheme" role="group" aria-label="界面模式">
+        <button data-theme="daylight" class="active" aria-pressed="true">日光</button>
+        <button data-theme="nexus" aria-pressed="false">深空</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">涨跌配色</div>
+        <div class="setting-hint">切换后卡片 / 热力图 / K线同步</div>
+      </div>
+      <div class="seg" id="segUpdown" role="group" aria-label="涨跌配色">
+        <button data-updown="red" class="active" aria-pressed="true">红涨绿跌</button>
+        <button data-updown="green" aria-pressed="false">绿涨红跌</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">科普链接</div>
+        <div class="setting-hint">标的旁的「?」给出解释（键盘按 Enter 进科普站）· 可跳到白话金融读完整解释</div>
+      </div>
+      <button class="switch on" id="swAcademy" role="switch" aria-checked="true" aria-label="科普链接"></button>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">刷新间隔</div>
+        <div class="setting-hint">页面隐藏时自动暂停</div>
+      </div>
+      <div class="seg" id="segRefresh" role="group" aria-label="刷新间隔">
+        <button data-refresh="5" aria-pressed="false">5s</button>
+        <button data-refresh="10" class="active" aria-pressed="true">10s</button>
+        <button data-refresh="30" aria-pressed="false">30s</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">降级角标</div>
+        <div class="setting-hint">数据来自备源 / 缓存时提示</div>
+      </div>
+      <button class="switch on" id="swDegraded" role="switch" aria-checked="true" aria-label="降级角标"></button>
+    </div>
+    <!-- 顶栏板块：顺序与显隐可自定义（用户 2026-10-20 要求）。
+         规则与合法性判定在 js/tabscope.js（纯函数、可单测），
+         这里只提供容器，内容由 app.js 的 renderTabCfg 填。 -->
+    <div class="setting-row setting-row-block">
+      <div>
+        <div class="setting-label">顶栏板块</div>
+        <div class="setting-hint">按一级分组：可调同级顺序、可隐藏用不到的板块 ·「全部」固定在最前</div>
+      </div>
+      <div class="tab-cfg" id="tabCfg"></div>
+    </div>
+    <!-- 一键还原：模式/涨跌配色/刷新间隔/降级角标/科普入口/板块顺序全部回出厂值 -->
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">还原默认</div>
+        <div class="setting-hint">模式、涨跌配色、刷新间隔、板块顺序一起回到出厂设置</div>
+      </div>
+      <button class="pill" id="settingsReset" type="button" title="把设置恢复为出厂默认">一键还原</button>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">关于 OpenFinLens</div>
+        <div class="setting-hint">开源 · 纯本地运行 · 无账号无追踪</div>
+      </div>
+      <div class="about-links">
+        <a href="https://github.com/5777-wq/openfinlens" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/5777-wq/openfinlens/releases/latest/download/OpenFinLens-v1.0.2.apk"
+           download title="安卓应用 v1.0.2">APK</a>
+      </div>
+    </div>
+    <button class="modal-close" id="settingsClose">完成</button>
+    <details class="selftest" id="selftest" style="margin-top:var(--sp-16)">
+      <summary>开发者：数据源自检</summary>
+      <pre id="selftestOut">等待抓取…</pre>
+    </details>
+  </div>
+</div>
+
+<!-- ========== 分享卡片预览层（市场预测单条信息 → 可分享图片） ========== -->
+<div class="modal-overlay share-overlay" id="shareOverlay" role="dialog" aria-modal="true" aria-label="分享为图片">
+  <div class="modal modal-share">
+    <h2>分享为图片</h2>
+    <div class="share-preview" id="sharePreview"></div>
+    <p class="setting-hint">图上的概率是公开预测市场的实时报价快照，不是预测，也不构成投资建议。</p>
+    <div class="share-actions">
+      <button class="share-btn" id="shareSave">保存图片</button>
+      <button class="share-btn primary" id="shareNative">系统分享</button>
+      <button class="share-btn" id="shareClose">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 到价提醒：创建弹层（从详情页「提醒」按钮进入） ========== -->
+<div class="modal-overlay" id="alertModal" role="dialog" aria-modal="true" aria-label="设置到价提醒">
+  <div class="modal">
+    <h2>到价提醒</h2>
+    <p class="setting-hint" id="alertModalTarget">—</p>
+    <div class="alert-form">
+      <select id="alertDir" aria-label="触发方向">
+        <option value="above">价格高于</option>
+        <option value="below">价格低于</option>
+      </select>
+      <input type="number" id="alertPrice" step="any" min="0" placeholder="触发价" aria-label="触发价">
+      <input type="text" id="alertNote" maxlength="40" placeholder="备注（可选）" aria-label="备注">
+    </div>
+    <p class="setting-hint">提醒在页面打开时生效，命中后弹 toast / 浏览器通知；K 线上会画一条虚线。规则只存在本机。</p>
+    <div class="modal-actions">
+      <button class="pill" id="alertCancel">取消</button>
+      <button class="pill active" id="alertSave">创建提醒</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 命令面板（⌘K / Ctrl K） ==========
+     键盘全流程：↑↓ 选择 / Enter 执行 / Esc 关闭 / Tab 不逃逸（复用 js/focus-trap.js）。
+     数据源：①标的（本地词典 + 东财搜索，支持代码/中文名/拼音首字母）
+             ②功能命令（切一级/子项、开指标、切模式、导出快照、刷新）。
+     role=dialog + aria-modal + combobox/listbox 语义由 js/ui/command.js 维护。 -->
+<div class="cmd-host" id="cmdPalette" hidden>
+  <div class="cmd-scrim" id="cmdScrim" aria-hidden="true"></div>
+  <div class="cmd-panel" id="cmdPanel" role="dialog" aria-modal="true" aria-labelledby="cmdTitle">
+    <h2 class="sr-only" id="cmdTitle">命令面板</h2>
+    <div class="cmd-field">
+      <span class="cmd-glyph" aria-hidden="true">⌘</span>
+      <input id="cmdInput" class="cmd-input" type="text" autocomplete="off" spellcheck="false"
+             placeholder="搜索标的 / 跳转板块 / 切换模式…" aria-label="命令面板输入"
+             role="combobox" aria-expanded="false" aria-controls="cmdList"
+             aria-autocomplete="list" aria-activedescendant="">
+      <kbd class="cmd-kbd">ESC</kbd>
+    </div>
+    <div class="cmd-scroll">
+      <div id="cmdList" class="cmd-list" role="listbox" aria-label="命令与标的候选"></div>
+      <p class="cmd-empty" id="cmdEmpty" hidden>没有匹配项 · 试试代码、中文名或拼音首字母</p>
+    </div>
+    <div class="cmd-foot">
+      <span class="cmd-hint"><kbd>↑</kbd><kbd>↓</kbd>选择</span>
+      <span class="cmd-hint"><kbd>↵</kbd>执行</span>
+      <span class="cmd-hint"><kbd>ESC</kbd>关闭</span>
+      <span class="cmd-hint cmd-hint-end">代码 / 名称 / 拼音首字母</span>
+    </div>
+  </div>
+</div>
+
+<!-- 图表库本地化（v4.2.3 锁版）：原 unpkg latest 不锁版本，上游发版或 CDN 不可达时详情页全废。
+     v3.4 起不在首屏加载（50KB gzip，只有点开详情/K线才用得到）：
+     app.js 的 loadLazyBundle() 会在拉 bundle-lazy 的同时把它注入。 -->
+<!-- 平面地图的本地 vendor：topojson 解析国界、d3-geo 做投影 + 在 ±180° 处切跨线几何（俄罗斯/斐济/南极）
+     + geoContains 做点在多边形国家命中。禁止运行时海外 CDN（core/vendor/THIRD_PARTY.md）。
+     defer 加载不阻塞开屏，worldmap.js 只在首次进入"事件"页时才真正使用它们 -->
+<script defer src="core/vendor/topojson-client.min.js?v=3.1.0"></script>
+<script defer src="core/vendor/d3-array.min.js?v=3.2.4"></script>
+<script defer src="core/vendor/d3-geo.min.js?v=3.1.1"></script>
+<!-- v3.3 首屏提速：69 个业务脚本打成一个包（js/bundle.js）。
+     慢网实测单个小文件要排队 ~1.9s，打包后只剩 1 个请求；源码仍在 js/ 下，
+     改完源码跑 `node _scripts/build-js-bundle.mjs` 重新生成（顺序见 _scripts/js-bundle.manifest.json）。 -->
+<script defer src="js/bundle.js?v=20261110a"></script>
+<!-- 弹层焦点工具：进焦点 / Tab 循环 / 退出还焦点。设置弹层、分享弹层、到价提醒弹层共用一套。 -->
+<!-- 期权数据源（window.OptionSource）：T 型报价的链数据/月份表，受 OPTIONS_ON 合规开关管辖 -->
+<!-- news-engine / event-engine / llm-provider 不在这里加载（2026-10-20 摘除）：
+     生产代码零引用——事件页走的是 js/sources/gdelt.js → Events.normalize 这条路，
+     聚类与 AI 闸门那两个模块只在 _test/engine.test.mjs 里用。
+     三个文件留在仓库里给测试 require，浏览器不必为 400 行死代码付首屏带宽。 -->
+<!-- 宏观策略：纯计算（macrocalc）+ 视图（macroview） -->
+<!-- 持仓跟踪：纯计算（portfoliomath）+ 视图（portfolio） -->
+<!-- 基金画像：纯解析（fundparse）+ 视图（fundprofile） -->
+<!-- 市场预测：模型（polymarket）/ 图形（pmcharts）/ 视图（pmview）
+     分享卡片：二维码（qr，自实现零依赖）+ 卡片绘制与导出（pmshare） -->
+<!-- 二级分区：判定逻辑是纯函数（js/zones.js），app.js 只负责把结论落到 DOM -->
+<!-- 顶栏板块的顺序与显隐（js/tabscope.js，纯函数、可单测） -->
+<!-- 副图指标计算（js/panes.js，纯函数、可单测） -->
+<!-- 副图指标窗绘制（js/paneview.js，纯几何、可单测） -->
+<!-- 市场维度归属：市场只由一级 tab 表达，下层不再重复表达（js/marketscope.js） -->
+<!-- UI v2 外壳：一级↔二级映射（纯函数，含深链解析）+ 命令面板。
+     必须在 app.js 之前：app.js 初始化时要消费 Navmap，command.js 执行动作时要消费 window.AppNav。 -->
+<!-- 动效层最后加载：只做委托/观察，不改业务逻辑（js/ui/motion.js 由 motion 层维护） -->
+<!-- PWA：SW 注册（data/api Network-First、静态 SWR，见 sw.js 头注） -->
+<script>if('serviceWorker' in navigator)addEventListener('load',function(){navigator.serviceWorker.register('sw.js')})</script>
+</body>
+</html>

@@ -1,5 +1,20 @@
 # OpenFinLens 生产级技术架构设计
 
+> **当前架构（2026-11-20 三合一 Monorepo 定稿，本节为准；下方 2026-09 设计基线仅作历史参照，冲突处以本节为准。）**
+>
+> - **三仓合一**：openfinlens（终端）+ us-stock-monitor（Meridian 美股信号）+ openfin-academy（科普站）合并进本仓：
+>   `apps/terminal/`（主站 /）· `apps/academy/`（子站 /academy/）· `content/`（Academy 文章与术语真源）·
+>   `core/`（engine 指标唯一真源 / sources 三级降级链 / registry 注册表 / vendor 唯一库副本 / bridge ESM→window 桥接）·
+>   `pipelines/meridian|academy/`（采集管线）· `scripts/serve.mjs`（本地双前缀服务器）· `test/run-all.mjs`（全仓离线测试入口）。
+> - **代码与产物解耦**：main 分支只存代码；采集产物（事件 / us-signals / Academy 长历史 / Agent API）由
+>   collect / collect-meridian / collect-academy 三条 workflow 推独立 **data 分支**
+>   （`_scripts/push-data-branch.sh`：read-tree 增量保留 + commit-tree + 冲突重试，`concurrency: data-branch-write` 三链串行）；
+>   `deploy-pages.yml` 拼装 main + data 分支发布（apps/terminal 站点根 + /academy/ 挂载 + data 分支重映射）。
+> - **测试**：`node test/run-all.mjs` —— 主仓 53 组（含 core / Meridian 管线）+ Academy 6088 断言，全离线。
+> - **安卓**：APK 只发 GitHub Releases（android-apk.yml 构建上传，不入库）；壳放行同域 `/` 与 `/academy/` 路由。
+
+---
+
 > 状态：设计基线 v1（2026-09-11）。上游参照见 [WORLDMONITOR-ANALYSIS.md](./WORLDMONITOR-ANALYSIS.md)。
 > 铁律继承：零运行时新库（lightweight-charts 唯一例外）、前端无 API key、无假数据、rAF/setTimeout 链、RGBA 规范。
 > 类型策略：项目无构建步骤（纯静态部署），**用 JSDoc typedef 作为类型契约的单一事实源**（等价于 TS 类型的安全子集，node 可直接测试）。若未来用户确认引入构建链，可无损迁移为 `.d.ts`/TS。
