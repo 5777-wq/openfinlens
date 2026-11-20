@@ -363,6 +363,12 @@
     // （作用域查询，与回放器同一条规矩——绝不越界去别的页面找同名节点）。
     paintCharts(view, series);
     paintCompare(view, series, sid);
+
+    // 术语库若还在空闲档加载（site/content.js），正文词条锚点会先降级成纯文本；
+    // 术语库一到就地补画这一次（序列与正文都有缓存，__assetPageSeq 挡住竞态）。
+    if (window.Content.glossaryLoaded && !window.Content.glossaryLoaded() && window.Content.onGlossary) {
+      window.Content.onGlossary(() => { if (view.isConnected) renderDetail(view, id); });
+    }
   }
 
     /* —— 标的页的图：月线走势 / 回撤 / 同区间对比 ——

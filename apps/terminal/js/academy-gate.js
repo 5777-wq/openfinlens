@@ -8,7 +8,10 @@
 (function () {
   'use strict';
 
-  const BASE = 'https://5777-wq.github.io/openfinlens/';
+  /* 相对子路径（Wave 3 收口）：academy 挂在本站 /academy/ 下，与 js/data/academy-gloss.js
+     的 BASE 同款相对写法——Pages /openfinlens/ 前缀与本地根路径双部署都解析正确，
+     不再写死 github.io 域名（QR 这类必须绝对 URL 的场景在 pmshare/qr 里自己拼）。 */
+  const BASE = 'academy/';
 
   /** 当前是否开着（默认开；老用户没存过这项也算开） */
   function isOn() {

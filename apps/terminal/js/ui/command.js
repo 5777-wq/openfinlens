@@ -15,6 +15,7 @@
  *
  * 数据源：标的（本地词典 + 远程搜索，支持代码 / 中文名 / 拼音首字母）
  *         功能命令（5 个一级 + 12 个子项、指标、模式、快照、刷新、设置）
+ *         Academy 术语（data/academy-terms.json 懒拉，293 条白话金融术语，选中开新标签）
  * ------------------------------------------------------------------------- */
 
 (function (global) {
@@ -30,6 +31,8 @@
   let remoteItems = [];           // 远程搜索结果（与本地结果合并去重）
   let localSymbols = null;        // 本地词典（懒建，只建一次）
   let usSignalsItems = null;      // Meridian 美股标的（异步补装进词典，拉不到就保持原词典）
+  let termItems = null;           // Academy 术语条目（懒拉 data/academy-terms.json，拉不到保持 null）
+  let termsTried = false;         // 术语只试拉一次：失败静默，不重试轰炸（与 us-signals 同款脾气）
 
   /* ==================== 拼音首字母 ====================
      不为几千个汉字手写映射表：Intl.Collator 的 zh-pinyin 排序里，汉字按拼音
@@ -218,6 +221,7 @@
     const scored = [];
     cmds.forEach((c) => { const s = score(q, c); if (s) scored.push({ item: c, s }); });
     locals.forEach((c) => { const s = score(q, c); if (s) scored.push({ item: c, s }); });
+    (termItems || []).forEach((c) => { const s = score(q, c); if (s) scored.push({ item: c, s }); });
     remoteItems.forEach((c) => { const s = score(q, c); if (s) scored.push({ item: c, s }); });
     // 功能命令排在标的之前（命令面板的约定：先给"能做的事"，再给"能看的标的"），
     // 组内仍按相关度。否则输入「日光」会被「日光控股」这类标的抢走默认选中项。
@@ -229,10 +233,13 @@
     const out = [];
     for (const x of scored) {
       // 同一只标的有两份来源（本地词典 / 东财远程）：代码相同即视为同一条，
-      // 保留打分更高的那份（本地带 market，标签更有用）
+      // 保留打分更高的那份（本地带 market，标签更有用）。
+      // term 与 symbol 是两个 namespace（kind 不同、key 前缀不同），互不干扰。
       const key = x.item.kind === 'symbol'
         ? 'symbol|' + (x.item.code || x.item.symbol || x.item.label)
-        : 'cmd|' + x.item.label;
+        : x.item.kind === 'term'
+          ? 'term|' + (x.item.id || x.item.label)
+          : 'cmd|' + x.item.label;
       if (seen.has(key)) continue;
       seen.add(key);
       out.push(x.item);
@@ -286,7 +293,10 @@
   }
 
   function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    // 与 utils.js escapeHTML 同一口径：window.U 在场用真源；兜底补 &#39; 单引号转义
+    // （词典/术语标签出自自家数据，但远程搜索结果来自第三方，属性值拼进 HTML 前必须转干净）
+    if (global.U && typeof global.U.escapeHTML === 'function') return global.U.escapeHTML(s);
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
   function paint() {
@@ -319,6 +329,9 @@
     closePalette();
     if (item.kind === 'symbol') {
       if (global.AppNav && global.AppNav.openSymbol) global.AppNav.openSymbol(item);
+    } else if (item.kind === 'term') {
+      // Academy 术语：新标签打开术语页（相对路径，见 openTerm）
+      openTerm(item.id);
     } else if (typeof item.run === 'function') {
       item.run();
     }
@@ -353,6 +366,7 @@
     isOpen = true;
     remoteItems = [];
     clearTimeout(remoteTimer);
+    fetchTermsIntoLocal();          // 术语懒拉：首次打开面板才发请求（零首屏阻塞）
     if (!host) return;
     host.hidden = false;
     document.body.classList.add('modal-open');
@@ -385,6 +399,7 @@
 
   function onInput() {
     const q = input ? input.value.trim() : '';
+    fetchTermsIntoLocal();          // 首次搜索也兜一次（面板常驻场景漏不掉）
     render(q);
     scheduleRemote(q);
   }
@@ -448,6 +463,53 @@
         localSymbols = null;
       })
       .catch(() => { /* us-signals 未部署时词典保持原样，不重试轰炸 */ });
+  }
+
+  /* Wave 3（切片 B）：⌘K 接入 Academy 的 293 条白话金融术语。
+     · 仿 fetchUsSignalsIntoLocal 的懒拉模式，但触发点是「首次打开面板 / 首次输入」
+       而不是 boot——术语只在用户真的唤起搜索时才有用，零首屏请求；
+     · 条目走独立的 kind:'term' 通道（不进 localSymbols 词典，与 symbol 互不干扰）；
+     · 选中行为：新标签打开 academy 术语页（相对路径，禁写死域名）；
+     · 失败静默：拉不到就只有标的与命令，不重试轰炸。 */
+  function buildTermItems(j) {
+    if (!j || !Array.isArray(j.ids) || !j.names) return null;
+    const out = [];
+    for (const id of j.ids) {
+      const label = j.names[id];
+      if (!id || !label) continue;
+      out.push({
+        kind: 'term',
+        group: '术语',
+        id: String(id),
+        label: String(label),
+        hint: '白话金融术语',
+        py: initialsOf(String(label)),
+      });
+    }
+    return out;
+  }
+
+  function openTerm(id) {
+    // 单源：AcademyGloss.BASE（js/data/academy-gloss.js，相对 'academy/'）；
+    // 懒加载包没到位时退回字面量，同一站点布局下解析结果一致
+    const base = (global.AcademyGloss && global.AcademyGloss.BASE) || 'academy/';
+    const url = base + '#/term/' + encodeURIComponent(id) + '?from=lens';
+    try { window.open(url, '_blank', 'noopener'); }
+    catch (e) { /* 弹窗被拦时静默：术语搜索不是关键路径 */ }
+  }
+
+  function fetchTermsIntoLocal() {
+    if (termsTried || termItems) return;
+    termsTried = true;
+    fetch('data/academy-terms.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))))
+      .then((j) => {
+        termItems = buildTermItems(j);
+        // 面板开着且用户已经输入了查询：让术语这轮补装立即出现在结果里
+        // （与远程搜索结果到达时的重渲染同款时序）
+        if (termItems && isOpen && input && input.value.trim()) render(input.value);
+      })
+      .catch(() => { /* academy-terms 未部署时 ⌘K 只给标的与命令，不重试轰炸 */ });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);

@@ -24,7 +24,12 @@
   };
 
   function $(id) { return document.getElementById(id); }
-  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]; }); }
+  function esc(s) {
+    // 与 utils.js escapeHTML 同一口径：window.U 在场用真源；兜底补 &#39; 单引号转义
+    // （ticker/name/警告文案会拼进 title="…"/aria-label="…" 单引号外的双引号属性与文本节点，转干净才放心）
+    if (window.U && typeof window.U.escapeHTML === 'function') return window.U.escapeHTML(s);
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]; });
+  }
   function num(v, d) { return Number.isFinite(v) ? v.toFixed(d == null ? 2 : d) : '--'; }
   function pct(v) { return Number.isFinite(v) ? (v > 0 ? '+' : '') + v.toFixed(2) + '%' : '--'; }
   function getLS(k, d) { try { var v = localStorage.getItem('gfd_' + k); return v == null ? d : v; } catch (e) { return d; } }

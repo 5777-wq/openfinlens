@@ -135,6 +135,12 @@
       <div class="prose">${html}</div>`;
 
     if (pkg) mountReplay(view, pkg, id);
+
+    // 术语库若还在空闲档加载（site/content.js），词条锚点会先降级成纯文本；
+    // 术语库一到就地补画这一次（crisis 包在 History 缓存里，重画很便宜）。
+    if (window.Content.glossaryLoaded && !window.Content.glossaryLoaded() && window.Content.onGlossary) {
+      window.Content.onGlossary(() => { if (view.isConnected) renderDetail(view, id); });
+    }
   }
 
   function mountReplay(view, pkg, id) {

@@ -54,3 +54,8 @@ _site/
 pipelines/meridian/out/
 # APK 不再入库（Phase 5 裁定：只发 GitHub Releases）
 android/*.apk
+# 根布局 js/ 在 Phase 5 已删除；本地跑 _scripts/collect-academy-terms.mjs 会在根
+# 重新生成 js/data/academy-assets.js（data 分支契约路径），main 仓库不收——
+# 该产物只随 data 分支发布（2026-11-21 Wave 3 验收时发现本地残留）
+/js/
+/js/data/academy-assets.js

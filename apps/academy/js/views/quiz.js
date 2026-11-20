@@ -88,6 +88,17 @@
   }
 
   function render(view, query) {
+    // 术语库是空闲档加载的（site/content.js）：没到先给骨架，到了自动出题——
+    // 把「题库还没准备好」那个空态留给真缺词的失败情形，别拿它冒充「加载中」。
+    const C = window.Content;
+    if (C && C.glossaryLoaded && !C.glossaryLoaded()) {
+      view.innerHTML = '<div class="art-head"><div class="eyebrow">工具箱 · 术语自测</div>'
+        + '<h1 style="font-size:var(--t-h1);margin-bottom:var(--s-2)">这句话说的是哪个词？</h1>'
+        + '<p class="art-dek">术语库正在后台加载，马上就好。</p></div>'
+        + '<div class="skel" style="height:160px"></div>';
+      C.onGlossary(() => { if (view.isConnected) render(view, query); });
+      return;
+    }
     ensureCss();
     const g = (window.Content && window.Content.glossary) ? window.Content.glossary() : {};
     const n = Number((query && query.n) || 5);

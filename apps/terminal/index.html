@@ -49,9 +49,9 @@
 </head>
 <body data-updown="red">
 
-<!-- 顶栏（UI v2）：左品牌 → 中 5 个一级入口（滑动胶囊指示器）→ 右命令/状态/设置。
-     一级入口 12→5：市场 / 事件 / 资产 / 基金 / 洞察，内部 state.tab 仍是旧 12 个 key
-     （由 js/ui/navmap.js 做纯函数映射），深链与既有模块不受影响。 -->
+<!-- 顶栏（UI v2）：左品牌 → 中一级入口（滑动胶囊指示器）→ 右命令/状态/设置。
+     一级入口：12 旧 key → 6 一级（ussig 为第 6 个，见 js/ui/navmap.js），
+     内部 state.tab 仍是旧 12 个 key（由 js/ui/navmap.js 做纯函数映射），深链与既有模块不受影响。 -->
 <header class="topbar">
   <a class="logo" id="brandHome" href="#tab=market&amp;sub=all" title="OpenFinLens · 回到市场总览">
     <span class="logo-mark" aria-hidden="true">

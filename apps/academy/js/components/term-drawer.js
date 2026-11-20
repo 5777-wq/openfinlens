@@ -9,6 +9,7 @@
   'use strict';
 
   let el, scrim, titleEl, bodyEl, footEl, lastFocus = null, onOpen = null;
+  let currentTerm = null; // 抽屉当前展示的术语 id：术语库迟到补画时只认它，别把别的词画进来
   let bgInert = false;   // 背景当前是不是被我们挡住的：只在自己状态变化时才动，别把别人的也摘了
 
   const esc = (s) => window.Fmt.esc(s);
@@ -147,9 +148,44 @@
     if (els[next] && els[next].focus) els[next].focus();
   }
 
+  /** 「回到 OpenFinLens 看行情」出口：与术语页（views/term.js）同一套跨站形态
+      （site/cross.js 的 Cross.link——同一构建逻辑、不带 term-cross 外壳，放进 foot）。
+      sym 取自 URL ?sym=（从终端带上下文跳过来时）优先，词条自带的 sym 字段兜底；
+      都没有就给终端根链。相对基准由 site/base.js 的 lensUrl 提供（'../index.html'），
+      这里不硬编码域名；受 window.Cross.enabled() 总开关控制（Cross.link 内部同样先判）。 */
+  function lensExit(t) {
+    if (!window.Cross || !window.Cross.link) return '';
+    if (window.Cross.enabled && !window.Cross.enabled()) return '';
+    let sym = (t && t.sym) || '';
+    try {
+      const cur = window.Router && window.Router.current ? window.Router.current() : null;
+      if (cur && cur.query && cur.query.sym) sym = cur.query.sym;
+    } catch (e) { /* Router 不在（极老桩）就用词条自带的 sym */ }
+    if (sym) return window.Cross.link({ sym: sym, symLabel: '回到 OpenFinLens 看行情 →' });
+    return window.Cross.link({ lens: (window.Cross.LENS || '../index.html'), lensLabel: '回到 OpenFinLens →' });
+  }
+
   /** 术语抽屉 */
   function open(termId) {
     if (!el) return;
+    currentTerm = termId;
+    // 术语库是空闲档加载的（site/content.js）：没到就先给「加载中」，到了自动把词条补上。
+    // 不能把「还没到」画成「这个词还没有收录」——那是假空态，读者会以为词真缺了。
+    if (!window.Content.glossaryLoaded()) {
+      show({
+        title: '术语',
+        body: `<div class="empty">
+        <div class="et">术语库加载中…</div>
+        <div class="ed">词条解释正在后台加载，马上就好。</div>
+      </div>`,
+        foot: '',
+      });
+      window.Content.onGlossary(() => {
+        if (isOpen() && currentTerm === termId) open(termId);
+      });
+      if (onOpen) onOpen(termId);
+      return;
+    }
     const t = window.Content.term(termId);
 
     if (!t) {
@@ -168,7 +204,8 @@
         body: window.TermCard.render(t) + (t.links || []).map((l) => `
         <a class="entry" style="display:flex;gap:8px;padding:10px 0;border-bottom:1px solid var(--rule-2);color:var(--teal);font-size:13px" href="${esc(l.href)}">${esc(l.text)} →</a>`).join(''),
         foot: (t.source ? `<span>出处：${esc(t.source)}</span>` : `<span>本站编写的通俗解释</span>`)
-          + `<button class="btn ghost sm" data-copy-term="${esc(termId)}" style="margin-left:auto">复制链接</button>`,
+          + `<button class="btn ghost sm" data-copy-term="${esc(termId)}" style="margin-left:auto">复制链接</button>`
+          + lensExit(t),
       });
     }
     if (onOpen) onOpen(termId);
@@ -201,6 +238,7 @@
 
   function close() {
     if (!el) return;
+    currentTerm = null;
     el.classList.remove('on');
     scrim.classList.remove('on');
     document.body.style.overflow = '';

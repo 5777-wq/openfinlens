@@ -237,6 +237,20 @@ test('command.js：Meridian 美股词典异步补装', () => {
   assert.match(js, /normUsSymbol\(it\.symbol\)/, '词典条目必须走终端命名空间');
 });
 
+test('command.js：⌘K 接入 Academy 术语（Wave 3 切片 B）', () => {
+  const js = read(path.join(SITE, 'js', 'ui', 'command.js'));
+  assert.match(js, /data\/academy-terms\.json/, '缺术语清单懒拉地址');
+  assert.match(js, /function fetchTermsIntoLocal/, '缺术语懒拉函数');
+  assert.match(js, /kind: 'term'/, '术语条目必须是独立 kind，不混进 symbol 词典');
+  assert.match(js, /group: '术语'/, '术语条目必须有自己的分组');
+  assert.match(js, /item\.kind === 'term'\)[\s\S]{0,120}openTerm\(item\.id\)/, '选中行为必须打开术语页');
+  // 相对路径 + 单源 BASE（AcademyGloss），禁写死域名
+  assert.match(js, /\(global\.AcademyGloss && global\.AcademyGloss\.BASE\) \|\| 'academy\/'/, '术语链接必须复用 AcademyGloss.BASE 单源');
+  assert.match(js, /'#\/term\/' \+ encodeURIComponent/, '术语 id 必须编码后拼进 hash 路由');
+  assert.match(js, /\?from=lens/, '术语链接必须带来源标记');
+  assert.ok(!/5777-wq\.github\.io/.test(js), 'command.js 不允许写死科普站域名');
+});
+
 setTimeout(() => {
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exitCode = fail ? 1 : 0;

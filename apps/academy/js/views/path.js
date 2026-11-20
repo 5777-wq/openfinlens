@@ -53,6 +53,11 @@
 
   function render(view) {
     ensureEntryCss();
+    // 术语库空闲档加载中（site/content.js）：课程本体来自壳数据照常出，
+    // 只有「这课带你去看哪个词」的后缀会缺席——术语库到了就地补画这一次。
+    if (window.Content.glossaryLoaded && !window.Content.glossaryLoaded() && window.Content.onGlossary) {
+      window.Content.onGlossary(() => { if (view.isConnected) render(view); });
+    }
     const plan = window.Content.pathPlan();
     if (!plan || !plan.lessons || !plan.lessons.length) {
       view.innerHTML = `<div class="empty"><div class="et">路径正在编排</div>
