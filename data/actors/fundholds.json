@@ -1,10 +1,10 @@
 {
- "generatedAt": "2026-11-20T04:10:41.856Z",
+ "generatedAt": "2026-11-20T12:37:59.168Z",
  "source": "东财数据中心 · RPT_MAIN_ORGHOLD（基金口径，季度）",
  "confidence": "REPORTED",
  "reportDate": "2026-09-30",
  "reportDateName": "2026年三季报",
- "lagDays": 51,
+ "lagDays": 52,
  "partial": false,
  "disclosureScope": "TOP10",
  "fundsReporting": 9260,
