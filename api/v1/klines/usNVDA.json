@@ -8,17 +8,10 @@
       "day": {
         "interval": "day",
         "count": 160,
-        "asof": "2026-11-19",
+        "asof": "2026-11-20",
         "stale": false,
         "source": "tencent/eastmoney/binance（经 js/sources 适配器）",
         "rows": [
-          {
-            "time": "2026-04-06",
-            "open": 177.16,
-            "high": 177.79,
-            "low": 175.76,
-            "close": 177.64
-          },
           {
             "time": "2026-04-07",
             "open": 175.73,
@@ -1131,13 +1124,20 @@
             "high": 158.13,
             "low": 145.71,
             "close": 145.98
+          },
+          {
+            "time": "2026-11-20",
+            "open": 143.52,
+            "high": 143.73,
+            "low": 126.3,
+            "close": 128.87
           }
         ]
       },
       "week": {
         "interval": "week",
         "count": 104,
-        "asof": "2026-11-19",
+        "asof": "2026-11-20",
         "stale": false,
         "source": "tencent/eastmoney/binance（经 js/sources 适配器）",
         "rows": [
@@ -1863,18 +1863,18 @@
             "close": 162.85
           },
           {
-            "time": "2026-11-19",
+            "time": "2026-11-20",
             "open": 159.02,
             "high": 163.2,
-            "low": 145.71,
-            "close": 145.98
+            "low": 126.3,
+            "close": 128.82
           }
         ]
       },
       "month": {
         "interval": "month",
         "count": 60,
-        "asof": "2026-11-19",
+        "asof": "2026-11-20",
         "stale": false,
         "source": "tencent/eastmoney/binance（经 js/sources 适配器）",
         "rows": [
@@ -2292,11 +2292,11 @@
             "close": 204.64
           },
           {
-            "time": "2026-11-19",
+            "time": "2026-11-20",
             "open": 207.53,
             "high": 209.98,
-            "low": 145.71,
-            "close": 145.98
+            "low": 126.3,
+            "close": 128.81
           }
         ]
       }
@@ -2304,8 +2304,8 @@
   },
   "meta": {
     "dataset": "klines.symbol",
-    "asof": "2026-11-19",
-    "generatedAt": "2026-11-20T03:00:17.734Z",
+    "asof": "2026-11-20",
+    "generatedAt": "2026-11-20T20:46:32.984Z",
     "source": "腾讯 ifzq / 东方财富 push2his / 币安 klines（复用 js/sources 口径）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",

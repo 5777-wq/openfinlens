@@ -44,7 +44,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-20T12:48:14.999Z",
+          "generatedAt": "2026-11-20T20:46:32.984Z",
           "count": 11,
           "datasets": [
             {
@@ -60,7 +60,7 @@
             "openapi": "api/openapi.json"
           }
         },
-        "asof": "2026-11-20T12:48:14.999Z",
+        "asof": "2026-11-20T20:46:32.984Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -100,7 +100,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-20T12:48:14.999Z",
+          "generatedAt": "2026-11-20T20:46:32.984Z",
           "base": "api/v1",
           "datasets": [
             {
@@ -111,7 +111,7 @@
             }
           ]
         },
-        "asof": "2026-11-20T12:48:14.999Z",
+        "asof": "2026-11-20T20:46:32.984Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -203,7 +203,7 @@
             "中石化"
           ]
         },
-        "asof": "2026-11-20T12:48:14.999Z",
+        "asof": "2026-11-20T20:46:32.984Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -314,10 +314,10 @@
           "change": 0.11,
           "changePct": 1.86,
           "quoteAt": 1795162500000,
-          "updatedAt": 1795178896088,
+          "updatedAt": 1795207593810,
           "source": "tencent"
         },
-        "asof": "2026-11-20T12:48:16.318Z",
+        "asof": "2026-11-20T20:46:34.161Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -559,21 +559,21 @@
           }
         ],
         "sample": {
-          "id": "美国国债收益率延续跌势 当日下跌6至9个基点||1795178412000",
-          "category": "market",
-          "title": "美国国债收益率延续跌势，当日下跌6至9个基点。",
+          "id": "国际金价创一年多新低 专家 背后原因是美元走强以及美国加息预期的抬升 11月20日亚洲交易时段 伦敦现货黄金跌破3600美元 盎司 盘中最深下探到3514美元附近 创下一年多以来的新低 国内上海金盘中最低下探至755元 克||1795207215000",
+          "category": "central_bank",
+          "title": "【国际金价创一年多新低 专家：背后原因是美元走强以及美国加息预期的抬升】11月20日亚洲交易时段，伦敦现货黄金跌破3600美元/盎司，盘中最深下探到3514美元附近，创下一年多以来的新低；国内上海金盘中最低下探至755元/克。这一轮持续近一年的黄金上涨行情在近期迎来深度调整，分析人士表示，市场对美联储加息预期重新升温，成为本轮行情调整的直接催化剂。财通证券研究所高级分析师张洲驰分析认为，10月中旬以来黄金呈现趋势性下跌，且不只是黄金，所有贵金属都出现了显著跌幅，其中白银跌幅更深。背后的核心原因在于美元走强以及美国加息预期的抬升，使得之前很多的止盈盘、获利盘离场。老庙景容楼文化旗舰店销售经理华轶表示，门店按克计价的产品，每克立减100元，周末估计将迎来客流高峰。（央视新闻）",
           "source": "新浪财经7x24",
           "sourceUrl": "https://finance.sina.com.cn/7x24/",
-          "publishedAt": "2026-11-20T12:40:12.000Z",
-          "country": "美国",
-          "lat": 38.895,
-          "lng": -77.036,
-          "severity": 30,
-          "importance": "low",
+          "publishedAt": "2026-11-20T20:40:15.000Z",
+          "country": "英国",
+          "lat": 51.51,
+          "lng": -0.13,
+          "severity": 55,
+          "importance": "med",
           "relatedSymbols": [],
           "relatedAssets": []
         },
-        "asof": "2026-11-20T12:45:25.954Z",
+        "asof": "2026-11-20T20:43:50.738Z",
         "stale": false,
         "count": 98,
         "license": "GDELT 免费开放数据（gdeltproject.org）· 新浪财经7x24 公开快讯；坐标为本项目关键词地理定位，精度为国家/地区级",
@@ -648,64 +648,57 @@
           }
         ],
         "sample": {
-          "id": "ev:478472",
-          "title": "Russia x Ukraine ceasefire agreement by...?",
-          "titleZh": "俄罗斯x乌克兰停火协议由... ？",
-          "category": "geopolitics",
-          "partition": false,
-          "endDate": 1814414340000,
-          "updatedAt": 1795178623425,
-          "outcomeCount": 14,
+          "id": "ev:770450",
+          "title": "Fed Decision in December?",
+          "titleZh": "美联储12月份的决定？",
+          "category": "central_bank",
+          "partition": true,
+          "endDate": 1796878740000,
+          "updatedAt": 1795207186941,
+          "outcomeCount": 5,
           "outcomes": [
             {
-              "id": "pm:4338140",
-              "label": "December 31, 2027",
-              "labelZh": "2027年12月31日",
-              "probability": 0.68,
-              "change24h": 0.5
-            },
-            {
-              "id": "pm:4338142",
-              "label": "November 30, 2027",
-              "labelZh": "2027年11月30日",
-              "probability": 0.67,
-              "change24h": null
-            },
-            {
-              "id": "pm:4338137",
-              "label": "October 31, 2027",
-              "labelZh": "2027年10月31日",
-              "probability": 0.665,
-              "change24h": 0.5
-            },
-            {
-              "id": "pm:4338139",
-              "label": "September 30, 2027",
-              "labelZh": "9月30日",
-              "probability": 0.625,
+              "id": "pm:3215008",
+              "label": "25 bps increase",
+              "labelZh": "增加25个基点",
+              "probability": 0.895,
               "change24h": -2
             },
             {
-              "id": "pm:4338141",
-              "label": "August 31, 2027",
-              "labelZh": "2027年8月31日",
-              "probability": 0.62,
-              "change24h": -1
+              "id": "pm:3215007",
+              "label": "No change",
+              "labelZh": "不变",
+              "probability": 0.087,
+              "change24h": 5.9
             },
             {
-              "id": "pm:4338138",
-              "label": "July 31, 2027",
-              "labelZh": "2027年7月31日",
-              "probability": 0.605,
-              "change24h": null
+              "id": "pm:3215009",
+              "label": "50+ bps increase",
+              "labelZh": "增加50 +个基点",
+              "probability": 0.018,
+              "change24h": -4.2
+            },
+            {
+              "id": "pm:3215006",
+              "label": "25 bps decrease",
+              "labelZh": "下降25个基点",
+              "probability": 0.004,
+              "change24h": 0.1
+            },
+            {
+              "id": "pm:3215005",
+              "label": "50+ bps decrease",
+              "labelZh": "降低50 +个基点",
+              "probability": 0.003,
+              "change24h": 0.2
             }
           ],
           "rest": {
-            "probability": 2.28,
-            "count": 8
+            "probability": 0,
+            "count": 0
           }
         },
-        "asof": "2026-11-20T12:46:01.567Z",
+        "asof": "2026-11-20T20:44:47.527Z",
         "stale": false,
         "count": 30,
         "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
@@ -744,7 +737,7 @@
           }
         ],
         "sample": {
-          "asOf": "2026-11-20T12:48:14.068Z",
+          "asOf": "2026-11-20T20:46:31.737Z",
           "institutions": [
             {
               "slug": "berkshire",
@@ -779,7 +772,7 @@
           "fundHoldings": {
             "reportDate": "2026-09-30",
             "reportDateName": "2026年三季报",
-            "lagDays": 42,
+            "lagDays": 52,
             "topAdd": [
               {
                 "code": "688825",
@@ -814,7 +807,7 @@
             ]
           }
         },
-        "asof": "2026-11-20T12:48:14.068Z",
+        "asof": "2026-11-20T20:46:31.737Z",
         "stale": false,
         "count": 4,
         "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
@@ -937,19 +930,19 @@
         ],
         "sample": {
           "status": "ok",
-          "generatedAt": "2026-11-20T12:48:14.999Z",
+          "generatedAt": "2026-11-20T20:46:32.984Z",
           "durationMs": 0,
           "datasets": [
             {
               "id": "quotes.latest",
-              "lastBuilt": "2026-11-20T12:48:14.999Z",
+              "lastBuilt": "2026-11-20T20:46:32.984Z",
               "count": 1,
               "ms": 0,
               "stale": false
             }
           ]
         },
-        "asof": "2026-11-20T12:48:14.999Z",
+        "asof": "2026-11-20T20:46:32.984Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -959,8 +952,8 @@
   },
   "meta": {
     "dataset": "manifest",
-    "asof": "2026-11-20T12:48:14.999Z",
-    "generatedAt": "2026-11-20T12:48:14.999Z",
+    "asof": "2026-11-20T20:46:32.984Z",
+    "generatedAt": "2026-11-20T20:46:32.984Z",
     "source": "本项目构建产物（data/** 与 js/data/universe.js）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
