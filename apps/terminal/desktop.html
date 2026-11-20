@@ -27,12 +27,15 @@
     var t = s && s.theme;
     if (t !== 'nexus' && t !== 'daylight') t = 'daylight';
     document.documentElement.dataset.theme = t;
-    document.querySelector('meta[name="theme-color"]').content = t === 'nexus' ? '#0b0e14' : '#ffffff';
+    // 状态栏色与 style.css :root 的 --bg 对齐（nexus = #000000 纯黑，见 style.css 底色五层）。
+    // 这里跑在 bundle.css 之前、读不到令牌，只能写与 style.css:30 同值的字面量：
+    // 旧值 #0b0e14 是已废弃的蓝黑皮肤残留，与 nexus 纯黑底不一致（状态栏比页面亮一截）。
+    document.querySelector('meta[name="theme-color"]').content = t === 'nexus' ? '#000000' : '#ffffff';
   } catch (e) { /* 隐私模式保持静态值 */ }
 })();
 </script>
-<link rel="stylesheet" href="css/bundle.css?v=20261110a">
-<link rel="stylesheet" href="css/desktop.css?v=20261110a">
+<link rel="stylesheet" href="css/bundle.css?v=20261121a">
+<link rel="stylesheet" href="css/desktop.css?v=20261121a">
 </head>
 <body>
 <div class="dt-app">
@@ -136,10 +139,10 @@
 </div>
 
 <script src="core/vendor/lightweight-charts.standalone.production.js?v=4.2.3" defer></script>
-<script src="js/bundle.js?v=20261110a" defer></script>
+<script src="js/bundle.js?v=20261121a" defer></script>
 <!-- NewsSource 在懒加载包里，桌面版不载懒加载包，单独挂这一个源模块（window.U 依赖 → 必须在 bundle.js 之后） -->
-<script src="js/sources/news.js?v=20261110a" defer></script>
-<script src="js/desktop.js?v=20261110a" defer></script>
+<script src="js/sources/news.js?v=20261121a" defer></script>
+<script src="js/desktop.js?v=20261121a" defer></script>
 <script>if('serviceWorker' in navigator)addEventListener('load',function(){navigator.serviceWorker.register('sw.js')})</script>
 </body>
 </html>

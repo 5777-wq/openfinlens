@@ -62,12 +62,22 @@
   /* ---------- 主题（与 index.html 同一份 Store.settings 存量） ---------- */
   var Theme = {
     label: { nexus: '深空', daylight: '日光' },
-    meta: { nexus: '#0b0e14', daylight: '#ffffff' },
+    meta: { daylight: '#ffffff' },
+    /* 状态栏色（meta theme-color）：nexus 不再写死旧蓝黑 #0b0e14——
+       运行时读 style.css 的 --bg（nexus 实际值 #000000，见 style.css :root 底色五层），
+       读不到（异常/未就绪）兜底 '#000000'。换肤改令牌时状态栏自动跟随，不再漂移。 */
+    metaOf: function (t) {
+      if (t !== 'nexus') return this.meta.daylight;
+      try {
+        var v = getComputedStyle(document.body).getPropertyValue('--bg').trim();
+        return v || '#000000';
+      } catch (e) { return '#000000'; }
+    },
     apply: function (t, rerender) {
       if (t !== 'nexus' && t !== 'daylight') t = 'daylight';
       document.documentElement.dataset.theme = t;
       var m = document.querySelector('meta[name="theme-color"]');
-      if (m) m.content = this.meta[t];
+      if (m) m.content = this.metaOf(t);
       var btn = $('dtTheme');
       if (btn) btn.textContent = this.label[t];
       if (rerender && Charts && typeof Charts.retheme === 'function' && Kline.chart) {

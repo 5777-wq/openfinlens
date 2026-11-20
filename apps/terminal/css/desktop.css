@@ -310,7 +310,9 @@ body { overflow: hidden; }
   border-radius: var(--r-pill);
   transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
 }
-.dt-star:hover { background: var(--bg-hover); color: var(--warn, var(--text-secondary)); transform: scale(1.12); }
+/* 星标 hover 语义对齐主终端 .star:hover（style.css：--accent-signature）：
+   原来的 var(--warn) 是警示语义（橙），星标是"收藏"交互态，两者不是一个意思。 */
+.dt-star:hover { background: var(--bg-hover); color: var(--accent-signature); transform: scale(1.12); }
 .dt-w-pct.up { color: var(--text-rise, var(--up)); }
 .dt-w-pct.down { color: var(--text-fall, var(--down)); }
 .dt-w-pct.flat { color: var(--text-secondary); }

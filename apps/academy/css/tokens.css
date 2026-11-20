@@ -39,6 +39,12 @@
   --up-soft:      rgba(194,64,47,.08);
   --down:         #186A4B;   /* 4.97 / 5.52 */
   --down-soft:    rgba(27,122,87,.08);
+  /* 涨跌**文字**语义色：对齐终端的「文字/图形二分」（--text-rise/--text-fall 管
+     文字，--up/--down 管图形与边框）。四个模式块各映射一份——var() 在声明块
+     就地求值，只在 :root 写一次会冻成白天的值，夜里/绿涨模式就错了。
+     layout.css 的 .up/.down 文字类从这里取色。 */
+  --text-rise:    var(--up);
+  --text-fall:    var(--down);
   --flat:         #55636D;   /* 4.90 / 5.44 */
   --warn:         #8A5A12;   /* 4.66 / 5.17 */
   --warn-soft:    rgba(169,112,26,.10);
@@ -55,11 +61,11 @@
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
                "Liberation Mono", "Courier New", monospace;
 
-  /* ---------- 字号 ---------- */
+  /* ---------- 字号（值以 aurora 品牌层为准；原 aurora.css 的重复定义已删，单一来源在此） ---------- */
   --t-masthead:  clamp(26px, 3.4vw, 36px);
-  --t-hero:      clamp(24px, 3vw, 33px);
-  --t-h1:        25px;
-  --t-h2:        19px;
+  --t-hero:      clamp(36px, 4.2vw, 62px);
+  --t-h1:        28px;
+  --t-h2:        21px;
   --t-h3:        16px;
   --t-body:      15px;
   --t-small:     13px;
@@ -74,26 +80,41 @@
   --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
   --s-5: 22px; --s-6: 30px; --s-7: 42px; --s-8: 60px;
 
-  /* ---------- 圆角：金融风格用极小切角 ---------- */
-  --r-0: 0px;  --r-1: 8px;  --r-2: 12px;  --r-3: 16px;
+  /* ---------- 圆角：原始档 + 语义映射层（单一来源在此；aurora.css 不再重复定义） ----------
+     --r-sm/md/lg/pill 是语义层，与终端的 4/8/14/999 有意保持子站品牌差；
+     --r-1/2/3 是历史原始档，取 aurora 的生效值（6/12/18）。
+     --r-drawer 是术语抽屉面板的专抽档（原 aurora 硬编码 14px）。 */
+  --r-0: 0px;  --r-1: 6px;  --r-2: 12px;  --r-3: 18px;
+  --r-sm:   var(--r-1);
+  --r-md:   var(--r-2);
+  --r-lg:   var(--r-3);
+  --r-pill: 999px;
+  --r-drawer: 14px;
 
   /* ---------- 阴影：靠 hairline 而非投影分层 ---------- */
   --sh-1: 0 1px 2px rgba(17,27,36,.04), 0 1px 3px rgba(17,27,36,.03);
   --sh-2: 0 6px 18px -8px rgba(17,27,36,.18), 0 2px 6px rgba(17,27,36,.05);
   --sh-3: 0 24px 60px -20px rgba(17,27,36,.30), 0 8px 20px -12px rgba(17,27,36,.18);
 
-  /* ---------- 布局尺寸 ---------- */
-  --masthead-h:  60px;
-  --ticker-h:    38px;
-  --rail-w:      214px;
+  /* ---------- 布局尺寸（值以 aurora 品牌层为准；原 aurora.css 的重复定义已删，单一来源在此） ---------- */
+  --masthead-h:  72px;
+  --ticker-h:    40px;
+  --rail-w:      224px;
   --rail-w-min:  60px;
-  --reading-w:   700px;
-  --page-max:    1320px;
+  --reading-w:   780px;
+  --page-max:    1440px;
 
-  /* ---------- 动效 ----------
-     --dur-* / --ease-* / --stagger 的唯一来源在 motion.css 的 :root
-     （本文件之后加载）。此处若再写同名令牌只会成为被覆盖的死值，
-     故不再定义；节奏规则、缓动用法与 spring 的 live 落点见 motion.css 顶部。 */
+  /* ---------- 动效语义（与终端 Wave 1 同名同值，单一来源在此） ----------
+     --ease-out / --dur-fast / --dur-base 是终端对齐的语义层，只有这里定义
+     （motion.css 的 :root 不再重复 --ease-out）；academy 自己的节奏档
+     --dur-1/2/3、--ease-in-out、--ease-spring、--stagger 仍唯一来源在
+     motion.css 的 :root。--ease-out 从旧曲线 .16,1,.3,1
+     对齐到终端 Wave 1 的 cubic-bezier(0.22,1,0.36,1)（恰为原 --ease-spring
+     的值），是本切片唯一许可的节奏变化；--dur-fast 是微交互语义锚点，
+     抽屉 220ms 由 --dur-base 承接。 */
+  --ease-out:  cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast:  140ms;   /* micro：hover / press / focus */
+  --dur-base:  220ms;   /* component：术语抽屉等大表面的开合 */
 
   /* ---------- 层级 ---------- */
   --z-sticky: 40; --z-rail: 50; --z-drawer: 80; --z-palette: 90; --z-top: 100;
@@ -125,6 +146,8 @@ body[data-theme="night"] {
   --up-soft:      rgba(228,102,90,.12);
   --down:         #4FD1A1;
   --down-soft:    rgba(53,177,131,.12);
+  --text-rise:    var(--up);
+  --text-fall:    var(--down);
   --warn:         #E0B45C;
   --warn-soft:    rgba(214,165,78,.12);
   --danger:       #E06A6A;
@@ -144,6 +167,8 @@ body[data-updown="green"] {
   --up-soft:      rgba(27,122,87,.08);
   --down:         #B03627;
   --down-soft:    rgba(194,64,47,.08);
+  --text-rise:    var(--up);
+  --text-fall:    var(--down);
   --fill-up:      rgba(27,122,87,.15);
   --fill-down:    rgba(194,64,47,.13);
 }
@@ -152,6 +177,8 @@ body[data-theme="night"][data-updown="green"] {
   --up-soft:      rgba(53,177,131,.12);
   --down:         #E4665A;
   --down-soft:    rgba(228,102,90,.12);
+  --text-rise:    var(--up);
+  --text-fall:    var(--down);
   --fill-up:      rgba(53,177,131,.20);
   --fill-down:    rgba(228,102,90,.18);
 }

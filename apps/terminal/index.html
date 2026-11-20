@@ -45,7 +45,7 @@
      原来是 5 个渲染阻塞请求、合计 88KB(gzip)，最后一个文件把 FCP 卡在 1.1s（TTFB 才 0.5s）；
      合成 1 个、再去注释压空白后 ≈34KB。层叠顺序不变（style → shell → market → panels → motion），
      源码仍分层放 css/ 与 css/ui/，改完样式跑 `node _scripts/build-css.mjs`。 -->
-<link rel="stylesheet" href="css/bundle.css?v=20261110a">
+<link rel="stylesheet" href="css/bundle.css?v=20261121a">
 </head>
 <body data-updown="red">
 
@@ -532,7 +532,12 @@
 
   <!-- ========== 美股信号（Meridian）——消费 data/us-signals.json，js/us-signals.js 自渲染 ========== -->
   <section class="view tab-panel" id="view-ussig" role="tabpanel" tabindex="-1" aria-label="美股信号">
-    <h1 class="page-title">美股信号 <span class="mut" style="font-size:14px;font-weight:500">Meridian · SPMO + SP500 前 150</span></h1>
+    <!-- 页头与其他 view 同构：h1.page-title 小节头 + p.page-sub 元数据（Wave 2 S1
+         把内联样式的 <span class="mut"> 拆出来，字号/字重交给 .page-sub） -->
+    <div class="page-head">
+      <h1 class="page-title">美股信号</h1>
+      <p class="page-sub">Meridian · SPMO + SP500 前 150</p>
+    </div>
     <div class="ussig-head">
       <div class="ussig-clock" id="ussig-clock"></div>
       <div class="ussig-chips" id="ussig-chips" role="group" aria-label="信号筛选"></div>
@@ -1014,7 +1019,7 @@
 <!-- v3.3 首屏提速：69 个业务脚本打成一个包（js/bundle.js）。
      慢网实测单个小文件要排队 ~1.9s，打包后只剩 1 个请求；源码仍在 js/ 下，
      改完源码跑 `node _scripts/build-js-bundle.mjs` 重新生成（顺序见 _scripts/js-bundle.manifest.json）。 -->
-<script defer src="js/bundle.js?v=20261110a"></script>
+<script defer src="js/bundle.js?v=20261121a"></script>
 <!-- 弹层焦点工具：进焦点 / Tab 循环 / 退出还焦点。设置弹层、分享弹层、到价提醒弹层共用一套。 -->
 <!-- 期权数据源（window.OptionSource）：T 型报价的链数据/月份表，受 OPTIONS_ON 合规开关管辖 -->
 <!-- news-engine / event-engine / llm-provider 不在这里加载（2026-10-20 摘除）：

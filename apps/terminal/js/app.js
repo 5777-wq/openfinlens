@@ -1097,9 +1097,11 @@
     if (!node || reduceMotion() || typeof node.animate !== 'function') return;
     const rgb = flashRgbOf(dir);
     if (!rgb) return;
+    // Wave 2 微动效打磨（Gemini 裁定）：900ms/20% 的"闪一下"改 ~280ms 极低透明度
+    // 方向微闪——行情刷新是 10s 级高频事件，长时长高饱和会持续抢注意力
     node.animate(
-      [{ backgroundColor: 'rgba(' + rgb + ', 0.20)' }, { backgroundColor: 'rgba(0,0,0,0)' }],
-      { duration: 900, easing: 'ease-out' }
+      [{ backgroundColor: 'rgba(' + rgb + ', 0.12)' }, { backgroundColor: 'rgba(0,0,0,0)' }],
+      { duration: 280, easing: 'ease-out' }
     );
   }
 

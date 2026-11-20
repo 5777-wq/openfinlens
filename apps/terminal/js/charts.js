@@ -1471,12 +1471,13 @@ const Charts = (() => {
     /* ---- 主图叠加层（2026-11-21 Wave 1：Meridian Vegas 通道叠线）----
        与 MA 池平行的独立 Line 系列池：app 层经 setOverlays 喂 {label, n, on, color}，
        内部用与 MA 相同的 emaSeries 在当前 lastKlines 上现算。换标的/换周期 setData
-       自动重算；setType 换主系列零接触（独立 series 随时间轴自动跟随）；换肤
-       retheme 重走 applyOptions 的只有 MA 池，叠加层颜色由 app 层在 applyTheme
-       回调里重喂（通道色是业务色，不随 --ma-* 用户令牌走）。 */
+       自动重算；setType 换主系列零接触（独立 series 随时间轴自动跟随）。
+       容量 6（Wave 1 审查抓包修正）：完整画 Vegas 三通道短/中/长共 6 条
+       （EMA144/169/288/338/576/676），不静默截断——app 层 applyVegasOverlay
+       逐对喂入全部 n，长通道用更淡的中性色保持主图清爽。 */
     let overlayCfg = [];
     let overlaySeries = [];
-    const OVERLAY_COLORS = ['#e8a33d', '#5b8def', '#1fc2db', '#b06ad4'];
+    const OVERLAY_COLORS = ['#e8a33d', '#5b8def', '#1fc2db', '#b06ad4', '#8f9aa8', '#6e7a8a'];
     function syncOverlaySeries(count) {
       while (overlaySeries.length > count) {
         const s = overlaySeries.pop();

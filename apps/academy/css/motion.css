@@ -3,19 +3,22 @@
    One consistent motion language: scene → component → micro feedback.
    Only transform / opacity are animated. No loops, no fake loading motion.
 
-   本层 :root 是全站动效令牌的唯一来源（本文件最后加载）：
+   本层 :root 是全站「节奏档」动效令牌的唯一来源（本文件最后加载）：
      --dur-1 交互反馈 / --dur-2 面板与进场 / --dur-3 大表面；
-     --ease-out 默认；--ease-in-out 只给颜色的双向过渡（hover 进出、状态换色）；
+     --ease-in-out 只给颜色的双向过渡（hover 进出、状态换色）；
      --ease-spring 全站只有两处 live 落点——.rail-pill（下方 18-23）与
      .tool-card .tc-ic（下方 69）。components.css 里的 .drawer / .switch::after
      虽写有 spring，但被同文件 v3 收敛段覆盖，已不是生效声明。
      不许再添第四档时长或多段回弹。
+   终端对齐的语义令牌 --ease-out / --dur-fast / --dur-base 的唯一来源
+   已上移到 tokens.css 的 :root（本层不再重复定义 --ease-out，避免再造
+   「后加载覆盖前加载」的双源死值；--ease-out 现值即原 --ease-spring 的曲线）。
    所有动效只许 transform / opacity；唯一允许的循环动画是加载骨架的呼吸
    （components.css 的 ui-pulse，只在数据未到时存在）。
    使用处一律写 var(--dur-*, …ms) / var(--ease-*, cubic-bezier(…)) 并带兜底值。
-   裸毫秒仅存两处 live 例外——抽屉 220ms、左栏条目换色 160ms——
-   它们在旧 .14/.24/.42s 令牌废止后没有等值令牌，为守住零节奏变化
-   保留字面值，不静默改档。
+   裸毫秒仅存一处 live 例外——左栏条目换色 160ms——
+   它在旧 .14/.24/.42s 令牌废止后没有等值令牌，为守住零节奏变化
+   保留字面值，不静默改档（抽屉 220ms 已由 --dur-base 承接）。
    ========================================================================== */
 
 :root {
@@ -23,7 +26,7 @@
   --dur-2: .34s;  /* component: palette, filter, drawer body */
   --dur-3: .58s;  /* scene: route, entrance, section stagger */
   --stagger: 62ms;
-  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  /* --ease-out 移至 tokens.css（终端 Wave 1 对齐的语义层），此处不再定义 */
   --ease-in-out: cubic-bezier(.65, 0, .35, 1);
   --ease-spring: cubic-bezier(.22, 1, .36, 1);
 }
@@ -36,7 +39,7 @@
     opacity var(--dur-1, 180ms) linear;
 }
 .rail-item .ri-t {
-  transition: transform var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.16,1,.3,1));
+  transition: transform var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.22,1,.36,1));
 }
 .rail-item:hover .ri-t,
 .rail-item:focus-visible .ri-t { transform: translateX(2px); }
@@ -51,12 +54,12 @@
   color var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)),
   border-color var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)),
   background-color var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)),
-  transform var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.16,1,.3,1)),
-  box-shadow var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.16,1,.3,1));
+  transform var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.22,1,.36,1)),
+  box-shadow var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.22,1,.36,1));
 }
 .mh-btn:hover { transform: translateY(-1px); }
 .tabbar button:active { transform: scale(.96); }
-.tabbar button.on svg { transform: translateY(-1px); transition: transform var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.16,1,.3,1)); }
+.tabbar button.on svg { transform: translateY(-1px); transition: transform var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.22,1,.36,1)); }
 
 /* ---------- Action controls: lift, arrow advance, tactile press ---------- */
 .btn,
@@ -70,13 +73,13 @@
   color var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)),
   border-color var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)),
   background-color var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)),
-  transform var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.16,1,.3,1)),
-  box-shadow var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.16,1,.3,1)); }
+  transform var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.22,1,.36,1)),
+  box-shadow var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.22,1,.36,1)); }
 .btn:hover { transform: translateY(-1px); }
 .btn:active { transform: translateY(0) scale(.985); }
-.btn > svg:last-child { transition: transform var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.16,1,.3,1)); }
+.btn > svg:last-child { transition: transform var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.22,1,.36,1)); }
 .btn:hover > svg:last-child { transform: translateX(3px); }
-.section-link > span:last-child { display: inline-block; transition: transform var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.16,1,.3,1)); }
+.section-link > span:last-child { display: inline-block; transition: transform var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.22,1,.36,1)); }
 .section-link:hover > span:last-child { transform: translateX(3px); }
 .tool-card:hover { transform: translateY(-2px); }
 .tool-card:hover .tc-ic { transform: translateY(-1px); }
@@ -96,7 +99,7 @@
   to   { opacity: 1; transform: none; }
 }
 #home-gauges.is-staggered .dpanel {
-  animation: data-card-in var(--dur-3, 580ms) var(--ease-out, cubic-bezier(.16,1,.3,1)) backwards;
+  animation: data-card-in var(--dur-3, 580ms) var(--ease-out, cubic-bezier(.22,1,.36,1)) backwards;
 }
 #home-gauges.is-staggered .dpanel:nth-child(1) { animation-delay: calc(var(--stagger, 62ms) * 0); }
 #home-gauges.is-staggered .dpanel:nth-child(2) { animation-delay: calc(var(--stagger, 62ms) * 1); }
@@ -110,7 +113,7 @@
   to   { opacity: 1; transform: none; }
 }
 .home-featured .home-story {
-  animation: story-rise var(--dur-3, 580ms) var(--ease-out, cubic-bezier(.16,1,.3,1)) backwards;
+  animation: story-rise var(--dur-3, 580ms) var(--ease-out, cubic-bezier(.22,1,.36,1)) backwards;
 }
 .home-featured .home-story:nth-child(2) { animation-delay: var(--stagger, 62ms); }
 
@@ -118,7 +121,7 @@
   from { opacity: 0; transform: translate3d(0, 8px, 0); }
   to   { opacity: 1; transform: none; }
 }
-.entries .entry { animation: list-row-in var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.16,1,.3,1)) backwards; }
+.entries .entry { animation: list-row-in var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.22,1,.36,1)) backwards; }
 .entries .entry:nth-child(2) { animation-delay: calc(var(--stagger, 62ms) * 1); }
 .entries .entry:nth-child(3) { animation-delay: calc(var(--stagger, 62ms) * 2); }
 .entries .entry:nth-child(4) { animation-delay: calc(var(--stagger, 62ms) * 3); }
@@ -129,8 +132,8 @@
 .palette {
   transform: translateX(-50%) translateY(8px) scale(.985);
   transition:
-    opacity var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.16,1,.3,1)),
-    transform var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.16,1,.3,1)) !important;
+    opacity var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.22,1,.36,1)),
+    transform var(--dur-2, 340ms) var(--ease-out, cubic-bezier(.22,1,.36,1)) !important;
 }
 .palette-wrap.on .palette { transform: translateX(-50%) translateY(0) scale(1); }
 .palette-wrap { transition: visibility 0s linear var(--dur-2, 340ms); }
@@ -139,7 +142,7 @@
 input[type="text"], input[type="search"], input[type="number"], select, textarea {
   transition:
     border-color var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1)),
-    box-shadow var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.16,1,.3,1)),
+    box-shadow var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.22,1,.36,1)),
     background-color var(--dur-1, 180ms) var(--ease-in-out, cubic-bezier(.65,0,.35,1));
 }
 input[type="text"]:focus, input[type="search"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
@@ -156,6 +159,7 @@ input[type="text"]:focus, input[type="search"]:focus, input[type="number"]:focus
   .nameplate, .mh-btn, .tabbar button, .section-link, .snapshot-row, .snapshot-foot a,
   .btn, .tag, .tool-card, .home-story, .dpanel, .entry, .term-link .term, .snapshot-primary,
   .btn > svg:last-child, .section-link > span:last-child, .tool-card .tc-ic, .palette,
+  .drawer, .scrim,
   input[type="text"], input[type="search"], input[type="number"], select, textarea {
     transition: none !important;
   }
@@ -165,7 +169,7 @@ input[type="text"]:focus, input[type="search"]:focus, input[type="number"]:focus
 }
 .btn > span[aria-hidden="true"]:last-child {
   display: inline-block;
-  transition: transform var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.16,1,.3,1));
+  transition: transform var(--dur-1, 180ms) var(--ease-out, cubic-bezier(.22,1,.36,1));
 }
 .btn:hover > span[aria-hidden="true"]:last-child { transform: translateX(3px); }
 @media (prefers-reduced-motion: reduce) {

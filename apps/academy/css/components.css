@@ -29,13 +29,16 @@
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); }
 @media (max-width: 760px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 
-/* ---------- 按钮 ---------- */
+/* ---------- 按钮 ----------
+   height / padding / border-radius 不在此声明：唯一事实是本文件下方 UI v2 段的
+   .btn（999px 胶囊 / 36px / 0 16px，aurora 品牌层再在其上收成 7px 圆角）。
+   旧写法在同文件里声明了方角 34px，被下方静默覆盖成死值，已删。 */
 .btn {
-  display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px;
+  display: inline-flex; align-items: center; gap: 7px;
   border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
-  border-radius: var(--r-2); font-size: var(--t-small); font-weight: 500;
-  transition: opacity var(--dur-1, 140ms) var(--ease-out, cubic-bezier(.16, 1, .3, 1)),
-              transform var(--dur-1, 140ms) var(--ease-out, cubic-bezier(.16, 1, .3, 1)),
+  font-size: var(--t-small); font-weight: 500;
+  transition: opacity var(--dur-1, 140ms) var(--ease-out, cubic-bezier(.22,1,.36,1)),
+              transform var(--dur-1, 140ms) var(--ease-out, cubic-bezier(.22,1,.36,1)),
               color var(--dur-1, 140ms) var(--ease-in-out, cubic-bezier(.65, 0, .35, 1)),
               border-color var(--dur-1, 140ms) var(--ease-in-out, cubic-bezier(.65, 0, .35, 1));
 }
@@ -58,8 +61,12 @@ body[data-theme="night"] .btn.gold { color: #14191C; }
 }
 .tag.teal { color: var(--teal); border-color: var(--teal-line); background: var(--teal-soft); }
 .tag.gold { color: var(--gold-text); border-color: var(--gold-line); background: var(--gold-soft); }
-.tag.up { color: var(--up); border-color: rgba(176,54,39,.3); background: var(--up-soft); }
-.tag.down { color: var(--down); border-color: rgba(24,106,75,.3); background: var(--down-soft); }
+/* 边框色不再硬编码日间 RGB（夜里 --up/--down 换了色它不跟着换）：
+   用 color-mix 从令牌现算，30% 透明度与原 rgba(176,54,39,.3)/rgba(24,106,75,.3)
+   在日间逐位等值。aurora 末段的去线层仍会把边框收到透明——此处保证的是
+   令牌层自身的正确性，两个主题都随 --up/--down 走。 */
+.tag.up { color: var(--up); border-color: color-mix(in srgb, var(--up) 30%, transparent); background: var(--up-soft); }
+.tag.down { color: var(--down); border-color: color-mix(in srgb, var(--down) 30%, transparent); background: var(--down-soft); }
 
 /* ---------- 时代横轴（两条时间带） ---------- */
 /* 注意：JS 输出的容器 class 是 era-band（不是 era）——名字对不上，这一整段样式就没生效过 */
@@ -105,7 +112,7 @@ body[data-theme="night"] .btn.gold { color: #14191C; }
   /* 不写 all：只列真正会变的三个属性，别让未来的样式改动意外变成动画 */
   transition: background-color var(--dur-2, 240ms) var(--ease-in-out, cubic-bezier(.65, 0, .35, 1)),
               border-color var(--dur-2, 240ms) var(--ease-in-out, cubic-bezier(.65, 0, .35, 1)),
-              transform var(--dur-2, 240ms) var(--ease-out, cubic-bezier(.16, 1, .3, 1));
+              transform var(--dur-2, 240ms) var(--ease-out, cubic-bezier(.22,1,.36,1));
 }
 .era-node .en-stem { width: 1px; height: 14px; background: var(--rule); }
 /* 相邻年份（如 2020 / 2022）标签会相撞：奇偶节点把标签整块下移一行。
@@ -212,7 +219,9 @@ body[data-theme="night"] .btn.gold { color: #14191C; }
    ============================================================ */
 .scrim {
   position: fixed; inset: 0; background: rgba(22,35,43,.32); z-index: var(--z-drawer);
-  opacity: 0; pointer-events: none; transition: opacity var(--dur-2);
+  opacity: 0; pointer-events: none;
+  /* 进出场曲线显式走语义 --ease-out（此前靠 layout.css 的通配默认隐式落到它头上） */
+  transition: opacity var(--dur-2) var(--ease-out, cubic-bezier(.22,1,.36,1));
   backdrop-filter: blur(1.5px);
 }
 .scrim.on { opacity: 1; pointer-events: auto; }
@@ -252,7 +261,7 @@ body[data-theme="night"] .btn.gold { color: #14191C; }
 @media (max-width: 560px) {
   .drawer {
     top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 82dvh;
-    border-left: 0; border-top: 1px solid var(--rule); border-radius: var(--r-3) var(--r-3) 0 0;
+    border-left: 0; border-top: 1px solid var(--rule); border-radius: var(--r-drawer, 14px) var(--r-drawer, 14px) 0 0;
     transform: translateY(100%);
   }
   .drawer.on { transform: translateY(0); }
@@ -566,7 +575,7 @@ body[data-theme="night"] .btn.gold { color: #14191C; }
   border: 1px solid var(--rule-2); border-radius: var(--r-2, 3px);
   text-decoration: none;
   transition: border-color var(--dur-1, 140ms) var(--ease-in-out, cubic-bezier(.65, 0, .35, 1)),
-              transform var(--dur-1, 140ms) var(--ease-out, cubic-bezier(.16, 1, .3, 1));
+              transform var(--dur-1, 140ms) var(--ease-out, cubic-bezier(.22,1,.36,1));
 }
 .starter:hover { border-color: var(--ink-4); transform: translateY(-1px); }
 .st-t { display: block; font-size: var(--t-small); font-weight: 500; color: var(--ink); margin-bottom: 3px; }
@@ -831,8 +840,8 @@ body[data-theme="night"] .btn.gold { color: #14191C; }
 .btn {
   border-radius: 999px; height: 36px; padding: 0 16px; font-weight: 600;
   box-shadow: var(--sh-1); position: relative; overflow: hidden;
-  transition: transform var(--dur-1,140ms) var(--ease-out,cubic-bezier(.16,1,.3,1)),
-              box-shadow var(--dur-1,140ms) var(--ease-out,cubic-bezier(.16,1,.3,1)),
+  transition: transform var(--dur-1,140ms) var(--ease-out,cubic-bezier(.22,1,.36,1)),
+              box-shadow var(--dur-1,140ms) var(--ease-out,cubic-bezier(.22,1,.36,1)),
               opacity var(--dur-1,140ms), background-color var(--dur-1,140ms),
               color var(--dur-1,140ms), border-color var(--dur-1,140ms);
 }
@@ -847,7 +856,7 @@ body[data-theme="night"] .btn.gold { color: #14191C; }
 .btn > .ripple {
   position: absolute; border-radius: 50%; pointer-events: none;
   background: currentColor; opacity: .18; transform: scale(0);
-  animation: ui-ripple var(--dur-3,420ms) var(--ease-out,cubic-bezier(.16,1,.3,1)) forwards;
+  animation: ui-ripple var(--dur-3,420ms) var(--ease-out,cubic-bezier(.22,1,.36,1)) forwards;
 }
 @keyframes ui-ripple { to { transform: scale(2.6); opacity: 0; } }
 
@@ -863,8 +872,8 @@ body[data-theme="night"] .btn.gold { color: #14191C; }
   border-bottom: 1px solid var(--rule-2);
   border-radius: 14px; padding: 14px;
   transition: background-color var(--dur-1,140ms) var(--ease-in-out,cubic-bezier(.65,0,.35,1)),
-              transform var(--dur-1,140ms) var(--ease-out,cubic-bezier(.16,1,.3,1)),
-              box-shadow var(--dur-1,140ms) var(--ease-out,cubic-bezier(.16,1,.3,1)),
+              transform var(--dur-1,140ms) var(--ease-out,cubic-bezier(.22,1,.36,1)),
+              box-shadow var(--dur-1,140ms) var(--ease-out,cubic-bezier(.22,1,.36,1)),
               border-color var(--dur-1,140ms);
 }
 .entry:hover, .entry:focus-visible {
@@ -880,11 +889,11 @@ body[data-theme="night"] .btn.gold { color: #14191C; }
 .tbl-wrap { overflow: hidden; }
 .tbl th { background: var(--sheet-2); }
 
-.drawer { border-radius: 20px 0 0 20px; box-shadow: var(--sh-3); }
+.drawer { border-radius: var(--r-drawer, 14px) 0 0 var(--r-drawer, 14px); box-shadow: var(--sh-3); }
 .palette { border-radius: 18px; box-shadow: var(--sh-3); border: 1px solid var(--rule-2); }
 .pl-item { border-radius: 10px; }
 
-.era-node { transition: transform var(--dur-2,240ms) var(--ease-out,cubic-bezier(.16,1,.3,1)); }
+.era-node { transition: transform var(--dur-2,240ms) var(--ease-out,cubic-bezier(.22,1,.36,1)); }
 .era-node:hover { transform: translateX(-50%) translateY(-3px); }
 .rp-track { border-radius: 10px; transition: background-color var(--dur-1,140ms) var(--ease-in-out,cubic-bezier(.65,0,.35,1)); }
 .rp-track:hover { background: var(--sheet-2); }
@@ -903,7 +912,7 @@ body[data-theme="night"] .btn.gold { color: #14191C; }
 
 /* 区块进场：错峰 40ms，不重播 */
 @keyframes ui-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.h-sec { animation: ui-rise var(--dur-2,240ms) var(--ease-out,cubic-bezier(.16,1,.3,1)) backwards; }
+.h-sec { animation: ui-rise var(--dur-2,240ms) var(--ease-out,cubic-bezier(.22,1,.36,1)) backwards; }
 
 @media (prefers-reduced-motion: reduce) {
   .btn > .ripple { display: none; }
@@ -917,8 +926,8 @@ body[data-theme="night"] .btn.gold { color: #14191C; }
   display: flex; align-items: flex-start; gap: 12px;
   padding: 14px; border: 1px solid var(--rule-2); border-radius: 14px;
   background: var(--sheet); box-shadow: var(--sh-1); color: var(--ink-2);
-  transition: transform var(--dur-1,140ms) var(--ease-out,cubic-bezier(.16,1,.3,1)),
-              box-shadow var(--dur-1,140ms) var(--ease-out,cubic-bezier(.16,1,.3,1)),
+  transition: transform var(--dur-1,140ms) var(--ease-out,cubic-bezier(.22,1,.36,1)),
+              box-shadow var(--dur-1,140ms) var(--ease-out,cubic-bezier(.22,1,.36,1)),
               border-color var(--dur-1,140ms) var(--ease-in-out,cubic-bezier(.65,0,.35,1));
 }
 .tool-card:hover { transform: translateY(-2px); box-shadow: var(--sh-2); border-color: var(--teal-line); text-decoration: none; }
@@ -961,14 +970,15 @@ body[data-theme="night"] .btn.gold { color: #14191C; }
 
 .rail-item::before, .tabbar button::before { display: none; }
 
-/* v3 节奏例外：抽屉 220ms 是 live 值，无等值令牌（--dur-2 现为 .34s）。
-   换 var(--dur-2,220ms) 会跳到 340ms，为守住零节奏变化保留字面值。
-   拨杆 180ms 则恰好等于 live --dur-1（.18s），换成 var 零变化。 */
+/* 抽屉 220ms 原是裸毫秒例外（--dur-2 现为 .34s，等值令牌不存在）；
+   终端对齐的 --dur-base:220ms 进场后改走令牌，时长不变，曲线随语义
+   --ease-out 对齐到终端 Wave 1（旧曲线 .16,1,.3,1 的唯一许可变化）。
+   拨杆 180ms 恰好等于 live --dur-1（.18s），换成 var 零变化。 */
 .drawer {
-  transition: transform 220ms var(--ease-out, cubic-bezier(.16,1,.3,1)),
-              visibility 220ms;
+  transition: transform var(--dur-base, 220ms) var(--ease-out, cubic-bezier(.22,1,.36,1)),
+              visibility var(--dur-base, 220ms);
 }
-.switch::after { transition: transform var(--dur-1,180ms) var(--ease-out, cubic-bezier(.16,1,.3,1)); }
+.switch::after { transition: transform var(--dur-1,180ms) var(--ease-out, cubic-bezier(.22,1,.36,1)); }
 
 /* 骨架只做呼吸，不做流光 */
 .skel {

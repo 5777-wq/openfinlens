@@ -32,18 +32,10 @@
   --aurora-panel: #2a241a;
   --font-sans: Inter, "SF Pro Display", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --t-hero: clamp(36px, 4.2vw, 62px);
-  --t-h1: 28px;
-  --t-h2: 21px;
-  --t-h3: 16px;
-  --masthead-h: 72px;
-  --ticker-h: 40px;
-  --rail-w: 224px;
-  --reading-w: 780px;
-  --page-max: 1440px;
-  --r-1: 6px;
-  --r-2: 12px;
-  --r-3: 18px;
+  /* 字阶（--t-hero…--t-h3）、布局尺寸（--masthead-h…--page-max）、圆角档
+     （--r-1…--r-3）曾在此覆盖 tokens.css，是「tokens 部分值成死值」的双源病灶；
+     生效值已搬进 tokens.css 单一来源（并补了 --r-sm/md/lg/pill 语义层与
+     --r-drawer）。本层只保留品牌底色、品牌独有令牌、品牌字体栈与品牌纸色阴影。 */
   --sh-1: 0 1px 2px rgba(71, 55, 33, .03), 0 4px 14px rgba(71, 55, 33, .025);
   --sh-2: 0 16px 36px -20px rgba(71, 55, 33, .18), 0 2px 8px rgba(71, 55, 33, .04);
   --sh-3: 0 30px 80px -24px rgba(45, 34, 20, .30), 0 8px 24px rgba(45, 34, 20, .08);
@@ -264,7 +256,7 @@ input[type="text"], input[type="search"], input[type="number"], select, textarea
 .palette { border-radius: 12px; border-color: var(--rule); top: 15vh; }
 .palette-input input { padding: 18px 0; }
 .pl-item { margin: 0 7px; padding: 10px; border-radius: 6px; }
-.drawer { border-radius: 14px 0 0 14px; }
+.drawer { border-radius: var(--r-drawer, 14px) 0 0 var(--r-drawer, 14px); }
 .to-top { border-radius: 8px; }
 .toast { border-radius: 8px; }
 .footer { margin-top: 0; border-color: var(--rule); background: color-mix(in srgb, var(--sheet) 40%, transparent); }
@@ -363,7 +355,7 @@ input[type="text"], input[type="search"], input[type="number"], select, textarea
   .entry { padding: 16px !important; }
   .entry .e-d { font-size: 11px !important; }
   .panel { padding: 16px; }
-  .drawer { border-radius: 14px 14px 0 0; }
+  .drawer { border-radius: var(--r-drawer, 14px) var(--r-drawer, 14px) 0 0; }
   .palette { top: 8vh; max-height: 76vh; }
 }
 @media (prefers-reduced-motion: reduce) {
