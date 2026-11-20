@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<!-- OpenFinLens 轻量桌面版（2026-11-20）：独立入口，桌面原生多栏布局。
+     复用移动站三件套的令牌与数据内核（css/bundle.css + js/bundle.js 的 window 全局面），
+     本页只新增 css/desktop.css（布局层）与 js/desktop.js（面板装配层，manifest notLoaded
+     登记、不进两个 bundle——移动用户零字节负担）。安卓壳/PWA/小程序仍指向根 URL，互不影响。
+     首帧主题：静态 daylight，下面的内联脚本按 gfd_settings 存量修正（与 index.html 同约定）。 -->
+<html lang="zh-CN" data-theme="daylight">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>OpenFinLens 桌面版 · 全球金融看板</title>
+<meta name="description" content="OpenFinLens 桌面版：自选实时盘、K线详情、新闻流与美股信号，轻量多栏布局。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%2335e1ff'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#ffffff">
+<script>
+/* 首帧主题（防闪）：与 index.html 同一份存量（gfd_settings.theme），脏值落 daylight */
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem('gfd_settings') || '{}');
+    var t = s && s.theme;
+    if (t !== 'nexus' && t !== 'daylight') t = 'daylight';
+    document.documentElement.dataset.theme = t;
+    document.querySelector('meta[name="theme-color"]').content = t === 'nexus' ? '#0b0e14' : '#ffffff';
+  } catch (e) { /* 隐私模式保持静态值 */ }
+})();
+</script>
+<link rel="stylesheet" href="css/bundle.css?v=20261110a">
+<link rel="stylesheet" href="css/desktop.css?v=20261110a">
+</head>
+<body>
+<header class="dt-top">
+  <a class="dt-brand" href="./index.html">OpenFinLens</a>
+  <span class="dt-tag">桌面版</span>
+  <div class="dt-search">
+    <input id="dtSearch" type="search" placeholder="搜索代码 / 名称，回车直达 K 线"
+           autocomplete="off" spellcheck="false" aria-label="搜索标的">
+    <ul id="dtSearchList" class="dt-search-list" role="listbox" aria-label="搜索结果" hidden></ul>
+  </div>
+  <div class="dt-actions">
+    <button id="dtTheme" type="button" class="dt-btn" aria-label="切换深浅模式">日光</button>
+    <a class="dt-btn dt-btn-link" href="./index.html">返回完整版</a>
+  </div>
+</header>
+
+<div class="dt-tape" id="dtTape" role="status" aria-label="全球指数行情条">
+  <span class="dt-tape-item dt-muted">行情载入中…</span>
+</div>
+
+<main class="dt-grid">
+  <section class="dt-panel dt-watch" aria-label="自选">
+    <div class="dt-panel-head">
+      <h2>自选</h2>
+      <span class="dt-muted" id="dtWatchMeta">与完整版实时互通</span>
+    </div>
+    <div id="dtWatchBody" class="dt-watch-body">
+      <div class="dt-empty">载入中…</div>
+    </div>
+  </section>
+
+  <section class="dt-panel dt-kline" aria-label="K线详情">
+    <div class="dt-panel-head">
+      <h2 id="dtKlineTitle">K线</h2>
+      <div class="dt-seg" role="group" aria-label="K线周期">
+        <button type="button" class="dt-seg-btn on" data-period="day">日</button>
+        <button type="button" class="dt-seg-btn" data-period="week">周</button>
+      </div>
+    </div>
+    <div id="dtKlineHost" class="dt-kline-host">
+      <div class="dt-empty">从自选或搜索选择一个标的</div>
+    </div>
+  </section>
+
+  <section class="dt-panel dt-news" aria-label="新闻流">
+    <div class="dt-panel-head">
+      <h2>新闻流</h2>
+      <span class="dt-muted">财经快讯 · 5 分钟轮询</span>
+    </div>
+    <ol id="dtNewsBody" class="dt-news-body">
+      <li class="dt-empty">载入中…</li>
+    </ol>
+  </section>
+
+  <section class="dt-panel dt-ussig" aria-label="美股信号">
+    <div class="dt-panel-head">
+      <h2>美股信号</h2>
+      <span class="dt-muted" id="dtUssigClock">RSI6/14 · Vegas 通道</span>
+    </div>
+    <div id="dtUssigBody" class="dt-ussig-body">
+      <div class="dt-empty">载入中…</div>
+    </div>
+  </section>
+</main>
+
+<footer class="dt-foot">
+  <span>行情与信号仅供研究参考，不构成任何建议</span>
+  <span class="dt-muted" id="dtStat"></span>
+</footer>
+
+<script src="core/vendor/lightweight-charts.standalone.production.js?v=4.2.3" defer></script>
+<script src="js/bundle.js?v=20261110a" defer></script>
+<!-- NewsSource 在懒加载包里，桌面版不载 bundle-lazy，单独挂这一个源模块（window.U 依赖 → 必须在 bundle.js 之后） -->
+<script src="js/sources/news.js?v=20261110a" defer></script>
+<script src="js/desktop.js?v=20261110a" defer></script>
+</body>
+</html>

@@ -53,11 +53,15 @@ if (!NO_MIN) {
 }
 
 /* 新增/改名 CSS 却忘了登记 → 线上样式静默丢失。这里拦一道。 */
+/* 独立 CSS 入口：由特定页面直接引用、不进 bundle.css（desktop.css 由 desktop.html
+   加载——桌面版布局层不该让移动用户白背字节）。此处登记以通过下方 LAYERS 守卫。 */
+const STANDALONE = ['css/desktop.css'];
+
 const onDisk = readdirSync(path.join(ROOT, 'css')).filter(f => f.endsWith('.css') && f !== 'bundle.css')
   .map(f => 'css/' + f)
   .concat(readdirSync(path.join(ROOT, 'css/ui')).filter(f => f.endsWith('.css')).map(f => 'css/ui/' + f))
   .sort();
-const unlisted = onDisk.filter(f => !LAYERS.includes(f));
+const unlisted = onDisk.filter(f => !LAYERS.includes(f) && !STANDALONE.includes(f));
 const missing = LAYERS.filter(f => !existsSync(path.join(ROOT, f)));
 if (missing.length) { console.error('缺少 CSS 文件：\n  ' + missing.join('\n  ')); process.exit(1); }
 if (unlisted.length) {

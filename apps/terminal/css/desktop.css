@@ -1,0 +1,310 @@
+/* desktop.css —— 轻量桌面版布局层（2026-11-20）。
+   只做布局与面板装配：颜色/圆角/间距全部取 css/bundle.css 的既有令牌
+   （--bg/--bg-card/--line/--text*/--up/--down/--sp-*/--r-*），不新造令牌、
+   不覆盖移动站规则。独立入口由 desktop.html 引用，不进 bundle.css
+   （build-css.mjs 的 STANDALONE 豁免），移动用户零字节负担。 */
+
+/* ---------- 顶栏 ---------- */
+.dt-top {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  padding: var(--sp-8) var(--sp-24);
+  border-bottom: 1px solid var(--border-soft, var(--line));
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.dt-brand {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+.dt-tag {
+  font-size: 12px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 1px 8px;
+  white-space: nowrap;
+}
+.dt-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+}
+.dt-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  border-radius: var(--r-md);
+  padding: 5px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+.dt-btn:hover { border-color: var(--border-hover, var(--border)); background: var(--bg-hover); }
+.dt-btn-link { display: inline-flex; align-items: center; }
+
+/* ---------- 搜索 ---------- */
+.dt-search { position: relative; flex: 1 1 auto; max-width: 420px; }
+.dt-search input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.dt-search input:focus { outline: none; border-color: var(--border-hover, var(--border)); }
+.dt-search-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--bg-elevated, var(--bg-card));
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-2);
+  max-height: 320px;
+  overflow: auto;
+  z-index: 40;
+}
+.dt-search-list li {
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.dt-search-list li:hover, .dt-search-list li.on { background: var(--bg-hover); }
+.dt-search-list .s-name { color: var(--text); font-size: 13px; }
+.dt-search-list .s-code { color: var(--text-tertiary); font-size: 12px; }
+.dt-search-list .s-mkt { margin-left: auto; color: var(--text-faint, var(--text-tertiary)); font-size: 11px; }
+
+/* ---------- 指数跑马条 ---------- */
+.dt-tape {
+  display: flex;
+  gap: var(--sp-16);
+  align-items: center;
+  overflow-x: auto;
+  padding: var(--sp-8) var(--sp-24);
+  background: var(--tape-bg, var(--bg-card));
+  border-bottom: 1px solid var(--border-soft, var(--line));
+  scrollbar-width: none;
+  white-space: nowrap;
+  min-height: 34px;
+}
+.dt-tape::-webkit-scrollbar { display: none; }
+.dt-tape-item { display: inline-flex; gap: 6px; align-items: baseline; font-size: 13px; }
+.dt-tape-item .t-name { color: var(--text-secondary); }
+.dt-tape-item .t-price { color: var(--text); font-variant-numeric: tabular-nums; }
+.dt-tape-item .t-pct { font-variant-numeric: tabular-nums; }
+.t-up { color: var(--text-rise, var(--up)); }
+.t-down { color: var(--text-fall, var(--down)); }
+.t-flat { color: var(--text-secondary); }
+.dt-muted { color: var(--text-tertiary); font-size: 12px; }
+
+/* ---------- 主栅格 ---------- */
+.dt-grid {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-areas:
+    "watch kline"
+    "news  ussig";
+  gap: var(--sp-16);
+  padding: var(--sp-16) var(--sp-24) var(--sp-24);
+  align-items: stretch;
+}
+.dt-watch  { grid-area: watch; }
+.dt-kline  { grid-area: kline; }
+.dt-news   { grid-area: news; }
+.dt-ussig  { grid-area: ussig; }
+
+/* ---------- 面板通用 ---------- */
+.dt-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft, var(--line));
+  border-radius: var(--r-lg);
+  padding: var(--sp-16);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.dt-panel-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-12);
+}
+.dt-panel-head h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.dt-empty { color: var(--text-tertiary); font-size: 13px; padding: var(--sp-16) 0; text-align: center; }
+
+/* ---------- 自选 ---------- */
+.dt-watch-body { overflow: auto; max-height: 480px; }
+.dt-watch-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dt-watch-table th {
+  text-align: right;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border-soft, var(--line));
+  white-space: nowrap;
+}
+.dt-watch-table th:first-child, .dt-watch-table td:first-child { text-align: left; }
+.dt-watch-table td {
+  padding: 6px 6px;
+  border-bottom: 1px solid var(--border-soft, var(--line));
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  white-space: nowrap;
+}
+.dt-watch-table tr.dt-row { cursor: pointer; }
+.dt-watch-table tr.dt-row:hover td { background: var(--bg-hover); }
+.dt-watch-table tr.dt-row.on td { background: var(--bg-hover); }
+.dt-w-name { color: var(--text); }
+.dt-w-code { color: var(--text-tertiary); font-size: 11px; display: block; }
+.dt-star {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+}
+.dt-star.on { color: var(--warn, var(--accent-signature)); }
+.dt-w-pct.up { color: var(--text-rise, var(--up)); }
+.dt-w-pct.down { color: var(--text-fall, var(--down)); }
+.dt-w-pct.flat { color: var(--text-secondary); }
+
+/* ---------- K 线面板 ---------- */
+.dt-seg { display: inline-flex; gap: 4px; margin-left: auto; }
+.dt-seg-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-secondary);
+  border-radius: var(--r-sm);
+  padding: 3px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.dt-seg-btn.on { background: var(--accent-soft); color: var(--text); border-color: var(--border-hover, var(--border)); }
+.dt-kline-host {
+  position: relative;
+  height: 460px;
+  min-height: 320px;
+  border: 1px solid var(--border-soft, var(--line));
+  border-radius: var(--r-md);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dt-kline-host .dt-empty { margin: 0; }
+.dt-kline-host.is-on { display: block; }
+.dt-kline-host .k-legend { font-size: 12px; }
+
+/* ---------- 新闻流 ---------- */
+.dt-news-body {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: auto;
+  max-height: 360px;
+}
+.dt-news-body li { padding: 7px 0; border-bottom: 1px solid var(--border-soft, var(--line)); }
+.dt-news-body li:last-child { border-bottom: 0; }
+.dt-news-body a {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.5;
+  display: block;
+}
+.dt-news-body a:hover { color: var(--accent-signature); text-decoration: underline; }
+.dt-news-time { color: var(--text-tertiary); font-size: 11px; }
+
+/* ---------- 美股信号 ---------- */
+.dt-ussig-body { overflow: auto; max-height: 360px; }
+.dt-ussig-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.dt-ussig-table th {
+  text-align: right;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border-soft, var(--line));
+  white-space: nowrap;
+}
+.dt-ussig-table th:first-child, .dt-ussig-table td:first-child { text-align: left; }
+.dt-ussig-table td {
+  padding: 6px 6px;
+  border-bottom: 1px solid var(--border-soft, var(--line));
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  white-space: nowrap;
+}
+.dt-ussig-table tr.dt-row { cursor: pointer; }
+.dt-ussig-table tr.dt-row:hover td { background: var(--bg-hover); }
+.dt-ussig-badge {
+  display: inline-block;
+  font-size: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 0 6px;
+  color: var(--text-secondary);
+}
+.dt-ussig-badge.ob { color: var(--text-rise, var(--up)); border-color: var(--up); }
+.dt-ussig-badge.os { color: var(--text-fall, var(--down)); border-color: var(--down); }
+.dt-ussig-badge.warn { color: var(--warn, var(--text-secondary)); border-color: var(--warn, var(--border)); }
+.dt-up { color: var(--text-rise, var(--up)); }
+.dt-down { color: var(--text-fall, var(--down)); }
+
+/* ---------- 页脚 ---------- */
+.dt-foot {
+  display: flex;
+  gap: var(--sp-16);
+  padding: var(--sp-12) var(--sp-24) var(--sp-24);
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+/* ---------- 窄屏降级（平板/小窗） ---------- */
+@media (max-width: 980px) {
+  .dt-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "kline" "watch" "news" "ussig";
+    padding: var(--sp-12);
+  }
+  .dt-kline-host { height: 380px; }
+  .dt-top { padding: var(--sp-8) var(--sp-12); flex-wrap: wrap; }
+  .dt-search { order: 3; flex-basis: 100%; max-width: none; }
+}
+
+/* 动效克制：与移动站同一 reduced-motion 约定 */
+@media (prefers-reduced-motion: reduce) {
+  .dt-btn, .dt-seg-btn, .dt-search-list li { transition: none; }
+}

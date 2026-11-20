@@ -15,6 +15,7 @@ const offlineOnly = process.argv.includes('--offline');
 
 const groups = [
   { file: 'bundle.test.mjs', net: false }, // 发布卫生：打包产物新鲜度/入口唯一/懒加载守卫/首屏体积红线
+  { file: 'desktop.test.mjs', net: false }, // 桌面版契约：入口白名单/版本戳/独立登记/互链/合规词扫描
   { file: 'minify.test.mjs', net: false }, // 压缩器自证：token 序列一致（69 个 JS）+ CSS 选择器/声明数一致 + V8 可编译
  // 发布卫生：打包产物新鲜度/入口唯一/懒加载守卫/首屏体积红线
   { file: 'navmap.test.mjs', net: false },  // UI v2 信息架构：12 旧 key → 5 一级的映射 / 深链往返 / 兜底

@@ -115,6 +115,7 @@
     "js/engine/event-engine.js",
     "js/engine/llm-provider.js",
     "js/engine/mock-data.js",
-    "js/engine/news-engine.js"
+    "js/engine/news-engine.js",
+    "js/desktop.js"
   ]
 }
