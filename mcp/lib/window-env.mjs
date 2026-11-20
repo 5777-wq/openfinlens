@@ -10,7 +10,7 @@
  * 只加载只读数据源；不加载任何 DOM 视图层。
  */
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
@@ -82,7 +82,14 @@ function makeContext({ fetchImpl, timeoutMs }) {
 export function loadWindowModules(files, { fetchImpl = globalThis.fetch, timeoutMs = 12000 } = {}) {
   const ctx = makeContext({ fetchImpl, timeoutMs });
   for (const rel of files) {
-    const abs = path.isAbsolute(rel) ? rel : path.join(ROOT, rel);
+    // 三仓合一（2026-11）：站点树已从仓库根迁 apps/terminal。调用方（live-sources 等）
+    // 仍按旧惯例报 js/... 相对路径，这里单点兜底：根路径不存在时回退站点树，
+    // 免得逐处改写调用点（2026-11-20 上线首日 CI api-build ENOENT js/utils.js 即此故）。
+    let abs = path.isAbsolute(rel) ? rel : path.join(ROOT, rel);
+    if (!path.isAbsolute(rel) && !existsSync(abs)) {
+      const site = path.join(ROOT, 'apps', 'terminal', rel);
+      if (existsSync(site)) abs = site;
+    }
     vm.runInContext(readFileSync(abs, 'utf8'), ctx, { filename: rel });
   }
   return ctx;

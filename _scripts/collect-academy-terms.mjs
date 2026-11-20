@@ -19,7 +19,7 @@
 
    拿不到就保留旧快照、退出 0——和本站其它采集器一个脾气：宁缺毋假，
    不因为一次网络抖动就把好数据覆盖成空。真正过期了，终端的离线测试会红。 */
-import { writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import path from 'node:path';
@@ -103,6 +103,9 @@ window.AcademyAssets = ${JSON.stringify({
   let old = null;
   try { old = readFileSync(OUT_ASSETS, 'utf8'); } catch { /* 首次生成 */ }
   if (old === body) return false;
+  // 三仓合一后根布局 js/data/ 不再天然存在（产物路径契约不变，仍是 data 分支的
+  // js/data/academy-assets.js），写入前自建目录
+  mkdirSync(path.dirname(OUT_ASSETS), { recursive: true });
   writeFileSync(OUT_ASSETS, body, 'utf8');
   return true;
 }
@@ -122,9 +125,9 @@ function selfCheck(m, assets) {
   //    要同时用到「在不在 universe 里」和「科普站有没有这一页」。
   const ctx = vm.createContext({ console, window: null, encodeURIComponent, Math, JSON });
   ctx.window = ctx;
-  vm.runInContext(readFileSync(path.join(ROOT, 'js/data/universe.js'), 'utf8'), ctx, { filename: 'universe.js' });
+  vm.runInContext(readFileSync(path.join(ROOT, 'apps/terminal/js/data/universe.js'), 'utf8'), ctx, { filename: 'universe.js' });
   ctx.AcademyAssets = { symbols: (assets && assets.symbols) || [] };
-  vm.runInContext(readFileSync(path.join(ROOT, 'js/data/academy-gloss.js'), 'utf8'), ctx, { filename: 'academy-gloss.js' });
+  vm.runInContext(readFileSync(path.join(ROOT, 'apps/terminal/js/data/academy-gloss.js'), 'utf8'), ctx, { filename: 'academy-gloss.js' });
   const AG = ctx.AcademyGloss;
   for (const [sym, id] of Object.entries(AG.TERM_BY_SYMBOL || {})) {
     if (!ids.has(id)) bad.push('精确映射 ' + sym + ' → ' + id);
@@ -135,7 +138,7 @@ function selfCheck(m, assets) {
 
   // 2) index.html 里的 data-gloss="<id>"（悬停浮层直接链到科普站术语页）
   //    以及科普站入口里直接写死的 #/term/<id> 链接
-  const html = readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const html = readFileSync(path.join(ROOT, 'apps/terminal/index.html'), 'utf8');
   for (const m2 of html.matchAll(/data-gloss="([^"]+)"/g)) {
     if (!ids.has(m2[1])) bad.push('index.html data-gloss → ' + m2[1]);
   }
