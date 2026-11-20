@@ -86,5 +86,7 @@ fi
 
 echo "[6/6] 完成：$OUT/app.apk（已对齐+签名）"
 VERSION="${OFL_VERSION:-1.0.2}"
-# Phase 5：APK 只发 GitHub Releases，不再提交入库（本地构建者手动 gh release upload）
-ls -la "$OUT/app.apk"
+# 出库文件名带版本（CI 的 gh release upload 与本地手动上传都按这个名字取）；
+# android/*.apk 已 gitignore，不会入库
+cp "$OUT/app.apk" "OpenFinLens-v${VERSION}.apk"
+ls -la "$OUT/app.apk" "OpenFinLens-v${VERSION}.apk"
