@@ -45,21 +45,28 @@ jobs:
         run: |
           cd android
           mkdir -p toolchain/aapt2 toolchain/jdk
+          # curl 一律 -f --retry：HTTP 错误必须显式失败。首跑教训（2026-11-20）：Sable
+          # release 404 被 -sSL 静默写成 HTML 文件，兜底 || 因退出码 0 从不触发，
+          # aapt2 link 阶段报 "failed to open APK: Invalid file."。
           AAPT2_URL="${OFL_AAPT2_URL:-https://dl.google.com/android/maven2/com/android/tools/build/aapt2/8.5.0-11315950/aapt2-8.5.0-11315950-linux.jar}"
-          curl -sSL --max-time 120 -o toolchain/aapt2/aapt2.zip "$AAPT2_URL"
+          curl -fsSL --retry 3 --max-time 120 -o toolchain/aapt2/aapt2.zip "$AAPT2_URL"
           unzip -q -o toolchain/aapt2/aapt2.zip -d toolchain/aapt2 || true
           # aapt2 linux jar 内含可执行文件 aapt2
           if [ ! -f toolchain/aapt2/aapt2 ]; then
             echo "aapt2 可执行文件缺失（镜像返回了非预期内容）"; exit 1
           fi
           chmod +x toolchain/aapt2/aapt2
-          curl -sSL --max-time 120 -o toolchain/android16.jar \
-            "https://github.com/Sable/android-platforms/releases/download/android-33/android-33.jar" || \
-          curl -sSL --max-time 120 -o toolchain/android16.jar \
+          # 编译平台 jar：主源 Maven Central 的 API16（com.google.android:android，
+          # 与本地已验证工具链同源同 API；壳只依赖远古 API，targetSdk=29），
+          # 兜底 Sable raw 仓库 android-33。下载完验 zip 魔数，杜绝文本页冒充 jar。
+          curl -fsSL --retry 3 --max-time 180 -o toolchain/android16.jar \
+            "https://repo1.maven.org/maven2/com/google/android/android/4.1.1.4/android-4.1.1.4.jar" || \
+          curl -fsSL --retry 3 --max-time 180 -o toolchain/android16.jar \
             "https://raw.githubusercontent.com/Sable/android-platforms/master/android-33/android.jar"
-          curl -sSL --max-time 120 -o toolchain/r8.jar \
+          head -c 2 toolchain/android16.jar | grep -q PK || { echo "平台 jar 不是有效 zip"; exit 1; }
+          curl -fsSL --retry 3 --max-time 120 -o toolchain/r8.jar \
             "https://dl.google.com/android/maven2/com/android/tools/r8/8.3.37/r8-8.3.37.jar"
-          curl -sSL --max-time 120 -o toolchain/uber-apk-signer.jar \
+          curl -fsSL --retry 3 --max-time 120 -o toolchain/uber-apk-signer.jar \
             "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar"
         env:
           OFL_AAPT2_URL: ${{ secrets.OFL_AAPT2_URL }}

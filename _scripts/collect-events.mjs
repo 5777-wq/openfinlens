@@ -3,7 +3,7 @@
    流程：GDELT DOC 2.0 (artlist) → 清洗 → 去重 → 地理定位 → 重要性评分 → relatedSymbols
         → data/events/global-events.json（随仓库提交，前端只读这份静态 JSON）。
    原则：宁缺毋假——所有查询都失败时退出码 1 且绝不改写旧文件；定位不到的事件坐标为
-   null（列表可见、地球不画点），不猜测。复用 js/events.js 的纯函数（去重键/标的映射）。 */
+   null（列表可见、地球不画点），不猜测。复用 apps/terminal/js/events.js 的纯函数（去重键/标的映射）。 */
 
 import { writeFileSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +12,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const Events = require('../js/events.js');
+const Events = require('../apps/terminal/js/events.js');
 
 const OUT = path.join(ROOT, 'data', 'events', 'global-events.json');
 const API = 'https://api.gdeltproject.org/api/v2/doc/doc';

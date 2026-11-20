@@ -3,11 +3,11 @@
    Gamma API（公开只读）→ data/events/polymarket.json
    CLOB 公开只读历史 → data/events/polymarket-history.json（概率走势的数据源）
 
-   合规铁律（强约束，与文件头 js/polymarket.js 同一份口径）：
+   合规铁律（强约束，与文件头 apps/terminal/js/polymarket.js 同一份口径）：
    - 只读公开接口，只提取"事件发生概率"（Yes 价格）与该概率的历史序列；
      不存 slug/URL/tokenId，产物里没有任何交易平台链接，前端渲染层想外链都没有字段；
    - 只保留可能影响市场的类别（央行/宏观/贸易/地缘/选举/能源），过滤逻辑在
-     js/polymarket.js（与本脚本共用，前端/测试同一份定义）；
+     apps/terminal/js/polymarket.js（与本脚本共用，前端/测试同一份定义）；
    - 概率是市场定价隐含值，不是本站预测；JSON 里带 disclaimer，前端展示层再标注一次。
 
    与 collect-events.mjs 同一套铁律：
@@ -23,7 +23,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const PM = require('../js/polymarket.js');
+const PM = require('../apps/terminal/js/polymarket.js');
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'data', 'events', 'polymarket.json');

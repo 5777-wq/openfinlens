@@ -43,11 +43,11 @@ echo "[1/6] aapt2 compile/link…"
 
 # 3) javac（android.jar 为 bootclasspath）
 echo "[2/6] javac…"
-"$JDK_BIN/javac" -J-Duser.language=en -encoding UTF-8 -source 8 -target 8 -nowarn \
+if ! "$JDK_BIN/javac" -J-Duser.language=en -encoding UTF-8 -source 8 -target 8 -nowarn \
   -classpath "$AJAR" \
-  -d "$OUT/classes" src/com/openfinlens/app/*.java "$OUT/gen/com/openfinlens/app/R.java" > "$OUT/javac.log" 2>&1
-rc=$?
-if [ $rc -ne 0 ]; then echo "javac failed:"; cat "$OUT/javac.log"; exit 1; fi
+  -d "$OUT/classes" src/com/openfinlens/app/*.java "$OUT/gen/com/openfinlens/app/R.java" > "$OUT/javac.log" 2>&1; then
+  echo "javac failed:"; cat "$OUT/javac.log"; exit 1
+fi
 
 # 4) d8 → classes.dex
 echo "[3/6] d8 dex…"
@@ -57,7 +57,9 @@ echo "[3/6] d8 dex…"
 
 # 5) classes.dex 并入 APK（python zipfile 追加）
 echo "[4/6] 打包…"
-python - <<'PY'
+# CI（Linux）只有 python3，本地（Windows）只有 python——取先到者
+PY_BIN=$(command -v python3 || command -v python)
+"$PY_BIN" - <<'PY'
 import zipfile
 src = "build/app.unaligned.apk"
 dst = "build/app.apk"
