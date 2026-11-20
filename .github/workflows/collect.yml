@@ -281,13 +281,38 @@ jobs:
             fi
           fi
 
-          # 产物清单：与 data 分支内路径保持一致（deploy-pages 按同路径覆盖拼装）
+          # 产物清单：与 data 分支内路径保持一致（deploy-pages 按同路径覆盖拼装）。
+          # 按采集状态动态构建：失败采集器的产物不参与本轮推送——工作区里它还是
+          # main 的冻结夹具，推上去会把 data 分支的新鲜版本打回 11-10（2026-11-20
+          # 上线首日实测：global-events 瞬断一轮，新数据被冻结夹具 clobber 回退）。
+          # read-tree FETCH_HEAD 增量保留保证未推送路径原样留存，分支版本不丢。
+          status_of() {
+            local want="$1" st="" row
+            if [ -f "$STATUS_FILE" ]; then
+              while IFS=$'\t' read -r row s d; do
+                [ "$row" = "$want" ] && st="$s"
+              done < "$STATUS_FILE"
+            fi
+            printf '%s' "$st"
+          }
+          PATHS=""
+          add_paths() {   # add_paths <采集名> <产物路径…>：状态非 fail 才入清单
+            local n="$1"; shift
+            local st=""; st=$(status_of "$n")
+            if [ "$st" != "fail" ]; then PATHS="$PATHS $*"; fi
+          }
+          add_paths global-events data/events/global-events.json
+          add_paths polymarket   data/events/polymarket.json data/events/polymarket-history.json data/events/polymarket-i18n.json
+          add_paths 13f          data/actors/13f.json
+          add_paths fundholds    data/actors/fundholds.json
+          add_paths etf          data/actors/etf.json
+          add_paths academy-terms data/academy-terms.json js/data/academy-assets.js
+          add_paths api-build    api/v1 api/openapi.json
+          # 状态文件缺失（闸门准备步崩溃）时按全量推送兜底
+          [ -f "$STATUS_FILE" ] || PATHS="data/events/global-events.json data/events/polymarket.json data/events/polymarket-history.json data/events/polymarket-i18n.json data/actors data/academy-terms.json js/data/academy-assets.js api/v1 api/openapi.json"
           # 退出码透传：脚本内重试 3 次仍失败 → exit 1 → 本步骤红（不会静默断更）
-          bash _scripts/push-data-branch.sh -m "$MSG" -b "$BODY" \
-            data/events/global-events.json data/events/polymarket.json \
-            data/events/polymarket-history.json data/events/polymarket-i18n.json \
-            data/actors data/academy-terms.json \
-            js/data/academy-assets.js api/v1 api/openapi.json
+          # shellcheck disable=SC2086 # PATHS 有意按空白拆分
+          bash _scripts/push-data-branch.sh -m "$MSG" -b "$BODY" $PATHS
 
       - name: 触发站点重新拼装（GITHUB_TOKEN 直推不触发 push 事件，必须显式踢 deploy-pages）
         # GitHub 防递归规则：workflow 用 GITHUB_TOKEN 推的分支不会触发其他 workflow 的
