@@ -1,50 +1,46 @@
 {
   "ok": true,
   "data": {
-    "count": 98,
+    "count": 94,
     "windowHours": 6,
     "categories": [
       {
         "id": "market",
-        "count": 56
+        "count": 51
       },
       {
         "id": "central_bank",
-        "count": 16
+        "count": 17
       },
       {
         "id": "macro",
-        "count": 13
+        "count": 16
       },
       {
         "id": "geopolitics",
-        "count": 9
+        "count": 7
       },
       {
         "id": "conflict",
-        "count": 4
+        "count": 3
       }
     ],
     "countries": [
       {
         "name": "美国",
-        "count": 53
+        "count": 55
       },
       {
         "name": "伊朗",
-        "count": 8
+        "count": 9
       },
       {
         "name": "乌克兰",
-        "count": 7
+        "count": 4
       },
       {
         "name": "俄罗斯",
-        "count": 4
-      },
-      {
-        "name": "加拿大",
-        "count": 4
+        "count": 3
       },
       {
         "name": "阿根廷",
@@ -59,6 +55,10 @@
         "count": 3
       },
       {
+        "name": "巴西",
+        "count": 2
+      },
+      {
         "name": "墨西哥",
         "count": 2
       },
@@ -68,10 +68,6 @@
       },
       {
         "name": "新西兰",
-        "count": 1
-      },
-      {
-        "name": "巴西",
         "count": 1
       },
       {
@@ -96,6 +92,83 @@
       }
     ],
     "events": [
+      {
+        "id": "新兴市场 拉美股市暴跌至一年低点 汇率因利率担忧而走低 拉美股市跌至一年多来的低点 此前 anthropic公司ipo未能提振市场对人工智能行业的信心 导致全球股市抛售加剧 同时 美国加息预期持续给该地区货币带来压力 尽管拉美市场对科技板块的直接敞口有限|15,24,29,5,86|1795207780000",
+        "category": "central_bank",
+        "title": "【新兴市场-拉美股市暴跌至一年低点，汇率因利率担忧而走低】拉美股市跌至一年多来的低点。此前，Anthropic公司IPO未能提振市场对人工智能行业的信心，导致全球股市抛售加剧；同时，美国加息预期持续给该地区货币带来压力。尽管拉美市场对科技板块的直接敞口有限，但全球风险偏好的恶化仍波及该地区。MSCI拉丁美洲股票指数下跌0.86%，相应的货币指数下跌1.5%，恐将连续第四周收跌。在成交量极低的情况下，巴西雷亚尔兑美元下跌0.24%。墨西哥比索汇率上涨0.29%。智利比索对美元汇率下跌0.29%，而秘鲁索尔跌0.15%。",
+        "source": "新浪财经7x24",
+        "sourceUrl": "https://finance.sina.com.cn/7x24/",
+        "publishedAt": "2026-11-20T20:49:40.000Z",
+        "country": "巴西",
+        "lat": -15.79,
+        "lng": -47.88,
+        "severity": 55,
+        "importance": "med",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "布伦特原油突破93美元 桶 日内涨1 14|14|1795207639000",
+        "category": "macro",
+        "title": "布伦特原油突破93美元/桶，日内涨1.14%。",
+        "source": "新浪财经7x24",
+        "sourceUrl": "https://finance.sina.com.cn/7x24/",
+        "publishedAt": "2026-11-20T20:47:19.000Z",
+        "country": "美国",
+        "lat": 38.895,
+        "lng": -77.036,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "wti原油突破84美元 桶 日内涨1 89|89|1795207636000",
+        "category": "macro",
+        "title": "WTI原油突破84美元/桶，日内涨1.89%。",
+        "source": "新浪财经7x24",
+        "sourceUrl": "https://finance.sina.com.cn/7x24/",
+        "publishedAt": "2026-11-20T20:47:16.000Z",
+        "country": "美国",
+        "lat": 38.895,
+        "lng": -77.036,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [
+          "EM:102.CL00Y"
+        ],
+        "relatedAssets": []
+      },
+      {
+        "id": "特朗普谈伊朗 我们保持耐心||1795207618000",
+        "category": "market",
+        "title": "特朗普谈伊朗：我们保持耐心。",
+        "source": "新浪财经7x24",
+        "sourceUrl": "https://finance.sina.com.cn/7x24/",
+        "publishedAt": "2026-11-20T20:46:58.000Z",
+        "country": "伊朗",
+        "lat": 35.69,
+        "lng": 51.39,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "布伦特原油日内涨1 现报92 90美元 桶||1795207559000",
+        "category": "macro",
+        "title": "布伦特原油日内涨1%，现报92.90美元/桶。",
+        "source": "新浪财经7x24",
+        "sourceUrl": "https://finance.sina.com.cn/7x24/",
+        "publishedAt": "2026-11-20T20:45:59.000Z",
+        "country": "美国",
+        "lat": 38.895,
+        "lng": -77.036,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
       {
         "id": "国际金价创一年多新低 专家 背后原因是美元走强以及美国加息预期的抬升 11月20日亚洲交易时段 伦敦现货黄金跌破3600美元 盎司 盘中最深下探到3514美元附近 创下一年多以来的新低 国内上海金盘中最低下探至755元 克||1795207215000",
         "category": "central_bank",
@@ -1438,148 +1511,13 @@
         "importance": "low",
         "relatedSymbols": [],
         "relatedAssets": []
-      },
-      {
-        "id": "美国总统特朗普 俄罗斯总统普京告诉我 如果我是总统 他就不会进入乌克兰||1795197205000",
-        "category": "market",
-        "title": "美国总统特朗普：俄罗斯总统普京告诉我，如果我是总统，他就不会进入乌克兰。",
-        "source": "新浪财经7x24",
-        "sourceUrl": "https://finance.sina.com.cn/7x24/",
-        "publishedAt": "2026-11-20T17:53:25.000Z",
-        "country": "乌克兰",
-        "lat": 50.45,
-        "lng": 30.52,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "美国总统特朗普 我们很有可能解决俄乌冲突||1795197193000",
-        "category": "conflict",
-        "title": "美国总统特朗普：我们很有可能解决俄乌冲突。",
-        "source": "新浪财经7x24",
-        "sourceUrl": "https://finance.sina.com.cn/7x24/",
-        "publishedAt": "2026-11-20T17:53:13.000Z",
-        "country": "乌克兰",
-        "lat": 50.45,
-        "lng": 30.52,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "美国总统特朗普 关于乌克兰问题的会谈进展非常顺利 很有可能达成目标||1795197173000",
-        "category": "market",
-        "title": "美国总统特朗普：关于乌克兰问题的会谈进展非常顺利，很有可能达成目标。",
-        "source": "新浪财经7x24",
-        "sourceUrl": "https://finance.sina.com.cn/7x24/",
-        "publishedAt": "2026-11-20T17:52:53.000Z",
-        "country": "乌克兰",
-        "lat": 50.45,
-        "lng": 30.52,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "美国总统特朗普 俄罗斯总统普京表示希望以外交方式结束战争||1795197122000",
-        "category": "geopolitics",
-        "title": "美国总统特朗普：俄罗斯总统普京表示希望以外交方式结束战争。",
-        "source": "新浪财经7x24",
-        "sourceUrl": "https://finance.sina.com.cn/7x24/",
-        "publishedAt": "2026-11-20T17:52:02.000Z",
-        "country": "俄罗斯",
-        "lat": 55.76,
-        "lng": 37.62,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "特朗普强调汽油价格正在回落 特朗普称 汽油价格较一个月前已经每加仑下跌 0 60 美元 后续还会快速走低 很快油价就会降到非常低的水平 美国汽车协会 aaa|0,27,3,4,58,60,69|1795197115000",
-        "category": "geopolitics",
-        "title": "【特朗普强调汽油价格正在回落】特朗普称：“汽油价格较一个月前已经每加仑下跌 0.60 美元，后续还会快速走低，很快油价就会降到非常低的水平。”美国汽车协会（AAA）数据显示，当前普通汽油均价为每加仑 3.69 美元，一个月前为 4.27 美元，下跌 58 美分。特朗普在整个竞选周期内一直表态，大选之后油价将会回落。",
-        "source": "新浪财经7x24",
-        "sourceUrl": "https://finance.sina.com.cn/7x24/",
-        "publishedAt": "2026-11-20T17:51:55.000Z",
-        "country": "美国",
-        "lat": 38.895,
-        "lng": -77.036,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "美国总统特朗普表示 正致力于与加拿大达成一项公平的协议||1795197094000",
-        "category": "market",
-        "title": "美国总统特朗普表示，正致力于与加拿大达成一项公平的协议。",
-        "source": "新浪财经7x24",
-        "sourceUrl": "https://finance.sina.com.cn/7x24/",
-        "publishedAt": "2026-11-20T17:51:34.000Z",
-        "country": "加拿大",
-        "lat": 45.42,
-        "lng": -75.7,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "美国总统特朗普表示 加拿大总理卡尼希望建设拱心石输油管道 但必须做得更多||1795197070000",
-        "category": "market",
-        "title": "美国总统特朗普表示，加拿大总理卡尼希望建设拱心石输油管道，但必须做得更多。",
-        "source": "新浪财经7x24",
-        "sourceUrl": "https://finance.sina.com.cn/7x24/",
-        "publishedAt": "2026-11-20T17:51:10.000Z",
-        "country": "加拿大",
-        "lat": 45.42,
-        "lng": -75.7,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "美国总统特朗普 加拿大是时候停止占美国便宜了||1795197051000",
-        "category": "market",
-        "title": "美国总统特朗普：加拿大是时候停止占美国便宜了。",
-        "source": "新浪财经7x24",
-        "sourceUrl": "https://finance.sina.com.cn/7x24/",
-        "publishedAt": "2026-11-20T17:50:51.000Z",
-        "country": "加拿大",
-        "lat": 45.42,
-        "lng": -75.7,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "美国总统特朗普 加拿大总理卡尼非常友好 与加拿大之间仍有更多工作要做||1795197037000",
-        "category": "market",
-        "title": "美国总统特朗普：加拿大总理卡尼非常友好。与加拿大之间仍有更多工作要做。",
-        "source": "新浪财经7x24",
-        "sourceUrl": "https://finance.sina.com.cn/7x24/",
-        "publishedAt": "2026-11-20T17:50:37.000Z",
-        "country": "加拿大",
-        "lat": 45.42,
-        "lng": -75.7,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
       }
     ]
   },
   "meta": {
     "dataset": "events.global",
-    "asof": "2026-11-20T20:43:50.738Z",
-    "generatedAt": "2026-11-20T20:46:32.984Z",
+    "asof": "2026-11-20T20:50:29.894Z",
+    "generatedAt": "2026-11-20T20:53:12.386Z",
     "source": "新浪财经7x24",
     "stale": false,
     "license": "GDELT 免费开放数据（gdeltproject.org）· 新浪财经7x24 公开快讯；坐标为本项目关键词地理定位，精度为国家/地区级",
