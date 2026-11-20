@@ -24,7 +24,7 @@ await test('desktop.html 资源引用白名单：三件套 + vendor 五件，无
   const links = [...html.matchAll(/<link[^>]+href="([^"]+)"/g)].map(m => m[1].split('?')[0])
     .filter(h => !h.startsWith('data:'));   // favicon 的 data: URI 不算资源引用
   const scripts = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m => m[1].split('?')[0]);
-  const ALLOW_LINKS = ['css/bundle.css', 'css/desktop.css'];
+  const ALLOW_LINKS = ['css/bundle.css', 'css/desktop.css', 'desktop.webmanifest'];
   const ALLOW_SCRIPTS = [
     'core/vendor/lightweight-charts.standalone.production.js',
     'js/bundle.js',
@@ -34,8 +34,9 @@ await test('desktop.html 资源引用白名单：三件套 + vendor 五件，无
   for (const h of links) assert.ok(ALLOW_LINKS.includes(h), '意外 link: ' + h);
   for (const s of scripts) assert.ok(ALLOW_SCRIPTS.includes(s), '意外 script: ' + s);
   const inline = [...html.matchAll(/<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/g)];
-  assert.equal(inline.length, 1, '内联脚本只允许首帧主题一段');
-  assert.ok(/首帧主题/.test(inline[0][1]), '内联段应是首帧主题引导');
+  assert.equal(inline.length, 2, '内联脚本只允许两段：首帧主题 + SW 注册');
+  assert.ok(/首帧主题/.test(inline[0][1]), '第一段应是首帧主题引导');
+  assert.ok(/serviceWorker/.test(inline[1][1]), '第二段应是 SW 注册');
   assert.equal(scripts.filter(s => s === 'js/bundle.js').length, 1, 'bundle.js 恰好一次');
   assert.equal(scripts.filter(s => s.includes('bundle-lazy')).length, 0, '桌面版不加载懒加载包（地图/多图不用，省 282KB）');
 });
@@ -70,6 +71,24 @@ await test('两页互链：完整版有「桌面版」入口，桌面版有「�
   const html = read('desktop.html');
   assert.ok(/href="desktop\.html"/.test(idx), 'index.html 缺桌面版入口');
   assert.ok(/href="\.\/index\.html"/.test(html), 'desktop.html 缺返回完整版链接');
+});
+
+await test('应用壳：可安装独立窗口（manifest standalone + SW）+ 可拖分隔条 + 不滚动壳', () => {
+  const html = read('desktop.html');
+  const css = read('css/desktop.css');
+  const manifest = JSON.parse(readFileSync(path.join(SITE, 'desktop.webmanifest'), 'utf8'));
+  assert.equal(manifest.display, 'standalone', 'manifest 必须 standalone（独立窗口）');
+  assert.ok(/desktop\.html/.test(manifest.start_url), 'start_url 指向桌面页');
+  assert.ok(manifest.icons && manifest.icons.length >= 1, '安装至少要一个图标');
+  assert.ok(/serviceWorker[^]*register\('sw\.js'\)/.test(html), '桌面页未注册 SW（不满足安装条件）');
+  assert.ok(/id="dtInstall"[^>]*hidden/.test(html), '缺安装按钮（默认隐藏，beforeinstallprompt 才亮）');
+  assert.ok(/class="dt-app"/.test(html), '缺应用壳根节点');
+  assert.ok(/id="dtVsplit"/.test(html) && /id="dtHsplit"/.test(html), '缺可拖分隔条');
+  assert.ok(/role="separator"/.test(html), '分隔条缺 separator 语义');
+  assert.ok(/overflow:\s*hidden/.test(css) && /100dvh/.test(css), '应用壳必须满高不滚动');
+  const js = read('js/desktop.js');
+  assert.ok(/dtLayout/.test(js), '分隔条布局未落盘（刷新即丢）');
+  assert.ok(/beforeinstallprompt/.test(js), '安装按钮缺 beforeinstallprompt 接线');
 });
 
 await test('desktop.js 语法可编译（new Function 口径）且无 ESM/外部 URL', () => {

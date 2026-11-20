@@ -513,6 +513,101 @@
     },
   };
 
+  /* ---------- 分隔条：拖拽调面板大小（双击复位、方向键微调、布局落盘） ---------- */
+  var Split = {
+    DEF: { sw: 320, bh: 300 },
+    cfg: { sw: 320, bh: 300 },
+    load: function () {
+      try {
+        var c = Store ? Store.get('dtLayout', null) : null;
+        if (c && Number.isFinite(c.sw) && Number.isFinite(c.bh)) this.cfg = { sw: c.sw, bh: c.bh };
+      } catch (e) { /* 隐私模式用默认 */ }
+      this.apply();
+    },
+    apply: function () {
+      var app = document.querySelector('.dt-app');
+      if (!app) return;
+      app.style.setProperty('--dt-sw', this.cfg.sw + 'px');
+      app.style.setProperty('--dt-bh', this.cfg.bh + 'px');
+    },
+    save: function () { try { if (Store) Store.set('dtLayout', this.cfg); } catch (e) { /* 忽略 */ } },
+    /* dir='col'：拖出自选栏宽（相对壳左缘）；dir='row'：拖出下排高（相对壳底缘扣状态栏） */
+    bind: function (id, dir, key, min, max) {
+      var el = $(id);
+      if (!el) return;
+      var self = this;
+      el.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        try { el.setPointerCapture(e.pointerId); } catch (err) { /* 合成事件/无活动指针时忽略 */ }
+        el.classList.add('on');
+        var move = function (ev) {
+          var appRect = document.querySelector('.dt-app').getBoundingClientRect();
+          if (dir === 'col') {
+            self.cfg[key] = Math.max(min, Math.min(max, Math.round(ev.clientX - appRect.left)));
+          } else {
+            var foot = document.querySelector('.dt-foot');
+            var footH = foot ? foot.getBoundingClientRect().height : 30;
+            self.cfg[key] = Math.max(min, Math.min(max, Math.round(appRect.bottom - ev.clientY - footH)));
+          }
+          self.apply();
+        };
+        var up = function () {
+          el.classList.remove('on');
+          el.removeEventListener('pointermove', move);
+          el.removeEventListener('pointerup', up);
+          self.save();
+        };
+        el.addEventListener('pointermove', move);
+        el.addEventListener('pointerup', up);
+      });
+      el.addEventListener('dblclick', function () {
+        self.cfg[key] = self.DEF[key];
+        self.apply();
+        self.save();
+      });
+      el.addEventListener('keydown', function (e) {
+        var d = (e.key === 'ArrowLeft' || e.key === 'ArrowUp') ? -16
+          : (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 16 : 0;
+        if (!d) return;
+        e.preventDefault();
+        self.cfg[key] = Math.max(min, Math.min(max, self.cfg[key] + d));
+        self.apply();
+        self.save();
+      });
+    },
+    init: function () {
+      this.load();
+      this.bind('dtVsplit', 'col', 'sw', 260, 560);
+      this.bind('dtHsplit', 'row', 'bh', 140, 620);
+    },
+  };
+
+  /* ---------- 安装为桌面应用（standalone 独立窗口，无地址栏） ---------- */
+  var Install = {
+    deferred: null,
+    init: function () {
+      var btn = $('dtInstall');
+      if (!btn) return;
+      var self = this;
+      // 已以独立窗口运行（或已安装）就不再展示安装按钮
+      if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return;
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        self.deferred = e;
+        btn.hidden = false;
+      });
+      btn.addEventListener('click', function () {
+        if (!self.deferred) return;
+        self.deferred.prompt();
+        self.deferred.userChoice.then(function () {
+          self.deferred = null;
+          btn.hidden = true;
+        }).catch(function () { /* 用户关闭弹窗 */ });
+      });
+      window.addEventListener('appinstalled', function () { btn.hidden = true; });
+    },
+  };
+
   /* ---------- 启动 ---------- */
   function boot() {
     if (!U || !Store || !Charts) {
@@ -525,6 +620,17 @@
     Watch.bind();
     UsSig.bind();
     Search.init();
+    Split.init();
+    Install.init();
+
+    // 软件感键盘操作：/ 聚焦搜索（输入控件内不劫持）
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== '/' || e.defaultPrevented) return;
+      var t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      var s = $('dtSearch');
+      if (s) { e.preventDefault(); s.focus(); s.select(); }
+    });
 
     Sched.add(30000, function () { Tape.fetch(); Watch.fetch(); });
     Sched.add(300000, function () { News.fetch(); });
