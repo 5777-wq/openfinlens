@@ -44,7 +44,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-20T04:03:47.177Z",
+          "generatedAt": "2026-11-20T04:11:53.641Z",
           "count": 11,
           "datasets": [
             {
@@ -60,7 +60,7 @@
             "openapi": "api/openapi.json"
           }
         },
-        "asof": "2026-11-20T04:03:47.177Z",
+        "asof": "2026-11-20T04:11:53.641Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -100,7 +100,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-20T04:03:47.177Z",
+          "generatedAt": "2026-11-20T04:11:53.641Z",
           "base": "api/v1",
           "datasets": [
             {
@@ -111,7 +111,7 @@
             }
           ]
         },
-        "asof": "2026-11-20T04:03:47.177Z",
+        "asof": "2026-11-20T04:11:53.641Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -203,7 +203,7 @@
             "中石化"
           ]
         },
-        "asof": "2026-11-20T04:03:47.177Z",
+        "asof": "2026-11-20T04:11:53.641Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -313,11 +313,11 @@
           "low": 5.88,
           "change": 0,
           "changePct": 0,
-          "quoteAt": 1795147419000,
-          "updatedAt": 1795147428086,
+          "quoteAt": 1795147539000,
+          "updatedAt": 1795147914449,
           "source": "tencent"
         },
-        "asof": "2026-11-20T04:03:48.895Z",
+        "asof": "2026-11-20T04:11:54.588Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -654,7 +654,7 @@
           "category": "central_bank",
           "partition": true,
           "endDate": 1796878740000,
-          "updatedAt": 1795147279883,
+          "updatedAt": 1795147637163,
           "outcomeCount": 5,
           "outcomes": [
             {
@@ -698,7 +698,7 @@
             "count": 0
           }
         },
-        "asof": "2026-11-20T04:02:04.868Z",
+        "asof": "2026-11-20T04:10:06.756Z",
         "stale": false,
         "count": 30,
         "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
@@ -737,7 +737,7 @@
           }
         ],
         "sample": {
-          "asOf": "2026-11-20T04:03:46.268Z",
+          "asOf": "2026-11-20T04:11:52.578Z",
           "institutions": [
             {
               "slug": "berkshire",
@@ -807,7 +807,7 @@
             ]
           }
         },
-        "asof": "2026-11-20T04:03:46.268Z",
+        "asof": "2026-11-20T04:11:52.578Z",
         "stale": false,
         "count": 4,
         "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
@@ -930,19 +930,19 @@
         ],
         "sample": {
           "status": "ok",
-          "generatedAt": "2026-11-20T04:03:47.177Z",
+          "generatedAt": "2026-11-20T04:11:53.641Z",
           "durationMs": 0,
           "datasets": [
             {
               "id": "quotes.latest",
-              "lastBuilt": "2026-11-20T04:03:47.177Z",
+              "lastBuilt": "2026-11-20T04:11:53.641Z",
               "count": 1,
               "ms": 0,
               "stale": false
             }
           ]
         },
-        "asof": "2026-11-20T04:03:47.177Z",
+        "asof": "2026-11-20T04:11:53.641Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -952,8 +952,8 @@
   },
   "meta": {
     "dataset": "manifest",
-    "asof": "2026-11-20T04:03:47.177Z",
-    "generatedAt": "2026-11-20T04:03:47.177Z",
+    "asof": "2026-11-20T04:11:53.641Z",
+    "generatedAt": "2026-11-20T04:11:53.641Z",
     "source": "本项目构建产物（data/** 与 js/data/universe.js）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",

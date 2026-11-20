@@ -32,7 +32,7 @@
         "category": "central_bank",
         "partition": true,
         "endDate": 1796878740000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -83,7 +83,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1808107140000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 46,
         "outcomes": [
           {
@@ -141,7 +141,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1857272340000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 58,
         "outcomes": [
           {
@@ -199,7 +199,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798748940000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -250,7 +250,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1857272340000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 58,
         "outcomes": [
           {
@@ -308,7 +308,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1806551940000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 6,
         "outcomes": [
           {
@@ -364,9 +364,9 @@
         "title": "Republican Presidential Nominee 2028",
         "titleZh": "2028年共和党总统候选人",
         "category": "election",
-        "partition": true,
+        "partition": false,
         "endDate": 1857272340000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 44,
         "outcomes": [
           {
@@ -387,8 +387,8 @@
             "id": "pm:561975",
             "label": "Marco Rubio",
             "labelZh": "马可·鲁比奥",
-            "probability": 0.201,
-            "change24h": 1.9
+            "probability": 0.243,
+            "change24h": 6.2
           },
           {
             "id": "pm:561979",
@@ -424,7 +424,7 @@
         "category": "geopolitics",
         "partition": true,
         "endDate": 1793159940000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 22,
         "outcomes": [
           {
@@ -482,7 +482,7 @@
         "category": "election",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -505,7 +505,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1795928340000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -542,7 +542,7 @@
         "category": "central_bank",
         "partition": true,
         "endDate": 1801112340000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -577,8 +577,8 @@
             "id": "pm:3215010",
             "label": "50+ bps decrease",
             "labelZh": "降低50 +个基点",
-            "probability": 0.008,
-            "change24h": 0.3
+            "probability": 0.009,
+            "change24h": 0.4
           }
         ],
         "rest": {
@@ -593,7 +593,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1814414340000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -630,7 +630,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -653,7 +653,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -676,7 +676,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1814414340000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -713,7 +713,7 @@
         "category": "energy",
         "partition": false,
         "endDate": 1796101199999,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 20,
         "outcomes": [
           {
@@ -760,7 +760,7 @@
           }
         ],
         "rest": {
-          "probability": 0.205,
+          "probability": 0.204,
           "count": 14
         }
       },
@@ -771,7 +771,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1796014740000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -822,7 +822,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 2,
         "outcomes": [
           {
@@ -852,7 +852,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1814414340000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 14,
         "outcomes": [
           {
@@ -910,7 +910,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798754340000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 2,
         "outcomes": [
           {
@@ -940,7 +940,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -963,7 +963,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1796014740000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 20,
         "outcomes": [
           {
@@ -1021,7 +1021,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798761540000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 2,
         "outcomes": [
           {
@@ -1051,7 +1051,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1792987140000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 17,
         "outcomes": [
           {
@@ -1078,7 +1078,7 @@
           {
             "id": "pm:2757907",
             "label": "Vesna Spasojević Brkić",
-            "labelZh": "韦斯娜·斯帕索耶维奇·布尔基奇",
+            "labelZh": "韦斯纳·斯帕索耶维奇·布尔基奇",
             "probability": 0.045,
             "change24h": null
           },
@@ -1086,8 +1086,8 @@
             "id": "pm:2757900",
             "label": "Ilija Srdanović",
             "labelZh": null,
-            "probability": 0.03,
-            "change24h": 0
+            "probability": 0.029,
+            "change24h": -0.1
           },
           {
             "id": "pm:2757891",
@@ -1109,7 +1109,7 @@
         "category": "macro",
         "partition": false,
         "endDate": 1801457940000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -1160,7 +1160,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798748940000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -1197,15 +1197,15 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1796101140000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 1,
         "outcomes": [
           {
             "id": "pm:6947954",
             "label": "Elon Musk",
             "labelZh": "伊隆·马斯克",
-            "probability": 0.138,
-            "change24h": -46.4
+            "probability": 0.135,
+            "change24h": -46.7
           }
         ],
         "rest": {
@@ -1220,7 +1220,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -1243,7 +1243,7 @@
         "category": "election",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795147279883,
+        "updatedAt": 1795147637163,
         "outcomeCount": 2,
         "outcomes": [
           {
@@ -1257,8 +1257,8 @@
             "id": "pm:5787490",
             "label": "November 30",
             "labelZh": "11月30日",
-            "probability": 0.165,
-            "change24h": -2
+            "probability": 0.16,
+            "change24h": -2.5
           }
         ],
         "rest": {
@@ -1300,8 +1300,8 @@
   },
   "meta": {
     "dataset": "prediction.markets",
-    "asof": "2026-11-20T04:02:04.868Z",
-    "generatedAt": "2026-11-20T04:03:47.177Z",
+    "asof": "2026-11-20T04:10:06.756Z",
+    "generatedAt": "2026-11-20T04:11:53.641Z",
     "source": "公开预测市场概率聚合（只读；不含平台标识与链接）",
     "stale": false,
     "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
