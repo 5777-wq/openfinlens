@@ -589,6 +589,13 @@
   // 行式行情表（去 AI 卡片墙的核心动作）：hairline 行 + 右对齐 mono 数字
   function rowHTML(q, animate = true, idx = 0) {
     const starred = watchSet.has(q.symbol);
+    // Wave 1 信号雷达：命中 Meridian 信号的美股挂轻量数据属性（样式 Wave 2 美化）
+    const usSig = usSigMap ? usSigMap.get(q.symbol) : null;
+    const ussigAttr = usSig && (usSig.st || usSig.ev)
+      ? ` data-ussig="${escapeHTML(usSig.st)}"` +
+        (usSig.ev ? ` data-ussig-ev="${escapeHTML(usSig.ev)}"` : '') +
+        (usSig.revert ? ' data-ussig-revert="1"' : '')
+      : '';
     const deg = state.degraded.get(q.symbol);
     const showDeg = window.Store.settings.get().showDegraded && deg;
     const cls = pctClass(q.changePct);
@@ -608,7 +615,7 @@
        与被骂的"不够丝滑"直接相关。改成 22ms×8 档（最长 176ms），配合 220ms 动画，
        整表在 400ms 内到位；错峰的"层次感"还在，但不再让人等。 */
     const delay = (!animate || reduceMotion()) ? 0 : Math.min(idx, 8) * 22;
-    return `<div class="qrow${animate && !reduceMotion() ? ' stagger-in' : ''}" data-symbol="${escapeHTML(q.symbol)}"
+    return `<div class="qrow${animate && !reduceMotion() ? ' stagger-in' : ''}" data-symbol="${escapeHTML(q.symbol)}"${ussigAttr}
         tabindex="0" role="button" aria-label="${escapeHTML(quoteAriaLabel(q.name, q, digits))}"
         style="animation-delay:${delay}ms">
         <div class="qr-name-wrap" style="min-width:0">
@@ -1246,6 +1253,32 @@
         if (amtNode.textContent !== amt) amtNode.textContent = amt;
       }
     });
+  }
+
+  /* ---- 自选栏信号雷达（Wave 1）----
+     us-signals.json 按需懒拉 + 10 分钟缓存；命中信号的美股（usAAPL 键）在行上挂
+     data-ussig=<状态> 与 data-ussig-ev=<vegas 穿线事件>——数据属性先行，样式 Wave 2。 */
+  let usSigMap = null;
+  let usSigAt = 0;
+  function ensureUsSigMap() {
+    const now = Date.now();
+    if (usSigMap && now - usSigAt < 10 * 60 * 1000) return Promise.resolve(usSigMap);
+    return fetch('data/us-signals.json', { cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(j => {
+        if (!j || j.schemaVersion !== 1 || !Array.isArray(j.items)) throw new Error('协议不符');
+        const map = new Map();
+        const norm = window.U && window.U.normUsSymbol;
+        j.items.forEach(it => {
+          const key = norm ? (norm(it.symbol) || it.symbol) : ('us' + it.symbol);
+          const r6 = it.daily && it.daily.rsi6;
+          const ev = (it.daily && it.daily.vegas || []).map(v => v && v.event).filter(Boolean).join(',');
+          map.set(key, { st: (r6 && r6.state) || '', cross: (r6 && r6.cross) || '', ev, revert: !!(it.daily && it.daily.revert) });
+        });
+        usSigMap = map;
+        usSigAt = now;
+        return map;
+      });
   }
 
   function renderWatchlist(noAnim) {
@@ -2104,6 +2137,14 @@
     if (!t || !box) return;
     box.innerHTML = '';
 
+    // Wave 1（Gemini 裁定 4）：信号表带来的 usSignals 协议对象在这里正式消费——
+    // Meridian 信号胶囊卡插在技术面最上方（不依赖本地日K，数据不足时也能看信号）。
+    // 渲染口在 us-signals.js（window.UsSignals.renderCard，纯函数有单测）。
+    let sigCard = '';
+    if (t.usSignals && window.UsSignals && typeof window.UsSignals.renderCard === 'function') {
+      try { sigCard = window.UsSignals.renderCard(t.usSignals); } catch (e) { sigCard = ''; }
+    }
+
     const ex = window.Explain.of(t);
     // 加密没有腾讯/东财 secid，画像用币安日K（klineFor 有同参去重，与图表并行时只发一次）
     const klines = t.market === 'crypto'
@@ -2118,7 +2159,7 @@
       </div>` : '';
 
     if (!an) {
-      box.innerHTML = `<div class="section-head">
+      box.innerHTML = `${sigCard}<div class="section-head">
           <h2 class="section-title">技术面 · 「${escapeHTML(t.name || t.code || '')}」</h2>
           <span class="section-sub">日K 数据不足（需要 60 根以上），指标暂无法计算</span>
         </div>${what}`;
@@ -2142,12 +2183,56 @@
         <p class="tc-text">${escapeHTML(s.text)}</p>
       </div>`).join('');
 
-    box.innerHTML = `<div class="section-head">
+    box.innerHTML = `${sigCard}<div class="section-head">
         <h2 class="section-title">技术面 · 「${escapeHTML(t.name || t.code || '')}」</h2>
         <span class="section-sub">基于日K 的常用指标读数 · 只描述事实与常用读法 · 不构成投资建议</span>
       </div>
       ${summary}${what}
       <div class="tech-grid">${cards}</div>`;
+  }
+
+  /* ---- 主图 Vegas 通道叠线（Wave 1，Gemini 裁定 4：优先主图叠线）----
+     us-signals 深链带来的 usSignals.daily.vegas 自带 {n:[144,169|288,338|576,676]}。
+     开关是会话级（不落盘）：只对带 usSignals 的美股详情出现，按钮由这里动态插入
+     工具条（不动 index.html）；通道数据经 charts.setOverlays 现算，换周期自动跟随。 */
+  let vegasBtn = null;
+  function detailVegasOn() { return state.detailVegas !== false; }   // 默认开：信号详情进来就带通道
+  function applyVegasOverlay() {
+    const h = state.chart;
+    if (!h || typeof h.setOverlays !== 'function') return;
+    const us = state.detail && state.detail.usSignals;
+    const vg = us && us.daily && Array.isArray(us.daily.vegas) ? us.daily.vegas : [];
+    if (!detailVegasOn() || !vg.length) { h.setOverlays(null); return; }
+    const list = [];
+    vg.forEach(pair => {
+      if (!pair || !Array.isArray(pair.n) || pair.insufficient) return;
+      pair.n.forEach(n => list.push({ label: 'EMA' + n, n, on: true }));
+    });
+    h.setOverlays(list);
+  }
+  function ensureVegasToggle() {
+    if (vegasBtn || !el.maToggle || !el.maToggle.parentNode) return;
+    // 只在有 usSignals 的详情里出现（A股/加密详情没有 Meridian 通道，不占位置）
+    vegasBtn = document.createElement('button');
+    vegasBtn.type = 'button';
+    vegasBtn.className = 'pill';
+    vegasBtn.id = 'vegasToggle';
+    vegasBtn.title = '开关主图 Vegas 通道叠线（EMA144/169 · 288/338，来自美股信号口径）';
+    vegasBtn.setAttribute('aria-pressed', 'false');
+    vegasBtn.textContent = 'Vegas';
+    vegasBtn.addEventListener('click', () => {
+      state.detailVegas = !state.detailVegas;
+      syncVegasBtn();
+      applyVegasOverlay();
+    });
+    el.maToggle.parentNode.insertBefore(vegasBtn, el.maToggle);
+  }
+  function syncVegasBtn() {
+    if (!vegasBtn) return;
+    const on = detailVegasOn();
+    vegasBtn.classList.toggle('active', on);
+    vegasBtn.setAttribute('aria-pressed', String(on));
+    vegasBtn.hidden = !(state.detail && state.detail.usSignals);
   }
 
   /* ==================== 详情页 + K线 ==================== */
@@ -2210,6 +2295,9 @@
     el.detailStats.innerHTML = '';
     document.title = (target.name || target.code || '详情') + ' · OpenFinLens';
     updateStar();
+    // Wave 1：Vegas 开关按钮的显隐随详情目标走（非美股信号标的隐藏）
+    ensureVegasToggle();
+    syncVegasBtn();
     // 周期按钮 active 与 state 同步（detailPeriod 跨详情保留上次选择）
     document.querySelectorAll('[data-period]').forEach(b =>
       b.classList.toggle('active', b.dataset.period === state.detailPeriod));
@@ -2666,6 +2754,10 @@
       // 图表类型每次重放当前档位（同上：实例可能刚换 kind 或跨标的复用；分时分支不重放）
       if (state.chart.setType) state.chart.setType(state.chartType);
       applyCompareOverlay(gen);
+      // Wave 1：Vegas 通道叠线（只对带 usSignals 的美股详情生效，其余清线）
+      ensureVegasToggle();
+      syncVegasBtn();
+      applyVegasOverlay();
     }
     // 事件标记层：全球事件 + 龙虎榜按 symbol 落位（分时为 no-op）
     applyDetailEvents();
@@ -4802,6 +4894,15 @@
 
   // 由 hash 还原视图；symbol 不在缓存里时按前缀规则重建详情目标（name 会被报价补上）
   function targetFromHashSymbol(sym) {
+    // Wave 1 修复：裸美股 ticker（AAPL/BRK.B，来自旧版美股信号表写入的自选与分享链接）
+    // 曾被下面的宽泛正则误判成币安符号（binance:'AAPL'）→ 详情/K线全空。
+    // 判定顺序：USDT 结尾才是币安形态；裸美股代码（utils.js 同一份规则）→ 终端命名空间；
+    // 其余维持旧兜底。
+    if (/^[A-Z0-9]{2,12}USDT$/i.test(sym)) return { symbol: sym, name: sym, code: sym, market: 'crypto', binance: sym };
+    if (window.U && window.U.isBareUsTicker && window.U.isBareUsTicker(sym)) {
+      const usSym = 'us' + String(sym).trim().toUpperCase();
+      return { symbol: usSym, name: sym, code: sym, market: 'us', tencent: usSym };
+    }
     if (/^[A-Z0-9]{4,12}$/.test(sym)) return { symbol: sym, name: sym, code: sym, market: 'crypto', binance: sym };
     if (sym.startsWith('EM:')) {
       const secid = sym.slice(3);
@@ -4847,6 +4948,12 @@
       };
       requestAnimationFrame(scrollEtf);
       setTimeout(scrollEtf, 900);
+      return;
+    }
+    // Wave 1：旧版美股信号站（Meridian）的迁移深链是裸 #ussig（redirect 页写的），
+    // 终端 hash 语法只有 #tab= ——不认就落默认市场页，老用户"看起来跳了但没到位"
+    if (h === '#ussig' || h === '#us-signals') {
+      setTab('ussig');
       return;
     }
     const mTab = h.match(/#tab=([a-z]+)/);
@@ -5541,8 +5648,29 @@
       syncSegPressed(el.segTheme, b => b.dataset.theme === t);
     }
     const root = document.documentElement;
-    if (root.dataset.theme === t) { syncThemeChrome(t); return; }
-    // 无级换肤：切换瞬间给全元素短暂挂颜色过渡类，450ms 后摘掉
+    if (root.dataset.theme === t) { syncThemeChrome(t); syncAcademyTheme(t); return; }
+    /* Wave 1-4（Gemini 裁定）：跨站主题同步。终端切肤时把映射值镜像进 academy 的
+     ofa_state（nexus→night、daylight→day，并退出 academy 的跟随系统）；反向回流
+     靠下方 storage 监听——同源跨 tab 才触发 storage，本 tab 自己写不会触发，无乒乓。 */
+  function syncAcademyTheme(t) {
+    try {
+      const at = window.U.themeToAcademy(t);
+      const cur = JSON.parse(localStorage.getItem('ofa_state') || '{}');
+      if (cur.theme === at && cur.themeAuto === false) return;
+      cur.theme = at;
+      cur.themeAuto = false;
+      localStorage.setItem('ofa_state', JSON.stringify(cur));
+    } catch (e) { /* 隐私模式 / academy 尚未初始化过：忽略 */ }
+  }
+  window.addEventListener('storage', (e) => {
+    if (e.key !== 'ofa_state' || !e.newValue) return;
+    try {
+      const t = window.U.themeToLens((JSON.parse(e.newValue) || {}).theme);
+      if (t && t !== document.documentElement.dataset.theme) applyTheme(t);
+    } catch (err) { /* 脏值忽略 */ }
+  });
+
+  // 无级换肤：切换瞬间给全元素短暂挂颜色过渡类，450ms 后摘掉
     if (!reduceMotion()) {
       root.classList.add('theming');
       clearTimeout(themeTimer);
@@ -5550,6 +5678,7 @@
     }
     root.dataset.theme = t;
     syncThemeChrome(t);
+    syncAcademyTheme(t);
     // 价格闪烁用的 --up-rgb/--down-rgb 缓存要失效（模式切换可能改涨跌色）
     invalidateFlashColors();
     // 图例色块是内联背景色（跟着 treemap 的涨/跌色走），换模式后要重画一遍
@@ -7016,6 +7145,12 @@
 
   async function init() {
     DOM_IDS.forEach(id => { el[id] = $(id); });
+    // Wave 1：老数据迁移先行——us-signals 早期写入的裸 AAPL 自选在这里统一成
+    // usAAPL（幂等去重）。必须赶在任何 watchlist 读取/渲染之前。
+    try {
+      const mig = window.U && window.U.migrateWatchlist ? window.U.migrateWatchlist(window.Store.watchlist.all()) : null;
+      if (mig && mig.changed) window.Store.set('watchlist', mig.list);
+    } catch (e) { /* 迁移失败不阻断启动，行为退回旧状 */ }
     bindHashNav();
     applySettings();
     // 顶栏板块按用户配置重排/隐藏：必须在 renderFromHash 之前——
@@ -7205,6 +7340,13 @@
     // 自检区也走 setTimeout 链（禁令 3：不许用 setInterval）
     setTimeout(renderSelfTest, 1500);
     schedule('selftest', async () => { renderSelfTest(); }, 15000);
+
+    // Wave 1（Gemini 创新 1：自选栏信号雷达）：异步懒拉 us-signals，命中信号的美股
+    // 在自选行上挂轻量数据属性（样式 Wave 2 美化）。绝不阻塞首屏；10 分钟自刷新，
+    // 数据到了且正看着自选页就重放一遍行。
+    ensureUsSigMap().then(() => {
+      if (state.view === 'watch') renderWatchlist(true);
+    }).catch(() => { /* us-signals 未部署时自选保持无角标，不重试轰炸 */ });
 
     // 深链还原：带 #tab= / #symbol= 打开时直达对应视图（此时数据调度已起，详情会自行拉数）
     // 默认指标配置 MA_CFG_DEFAULT 定义在模块作用域（state 之前）——

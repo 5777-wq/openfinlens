@@ -29,6 +29,7 @@
   let items = [];                 // 当前渲染的候选（顺序即 ↑↓ 顺序）
   let remoteItems = [];           // 远程搜索结果（与本地结果合并去重）
   let localSymbols = null;        // 本地词典（懒建，只建一次）
+  let usSignalsItems = null;      // Meridian 美股标的（异步补装进词典，拉不到就保持原词典）
 
   /* ==================== 拼音首字母 ====================
      不为几千个汉字手写映射表：Intl.Collator 的 zh-pinyin 排序里，汉字按拼音
@@ -140,6 +141,11 @@
     (global.EM_UNIVERSE || []).forEach(push);
     (global.GLOBAL_INDEX || []).forEach(push);
     (global.CRYPTO_UNIVERSE || []).forEach((sym) => push({ symbol: sym, label: sym.replace(/USDT$/, ''), group: 'crypto' }));
+    // Wave 1：美股信号面板的 200+ 标的并入词典（拉到才并入；symbol 已是终端命名空间 usAAPL）
+    (usSignalsItems || []).forEach((it) => {
+      const us = (global.U && global.U.normUsSymbol) ? (global.U.normUsSymbol(it.symbol) || it.symbol) : ('us' + it.symbol);
+      push({ symbol: us, label: it.name || it.symbol, group: 'us' });
+    });
     try {
       if (global.Store && global.Store.watchlist) {
         global.Store.watchlist.all().forEach((x) => push({ symbol: x.symbol, name: x.name, market: x.market }));
@@ -431,8 +437,22 @@
     // 触发按钮可被脚本点击；打开状态下点外面由遮罩负责，Esc 由焦点陷阱负责
   }
 
+  /* Wave 1（Gemini 裁定：⌘K 词典扩容）：异步拉 us-signals.json 补装美股词典。
+     不阻塞首帧、失败静默；拿到后 localSymbols 置空，下次搜索懒重建自动带上。 */
+  function fetchUsSignalsIntoLocal() {
+    fetch('data/us-signals.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))))
+      .then((j) => {
+        if (!j || j.schemaVersion !== 1 || !Array.isArray(j.items)) return;
+        usSignalsItems = j.items;
+        localSymbols = null;
+      })
+      .catch(() => { /* us-signals 未部署时词典保持原样，不重试轰炸 */ });
+  }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
   else bind();
+  fetchUsSignalsIntoLocal();
 
   global.CommandPalette = {
     open: openPalette,

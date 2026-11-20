@@ -93,6 +93,15 @@
     target: null,
     period: 'day',
     gen: 0,
+    /* 图表实例销毁（Wave 1 泄漏修复）：charts.js 的 remove() 是全量清理
+       （window resize / document 键鼠 / 副图 RO / 画线层）。换标的/换周期/空态
+       都必须先走这里——否则旧实例的监听随切换累积（首跑实测 20 次切换监听暴涨）。 */
+    destroyChart: function () {
+      if (this.chart && typeof this.chart.remove === 'function') {
+        try { this.chart.remove(); } catch (e) { /* 实例已损坏时尽力而为 */ }
+      }
+      this.chart = null;
+    },
     MA_LINES: [
       { type: 'ma', n: 5, on: true },
       { type: 'ma', n: 20, on: true },
@@ -126,14 +135,17 @@
       if (title) title.textContent = (t.name || t.symbol) + (t.code && t.code !== t.symbol ? ' · ' + t.code : '');
       if (!host) return;
       var self = this;
+      // Wave 1 泄漏修复：换标的/换周期先销毁旧实例再拉数据（请求在途时旧图仍可看，
+      // 数据回来才换新图——销毁放在数据到达后的重建前，两分支全覆盖）
       this.fetchKlines(t, this.period).then(function (rows) {
         if (gen !== self.gen) return;   // 快速切换时丢弃慢响应
         if (!rows || !rows.length) {
+          self.destroyChart();          // 空态也清实例：监听不残留
           host.innerHTML = '<div class="dt-empty">该周期暂无数据（' + esc(t.name || t.symbol) + '）</div>';
           host.classList.remove('is-on');
-          self.chart = null;
           return;
         }
+        self.destroyChart();            // 重建前必清旧实例（窗口/document/RO 监听随旧实例销毁）
         host.innerHTML = '';
         host.classList.add('is-on');
         var h = Charts.createKline(host);
@@ -186,6 +198,12 @@
       var sym = String(item.symbol || '');
       if (item.market === 'crypto' || /^[A-Z0-9]+USDT$/.test(sym)) {
         return { kind: 'crypto', symbol: sym, code: sym, name: item.name || sym, market: 'crypto' };
+      }
+      // Wave 1：裸美股 ticker（us-signals 早期写入的自选存量）先走统一规范化——
+      // 兜底之前映射成 usAAPL，腾讯路由才有钥匙（拉得到行情/开得了 K 线）
+      if (U && typeof U.normUsSymbol === 'function' && U.isBareUsTicker(sym)) {
+        var us = U.normUsSymbol(sym);
+        return { kind: 'tc', symbol: us.toLowerCase(), code: sym, name: item.name || sym, market: 'us' };
       }
       if (/^(sh|sz|bj|hk|us)/i.test(sym)) {
         return { kind: 'tc', symbol: sym.toLowerCase(), code: sym, name: item.name || sym, market: item.market || '' };
@@ -371,6 +389,11 @@
 
   /* ---------- 美股信号（吃 data/us-signals.json，与主站同产物） ---------- */
   var UsSig = {
+    data: null,        // 最近一次 us-signals.json（重渲染复用）
+    filter: 'all',     // 筛选键（与完整版 ussig chips 同一口径的桌面子集）
+    usKey: function (sym) {
+      return (U && typeof U.normUsSymbol === 'function') ? (U.normUsSymbol(sym) || sym) : ('us' + sym);
+    },
     fetch: function () {
       var body = $('dtUssigBody');
       if (!body) return Promise.resolve();
@@ -379,7 +402,8 @@
         return r.json();
       }).then(function (j) {
         if (!j || j.schemaVersion !== 1) throw new Error('协议版本不符');
-        this.render(j);
+        this.data = j;
+        this.render();
       }.bind(this)).catch(function () {
         body.innerHTML = '<div class="dt-empty">us-signals.json 尚未生成或不可达——Meridian 采集链未跑或 data 分支未部署</div>';
       });
@@ -389,9 +413,23 @@
       var cls = r.state === 'overbought' ? ' dt-up' : r.state === 'oversold' ? ' dt-down' : '';
       return '<span class="' + cls + '">' + Number(r.value).toFixed(1) + '</span>';
     },
-    render: function (j) {
+    matches: function (it) {
+      var f = this.filter;
+      if (f === 'all') return true;
+      var r6 = it.daily && it.daily.rsi6, w6 = it.weekly && it.weekly.rsi6;
+      if (f === 'ob') return !!(r6 && r6.state === 'overbought');
+      if (f === 'os') return !!(r6 && r6.state === 'oversold');
+      if (f === 'obr') return !!(r6 && r6.cross === 'out_ob');
+      if (f === 'osr') return !!(r6 && r6.cross === 'out_os');
+      if (f === 'wob') return !!(w6 && w6.state === 'overbought');
+      if (f === 'wos') return !!(w6 && w6.state === 'oversold');
+      if (f === 'watch') return !!(it.tags && it.tags.watch);
+      return true;
+    },
+    render: function () {
       var body = $('dtUssigBody');
-      if (!body) return;
+      var j = this.data;
+      if (!body || !j) return;
       var mc = j.marketClock || {};
       var clock = $('dtUssigClock');
       if (clock) {
@@ -399,20 +437,25 @@
           (mc.etTime ? ' · ' + mc.etTime + ' ET' : '') + ' · 日线 RSI6/14 + Vegas';
       }
       var counts = (j.summary && j.summary.counts) || {};
-      var chips = [
-        ['ob', '日超买'], ['os', '日超卖'], ['obr', '日转出'],
-        ['wob', '周超买'], ['wos', '周超卖'], ['wret', '周转出'],
-      ].filter(function (p) { return typeof counts[p[0]] === 'number'; })
-       .map(function (p) { return '<span class="dt-ussig-badge">' + p[1] + ' ' + counts[p[0]] + '</span>'; })
-       .join(' ');
-      var items = (j.items || []).slice(0, 24);
+      var self = this;
+      var chips = [['all', '全部'], ['ob', '日超买'], ['os', '日超卖'], ['obr', '日转出'],
+        ['wob', '周超买'], ['wos', '周超卖'], ['watch', '自选']]
+        .filter(function (p) { return p[0] === 'all' || typeof counts[p[0]] === 'number' || p[0] === 'watch'; })
+        .map(function (p) {
+          var n = p[0] === 'all' ? (j.items || []).length : (p[0] === 'watch' ? null : counts[p[0]]);
+          return '<button class="dt-ussig-badge' + (self.filter === p[0] ? ' on' : '') +
+            '" type="button" data-us-f="' + p[0] + '"' + (n != null ? ' data-n="' + n + '"' : '') + '>' +
+            esc(p[1]) + (n != null ? ' ' + n : '') + '</button>';
+        }).join(' ');
+      var items = (j.items || []).slice(0, 24).filter(function (it) { return self.matches(it); });
       if (!items.length) {
-        body.innerHTML = '<div class="dt-empty">产物里暂无明细</div>';
+        body.innerHTML = (chips ? '<div style="margin-bottom:8px">' + chips + '</div>' : '') +
+          '<div class="dt-empty">该筛选下暂无明细</div>';
         return;
       }
       var html = (chips ? '<div style="margin-bottom:8px">' + chips + '</div>' : '') +
         '<table class="dt-ussig-table"><thead><tr>' +
-        '<th scope="col">标的</th><th scope="col">现价</th><th scope="col">涨跌</th>' +
+        '<th scope="col">自选</th><th scope="col">标的</th><th scope="col">现价</th><th scope="col">涨跌</th>' +
         '<th scope="col">日RSI6</th><th scope="col">日RSI14</th><th scope="col">周RSI6</th><th scope="col">标签</th>' +
         '</tr></thead><tbody>';
       items.forEach(function (it) {
@@ -421,8 +464,14 @@
           .filter(Boolean).join('+') || '--';
         var d6 = it.daily && it.daily.rsi6, d14 = it.daily && it.daily.rsi14;
         var w6 = it.weekly && it.weekly.rsi6;
-        html += '<tr class="dt-row" data-us="' + esc(it.symbol) + '" tabindex="0" role="button" aria-label="' +
-          esc(it.symbol + ' ' + (it.name || '') + ' K线') + '">' +
+        var us = self.usKey(it.symbol);
+        var on = false;
+        try { on = Store && Store.watchlist && Store.watchlist.has(us); } catch (e) { /* 隐私模式 */ }
+        html += '<tr class="dt-row" data-us="' + esc(us) + '" data-name="' + esc(it.name || it.symbol) +
+          '" tabindex="0" role="button" aria-label="' + esc(it.symbol + ' ' + (it.name || '') + ' K线') + '">' +
+          '<td><button class="dt-star' + (on ? ' on' : '') + '" type="button" data-us-star="' + esc(us) +
+          '" data-us-name="' + esc(it.name || it.symbol) + '" aria-label="' + (on ? '取消自选 ' : '加入自选 ') + esc(it.symbol) +
+          '">' + (on ? '★' : '☆') + '</button></td>' +
           '<td><span class="dt-w-name">' + esc(it.name || it.symbol) + '</span>' +
           '<span class="dt-w-code">' + esc(it.symbol) + (it.rank != null ? ' #' + it.rank : '') + '</span></td>' +
           '<td>' + fmtPrice(it.price) + '</td>' +
@@ -436,17 +485,39 @@
     bind: function () {
       var body = $('dtUssigBody');
       if (!body) return;
+      var self = this;
       body.addEventListener('click', function (e) {
+        var star = e.target.closest('[data-us-star]');
+        if (star) {
+          e.stopPropagation();
+          // 星标写终端命名空间 usAAPL——与主终端/自选页同一把钥匙，实时互通
+          try {
+            if (Store && Store.watchlist) {
+              Store.watchlist.toggle({ symbol: star.getAttribute('data-us-star'), name: star.getAttribute('data-us-name'), market: 'us' });
+              if (Bus) Bus.emit('watchlist');
+            }
+          } catch (err) { /* 隐私模式忽略 */ }
+          self.render();
+          return;
+        }
+        var chip = e.target.closest('[data-us-f]');
+        if (chip) {
+          self.filter = chip.getAttribute('data-us-f');
+          self.render();
+          return;
+        }
         var tr = e.target.closest('tr[data-us]');
         if (!tr) return;
-        var sym = tr.getAttribute('data-us');
-        Kline.show({ kind: 'tc', symbol: 'us' + sym, code: sym, name: sym, market: 'us' });
+        var us = tr.getAttribute('data-us');
+        Kline.show({ kind: 'tc', symbol: us.toLowerCase(), code: us.slice(2), name: tr.getAttribute('data-name') || us, market: 'us' });
       });
       body.addEventListener('keydown', function (e) {
         if (e.key !== 'Enter' && e.key !== ' ') return;
         var tr = e.target.closest('tr[data-us]');
         if (tr) { e.preventDefault(); tr.click(); }
       });
+      // 主终端/自选页任意处收星 → 本面板星标态同步（与完整版同一条 Bus 约定）
+      if (Bus) Bus.on('watchlist', function () { if (self.data) self.render(); });
     },
   };
 

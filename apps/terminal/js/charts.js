@@ -1369,6 +1369,7 @@ const Charts = (() => {
       // range change 订阅触发的重画也合并到同一帧，差一帧 16ms 肉眼无感）。
       schedulePaneRender();
       renderMA();
+      renderOverlays();               // 叠加层与 MA 同源重算：换标的/换周期不残留旧通道
       paintLegend(lastKlines.length - 1);
     }
 
@@ -1467,6 +1468,53 @@ const Charts = (() => {
       renderMA();
     }
 
+    /* ---- 主图叠加层（2026-11-21 Wave 1：Meridian Vegas 通道叠线）----
+       与 MA 池平行的独立 Line 系列池：app 层经 setOverlays 喂 {label, n, on, color}，
+       内部用与 MA 相同的 emaSeries 在当前 lastKlines 上现算。换标的/换周期 setData
+       自动重算；setType 换主系列零接触（独立 series 随时间轴自动跟随）；换肤
+       retheme 重走 applyOptions 的只有 MA 池，叠加层颜色由 app 层在 applyTheme
+       回调里重喂（通道色是业务色，不随 --ma-* 用户令牌走）。 */
+    let overlayCfg = [];
+    let overlaySeries = [];
+    const OVERLAY_COLORS = ['#e8a33d', '#5b8def', '#1fc2db', '#b06ad4'];
+    function syncOverlaySeries(count) {
+      while (overlaySeries.length > count) {
+        const s = overlaySeries.pop();
+        try { if (typeof chart.removeSeries === 'function') chart.removeSeries(s); } catch (e) { /* ignore */ }
+      }
+      while (overlaySeries.length < count) {
+        overlaySeries.push(addSeries(chart, 'Line', {
+          color: OVERLAY_COLORS[overlaySeries.length % OVERLAY_COLORS.length],
+          lineWidth: 1, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false,
+        }));
+      }
+    }
+    function renderOverlays() {
+      const closes = lastKlines.map(k => k.close);
+      const active = overlayCfg.filter(l => l && l.on).slice(0, OVERLAY_COLORS.length);
+      syncOverlaySeries(active.length);
+      let i = 0;
+      for (const l of active) {
+        // 与 renderMA 的 ema 槽同一套归一：emaSeries 缺技术面镜像时返回全 null，
+        // filter 后喂空序列 = 该条不画，不炸 lightweight-charts
+        const seq = emaSeries(closes, l.n)
+          .map((v, k) => (v === null || !isFinite(v)) ? null : { time: lastKlines[k].time, value: v })
+          .filter(p => p);
+        overlaySeries[i].setData(seq);
+        i++;
+      }
+    }
+    function setOverlays(list) {
+      const src = Array.isArray(list) ? list : [];
+      overlayCfg = src.slice(0, OVERLAY_COLORS.length).map((l, i) => ({
+        label: String((l && l.label) || ('ovl' + i)),
+        n: Math.max(2, Math.min(600, Math.round((l && l.n) || 5))),
+        on: !!(l && l.on),
+        color: (l && typeof l.color === 'string' && l.color) ? l.color : OVERLAY_COLORS[i % OVERLAY_COLORS.length],
+      }));
+      renderOverlays();
+    }
+
     /* 副图是自绘 canvas：布局宽度变化时 CSS 只拉伸位图，不会重画，
        拖一下就和主图对不上了。监听重画一次。
        lightweight-charts 自己有 autoSize，主图不用管。
@@ -1511,6 +1559,8 @@ const Charts = (() => {
       // setType 重指派闭包 candle 后自动跟随新主系列，无需外部重新 attach
       get candle() { return candle; },
       setData, applyTheme, setMAVisible, setEvents, setPanes, setInfo,
+      // 主图叠加层（Meridian Vegas 通道）：[{label, n, on, color}]，null/[] 一律收敛清线
+      setOverlays,
       // 画线：setDrawings 回灌（按标的）、setDrawTool 切换画线模式、
       // setHidden 「隐藏全部画线」开关（app 层持久化后经 applyDrawTool 回放）
       setDrawings, setDrawTool, setHidden,

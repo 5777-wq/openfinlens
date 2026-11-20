@@ -58,13 +58,59 @@
   }
 
   function starBtn(it) {
-    var on = state.watchSet && state.watchSet[it.symbol];
-    return '<button class="star' + (on ? ' on' : '') + '" type="button" data-star="' + esc(it.symbol) +
+    // 星标钥匙与主终端同一把：usAAPL（写入由 app.js 的 data-star 委托完成，
+    // findQuote('usAAPL') 能命中主终端美股行情，name/market 不再退化）
+    var us = (window.U && window.U.normUsSymbol) ? (window.U.normUsSymbol(it.symbol) || it.symbol) : ('us' + it.symbol);
+    var on = state.watchSet && state.watchSet[us];
+    return '<button class="star' + (on ? ' on' : '') + '" type="button" data-star="' + esc(us) +
       '" aria-label="' + (on ? '移出自选' : '加入自选') + '" title="加入/移出自选">' + (on ? '★' : '☆') + '</button>';
   }
 
   function badge(text, cls, title) {
     return '<span class="ussig-badge ' + (cls || '') + '"' + (title ? ' title="' + esc(title) + '"' : '') + '>' + esc(text) + '</span>';
+  }
+
+  /* Meridian 信号胶囊卡（Wave 1，Gemini 裁定 4）：详情页消费 usSignals 协议对象的
+     唯一渲染口——纯函数，输入协议对象、输出 HTML 字符串（app.js loadTechnical 插入
+     detailInsight；vm 单测直接调）。复用 ussig-badge/num 既有类，Wave 2 再令牌化美化。
+     只描述事实（RSI 值/通道位置/警告），不给任何操作建议——合规红线。 */
+  function renderCard(us) {
+    if (!us || typeof us !== 'object') return '';
+    var num = function (v, d) {
+      if (v === null || v === undefined || !isFinite(Number(v))) return '--';
+      return Number(v).toFixed(d === undefined ? 2 : d);
+    };
+    var POS_TXT = { above: '通道上方', inside: '通道带内', below: '通道下方' };
+    var rsiCell = function (r) {
+      if (!r || !isFinite(Number(r.value))) return '--';
+      var cls = r.state === 'overbought' ? ' ob' : r.state === 'oversold' ? ' os' : '';
+      var t = r.state === 'overbought' ? 'RSI 超买区' : r.state === 'oversold' ? 'RSI 超卖区' : '';
+      return '<span class="ussig-badge' + cls + '"' + (t ? ' title="' + esc(t) + '"' : '') + '>' + num(r.value, 1) + '</span>';
+    };
+    var parts = [];
+    var head = '<div class="section-head"><h2 class="section-title">Meridian 信号</h2>' +
+      '<span class="section-sub">来自美股信号面板的同一份口径 · 只描述事实 · 不构成投资建议</span></div>';
+    var row = function (label, val) {
+      return '<div class="sig-row"><span class="sig-k">' + esc(label) + '</span><span class="sig-v">' + val + '</span></div>';
+    };
+    var daily = us.daily || {}, weekly = us.weekly || {};
+    parts.push(row('日线 RSI6 / RSI14', rsiCell(daily.rsi6) + ' ' + rsiCell(daily.rsi14)));
+    parts.push(row('周线 RSI6 / RSI14', rsiCell(weekly.rsi6) + ' ' + rsiCell(weekly.rsi14)));
+    if (daily.revert || weekly.revert) {
+      parts.push(row('回归状态', badge('RSI 回归', 'warn', 'RSI6 从超买/超卖区回到中性区')));
+    }
+    var vegasTxt = (daily.vegas || []).map(function (v) {
+      if (!v || v.insufficient) return esc(v && v.key || '') + ' 数据不足';
+      var ev = v.event ? ' · ' + esc(String(v.event)) : '';
+      return esc(v.key || '') + ' ' + esc(POS_TXT[v.pos] || v.pos || '--') + '（EMA' + num(v.n && v.n[0], 0) + '/' + num(v.n && v.n[1], 0) + '）' + ev;
+    }).join('；');
+    if (vegasTxt) parts.push(row('Vegas 三通道', '<span class="sig-v-text">' + vegasTxt + '</span>'));
+    if (us.spmoWeight != null) parts.push(row('SPMO 权重', '<span class="num">' + num(us.spmoWeight, 1) + '%</span>'));
+    if (us.adj === 'raw') parts.push(row('口径', badge('不复权', 'warn', '最后一根收盘 bar 为原始价，指标未按复权口径计算')));
+    (us.warnings || []).forEach(function (w) {
+      if (w && (w.tag === '数据' || w.tag === '口径')) parts.push(row(w.tag, badge(w.tag, 'warn', w.text)));
+    });
+    return head + '<div class="sig-card" data-ussig-card="' + esc(us.symbol || '') + '">' + parts.join('') + '</div>';
   }
   /* 术语抽屉标记：data-gloss 走 explain.js CONCEPT_NOTES（gloss-tip 全局委托，
      动态插入的元素自动生效）。只挂 explain.js 真实存在的 id——不许假链接。 */
@@ -178,8 +224,16 @@
     }).then(function (j) {
       if (!j || j.schemaVersion !== 1) throw new Error('协议版本不符（schemaVersion=' + (j && j.schemaVersion) + '）');
       state.data = j;
-      // 自选集合快照（星标初始态）——与主终端 Store.watchlist 同源
-      try { state.watchSet = {}; window.Store.watchlist.all().forEach(function (w) { state.watchSet[w.symbol] = true; }); } catch (e) { state.watchSet = {}; }
+      // 自选集合快照（星标初始态）——与主终端 Store.watchlist 同源。
+      // 键用终端命名空间（usAAPL）：管线 symbol 是裸 ticker，星标写入/匹配都必须
+      // 经 normUsSymbol 转成与主终端同一把钥匙，否则同一公司出现两条自选。
+      try {
+        state.watchSet = {};
+        window.Store.watchlist.all().forEach(function (w) {
+          var k = (window.U && window.U.normUsSymbol) ? (window.U.normUsSymbol(w.symbol) || w.symbol) : w.symbol;
+          state.watchSet[k] = true;
+        });
+      } catch (e) { state.watchSet = {}; }
       state.status = 'ok';
       state.loaded = true;
       render();
@@ -207,10 +261,14 @@
         var it = (state.data && state.data.items || []).filter(function (x) { return x.symbol === row.getAttribute('data-symbol'); })[0]
           || (state.data && state.data.spmo);
         if (it) {
+          // symbol/tencent 统一终端命名空间 usAAPL（payload 断供 secid/tencent 是
+          // 曾导致详情页全空的根因——openDetail 的报价/K线全靠这两把钥匙）
+          var us = (window.U && window.U.normUsSymbol) ? (window.U.normUsSymbol(it.symbol) || it.symbol) : ('us' + it.symbol);
           window.Bus.emit('symbol:open', {
-            symbol: it.symbol, name: it.name || it.symbol, market: 'us',
+            symbol: us, name: it.name || it.symbol, market: 'us',
             code: (it.tags && it.tags.tvSymbol) || it.symbol,
-            usSignals: it,          // 详情面板可选用：US 信号的口径与警告随行携带
+            tencent: us,
+            usSignals: it,          // 详情面板消费：US 信号的口径与警告随行携带
           });
         }
       }
@@ -221,9 +279,15 @@
       var row = e.target.closest('.ussig-row');
       if (row) { e.preventDefault(); row.click(); }
     });
-    // 自选变化（主终端任意处收/取星）→ 星标初始态同步
+    // 自选变化（主终端任意处收/取星）→ 星标初始态同步（键与星标同一把 usAAPL 钥匙）
     window.Bus.on('watchlist', function () {
-      try { state.watchSet = {}; window.Store.watchlist.all().forEach(function (w) { state.watchSet[w.symbol] = true; }); } catch (e) { /* 同上 */ }
+      try {
+        state.watchSet = {};
+        window.Store.watchlist.all().forEach(function (w) {
+          var k = (window.U && window.U.normUsSymbol) ? (window.U.normUsSymbol(w.symbol) || w.symbol) : w.symbol;
+          state.watchSet[k] = true;
+        });
+      } catch (e) { /* 同上 */ }
       if (state.status === 'ok') render();
     });
   }
@@ -255,4 +319,8 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
+
+  // 详情页信号胶囊卡的渲染口（app.js loadTechnical 消费；vm 单测直接调）。
+  // boot 依赖 DOM，但 renderCard 是纯函数——测试环境只碰这一个导出。
+  window.UsSignals = { renderCard: renderCard };
 })();

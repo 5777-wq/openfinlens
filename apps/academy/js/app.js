@@ -835,7 +835,33 @@
     document.body.setAttribute('data-updown', window.Store.get('updown') === 'green' ? 'green' : 'red');
     const meta = document.querySelector('meta[name=theme-color]');
     if (meta) meta.setAttribute('content', t === 'night' ? '#08111C' : '#F2ECDF');
+    /* Wave 1-4（跨站主题同步，2026-11-21）：academy 的解析结果镜像给终端 gfd_settings
+       （night→nexus、day→daylight），含跟随系统解析后的值。反向回流靠下方 storage
+       监听；本 tab 自己写不触发 storage，无乒乓。 */
+    try {
+      const lt = (window.U && window.U.themeToLens) ? window.U.themeToLens(t) : (t === 'night' ? 'nexus' : 'daylight');
+      const cur = JSON.parse(localStorage.getItem('gfd_settings') || '{}');
+      if (cur.theme !== lt) {
+        cur.theme = lt;
+        localStorage.setItem('gfd_settings', JSON.stringify(cur));
+      }
+    } catch (e) { /* 隐私模式忽略 */ }
   }
+
+  // 终端切肤（另一 tab）→ 这里跟随：gfd_settings 变化经 storage 事件回流，
+  // 手动值写回 ofa_state 并退出跟随系统（与终端语义对齐：手动即手动）。
+  window.addEventListener('storage', (e) => {
+    if (e.key !== 'gfd_settings' || !e.newValue) return;
+    try {
+      const lt = (JSON.parse(e.newValue) || {}).theme;
+      if (!lt) return;
+      const want = (window.U && window.U.themeToAcademy) ? window.U.themeToAcademy(lt) : (lt === 'nexus' ? 'night' : 'day');
+      if (resolvedTheme() === want) return;
+      window.Store.set('theme', want);
+      window.Store.set('themeAuto', false);
+      applyTheme();
+    } catch (err) { /* 脏值忽略 */ }
+  });
 
   function prefersReducedMotion() {
     try {
