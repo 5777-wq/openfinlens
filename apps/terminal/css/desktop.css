@@ -17,19 +17,47 @@
   z-index: 30;
 }
 .dt-brand {
-  font-weight: 700;
-  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 800;
+  font-size: 17px;
   color: var(--text);
   text-decoration: none;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+/* 圆角 logo 徽标：品牌青渐变 + 内高光 + 轻投影，与 favicon 同源同色 */
+.dt-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #46e3ff 0%, #17b3e0 62%, #0e94c4 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    var(--shadow-1);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.dt-brand:hover .dt-logo {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    var(--shadow-2);
 }
 .dt-tag {
   font-size: 12px;
   color: var(--text-secondary);
-  border: 1px solid var(--border);
+  background: var(--accent-soft);
+  border: 1px solid var(--border-soft, var(--line));
   border-radius: var(--r-pill);
-  padding: 1px 8px;
+  padding: 2px 10px;
   white-space: nowrap;
+  letter-spacing: 0.04em;
 }
 .dt-actions {
   margin-left: auto;
@@ -43,14 +71,22 @@
   background: var(--bg-card);
   color: var(--text);
   border-radius: var(--r-md);
-  padding: 5px 12px;
+  padding: 6px 14px;
   font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
-  transition: border-color 120ms ease, background-color 120ms ease;
+  transition: transform 120ms ease, border-color 120ms ease,
+    background-color 120ms ease, box-shadow 120ms ease;
 }
-.dt-btn:hover { border-color: var(--border-hover, var(--border)); background: var(--bg-hover); }
+.dt-btn:hover {
+  border-color: var(--border-hover, var(--border));
+  background: var(--bg-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-1);
+}
+.dt-btn:active { transform: translateY(0); box-shadow: none; background: var(--bg-sunken); }
 .dt-btn-link { display: inline-flex; align-items: center; }
 
 /* ---------- 搜索 ---------- */
@@ -60,23 +96,28 @@
   box-sizing: border-box;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-pill);
   color: var(--text);
-  padding: 6px 12px;
+  padding: 6px 16px;
   font-size: 13px;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
-.dt-search input:focus { outline: none; border-color: var(--border-hover, var(--border)); }
+.dt-search input:focus {
+  outline: none;
+  border-color: var(--border-hover, var(--border));
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
 .dt-search-list {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   left: 0;
   right: 0;
   margin: 0;
-  padding: 4px;
+  padding: 5px;
   list-style: none;
   background: var(--bg-elevated, var(--bg-card));
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow-2);
   max-height: 320px;
   overflow: auto;
@@ -109,7 +150,21 @@
   min-height: 34px;
 }
 .dt-tape::-webkit-scrollbar { display: none; }
-.dt-tape-item { display: inline-flex; gap: 6px; align-items: baseline; font-size: 13px; }
+.dt-tape-item {
+  appearance: none;
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  font-size: 13px;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--r-pill);
+  padding: 4px 12px;
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+.dt-tape-item:hover { background: var(--bg-hover); transform: translateY(-1px); }
 .dt-tape-item .t-name { color: var(--text-secondary); }
 .dt-tape-item .t-price { color: var(--text); font-variant-numeric: tabular-nums; }
 .dt-tape-item .t-pct { font-variant-numeric: tabular-nums; }
@@ -155,6 +210,19 @@
   font-size: 14px;
   font-weight: 700;
   color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.02em;
+}
+/* 面板标题圆角标记条：随主题强调色（日光黑/深空白），圆角胶囊 */
+.dt-panel-head h2::before {
+  content: "";
+  width: 4px;
+  height: 14px;
+  border-radius: var(--r-pill);
+  background: var(--accent-signature);
+  flex: 0 0 auto;
 }
 .dt-empty { color: var(--text-tertiary); font-size: 13px; padding: var(--sp-16) 0; text-align: center; }
 
@@ -191,26 +259,45 @@
   color: var(--text-tertiary);
   cursor: pointer;
   font-size: 14px;
-  padding: 2px 4px;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
 }
+.dt-star:hover { background: var(--bg-hover); color: var(--warn, var(--text-secondary)); transform: scale(1.12); }
 .dt-star.on { color: var(--warn, var(--accent-signature)); }
 .dt-w-pct.up { color: var(--text-rise, var(--up)); }
 .dt-w-pct.down { color: var(--text-fall, var(--down)); }
 .dt-w-pct.flat { color: var(--text-secondary); }
 
 /* ---------- K 线面板 ---------- */
-.dt-seg { display: inline-flex; gap: 4px; margin-left: auto; }
+/* 分段控件：连体胶囊槽 + 浮起选中片 */
+.dt-seg {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: auto;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border-soft, var(--line));
+  border-radius: var(--r-pill);
+  padding: 3px;
+}
 .dt-seg-btn {
   appearance: none;
-  border: 1px solid var(--border);
+  border: 0;
   background: none;
   color: var(--text-secondary);
-  border-radius: var(--r-sm);
-  padding: 3px 12px;
+  border-radius: var(--r-pill);
+  padding: 3px 16px;
   font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
 }
-.dt-seg-btn.on { background: var(--accent-soft); color: var(--text); border-color: var(--border-hover, var(--border)); }
+.dt-seg-btn:hover { color: var(--text); }
+.dt-seg-btn.on {
+  background: var(--bg-card);
+  color: var(--text);
+  box-shadow: var(--shadow-1), inset 0 0 0 1px var(--border-soft, var(--line));
+}
 .dt-kline-host {
   position: relative;
   height: 460px;
@@ -290,6 +377,14 @@
   padding: var(--sp-12) var(--sp-24) var(--sp-24);
   color: var(--text-tertiary);
   font-size: 12px;
+}
+
+/* ---------- 键盘焦点环（交互元素统一，随主题 --focus-ring） ---------- */
+.dt-btn:focus-visible, .dt-seg-btn:focus-visible, .dt-star:focus-visible,
+.dt-tape-item:focus-visible, .dt-search input:focus-visible,
+.dt-ussig-table tr.dt-row:focus-visible, .dt-watch-table tr.dt-row:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 /* ---------- 窄屏降级（平板/小窗） ---------- */
