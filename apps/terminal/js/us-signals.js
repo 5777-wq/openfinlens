@@ -595,16 +595,17 @@
     /* 深链直达双保险（2026-11-21）：#ussig / #tab=ussig 直接打开时，Bus 'tab' 的
        emit 时机与 defer/ContentLoaded 存在竞态，监听可能收不到首帧事件——
        boot 即时自查一次 + 1.5s 兜底再查一次，两道都漏才算漏。
-       __ussigDebug 为 QA 观测探针（记录 boot/自检/load 关键节点）。 */
-    window.__ussigDebug = window.__ussigDebug || [];
-    window.__ussigDebug.push('boot rs=' + document.readyState + ' hash=' + (location.hash || '').slice(0, 20));
+       调试探针默认关闭：URL 带 ?debug=1 才写 window.__ussigDebug（终审要求
+       生产无探针残留；保留门控便于日后复诊）。 */
+    const debugOn = /[?&]debug=1/.test(location.search || '');
+    if (debugOn) { window.__ussigDebug = window.__ussigDebug || []; window.__ussigDebug.push('boot rs=' + document.readyState + ' hash=' + (location.hash || '').slice(0, 20)); }
     if (/ussig/.test(location.hash || '')) {
-      window.__ussigDebug.push('selfcheck-hit loaded=' + state.loaded + ' st=' + state.status);
-      if (!state.loaded && state.status !== 'loading') { window.__ussigDebug.push('selfcheck-load'); load(); }
+      if (debugOn) window.__ussigDebug.push('selfcheck-hit loaded=' + state.loaded + ' st=' + state.status);
+      if (!state.loaded && state.status !== 'loading') { if (debugOn) window.__ussigDebug.push('selfcheck-load'); load(); }
     }
     setTimeout(function () {
-      window.__ussigDebug.push('t1500 loaded=' + state.loaded + ' st=' + state.status);
-      if (!state.loaded && state.status !== 'loading' && /ussig/.test(location.hash || '')) { window.__ussigDebug.push('t1500-load'); load(); }
+      if (debugOn) window.__ussigDebug.push('t1500 loaded=' + state.loaded + ' st=' + state.status);
+      if (!state.loaded && state.status !== 'loading' && /ussig/.test(location.hash || '')) { if (debugOn) window.__ussigDebug.push('t1500-load'); load(); }
     }, 1500);
   }
 
