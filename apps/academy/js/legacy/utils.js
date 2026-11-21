@@ -117,6 +117,46 @@ const escapeHTML = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
+/* ---- 美股代码规范化（2026-11-21 Wave 1）----
+   us-signals 管线用裸 ticker（AAPL / BRK.B），终端统一命名空间是 usAAPL。
+   两条链路（信号表 ↔ 自选/详情/搜索/hash）共用这一份规则，不再各写各的正则。 */
+const BARE_US_RE = /^[A-Z]{1,6}(?:\.[A-Z]{1,2})?$/;
+const isBareUsTicker = (s) => BARE_US_RE.test(String(s == null ? '' : String(s).trim()));
+const normUsSymbol = (s) => {
+  const t = String(s == null ? '' : s).trim();
+  if (!t) return '';
+  if (/^us[A-Z]/.test(t)) return t;        // 已是终端形态
+  if (!BARE_US_RE.test(t)) return '';      // BTCUSDT / EM:171.US10Y / hk00700 都不是美股裸代码
+  return 'us' + t;
+};
+
+/* 老数据迁移：us-signals 早期把裸 ticker 写进自选，与主终端同公司的 usAAPL 形成双记录
+   （且裸 AAPL 拉不到行情、价格恒为 --）。幂等：已规范的条目原样保留；归一后 symbol
+   撞车的保留第一条（脏记录让位）；非对象条目直接丢弃。 */
+const migrateWatchlist = (list) => {
+  const src = Array.isArray(list) ? list : [];
+  const seen = new Set();
+  const out = [];
+  let changed = false;
+  for (const it of src) {
+    if (!it || typeof it !== 'object') { changed = true; continue; }
+    let symbol = String(it.symbol || '');
+    if (isBareUsTicker(symbol)) { symbol = 'us' + symbol; changed = true; }
+    const market = symbol.indexOf('us') === 0 && /^us[A-Z]/.test(symbol) ? 'us' : it.market;
+    if (market !== it.market) changed = true;
+    if (seen.has(symbol)) { changed = true; continue; }
+    seen.add(symbol);
+    if (symbol !== it.symbol || market !== it.market) out.push(Object.assign({}, it, { symbol, market }));
+    else out.push(it);
+  }
+  return { list: out, changed };
+};
+
+/* 跨站主题映射（Wave 1-4 裁定）：终端 nexus/daylight ↔ Academy night/day 双向约定。
+   只做词表转换，不做读写——读写各自在两端 applyTheme 里，避免这里碰到 localStorage。 */
+const themeToAcademy = (t) => (t === 'nexus' ? 'night' : 'day');
+const themeToLens = (t) => (t === 'night' ? 'nexus' : 'daylight');
+
 // 把"本地墙钟"编码成伪 UTC 秒级时间戳。
 // lightweight-charts 对 UTCTimestamp 一律按 UTC 渲染：直接传真实 epoch 会让时间轴
 // 平移一个时区（实测上证分时 09:30-15:00 显示成 02:00-07:00）。把墙钟分量用 Date.UTC
@@ -212,4 +252,5 @@ window.U = {
   fetchJSONP, request, throttle, debounce,
   num, fmt, fmtPct, fmtChg, fmtVol, fmtPrice, priceDigits, fmtTime, fmtAgo, isMissing,
   escapeHTML, Cache, toChartTime, fmtDay, sanitizeFolds,
+  normUsSymbol, isBareUsTicker, migrateWatchlist, themeToAcademy, themeToLens,
 };

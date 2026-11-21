@@ -126,6 +126,10 @@
   --dur-3: 0.3s;    /* 收起 / 弹层 alpha */
   --dur-4: 0.42s;   /* 弹层出现（弹簧位移） */
   --dur-fast: 0.18s; --dur-med: 0.28s; --dur-slow: 0.45s;
+  /* Wave 2 S1 补充的"基准过渡"档（≈ --dur-2 的 ms 形态）：ussig / 信号卡 /
+     chips 等新切片的布局类过渡统一引用它，不再各写各的 0.15s/0.2s。
+     统一缓动沿用上面的 --ease-out（曲线是 Telegram-iOS 实测参数，不另造）。 */
+  --dur-base: 220ms;
 
   /* ---------- 骨架尺寸 ---------- */
   --topbar-h: 56px;
@@ -412,8 +416,13 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
 .chip:hover { color: var(--text-secondary); border-color: var(--border-hover); }
 .chip.active { color: var(--text); border-color: var(--accent-signature);
   background: rgba(var(--accent-rgb), 0.08); }
+/* us-signals 的筛选 chips / RSI·周期开关用 .on 标记选中（us-signals.js 的历史约定，
+   aria-pressed 同步）。与 .chip.active 同口径：同文字、同强调描边、同 8% 强调底——
+   两套类名共存是历史包袱，样式值必须一字不差，改一处必须同步另一处。 */
+.chip.on { color: var(--text); border-color: var(--accent-signature);
+  background: rgba(var(--accent-rgb), 0.08); }
 .chip b { font-weight: 500; font-size: var(--fs-12); color: var(--text-faint); }
-.chip.active b { color: var(--text-secondary); }
+.chip.active b, .chip.on b { color: var(--text-secondary); }
 .chip .ev-dot { width: 6px; height: 6px; }
 /* chip 行：筛选器成排时留出横向呼吸——.heat-toolbar 的 14px 对 chip 偏挤 */
 .chipbar { gap: var(--sp-8); }
@@ -486,9 +495,11 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
   color: var(--text-tertiary); letter-spacing: 0.06em; pointer-events: none;
   transition: opacity var(--dur-slow) var(--ease-out); }
 .heat-hint.faded { opacity: 0; }
+/* 水印字原来是写死 28% 白——日光白底画布上不可见。换 --text-faint（最弱文字档），
+   两主题自动反相，水印依然安静但读得出。 */
 .heat-logo { position: absolute; left: 14px; bottom: 12px; display: flex; align-items: center; gap: var(--sp-8);
   font-family: var(--font-mono); font-size: var(--fs-12); letter-spacing: 0.18em;
-  color: rgba(255,255,255,0.28); pointer-events: none; }
+  color: var(--text-faint); pointer-events: none; }
 .heat-logo .logo-dot { width: 5px; height: 5px; }
 .heat-tip { position: absolute; top: 0; left: 0; pointer-events: none;
   transform: translate3d(var(--tip-x, 0), var(--tip-y, 0), 0); z-index: 30;
@@ -638,7 +649,9 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
 .spark-range { font-size: var(--fs-12); color: var(--text-tertiary); font-family: var(--font-mono); }
 .spark-range b { font-weight: 600; }
 .spark-svg { display: block; width: 100%; height: 64px; }
-.spark-mid { stroke: rgba(255,255,255,0.08); stroke-width: 1; stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
+/* 基准虚线原来是写死 8% 白——日光白底上不可见。换 --grid-line（刻度网格令牌，
+   两主题各自有值：深空 4% 白、日光 4% 黑），保持"极弱刻度"的本意。 */
+.spark-mid { stroke: var(--grid-line); stroke-width: 1; stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
 .spark-empty { font-size: var(--fs-12); color: var(--text-tertiary); padding: var(--sp-8) 0; font-family: var(--font-mono); }
 
 /* ============================================================ 产业链 */
@@ -739,7 +752,9 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
   letter-spacing: 0.1em; color: var(--text-secondary);
   transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
 .modal-close:hover { color: var(--text); border-color: var(--border-hover); }
-.switch { width: 36px; height: 20px; border-radius: var(--r-sm); background: rgba(255,255,255,0.1);
+/* 开关未选中轨道原来是写死 10% 白——日光白底上整个开关只剩一枚旋钮。换 --border
+   （描边档，深空 14% 白 ≈ 原值，日光 14% 黑：轨道看得见且不抢选中态的强调底）。 */
+.switch { width: 36px; height: 20px; border-radius: var(--r-sm); background: var(--border);
   position: relative; transition: background var(--dur-fast) var(--ease-out); flex-shrink: 0; }
 .switch.on { background: rgba(var(--accent-rgb),0.35); }
 .switch::after { content: ''; position: absolute; top: 3px; left: 3px;
@@ -894,7 +909,8 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
   background: transparent; color: var(--text-secondary);
   cursor: pointer; transition: background var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out); }
-.bchip:hover { background: var(--bg-hover); border-color: rgba(255,255,255,0.16); }
+/* 悬停描边原来是写死 16% 白——日光白底上边框消失。换 --border-hover（悬停档令牌）。 */
+.bchip:hover { background: var(--bg-hover); border-color: var(--border-hover); }
 .bchip.open { border-color: var(--accent-signature); background: var(--bg-hover); }
 /* 概念条（产业链页）的焦点环：原来 outline:none + 白色描边，
    合成到浅色皮肤的白底上对比度 1.00:1，等于没有焦点指示。
@@ -1009,7 +1025,7 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
   min-width: 232px; padding: var(--sp-12) var(--sp-12);
   /* 副图单选 3 行 → 8 行后弹层过高：窄屏限高滚动（纯静态属性，零颜色零动效） */
   max-height: min(70vh, 560px); overflow-y: auto;
-  background: var(--bg-card, #111); border: 1px solid rgba(255,255,255,0.14); border-radius: var(--r-md);
+  background: var(--bg-card, #111); border: 1px solid var(--border); border-radius: var(--r-md);
   box-shadow: var(--shadow-1); }
 .ma-sec + .ma-sec { margin-top: var(--sp-12); padding-top: var(--sp-12); border-top: 1px solid var(--border); }
 .ma-sec-t { font-size: var(--fs-12); letter-spacing: 0.12em; text-transform: uppercase;
@@ -1019,10 +1035,12 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
 .ma-menu label:hover { color: var(--text); }
 .ma-menu i { width: 14px; height: 3px; border-radius: var(--r-sm); display: inline-block; margin-left: auto; }
 .ma-menu input { accent-color: var(--accent-signature); }
+/* 输入框/下拉的井底与悬停描边原来是写死 5%/30% 白——日光白底上输入框没了井、
+   焦点边框没了线。统一换 --bg-sunken / --border-hover（两主题各自有值）。 */
 .ma-menu input[type="number"] { width: 54px; padding: 2px var(--sp-4); margin-left: auto;
-  background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--r-sm);
   color: var(--text); font-family: var(--font-mono); font-size: var(--fs-12); }
-.ma-menu input[type="number"]:focus { border-color: rgba(255,255,255,0.3); }
+.ma-menu input[type="number"]:focus { border-color: var(--border-hover); }
 .ma-menu input[type="number"]:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .ma-menu label input[type="checkbox"] { margin-right: 2px; }
 /* 价格标尺 / 对比标的弹层：复用 .ma-menu 语言（取值全走令牌，.cmp-search .search-input 先例） */
@@ -1042,10 +1060,10 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
 .ma-pane-row button:disabled { opacity: 0.4; cursor: default; }
 /* 主图指标行：开关 / 类型 / 周期 / 色标 / 删除 */
 .ma-line-row { display: flex; align-items: center; gap: var(--sp-8); padding: var(--sp-4) 0; }
-.ma-line-row select { background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+.ma-line-row select { background: var(--bg-sunken); border: 1px solid var(--border);
   border-radius: var(--r-sm); color: var(--text); font-size: var(--fs-12); font-family: var(--font-mono);
   padding: 2px 3px; }
-.ma-line-row select:focus { border-color: rgba(255,255,255,0.3); }
+.ma-line-row select:focus { border-color: var(--border-hover); }
 .ma-line-row select:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .ma-line-row input[type="number"] { margin-left: 0; width: 46px; }
 .ma-line-dot { width: 12px; height: 3px; border-radius: var(--r-sm); display: inline-block; margin-left: auto; }
@@ -1089,9 +1107,10 @@ h1.page-title { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.14e
 
 /* 喊单页徽章：英文名 + 中文名 + 身份 */
 .voice-badges { display: flex; gap: var(--sp-8); flex-wrap: wrap; margin-bottom: var(--sp-8); }
+/* 徽章底原来是写死 3% 白（黑上勉强一点、白上没有）。换 --bg-sunken 井底档。 */
 .vb { display: inline-flex; align-items: baseline; gap: var(--sp-4);
   padding: 3px var(--sp-8); border: 1px solid var(--border); border-radius: var(--r-sm);
-  font-size: var(--fs-12); color: var(--text-secondary); background: rgba(255,255,255,0.03); }
+  font-size: var(--fs-12); color: var(--text-secondary); background: var(--bg-sunken); }
 .vb-en { font-size: var(--fs-12); font-weight: 600; color: var(--text); letter-spacing: 0.02em; }
 .vb-title { font-size: var(--fs-12); color: var(--text-faint); }
 .vb-title::before { content: '·'; margin-right: var(--sp-4); color: var(--text-faint); }
@@ -1899,11 +1918,12 @@ body.no-crypto .crypto-only { display: none !important; }
 /* ==================== 界面皮肤（html[data-theme]）+ 环境光 + 动效（2026-09-20） ====================
    保留终端排版与 hairline 语言，只整组换变量不动结构。--glow-1/2 是环境光 rgb 三元组
    （同 --up-rgb 契约）；--chart-* 给 lightweight-charts（canvas 不吃 CSS 变量，
-   charts.js 在创建/retheme 时现读）。默认终端黑 = :root，无需覆盖块。 */:root {
-  --chart-text: #7e90a6;
-  --chart-grid: rgba(146,176,214,0.06);
-  --chart-border: rgba(146,176,214,0.12);
-}
+   charts.js 在创建/retheme 时现读）。默认终端黑 = :root，无需覆盖块。 */
+   /* 2026-11-21（Wave 2 S1）：这里曾有一个第二个 :root 把 --chart-text 覆写成蓝灰
+      #7e90a6、--chart-grid/border 覆写成蓝调 rgba(146,176,214,·)——与本文件头部
+      「纯黑 + 中性灰，不再有蓝调」的裁定矛盾，且让深空图表文字带一层冷蓝。
+      整块删除：三个令牌回落 L94-96 的中性值（#8a8a8a / 4% 白 / 12% 白），
+      日光模式有自己的覆盖（#666 / 7% 黑 / 14% 黑），不受影响。 */
 
 /* 环境光：极淡双色辉光铺在底色上（缓慢漂移，减动效用户看到的是静态光晕） *//* ==================== 日光模式（data-theme="daylight"）====================
    同一套设计语言的第二模式：结构与动效完全一致，只换明度关系。
@@ -2300,7 +2320,7 @@ html[data-theme] .seg-lg button.active {
 .gloss-tip .gt-link {
   display: inline-block; margin-top: var(--sp-8);
   font-size: var(--fs-12); color: var(--accent-signature); text-decoration: none;
-  border-bottom: 1px solid transparent; transition: border-color var(--dur-fast);
+  border-bottom: 1px solid transparent; transition: border-color var(--dur-fast) var(--ease-out);
 }
 .gloss-tip .gt-link:hover { border-bottom-color: currentColor; }
 

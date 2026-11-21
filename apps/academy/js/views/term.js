@@ -11,7 +11,22 @@
     return '#/term/' + encodeURIComponent(id);
   }
 
-  const LENS_BASE = (window.ACADEMY_SITE && window.ACADEMY_SITE.lensUrl) || 'https://5777-wq.github.io/openfinlens/';
+  /** 术语库还在空闲档加载（site/content.js）时的统一骨架：数据一到经 onGlossary 补画。
+      以前术语库跟首屏一起拉，这个窗口不存在；现在它迟到了，就得替「未收录」
+      分清「还没到」和「真的没有」——不然读者会看到假空态。 */
+  function paintPending(view, retry) {
+    view.innerHTML = `<div class="art-head"><div class="eyebrow">术语</div>
+      <h1 style="font-size:var(--t-h1)">术语库加载中…</h1>
+      <p class="art-dek">词条解释正在后台加载，马上就好。</p></div>
+      <div class="skel" style="height:120px"></div>`;
+    window.Content.onGlossary(() => { if (view.isConnected) retry(); });
+  }
+  /** 术语库是否已就绪（vm 桩里可能没有这组新 API，退化为「能读到词条就算就绪」） */
+  function glossaryReady() {
+    const C = window.Content;
+    if (C && C.glossaryLoaded) return C.glossaryLoaded();
+    return !!(C && Object.keys(C.glossary ? C.glossary() : {}).length);
+  }
 
   /* ---- 动效样式（词典过滤结果的进场）----
      每次键入后命中块整块淡入一次：回答「我刚刚碰了什么」。
@@ -234,6 +249,7 @@
   /** 术语库索引：词典形态——顶部一个即时过滤框，词条默认展开完整四段，
       扫一眼就能读，不用一条条点开。过滤纯在本地做，不发任何请求。 */
   function renderIndex(view, query) {
+    if (!glossaryReady()) { paintPending(view, () => renderIndex(view, query)); return; }
     const g = window.Content.glossary();
     const ids = Object.keys(g);
     const hot = hotIds();
@@ -336,6 +352,7 @@
 
   /** 速查表：按分类切换（#/data?cat=macro），每个分类先给「入门三词」 */
   function renderDataSheet(view, query) {
+    if (!glossaryReady()) { paintPending(view, () => renderDataSheet(view, query)); return; }
     const g = window.Content.glossary();
     const q = query || {};
     const want = String(q.cat || 'data');
@@ -397,6 +414,7 @@
   /** 术语详情页 */
   function render(view, id, query) {
     const q = query || {};
+    if (!glossaryReady()) { paintPending(view, () => render(view, id, query)); return; }
     const t = window.Content.term(id);
     if (!t) {
       view.innerHTML = `<div class="empty"><div class="et">这个词还没有收录</div>

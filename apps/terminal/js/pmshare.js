@@ -108,12 +108,16 @@
     return String(Math.round(n));
   }
 
-  function fmtPct(p) {
+  /* 命名注意：这里的 fmtPct 入参是 0-1 分数（×100 出百分数），与 utils.js fmtPct
+     的「已是百分数」入参同名不同义——改名 fmtPctFraction 消歧；fmtDay 入参是
+     毫秒时间戳，与 utils.js fmtDay（同毫秒口径但导出全局）重名——改名 fmtDayFromMs。
+     两者都是本文件私有函数，不进 window.PMShare 导出面，改名无外部消费。 */
+  function fmtPctFraction(p) {
     if (p === null || p === undefined || isNaN(p)) return '—';
     return (Number(p) * 100).toFixed(p >= 0.995 || p <= 0.005 ? 0 : 1) + '%';
   }
 
-  function fmtDay(ms) {
+  function fmtDayFromMs(ms) {
     if (!ms) return '';
     const d = new Date(ms);
     const p = (n) => String(n).padStart(2, '0');
@@ -122,7 +126,7 @@
 
   function fmtClock(d) {
     const p = (n) => String(n).padStart(2, '0');
-    return fmtDay(d.getTime()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    return fmtDayFromMs(d.getTime()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
   }
 
   /* ==================== 环图（分享卡片） ====================
@@ -157,7 +161,7 @@
       c.textAlign = 'center';
       c.fillStyle = T.text;
       c.font = '600 34px ' + MONO;
-      c.fillText(fmtPct(top.value), cx, cy + 4);
+      c.fillText(fmtPctFraction(top.value), cx, cy + 4);
       c.fillStyle = T.text3;
       c.font = '15px ' + CJK;
       c.fillText('最大档位', cx, cy + 28);
@@ -260,7 +264,7 @@
     c.font = '16px ' + CJK;
     const bits = [];
     if (ev.updatedAt) bits.push('快照 ' + fmtClock(new Date(ev.updatedAt)));
-    if (ev.endDate) bits.push('截止 ' + fmtDay(ev.endDate));
+    if (ev.endDate) bits.push('截止 ' + fmtDayFromMs(ev.endDate));
     if (ev.outcomeCount) bits.push(ev.outcomeCount + ' 个档位');
     c.fillText(bits.join('  ·  '), PAD, y + 12);
 
@@ -318,7 +322,7 @@
       c.fillStyle = col;
       c.font = '600 34px ' + MONO;
       c.textAlign = 'right';
-      c.fillText(fmtPct(p), W - PAD, ry + 28);
+      c.fillText(fmtPctFraction(p), W - PAD, ry + 28);
       // 24h 变化
       const ch = Number(o2.change24h);
       if (!isNaN(ch) && o2.change24h !== null && o2.change24h !== undefined) {

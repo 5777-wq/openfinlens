@@ -362,6 +362,12 @@
     const r = search(q);
     const total = r.terms.length + r.articles.length + r.assets.length;
     const q1 = esc(q || '');
+    // 术语库空闲档加载中（site/content.js）：文章/标的照常出，术语组缺席时说明一句，
+    // 术语库到了自动补画——别让读者以为「搜不到」。
+    const pendingTerms = !!(window.Content && window.Content.glossaryLoaded && !window.Content.glossaryLoaded());
+    if (pendingTerms && window.Content.onGlossary) {
+      window.Content.onGlossary(() => { if (view.isConnected) render(view, q); });
+    }
 
     /* 分组容器 sr-group：2px 墨线压顶，组头/组距的层次都在 search-view-css 里 */
     const group = (title, items, renderItem) => items.length
@@ -395,7 +401,7 @@
       <div class="art-head">
         <div class="eyebrow">站内搜索</div>
         <h1 style="font-size:var(--t-h1);margin-bottom:var(--s-2)">${q1 ? '「' + q1 + '」的搜索结果' : '搜索'}</h1>
-        <p class="art-dek">${total ? `找到 ${total} 条结果。` : '没有匹配结果。'} 术语会告诉你"这是什么"，文章会告诉你"为什么"。</p>
+        <p class="art-dek">${total ? `找到 ${total} 条结果。` : '没有匹配结果。'} 术语会告诉你"这是什么"，文章会告诉你"为什么"。${pendingTerms ? '<span class="muted">术语库正在后台加载——术语结果马上自动补上。</span>' : ''}</p>
       </div>
       ${termsBlock}
       ${group('文章', r.articles, (a) => `<a class="entry" href="#/${esc(a.section)}/${esc(a.id)}">

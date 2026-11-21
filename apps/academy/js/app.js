@@ -93,7 +93,11 @@
           // 产业链的条目来自 vendor（10 条链），不是内容索引
           let count = null;
           if (it.id === 'terms') {
-            count = Object.keys((window.Content && window.Content.glossary && window.Content.glossary()) || {}).length;
+            // 术语库是空闲档加载的（site/content.js）：没到就不显示数字（别画个 0），
+            // 到货后 boot 里的 onGlossary 回调会重画左栏把数字补上。
+            count = (window.Content && window.Content.glossaryLoaded && window.Content.glossaryLoaded())
+              ? Object.keys(window.Content.glossary()).length
+              : null;
           } else if (it.id === 'data') {
             count = (window.TermView && window.TermView.CATS ? window.TermView.CATS : []).length;
           } else if (it.section === 'chains') {
@@ -835,7 +839,33 @@
     document.body.setAttribute('data-updown', window.Store.get('updown') === 'green' ? 'green' : 'red');
     const meta = document.querySelector('meta[name=theme-color]');
     if (meta) meta.setAttribute('content', t === 'night' ? '#08111C' : '#F2ECDF');
+    /* Wave 1-4（跨站主题同步，2026-11-21）：academy 的解析结果镜像给终端 gfd_settings
+       （night→nexus、day→daylight），含跟随系统解析后的值。反向回流靠下方 storage
+       监听；本 tab 自己写不触发 storage，无乒乓。 */
+    try {
+      const lt = (window.U && window.U.themeToLens) ? window.U.themeToLens(t) : (t === 'night' ? 'nexus' : 'daylight');
+      const cur = JSON.parse(localStorage.getItem('gfd_settings') || '{}');
+      if (cur.theme !== lt) {
+        cur.theme = lt;
+        localStorage.setItem('gfd_settings', JSON.stringify(cur));
+      }
+    } catch (e) { /* 隐私模式忽略 */ }
   }
+
+  // 终端切肤（另一 tab）→ 这里跟随：gfd_settings 变化经 storage 事件回流，
+  // 手动值写回 ofa_state 并退出跟随系统（与终端语义对齐：手动即手动）。
+  window.addEventListener('storage', (e) => {
+    if (e.key !== 'gfd_settings' || !e.newValue) return;
+    try {
+      const lt = (JSON.parse(e.newValue) || {}).theme;
+      if (!lt) return;
+      const want = (window.U && window.U.themeToAcademy) ? window.U.themeToAcademy(lt) : (lt === 'nexus' ? 'night' : 'day');
+      if (resolvedTheme() === want) return;
+      window.Store.set('theme', want);
+      window.Store.set('themeAuto', false);
+      applyTheme();
+    } catch (err) { /* 脏值忽略 */ }
+  });
 
   function prefersReducedMotion() {
     try {
@@ -1005,8 +1035,11 @@
     if (window.PWA && window.PWA.register) window.PWA.register();
     step('boot:shell painted + interactions bound');
 
-    // 内容与行情并行加载；内容最多等 8 秒，超时也先把页面渲染出来
-    const contentReady = window.Content.loadAll().catch((e) => {
+    // 内容与行情并行加载；内容最多等 8 秒，超时也先把页面渲染出来。
+    // 首屏只等轻量壳（index/path/asset-ids/asset-notes）：
+    // 术语库 glossary.json（全站最大单项）挂空闲档（site/content.js），不挡路由首画；
+    // 术语相关功能按 Content.glossaryLoaded() 降级，术语库到了经 onGlossary 自动补上。
+    const contentReady = window.Content.loadShell().catch((e) => {
       console.error('[content] 加载失败', e);
       return null;
     });
@@ -1032,6 +1065,14 @@
     paintRail();
     applyLensSetting(false);   // 左栏那张终端卡片也要跟着开关走
     paintTicker();
+    // 术语库（空闲档）到货后把左栏的词条数补上：只重画左栏，不重跑路由；
+    // 重画会清掉高亮，所以补一次 markActive。
+    if (window.Content.onGlossary) {
+      window.Content.onGlossary(() => {
+        paintRail();
+        try { markActive(window.Router.parse(location.hash).path); } catch (e) { /* 忽略 */ }
+      });
+    }
     step('boot:rail+ticker painted');
 
     /* ⚠ 先把路由渲染出来，再等行情。

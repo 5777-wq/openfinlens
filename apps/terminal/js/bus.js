@@ -3,7 +3,9 @@
      Bus.emit('event:select', ev)   选中一条全球事件
      Bus.emit('symbol:open', t)     请求打开标的详情（复用现有 openDetail）
      Bus.emit('chart:event', m)     用户点中K线上的事件 marker
-   监听器抛错只吞掉本监听器，不炸整条链。 */
+   监听器抛错只吞掉本监听器，不炸整条链。
+   off()/on() 返回的退订闭包当前无消费方（页面级单注册，模块生命周期 = 页面生命周期，
+   不存在泄漏），保留 API 备将来动态面板（挂载/卸载）用。 */
 
 const Bus = (() => {
   const map = new Map();

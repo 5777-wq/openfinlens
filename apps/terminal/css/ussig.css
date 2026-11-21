@@ -1,87 +1,259 @@
-/* ussig.css —— 「美股信号」Tab（monorepo Phase 4）
- * 换肤纪律：只用主终端 CSS 变量（--ink/--muted/--line/--up/--down/--surface…），
- * 零硬编码色——纸白/纯黑两套主题自动跟随。 */
+/* ussig.css —— 「美股信号」Tab（monorepo Phase 4；Wave 2 视觉重构切片 S1）
+ * 换肤纪律：只消费主终端真实令牌（文字 --text/--text-secondary/--text-tertiary、
+ * 边框 --border/--border-soft/--border-hover、井底 --bg-sunken、悬停 --bg-hover、
+ * 强调 --accent-signature、涨跌文字 --text-rise/--text-fall），
+ * 零硬编码色——纸白/纯黑两套主题自动跟随。
+ * 表语言对齐 css/ui/03-panels.css 的网格表（.srow/.brow 系）：
+ *   表头 = --bg-sunken 井底 + 12px + 0.1em 字距；行 = 1px hairline（--border-soft）；
+ *   悬停抬到 --bg-hover；数字 mono + tabular + 右对齐。
+ * 文字色一律走 --text-rise/--text-fall（--up/--down 是图形色，不进文字）。
+ */
 
+/* ---------- 页头工具行 ---------- */
 .ussig-head {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 18px;
+  gap: var(--sp-12) var(--sp-16);
   align-items: center;
-  margin: 10px 0 14px;
+  margin: var(--sp-12) 0 var(--sp-16);
 }
 .ussig-clock {
-  font-size: 13px;
-  color: var(--muted);
+  font-size: var(--fs-13);
+  color: var(--text-tertiary);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--sp-8);
 }
-.ussig-clock b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.ussig-clock b { color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* 筛选 chips 行：对齐 .chipbar 的排布语言（style.css 的 .chipbar = gap --sp-8） */
+.ussig-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+}
+
+/* ---------- 徽章（us-signals.js badge() 产出） ---------- */
 .ussig-badge {
   display: inline-block;
-  padding: 1px 6px;
+  padding: 1px var(--sp-8);
   border: 1px solid currentColor;
-  border-radius: 4px;
-  font-size: 11px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-12);
   line-height: 1.5;
   vertical-align: middle;
 }
-.ussig-badge.warn { color: var(--warn, #a66a16); }
-.ussig-badge.ret { color: var(--down); border-color: var(--down); }
-.ussig-badge.note { color: var(--accent); font-weight: 700; }
+.ussig-badge.warn { color: var(--warn); }
+/* 回落 = 收盘自上方回落进入通道：方向语义，文字色（不是图形色 --down） */
+.ussig-badge.ret { color: var(--text-fall); }
+.ussig-badge.note { color: var(--accent-signature); font-weight: 700; }
+/* 详情页信号卡里的 RSI 徽章（renderCard rsiCell 的 .ob/.os）：
+   与桌面版 .dt-ussig-badge.ob/.os 同一映射——超买涨字红、超卖跌字绿 */
+.ussig-badge.ob { color: var(--text-rise); }
+.ussig-badge.os { color: var(--text-fall); }
 
+/* ---------- 工具行（RSI 周期 / 日周线切换 + 说明） ---------- */
 .ussig-tools {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 14px;
+  gap: var(--sp-12) var(--sp-16);
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--sp-12);
 }
-.ussig-switch { display: inline-flex; gap: 6px; }
-.ussig-note { font-size: 12px; }
+.ussig-switch { display: inline-flex; gap: var(--sp-4); }
+.ussig-note { font-size: var(--fs-12); }
 
+/* 置灰辅助类（us-signals.js 的 vegas「数据不足」点、成分列） */
+.mut { color: var(--text-tertiary); }
+
+/* ---------- 信号表 ---------- */
 .ussig-body { overflow-x: auto; }
 .ussig-table {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
+  /* separate 而不是 collapse：sticky 表头的边框在 collapse 下会随滚动脱走，
+     separate + border-spacing:0 让表头井底与下边线一起钉住 */
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--fs-13);
   min-width: 900px;
   font-variant-numeric: tabular-nums;
 }
 .ussig-table th, .ussig-table td {
-  padding: 8px 10px;
-  border-top: 1px solid var(--line);
+  padding: var(--sp-8) var(--sp-12);
   text-align: right;
   white-space: nowrap;
 }
+/* 表头：03-panels 网格表语言——--bg-sunken 井底 + 12px + 0.1em 字距 + --text-tertiary */
 .ussig-table th {
   position: sticky;
   top: 0;
-  background: var(--surface-2, var(--surface));
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  text-align: right;
-  box-shadow: 0 1px 0 var(--line);
+  z-index: 1;
+  background: var(--bg-sunken);
+  border-top: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-tertiary);
+  font-size: var(--fs-12);
+  font-weight: 500;
+  letter-spacing: 0.1em;
 }
+/* 行：hairline（--border-soft），悬停抬到 --bg-hover（原来 var(--hl) 断链，
+   nexus 纯黑下悬停是黑上黑不可见） */
+.ussig-table td { border-bottom: 1px solid var(--border-soft); }
+.ussig-row { cursor: pointer; transition: background-color var(--dur-fast) var(--ease-out); }
+.ussig-row:hover, .ussig-row:focus-visible { background: var(--bg-hover); }
+
+/* 列语义：代码/名称/信号左对齐，排名居中，其余数字列右对齐（表级右对齐） */
+.ussig-table th:nth-child(2), .ussig-table td:nth-child(2) { text-align: center; }
 .ussig-table th:nth-child(3), .ussig-table td:nth-child(3),
 .ussig-table th:nth-child(4), .ussig-table td:nth-child(4),
-.ussig-table td.sig { text-align: left; }
-.ussig-row { cursor: pointer; transition: background .15s; }
-.ussig-row:hover, .ussig-row:focus-visible { background: var(--hl, rgba(0, 0, 0, .06)); outline: none; }
-.ussig-row td.rsi.ob { color: var(--up); font-weight: 800; }
-.ussig-row td.rsi.os { color: var(--down); font-weight: 800; }
-.ussig-row .ticker { font-weight: 800; }
+.ussig-table th:nth-child(9), .ussig-table td.sig { text-align: left; }
+
+.ussig-row .ticker { font-weight: 800; font-family: var(--font-mono); letter-spacing: 0.02em; }
 .ussig-row .company { font-weight: 600; }
-.ussig-row .up { color: var(--up); }
-.ussig-row .dn { color: var(--down); }
-.ussig-row .rank, .ussig-row .mut { color: var(--muted); }
-.ussig-row .vegas { display: inline-flex; gap: 8px; }
-.ussig-row .vegas .up { color: var(--up); font-weight: 700; }
-.ussig-row .vegas .dn { color: var(--down); font-weight: 700; }
+.ussig-row .rank { font-family: var(--font-mono); }
+/* 涨跌文字一律文字色令牌（--up/--down 是图形色，正文里对比度与语义都不合适） */
+.ussig-row .up { color: var(--text-rise); }
+.ussig-row .dn { color: var(--text-fall); }
+.ussig-row td.rsi.ob { color: var(--text-rise); font-weight: 800; }
+.ussig-row td.rsi.os { color: var(--text-fall); font-weight: 800; }
+.ussig-row .rank, .ussig-row .mut { color: var(--text-tertiary); }
+.ussig-row .vegas { display: inline-flex; gap: var(--sp-8); }
+.ussig-row .vegas .up { color: var(--text-rise); font-weight: 700; }
+.ussig-row .vegas .dn { color: var(--text-fall); font-weight: 700; }
 .stcol { text-align: center !important; width: 36px; }
+
+/* ---------- 空态（对齐 .empty 的引导卡语言，03-panels §8） ---------- */
+.ussig-empty {
+  padding: var(--sp-32) var(--sp-24);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-card);
+  color: var(--text-tertiary);
+  font-size: var(--fs-12);
+  line-height: 1.8;
+  text-align: center;
+}
+/* 空态里的重试按钮（us-signals.js renderEmpty 的 .chip）：
+   对齐 .empty > a/button 的引导胶囊——描边胶囊，不是实心强调块 */
+.ussig-empty > button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin-top: var(--sp-12);
+  padding: var(--sp-4) var(--sp-12);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--r-pill);
+  color: var(--text-secondary);
+  font-size: var(--fs-12);
+  /* 低频控件（重试）走 --dur-base 基准档；高频 hover 才用 --dur-fast */
+  transition: color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+.ussig-empty > button:hover { color: var(--text); border-color: var(--accent-signature); background: var(--accent-soft); }
+
+/* ---------- 载入态 shimmer（对齐 01-shell 的 .sk / 04-motion 的 moSheen 语言） ----------
+   us-signals.js 的载入与空态都输出 .ussig-empty 且没有状态类（js 不在本切片白名单），
+   用结构区分，不误伤：
+   · 载入/静态占位 = #ussig-chips 还是空的（首拉与重试期间 chips 都未渲染）
+     且块内没有重试按钮（错误态必带重试 .chip）；
+   · 筛选空态 = chips 已渲染（render() 成功后必填）——不命中，不会对着「没有匹配」一直扫光。
+   扫光用 04-motion 的 --mo-sheen（两主题各自有值）+ 1.2s 线性扫过，减动效整体禁用。 */
+#view-ussig:has(#ussig-chips:empty) .ussig-empty:not(:has(> button)) {
+  position: relative;
+  overflow: hidden;
+}
+#view-ussig:has(#ussig-chips:empty) .ussig-empty:not(:has(> button))::after,
+#watchWall .empty-hint::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--mo-sheen, rgba(255,255,255,0.06)), transparent);
+  transform: translateX(-100%);
+  animation: ussigSheen 1.2s linear infinite;
+  pointer-events: none;
+}
+#watchWall .empty-hint { position: relative; overflow: hidden; }
+@keyframes ussigSheen { to { transform: translateX(100%); } }
+
+/* ---------- Wave 1 挂点①：详情页 Meridian 信号胶囊卡 ----------
+   window.UsSignals.renderCard 输出 .sig-card[data-ussig-card]（app.js loadTechnical
+   插到技术面最上方）。类名 .sig-card 与宏观策略读数卡（03-panels §6）撞名——
+   用 data-ussig-card 属性锚定，只管自家卡，不碰宏观卡。
+   语言：紧凑两列网格 + hairline 行分隔 + 等宽数字；无花哨底色，两主题下都靠
+   令牌对比度（--text-tertiary 对 --bg-card 两模式均 ≥4.5:1，tokens.test 卡死）。 */
+.sig-card[data-ussig-card] {
+  margin-bottom: var(--sp-24);
+  padding: var(--sp-12) var(--sp-16);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-card);
+  font-size: var(--fs-12);
+}
+.sig-row {
+  display: grid;
+  grid-template-columns: minmax(96px, auto) minmax(0, 1fr);
+  gap: var(--sp-4) var(--sp-12);
+  align-items: baseline;
+  padding: var(--sp-8) 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.sig-row:last-child { border-bottom: none; }
+.sig-row .sig-k { color: var(--text-tertiary); white-space: nowrap; }
+.sig-row .sig-v { color: var(--text); min-width: 0; }
+/* Vegas 长描述：单独一行文本，行高放宽到可扫读 */
+.sig-row .sig-v .sig-v-text { display: block; line-height: 1.7; color: var(--text-secondary); }
+/* 卡内徽章之间留一档呼吸（RSI6/RSI14 两枚并排） */
+.sig-row .sig-v .ussig-badge + .ussig-badge { margin-left: var(--sp-4); }
+
+/* ---------- Wave 1 挂点②：自选行的 Meridian 微角标 ----------
+   app.js rowHTML 在命中信号的美股 .qrow 上挂 data-ussig="overbought|oversold" /
+   data-ussig-ev="break_up,break_down…" / data-ussig-revert。样式克制：
+   1px 描边微胶囊挂在名称文字（.qr-nm）尾部，总高 14px（12px 字 + 上下 1px 描边），
+   不撑行高、不抢价格列的视觉权重；名称过长被省略号吃掉时角标随之收起（不换行）。
+   穿线事件（data-ussig-ev）有值时描边/文字切到 --text-rise/--text-fall 语义色。 */
+.qrow[data-ussig] .qr-nm::after {
+  display: inline-block;
+  height: 14px;
+  margin-left: var(--sp-4);
+  padding: 0 var(--sp-4);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-12);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  vertical-align: -2px;
+}
+.qrow[data-ussig="overbought"] .qr-nm::after { content: '超买'; }
+.qrow[data-ussig="oversold"] .qr-nm::after { content: '超卖'; }
+.qrow[data-ussig-ev*="break_up"] .qr-nm::after { border-color: var(--text-rise); color: var(--text-rise); }
+.qrow[data-ussig-ev*="break_down"] .qr-nm::after { border-color: var(--text-fall); color: var(--text-fall); }
+
+/* ---------- 窄屏（390px 档）----------
+   ① 表体右缘渐隐（对齐 03-panels §5 期权表 .opt-scroll 的 mask 语言）：
+      横向滚动时提示"右边还有列"，否则尾部列在手机上等于不存在。
+   ② 砍次要列：排名(2) / 周RSI(8) / 成分(10) / SPMO%(11)。
+      td.rank / td.mut 有类可直接点；表头与 周RSI、SPMO% 两列（8、11）无类，
+      只能用 nth-child——列序由 us-signals.js render() 的表头钉死
+      （星标/排名/代码/名称/收盘/涨跌/RSI/周RSI/信号/成分/SPMO%），改列序必须同步这里。 */
+@media (max-width: 480px) {
+  .ussig-body {
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 24px), transparent 100%);
+  }
+  .ussig-table { min-width: 540px; }
+  .ussig-table th:nth-child(2), .ussig-table td:nth-child(2),
+  .ussig-table th:nth-child(8), .ussig-table td:nth-child(8),
+  .ussig-table th:nth-child(10), .ussig-table td:nth-child(10),
+  .ussig-table th:nth-child(11), .ussig-table td:nth-child(11),
+  .ussig-table td.rank, .ussig-table td.mut { display: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .ussig-row { transition: none !important; }
+  #view-ussig:has(#ussig-chips:empty) .ussig-empty:not(:has(> button))::after,
+  #watchWall .empty-hint::after { animation: none; opacity: 0; }
 }

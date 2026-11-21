@@ -104,6 +104,16 @@
       fxEnter(view, true);         // 正文到达：只淡入新到的块，标题不再重播
       paint(view, section, art);
       bindBookmark(view, art.id || id);
+      // 术语库若还在空闲档加载（site/content.js），词条锚点会先降级成纯文本；
+      // 术语库一到就地补画这一次（正文在缓存里，只换词条标记，阅读位置不动）。
+      if (window.Content.glossaryLoaded && !window.Content.glossaryLoaded() && window.Content.onGlossary) {
+        window.Content.onGlossary(() => {
+          if (view.isConnected && view.__artSeq === seq) {
+            paint(view, section, art);
+            bindBookmark(view, art.id || id);
+          }
+        });
+      }
     });
   }
 

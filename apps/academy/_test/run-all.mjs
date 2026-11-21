@@ -1033,24 +1033,32 @@ function loadScripts(files) {
 }
 
 /* ============================================================
-   6. legacy 兼容层契约（monorepo Phase 4：vendor/sync-core 已退役）
-   js/legacy/* 与 apps/terminal/js 同名文件逐字节一致（utils 刻意保持
-   academy 冻结版除外）——漂移由主仓 _test/terminal-drift.test.mjs
-   的同款口径兜底，这里只验证存在性与关键差异点。
+   6. legacy 兼容层契约（monorepo Wave 3：双树由构建脚本单源生成）
+   js/legacy/* 五份副本（含 utils.js——"academy 冻结版"口径已退役）由
+   _scripts/build-legacy.mjs 从终端真源（apps/terminal/js/）单源生成，
+   人肉同步与 terminal-drift.test.mjs 都已退役；此处校验「构建未漂移」：
+   副本逐字节等于真源。改了终端侧文件就跑一次写模式，别手改本目录。
    ============================================================ */
 {
   const TERM = path.join(ROOT, '..', '..', 'apps', 'terminal', 'js');
-  for (const f of ['universe.js', 'explain.js', 'industry-chains.js', 'academy-gloss.js']) {
+  const LEGACY_SRC = {
+    'utils.js': 'utils.js',
+    'universe.js': 'data/universe.js',
+    'explain.js': 'data/explain.js',
+    'industry-chains.js': 'data/industry-chains.js',
+    'academy-gloss.js': 'data/academy-gloss.js',
+  };
+  for (const f of Object.keys(LEGACY_SRC)) {
     const a = path.join(ROOT, 'js', 'legacy', f);
-    const b = path.join(TERM, f === 'universe.js' ? 'data/universe.js' : f === 'explain.js' ? 'data/explain.js' : f === 'academy-gloss.js' ? 'data/academy-gloss.js' : 'data/industry-chains.js');
+    const b = path.join(TERM, LEGACY_SRC[f]);
     ok(`js/legacy/${f} 存在`, existsSync(a));
     if (existsSync(a) && existsSync(b)) {
-      ok(`js/legacy/${f} 与终端真源逐字节一致`,
-        readFileSync(a, 'utf8') === readFileSync(b, 'utf8').replace(/\r\n/g, '\n') || readFileSync(a, 'utf8') === readFileSync(b, 'utf8'));
+      const rawA = readFileSync(a, 'utf8');
+      const rawB = readFileSync(b, 'utf8');
+      ok(`js/legacy/${f} 与终端真源逐字节一致（build-legacy.mjs 单源生成，构建未漂移）`,
+        rawA === rawB || rawA === rawB.replace(/\r\n/g, '\n'));
     }
   }
-  ok('js/legacy/utils.js 存在（academy 冻结版，与终端新版差异已裁定）',
-    existsSync(path.join(ROOT, 'js', 'legacy', 'utils.js')));
 }
 
 /* ---------- 汇总 ---------- */

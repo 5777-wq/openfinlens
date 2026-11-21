@@ -1,5 +1,8 @@
 /* site/content.js —— 内容加载（MD 编译产物 data/content/*.json）
-   首屏只拉四份文件：index.json（目录）、glossary.json（术语库）、path.json（新手路径）、asset-ids.json（标的清单）。
+   首屏只拉**轻量四件**：index.json（目录）、path.json（新手路径）、asset-ids.json（标的清单）、asset-notes.json（标的短注）。
+   术语库 glossary.json（全站最大单项，300KB+）不在首屏并行组里：boot 先画页面，
+   术语库挂 requestIdleCallback（无则 setTimeout 0）空闲拉取，消费方按 glossaryLoaded()
+   降级（骨架 / 「加载中」提示），数据一到经 onGlossary 自动补上。
    文章正文各自按需拉：打开哪篇才拉哪篇，拉过就缓存。
    标的的维基百科深链（asset-wiki.json）也按需拉：只有标的页会用到。 */
 (function () {
@@ -23,26 +26,78 @@
     } finally { clearTimeout(timer); }
   }
 
-  /** 载入索引 + 三份附属文件（**不含**正文） */
-  async function loadAll() {
-    if (idx.list) return idx;
-    const index = await loadJSON(BASE + 'index.json');
-    idx.list = index;
-    (index.items || []).forEach((it) => idx.byId.set(it.id, it));
+  /* ---------- 术语库：空闲档加载 ----------
+     glossaryLoaded：terms 对象**存在**即算就绪——拉失败也按 { terms: {} } 落地，
+     所以「未就绪」只发生在还没拉完的窗口里，不会把失败者永远锁在骨架里。
+     onGlossary：就绪（含失败落地）后同步回调；否则登记，到点统一叫醒。 */
+  let glossaryP = null;
+  const glossaryWaiters = [];
 
-    // 四份附属文件互相不依赖，一起拉完，谁先到先谁。
-    // 标的清单（94 个终端标的在本站有对应标的页）：search 要用它们的名字和代码做匹配，
-    // 否则「工商银行」「600519」这类词永远搜不到。20KB，一次拉够。
-    const [glossary, path, assetIds, assetNotes] = await Promise.all([
-      loadJSON(BASE + 'glossary.json').catch(() => ({ terms: {} })),
-      loadJSON(BASE + 'path.json').catch(() => null),
-      loadJSON(BASE + 'asset-ids.json').catch(() => null),
-      loadJSON(BASE + 'asset-notes.json').catch(() => null),
-    ]);
-    idx.glossary = glossary;
-    idx.path = path;
-    idx.assetIds = assetIds;
-    idx.assetNotes = assetNotes;
+  function glossaryLoaded() { return !!(idx.glossary && idx.glossary.terms); }
+
+  function notifyGlossary() {
+    const fns = glossaryWaiters.splice(0, glossaryWaiters.length);
+    for (const fn of fns) { try { fn(); } catch (e) { console.warn('[content] onGlossary 回调失败', e); } }
+  }
+
+  function ensureGlossary() {
+    if (idx.glossary) return Promise.resolve(idx.glossary);
+    if (!glossaryP) {
+      glossaryP = loadJSON(BASE + 'glossary.json')
+        .then((j) => { idx.glossary = j || { terms: {} }; notifyGlossary(); return idx.glossary; })
+        .catch(() => { idx.glossary = { terms: {} }; notifyGlossary(); return idx.glossary; });
+    }
+    return glossaryP;
+  }
+
+  /** 首屏不背术语库：壳文件就绪后把它排进空闲档 */
+  function scheduleGlossary() {
+    if (idx.glossary || glossaryP) return;
+    const idle = (typeof window.requestIdleCallback === 'function')
+      ? (fn) => window.requestIdleCallback(fn, { timeout: 2000 })
+      : (fn) => setTimeout(fn, 0);
+    idle(() => { ensureGlossary(); });
+  }
+
+  /** 术语库就绪后回调（已就绪则立刻执行）；返回退订函数 */
+  function onGlossary(fn) {
+    if (typeof fn !== 'function') return () => {};
+    if (glossaryLoaded()) { try { fn(); } catch (e) { /* 回调自己的事 */ } return () => {}; }
+    glossaryWaiters.push(fn);
+    return () => {
+      const i = glossaryWaiters.indexOf(fn);
+      if (i >= 0) glossaryWaiters.splice(i, 1);
+    };
+  }
+
+  /** 载入索引 + 三份轻量附属文件（**不含正文、不含术语库**）——boot 首屏等的就是它 */
+  async function loadShell() {
+    if (!idx.list) {
+      const index = await loadJSON(BASE + 'index.json');
+      idx.list = index;
+      (index.items || []).forEach((it) => idx.byId.set(it.id, it));
+
+      // 三份轻量附属文件互相不依赖，一起拉完，谁先到谁先算。
+      // 标的清单（94 个终端标的在本站有对应标的页）：search 要用它们的名字和代码做匹配，
+      // 否则「工商银行」「600519」这类词永远搜不到。
+      const [path, assetIds, assetNotes] = await Promise.all([
+        loadJSON(BASE + 'path.json').catch(() => null),
+        loadJSON(BASE + 'asset-ids.json').catch(() => null),
+        loadJSON(BASE + 'asset-notes.json').catch(() => null),
+      ]);
+      idx.path = path;
+      idx.assetIds = assetIds;
+      idx.assetNotes = assetNotes;
+      scheduleGlossary();
+    }
+    return idx;
+  }
+
+  /** 全量加载：壳 + 术语库。await 返回后 glossary() 一定可同步读
+      （vm 直跑测试 / status 页用这个契约；浏览器 boot 只等 loadShell）。 */
+  async function loadAll() {
+    await loadShell();
+    await ensureGlossary();
     return idx;
   }
 
@@ -58,7 +113,7 @@
     if (inflight.has(key)) return inflight.get(key);
     // id 来自路由参数（用户可控），不直接拼进请求路径。
     // 索引还没加载完就先等索引——见 app.js 的 boot，正常情况下这一步不会走。
-    if (!idx.list) return loadAll().then(() => ensureArticle(id)).catch(() => null);
+    if (!idx.list) return loadShell().then(() => ensureArticle(id)).catch(() => null);
     // 用遍历比较而不是 Map.get：请求路径只由 index.json（服务端数据）里的字段拼出，
     // 入参除了参与 === 比较外不进入任何数据流。索引里没有的 id，站内就没有对应文件。
     const items = idx.list.items || [];
@@ -135,5 +190,5 @@
     return wikiP;
   }
 
-  window.Content = { BASE, loadAll, ensureArticle, list, meta, article, glossary, term, bySection, pathPlan, assetPages, assetNotes, assetWiki, ensureWiki, idx };
+  window.Content = { BASE, loadAll, loadShell, ensureGlossary, glossaryLoaded, onGlossary, ensureArticle, list, meta, article, glossary, term, bySection, pathPlan, assetPages, assetNotes, assetWiki, ensureWiki, idx };
 })();

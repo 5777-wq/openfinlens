@@ -185,6 +185,9 @@ window.addEventListener('unhandledrejection', function (e) {
     <div class="masthead-meta">
       <span class="hide-sm" id="mh-date">—</span>
       <span class="sep hide-sm">·</span>
+      <!-- JS 未跑时的静态占位：boot 一开始 paintMasthead 就会用 base.js 的相对
+           lensUrl（'../index.html'）改写它；这里保留部署站绝对地址，是 og/canonical
+           同款的「SEO/无 JS 回退」口径（render-test 校验静态引用须落在站内磁盘）。 -->
       <a class="hide-sm" id="mh-sister" href="https://5777-wq.github.io/openfinlens/" target="_blank" rel="noopener">OpenFinLens ↗</a>
     </div>
 
@@ -298,9 +301,10 @@ window.addEventListener('unhandledrejection', function (e) {
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
 </button>
 
-<!-- monorepo：sync-core.mjs 与 vendor/ 已退役（Phase 4）。这五个 IIFE 兼容模块的原字节
-     随本仓 apps/academy/js/legacy/ 走（与 apps/terminal/js 同名文件由漂移测试钉住一致；
-     utils.js 两仓版本刻意保持 academy 冻结版，收口进 core/ 是 Phase 5 的事） -->
+<!-- monorepo：sync-core.mjs 与 vendor/ 已退役（Phase 4）。这五个 IIFE 兼容模块由
+     _scripts/build-legacy.mjs 从终端真源（apps/terminal/js/）单源生成，
+     apps/academy/_test/run-all.mjs 的契约段校验构建未漂移——改终端侧文件后
+     跑一次写模式即可，勿手改本目录 -->
 <script src="js/legacy/utils.js?v=20261110"></script>
 <script src="js/legacy/universe.js?v=20261110"></script>
 <script src="js/legacy/explain.js?v=20261110"></script>

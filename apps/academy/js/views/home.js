@@ -207,6 +207,12 @@
     ensureMotionCss();
     let secI = 0;
     const si = () => `--h-sec-i:${secI++};`;
+    // 术语库空闲档加载中（site/content.js）：今日一词/概念速览先缺席（不放假卡），
+    // 术语库到了就地重画一次——只重画本视图，不重跑路由。
+    const C = window.Content;
+    if (C && C.glossaryLoaded && !C.glossaryLoaded() && C.onGlossary) {
+      C.onGlossary(() => { if (view.isConnected) render(view); });
+    }
     const glossary = window.Content.glossary();
     const termIds = Object.keys(glossary);
     const pick = pickTodayTerm(termIds);
