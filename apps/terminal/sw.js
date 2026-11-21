@@ -11,7 +11,7 @@
 
 'use strict';
 
-const CACHE = 'ofl-v2';                 // ← 发版时修改这个版本号（20261121a Wave 2 视觉重构整体换代）
+const CACHE = 'ofl-v3';                 // ← 发版时修改这个版本号（20261121b 导航裁切/井底槽/logo 徽标/热力图兜底 整体换代）
 const CACHE_PREFIX = 'ofl-';            // activate 只清本站自己的旧缓存
 
 const PRECACHE = [

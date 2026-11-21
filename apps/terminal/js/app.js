@@ -1645,7 +1645,7 @@
     const viaTxt = via === 'cache'
       ? '缓存 · ' + fmtTime(state.heatCachedAt[state.heatMode])
       : via === 'backup' ? '备用源'
-      : via === 'tencent' ? '指数成分 · 腾讯（东财全市场暂不可达）'
+      : via === 'tencent' ? '腾讯备源（东财全市场暂不可达）'
       : via === 'recent' ? '主源 · ' + fmtAgo(state.heatFetchedAt)   // 5 分钟内复用，不假装是刚刚抓的
       : via ? '主源直连' : '等待数据';
     const rangeTxt = state.heatMode === 'cn'
@@ -1863,6 +1863,25 @@
       state.heatItems.hk = rows; state.heatVia.hk = 'primary';
       Cache.set('heat:hk', rows);
     } else {
+      /* 东财 clist 拒连时的备源（与美股 usRowsFromTencent 同构，2026-11-21）：
+         universe 港股精选（恒指权重股等 ~15 只）走腾讯报价——量级小但保住
+         热力图不空态；兜底也失败才回落旧缓存。 */
+      const hk = (window.TENCENT_UNIVERSE || []).filter(u => /^hk/i.test(u.symbol));
+      const quotes = await window.TencentSource.getQuotes(hk.map(u => u.symbol)).catch(() => []);
+      const rows2 = (quotes || []).filter(q => q && q.marketCap).map(q => ({
+        code: q.code || q.symbol,
+        name: q.name || q.symbol,
+        secid: '', market: 'hk',
+        price: q.price, changePct: q.changePct, change: q.change,
+        volume: q.volume, amount: q.amount,
+        marketCap: q.marketCap,
+        industry: '港股精选',
+      }));
+      if (rows2.length) {
+        state.heatItems.hk = rows2; state.heatVia.hk = 'tencent';
+        Cache.set('heat:hk', rows2);
+        return rows2;
+      }
       const cc = Cache.raw('heat:hk');
       if (cc) { state.heatItems.hk = cc.val; state.heatVia.hk = 'cache'; state.heatCachedAt.hk = cc.at; }
     }
