@@ -1645,6 +1645,7 @@
     const viaTxt = via === 'cache'
       ? '缓存 · ' + fmtTime(state.heatCachedAt[state.heatMode])
       : via === 'backup' ? '备用源'
+      : via === 'tencent' ? '指数成分 · 腾讯（东财全市场暂不可达）'
       : via === 'recent' ? '主源 · ' + fmtAgo(state.heatFetchedAt)   // 5 分钟内复用，不假装是刚刚抓的
       : via ? '主源直连' : '等待数据';
     const rangeTxt = state.heatMode === 'cn'
@@ -1871,6 +1872,47 @@
   /* ---- 美股宽度（东财美股全市场 m:105,106,107 ≈ 1.38 万只，全量抓避免排序偏差）----
      与加密宽度同构的独立卡片；无涨跌停概念，不展示 limit 口径。缓存 5 分钟。
      同一份行数据也供"美股热力图"使用（按市值取 Top 500 后画）。 */
+  /* 东财 clist 全市场接口被拒时的备源（2026-11-21 实测：clist 被东财 IP+接口级
+     限流拒连，ulist/主站正常——A 股热力图有腾讯精选兜底，美股此前没有备源导致
+     热力图长期空态）。标普500+纳指100+道指30 成分（US_INDEXES，去重 ≈ 580 只）
+     走腾讯批量报价（getQuotes 内部 60/批分块），市值字段可用 → 面积=市值照常；
+     industry 给指数归属（分组比「其他」有意义）。与全市场 Top 500 高度重合。 */
+  async function usRowsFromTencent() {
+    const idx = window.US_INDEXES;
+    if (!idx || !idx.LISTS) return [];
+    const seen = new Set();
+    const tickers = [];
+    const groupOf = new Map();
+    const add = (list, label) => {
+      (idx.LISTS[list] || []).forEach(t => {
+        const us = 'us' + String(t).trim().toUpperCase();
+        if (seen.has(us)) return;
+        seen.add(us);
+        tickers.push(us);
+        groupOf.set(us, label);
+      });
+    };
+    add('sp500', '标普500');
+    add('ndx100', '纳指100');
+    add('dj30', '道指30');
+    if (!tickers.length) return [];
+    const quotes = await window.TencentSource.getQuotes(tickers).catch(() => []);
+    const norm = window.U && window.U.normUsSymbol;
+    return (quotes || []).filter(q => q && q.marketCap).map(q => {
+      const t = (norm ? norm(String(q.symbol || '').replace(/^us/i, '')) : q.symbol) || '';
+      return {
+        code: t.replace(/^us/i, ''),
+        name: q.name || q.symbol,
+        secid: '',                       // 腾讯行无东财 secid：实时换色跳过（首拉价已是最新）
+        market: 'us',
+        price: q.price, changePct: q.changePct, change: q.change,
+        volume: q.volume, amount: q.amount,
+        marketCap: q.marketCap,
+        industry: groupOf.get(String(q.symbol).toUpperCase()) || '美股',
+      };
+    }).filter(x => x.code && x.changePct !== null);
+  }
+
   async function ensureUSRows() {
     if (state.heatItems.us && state.heatItems.us.length) return state.heatItems.us;
     const c = Cache.raw('heat:us');
@@ -1878,12 +1920,23 @@
       state.heatItems.us = c.val; state.heatVia.us = 'cache'; state.heatCachedAt.us = c.at;
       return c.val;
     }
-    const rows = await window.EastmoneySource.getFullMarket({
-      fs: window.EastmoneySource.FS_US, maxCount: 13800, concurrency: 16,
-    });
+    let rows = [];
+    let via = '';
+    try {
+      rows = await window.EastmoneySource.getFullMarket({
+        fs: window.EastmoneySource.FS_US, maxCount: 13800, concurrency: 16,
+      });
+      if (rows.length) via = 'primary';
+    } catch (e) { /* 东财拒连走备源 */ }
+    if (!rows.length) {
+      rows = await usRowsFromTencent();
+      if (rows.length) via = 'tencent';
+    }
     if (rows.length) {
-      state.heatItems.us = rows; state.heatVia.us = 'primary';
-      state.heatUsQuotedAt = Date.now();   // 全市场刚抓完就是最新的：本轮跳过轻量报价，省 ~9 个批量请求
+      state.heatItems.us = rows; state.heatVia.us = via;
+      if (via === 'primary') {
+        state.heatUsQuotedAt = Date.now();   // 全市场刚抓完就是最新的：本轮跳过轻量报价，省 ~9 个批量请求
+      }
       Cache.set('heat:us', rows);
     } else {
       const cc = Cache.raw('heat:us');
