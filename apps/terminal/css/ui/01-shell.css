@@ -62,16 +62,25 @@
 .logo:hover .logo-word { color: var(--text); }
 .logo:hover .logo-dot { box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.26), 0 0 20px rgba(var(--accent-rgb), 0.65); }
 
-/* ---------- 一级导航：5 个等宽胶囊 + 一枚滑动高亮 ---------- */
+/* ---------- 一级导航：6 个等宽胶囊 + 一枚滑动高亮 ----------
+   列数必须与 index.html 的 data-primary 按钮数一致：Phase 4 加第 6 个一级
+   「美股信号」时网格模板没跟着改（仍 repeat(5)），第 6 项被 auto-placement
+   掉进第二行、被容器固定高裁成半截（2026-11-21 用户实测抓包）。 */
 .primary-nav {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  /* 轨道最小值 = 内容 min-content（auto）：6 列在 700~1100px 的中间带宽会被
+     topbar 其余区域挤压，minmax(0,1fr) 会把「美股信号」四字按钮压到 48px 以下
+     文字溢出盒外；auto 下限让轨道尊重文字宽（topbar 该带宽下空间充足）。
+     ≤640 横滚分支改 auto 列按内容排，390px 撑爆问题由横滚+mask 承担。 */
+  grid-template-columns: repeat(6, minmax(auto, 1fr));
   align-items: stretch;
   flex: 0 1 auto;
-  /* 关键：flex 子项默认 min-width:auto = 内容宽度。390px 下 5 个一级按钮的
-     min-content 会把顶栏撑到 407px，浏览器随后放大布局视口 → 整页横向溢出。 */
-  min-width: 0;
+  /* 容器不许缩到内容以下：min-width:0 会让 topbar 把 nav 压扁、四字按钮
+     文字溢出盒外（700~1100px 中间档实测）。nav 的 min-content ≈ 360px，
+     960 以下搜索已隐藏、动作区可压，topbar 放得下；≤640 横滚分支另行
+     恢复 min-width:0（横滚必须允许容器小于内容）。 */
+  min-width: max-content;
   height: 34px;
   margin: 0 auto;                 /* 品牌与动作区之间居中 */
   padding: 3px;
@@ -541,11 +550,16 @@ html { scrollbar-width: thin; scrollbar-color: var(--border-hover) transparent; 
   .nav-primary { padding: 0 var(--sp-12); }
 }
 @media (max-width: 640px) {
-  /* 第一行：品牌 + 动作；第二行：一级栏（横向滚动 + 边缘渐隐） */
+  /* 第一行：品牌 + 动作；第二行：一级栏（横向滚动 + 边缘渐隐）。
+     6 列等宽在 390px 每列仅 ~60px，「美股信号」四字会溢出——横滚模式改按
+     内容宽排（滚动条由 overflow-x 承担，右缘 mask 渐隐提示还有项）。 */
   .primary-nav {
     order: 3;
     flex: 0 0 100%;
     min-width: 0;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
     height: 34px;
     margin: var(--sp-4) 0 0;
     overflow-x: auto;
