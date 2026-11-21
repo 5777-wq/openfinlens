@@ -44,7 +44,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-21T16:31:58.213Z",
+          "generatedAt": "2026-11-21T16:39:53.265Z",
           "count": 11,
           "datasets": [
             {
@@ -60,7 +60,7 @@
             "openapi": "api/openapi.json"
           }
         },
-        "asof": "2026-11-21T16:31:58.213Z",
+        "asof": "2026-11-21T16:39:53.265Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -100,7 +100,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-21T16:31:58.213Z",
+          "generatedAt": "2026-11-21T16:39:53.265Z",
           "base": "api/v1",
           "datasets": [
             {
@@ -111,7 +111,7 @@
             }
           ]
         },
-        "asof": "2026-11-21T16:31:58.213Z",
+        "asof": "2026-11-21T16:39:53.265Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -203,7 +203,7 @@
             "中石化"
           ]
         },
-        "asof": "2026-11-21T16:31:58.213Z",
+        "asof": "2026-11-21T16:39:53.265Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -314,10 +314,10 @@
           "change": 0.11,
           "changePct": 1.86,
           "quoteAt": 1795162500000,
-          "updatedAt": 1795278719150,
+          "updatedAt": 1795279194160,
           "source": "tencent"
         },
-        "asof": "2026-11-21T16:31:59.957Z",
+        "asof": "2026-11-21T16:39:54.645Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -559,23 +559,23 @@
           }
         ],
         "sample": {
-          "id": "卡塔尔 德国声明 呼吁伊朗停止向胡塞武装提供武器和支持 并重申对也门的统一与主权的承诺||1795278421000",
-          "category": "market",
-          "title": "卡塔尔-德国声明：呼吁伊朗停止向胡塞武装提供武器和支持，并重申对也门的统一与主权的承诺。",
+          "id": "北约秘书长吕特在华沙承诺 在俄罗斯导弹和无人机进入波兰领空后 北约将保卫波兰的 每一寸 领土 并称这一事件 危险||1795278927000",
+          "category": "conflict",
+          "title": "北约秘书长吕特在华沙承诺，在俄罗斯导弹和无人机进入波兰领空后，北约将保卫波兰的“每一寸”领土，并称这一事件“危险”。",
           "source": "新浪财经7x24",
           "sourceUrl": "https://finance.sina.com.cn/7x24/",
-          "publishedAt": "2026-11-21T16:27:01.000Z",
-          "country": "伊朗",
-          "lat": 35.69,
-          "lng": 51.39,
+          "publishedAt": "2026-11-21T16:35:27.000Z",
+          "country": "俄罗斯",
+          "lat": 55.76,
+          "lng": 37.62,
           "severity": 30,
           "importance": "low",
           "relatedSymbols": [],
           "relatedAssets": []
         },
-        "asof": "2026-11-21T16:29:24.713Z",
+        "asof": "2026-11-21T16:37:03.802Z",
         "stale": false,
-        "count": 206,
+        "count": 115,
         "license": "GDELT 免费开放数据（gdeltproject.org）· 新浪财经7x24 公开快讯；坐标为本项目关键词地理定位，精度为国家/地区级",
         "note": "severity 是把上游 importance 映射成 0-100 的展示口径；坐标为关键词地理定位，精度为国家/地区级，定位不到时为 null。"
       },
@@ -654,7 +654,7 @@
           "category": "central_bank",
           "partition": true,
           "endDate": 1796878740000,
-          "updatedAt": 1795278207999,
+          "updatedAt": 1795278928909,
           "outcomeCount": 5,
           "outcomes": [
             {
@@ -662,35 +662,35 @@
               "label": "25 bps increase",
               "labelZh": "增加25个基点",
               "probability": 0.885,
-              "change24h": -3
+              "change24h": -2
             },
             {
               "id": "pm:3215007",
               "label": "No change",
               "labelZh": "不变",
-              "probability": 0.077,
-              "change24h": 1.7
+              "probability": 0.076,
+              "change24h": null
             },
             {
               "id": "pm:3215009",
               "label": "50+ bps increase",
               "labelZh": "增加50 +个基点",
               "probability": 0.023,
-              "change24h": -0.4
+              "change24h": -0.2
             },
             {
               "id": "pm:3215006",
               "label": "25 bps decrease",
               "labelZh": "下降25个基点",
               "probability": 0.007,
-              "change24h": 0.3
+              "change24h": 0.4
             },
             {
               "id": "pm:3215005",
               "label": "50+ bps decrease",
               "labelZh": "降低50 +个基点",
               "probability": 0.004,
-              "change24h": 0.2
+              "change24h": 0.1
             }
           ],
           "rest": {
@@ -698,7 +698,7 @@
             "count": 0
           }
         },
-        "asof": "2026-11-21T16:30:02.211Z",
+        "asof": "2026-11-21T16:37:47.864Z",
         "stale": false,
         "count": 30,
         "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
@@ -737,7 +737,7 @@
           }
         ],
         "sample": {
-          "asOf": "2026-11-21T16:31:56.944Z",
+          "asOf": "2026-11-21T16:39:52.323Z",
           "institutions": [
             {
               "slug": "berkshire",
@@ -807,7 +807,7 @@
             ]
           }
         },
-        "asof": "2026-11-21T16:31:56.944Z",
+        "asof": "2026-11-21T16:39:52.323Z",
         "stale": false,
         "count": 4,
         "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
@@ -930,19 +930,19 @@
         ],
         "sample": {
           "status": "ok",
-          "generatedAt": "2026-11-21T16:31:58.213Z",
+          "generatedAt": "2026-11-21T16:39:53.265Z",
           "durationMs": 0,
           "datasets": [
             {
               "id": "quotes.latest",
-              "lastBuilt": "2026-11-21T16:31:58.213Z",
+              "lastBuilt": "2026-11-21T16:39:53.265Z",
               "count": 1,
               "ms": 0,
               "stale": false
             }
           ]
         },
-        "asof": "2026-11-21T16:31:58.213Z",
+        "asof": "2026-11-21T16:39:53.265Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -952,8 +952,8 @@
   },
   "meta": {
     "dataset": "manifest",
-    "asof": "2026-11-21T16:31:58.213Z",
-    "generatedAt": "2026-11-21T16:31:58.213Z",
+    "asof": "2026-11-21T16:39:53.265Z",
+    "generatedAt": "2026-11-21T16:39:53.265Z",
     "source": "本项目构建产物（data/** 与 js/data/universe.js）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",

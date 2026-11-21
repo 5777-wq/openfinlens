@@ -1,74 +1,62 @@
 {
   "ok": true,
   "data": {
-    "count": 206,
+    "count": 115,
     "windowHours": 6,
     "categories": [
       {
         "id": "market",
-        "count": 61
-      },
-      {
-        "id": "geopolitics",
-        "count": 55
+        "count": 60
       },
       {
         "id": "conflict",
-        "count": 35
+        "count": 37
+      },
+      {
+        "id": "geopolitics",
+        "count": 16
       },
       {
         "id": "trade",
-        "count": 31
+        "count": 1
       },
       {
         "id": "central_bank",
-        "count": 24
+        "count": 1
       }
     ],
     "countries": [
       {
         "name": "伊朗",
-        "count": 32
+        "count": 28
       },
       {
         "name": "美国",
-        "count": 23
-      },
-      {
-        "name": "俄罗斯",
-        "count": 17
+        "count": 22
       },
       {
         "name": "乌克兰",
         "count": 15
       },
       {
-        "name": "印度",
-        "count": 9
+        "name": "俄罗斯",
+        "count": 13
       },
       {
         "name": "中国",
-        "count": 9
-      },
-      {
-        "name": "以色列",
-        "count": 6
-      },
-      {
-        "name": "越南",
-        "count": 6
-      },
-      {
-        "name": "沙特",
-        "count": 3
+        "count": 5
       },
       {
         "name": "菲律宾",
         "count": 3
       },
       {
-        "name": "秘鲁",
+        "name": "以色列",
         "count": 3
+      },
+      {
+        "name": "沙特",
+        "count": 2
       },
       {
         "name": "芬兰",
@@ -79,11 +67,11 @@
         "count": 2
       },
       {
-        "name": "英国",
-        "count": 2
+        "name": "卡塔尔",
+        "count": 1
       },
       {
-        "name": "卡塔尔",
+        "name": "秘鲁",
         "count": 1
       },
       {
@@ -91,19 +79,11 @@
         "count": 1
       },
       {
-        "name": "阿联酋",
-        "count": 1
-      },
-      {
-        "name": "巴西",
-        "count": 1
-      },
-      {
-        "name": "挪威",
-        "count": 1
-      },
-      {
         "name": "印度尼西亚",
+        "count": 1
+      },
+      {
+        "name": "印度",
         "count": 1
       },
       {
@@ -115,19 +95,26 @@
         "count": 1
       },
       {
-        "name": "加拿大",
-        "count": 1
-      },
-      {
         "name": "西班牙",
-        "count": 1
-      },
-      {
-        "name": "尼日利亚",
         "count": 1
       }
     ],
     "events": [
+      {
+        "id": "北约秘书长吕特在华沙承诺 在俄罗斯导弹和无人机进入波兰领空后 北约将保卫波兰的 每一寸 领土 并称这一事件 危险||1795278927000",
+        "category": "conflict",
+        "title": "北约秘书长吕特在华沙承诺，在俄罗斯导弹和无人机进入波兰领空后，北约将保卫波兰的“每一寸”领土，并称这一事件“危险”。",
+        "source": "新浪财经7x24",
+        "sourceUrl": "https://finance.sina.com.cn/7x24/",
+        "publishedAt": "2026-11-21T16:35:27.000Z",
+        "country": "俄罗斯",
+        "lat": 55.76,
+        "lng": 37.62,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
       {
         "id": "卡塔尔 德国声明 呼吁伊朗停止向胡塞武装提供武器和支持 并重申对也门的统一与主权的承诺||1795278421000",
         "category": "market",
@@ -924,81 +911,6 @@
         "relatedAssets": []
       },
       {
-        "id": "anthropic says it will put humanity first will its ipo||1795271400000",
-        "category": "geopolitics",
-        "title": "Anthropic says it will put humanity first . Will its IPO change that ?",
-        "source": "kclu.org",
-        "sourceUrl": "https://www.kclu.org/economy/2026-11-21/anthropic-says-it-will-put-humanity-first-will-its-ipo-change-that",
-        "publishedAt": "2026-11-21T14:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 85,
-        "importance": "high",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "man swims in strait of hormuz to highlight iran war||1795271400000",
-        "category": "geopolitics",
-        "title": "Man swims in Strait of Hormuz to highlight Iran war impact",
-        "source": "wdsu.com",
-        "sourceUrl": "https://www.wdsu.com/article/lewis-pugh-strait-of-hormuz-swim-iran-war/74497133",
-        "publishedAt": "2026-11-21T14:30:00.000Z",
-        "country": "伊朗",
-        "lat": 35.69,
-        "lng": 51.39,
-        "severity": 85,
-        "importance": "high",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "nations at un talks on ai killer robots agree to||1795271400000",
-        "category": "geopolitics",
-        "title": "Nations at UN talks on AI killer robots agree to more talks but no firm commitment to rein them in",
-        "source": "clickondetroit.com",
-        "sourceUrl": "https://www.clickondetroit.com/tech/2026/11/21/nations-at-un-talks-on-ai-killer-robots-agree-to-more-talks-but-no-firm-commitment-to-rein-them-in/",
-        "publishedAt": "2026-11-21T14:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 85,
-        "importance": "high",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "world is watching india economy says goyal after trump cites|7|1795271400000",
-        "category": "central_bank",
-        "title": "World is watching India economy , says Goyal after Trump cites 7 % growth",
-        "source": "greekherald.com",
-        "sourceUrl": "http://www.greekherald.com/news/279447179/world-is-watching-india-economy-says-goyal-after-trump-cites-7-growth",
-        "publishedAt": "2026-11-21T14:30:00.000Z",
-        "country": "印度",
-        "lat": 28.61,
-        "lng": 77.21,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "india bulgaria step up economic engagement discuss imec connectivity||1795271400000",
-        "category": "trade",
-        "title": "India , Bulgaria Step Up Economic Engagement , Discuss IMEC Connectivity",
-        "source": "businessworld.in",
-        "sourceUrl": "https://www.businessworld.in/article/india-bulgaria-step-up-economic-engagement-discuss-imec-connectivity-634668",
-        "publishedAt": "2026-11-21T14:30:00.000Z",
-        "country": "印度",
-        "lat": 28.61,
-        "lng": 77.21,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
         "id": "ap trending summarybrief at 8 52 a m est|52,8|1795271400000",
         "category": "conflict",
         "title": "AP Trending SummaryBrief at 8 : 52 a . m . EST",
@@ -1008,51 +920,6 @@
         "country": null,
         "lat": null,
         "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "russian cargo ship carrying military supplie is hit by drones||1795271400000",
-        "category": "geopolitics",
-        "title": "Russian cargo ship  carrying military supplie is hit by drones in Gulf of Finland as it drifts towards Nato waters",
-        "source": "dailymail.com",
-        "sourceUrl": "https://www.dailymail.com/news/article-16311227/Russian-ship-military-supplies-drones-Gulf-Finland-Nato.html",
-        "publishedAt": "2026-11-21T14:30:00.000Z",
-        "country": "俄罗斯",
-        "lat": 55.76,
-        "lng": 37.62,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "northwest senators will help decide who leads the new senate||1795271400000",
-        "category": "geopolitics",
-        "title": "Northwest senators will help decide who leads the new Senate majority . Murray , Cantwell and Wyden havent picked a side yet .",
-        "source": "spokesman.com",
-        "sourceUrl": "https://www.spokesman.com/stories/2026/nov/21/northwest-senators-will-help-decide-who-leads-the-/",
-        "publishedAt": "2026-11-21T14:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "zelensky brands putin a killer as russian double tap missile||1795271400000",
-        "category": "geopolitics",
-        "title": "Zelensky brands Putin a  killer  as Russian double - tap missile attack kills two",
-        "source": "mirror.co.uk",
-        "sourceUrl": "https://www.mirror.co.uk/news/world-news/zelensky-brands-putin-killer-russian-37901996",
-        "publishedAt": "2026-11-21T14:30:00.000Z",
-        "country": "俄罗斯",
-        "lat": 55.76,
-        "lng": 37.62,
         "severity": 30,
         "importance": "low",
         "relatedSymbols": [],
@@ -1224,83 +1091,11 @@
         "relatedAssets": []
       },
       {
-        "id": "the ai boom had a really bad week and it||1795267800000",
-        "category": "central_bank",
-        "title": "The AI boom had a really bad week and it raising loud alarms",
-        "source": "kasu.org",
-        "sourceUrl": "https://www.kasu.org/business-economy/2026-11-21/the-ai-boom-had-a-really-bad-week-and-its-raising-loud-alarms",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 85,
-        "importance": "high",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
         "id": "missile attack on zelenskiy hometown kills two||1795267800000",
         "category": "conflict",
         "title": "Missile attack on Zelenskiy hometown kills two",
         "source": "perthnow.com.au",
         "sourceUrl": "https://www.perthnow.com.au/news/conflict/missile-attack-on-zelenskiys-hometown-kills-two-c-23195124",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 85,
-        "importance": "high",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "gold silver plummet as fed rate fears trigger selloff||1795267800000",
-        "category": "central_bank",
-        "title": "Gold , silver plummet as Fed rate fears trigger selloff",
-        "source": "prokerala.com",
-        "sourceUrl": "https://www.prokerala.com/news/articles/a1839502.html",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [
-          "EM:101.GC00Y"
-        ],
-        "relatedAssets": [
-          {
-            "sym": "usINX",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "usIXIC",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "usDJI",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "EM:171.US10Y",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "EM:101.GC00Y",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "BTCUSDT",
-            "rel": "RELATED"
-          }
-        ]
-      },
-      {
-        "id": "africa 13 july 2010 little challenge as tanzania leader seeks|13,2010|1795267800000",
-        "category": "trade",
-        "title": "Africa : 13 july 2010 [ Little challenge as Tanzania leader seeks new term ]",
-        "source": "burundi-agnews.org",
-        "sourceUrl": "https://burundi-agnews.org/africa-13-july-2010-little-challenge-as-tanzania-leader-seeks-new-term/",
         "publishedAt": "2026-11-21T13:30:00.000Z",
         "country": null,
         "lat": null,
@@ -1320,270 +1115,11 @@
         "country": "俄罗斯",
         "lat": 55.76,
         "lng": 37.62,
-        "severity": 55,
-        "importance": "med",
+        "severity": 30,
+        "importance": "low",
         "relatedSymbols": [
           "sh000001"
         ],
-        "relatedAssets": []
-      },
-      {
-        "id": "denmark urges eu to stop russian tourist visas after foiled||1795267800000",
-        "category": "conflict",
-        "title": "Denmark urges EU to stop Russian tourist visas after foiled assassination plot",
-        "source": "jpost.com",
-        "sourceUrl": "http://www.jpost.com/international/article-915635",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": "俄罗斯",
-        "lat": 55.76,
-        "lng": 37.62,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "denmark pushes eu to tighten travel curbs on russians after||1795267800000",
-        "category": "conflict",
-        "title": "Denmark pushes EU to tighten travel curbs on Russians after foiled plot",
-        "source": "en.apa.az",
-        "sourceUrl": "https://en.apa.az/foreign-policy/denmark-pushes-eu-to-tighten-travel-curbs-on-russians-after-foiled-plot-537665",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": "俄罗斯",
-        "lat": 55.76,
-        "lng": 37.62,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "in his opposition to pm modi rahul gandhi has begun||1795267800000",
-        "category": "geopolitics",
-        "title": "In his opposition to PM Modi , Rahul Gandhi has begun to oppose India itself : Anurag Thakur",
-        "source": "indiagazette.com",
-        "sourceUrl": "http://www.indiagazette.com/news/279447008/in-his-opposition-to-pm-modi-rahul-gandhi-has-begun-to-oppose-india-itself-anurag-thakur",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": "印度",
-        "lat": 28.61,
-        "lng": 77.21,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "india recognition as destination of the year 2027 is a|2027|1795267800000",
-        "category": "geopolitics",
-        "title": "India Recognition as Destination of the Year 2027 is a Defining Opportunity for Inbound Tourism : Hotel Association of India",
-        "source": "neworleanssun.com",
-        "sourceUrl": "http://www.neworleanssun.com/news/279446908/india-recognition-as-destination-of-the-year-2027-is-a-defining-opportunity-for-inbound-tourism-hotel-association-of-india",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": "印度",
-        "lat": 28.61,
-        "lng": 77.21,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "we are all united former pcc chief raja warring dismisses||1795267800000",
-        "category": "geopolitics",
-        "title": "We are all united : Former PCC chief Raja Warring dismisses talk of rift among Punjab Congress leaders ahead of  Insaaf March",
-        "source": "indiagazette.com",
-        "sourceUrl": "http://www.indiagazette.com/news/279447112/we-are-all-united-former-pcc-chief-raja-warring-dismisses-talk-of-rift-among-punjab-congress-leaders-ahead-of-insaaf-march",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "climate talks in overtime as nations wrestle with response to||1795267800000",
-        "category": "geopolitics",
-        "title": "Climate talks in overtime as nations wrestle with response to worsening global warming",
-        "source": "arabtimesonline.com",
-        "sourceUrl": "https://www.arabtimesonline.com/news/climate-talks-in-overtime-as-nations-wrestle-with-response-to-worsening-global-warming/",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": "秘鲁",
-        "lat": -12.05,
-        "lng": -77.04,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "is carrying a small credit card balance ever actually a||1795267800000",
-        "category": "central_bank",
-        "title": "Is Carrying a Small Credit Card Balance Ever Actually a Good Strategy ?",
-        "source": "aol.com",
-        "sourceUrl": "https://www.aol.com/articles/carrying-small-credit-card-balance-122050000.html",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "zcash just dropped below 1 000 for the first time|000,1|1795267800000",
-        "category": "central_bank",
-        "title": "Zcash Just Dropped Below $1 , 000 for the First Time Since September . Is This a Buy - the - Dip Opportunity ?",
-        "source": "aol.com",
-        "sourceUrl": "https://www.aol.com/articles/zcash-just-dropped-below-1-112302000.html",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "what is net interest margin 2 bank stocks where it|2|1795267800000",
-        "category": "central_bank",
-        "title": "What Is Net Interest Margin ? 2 Bank Stocks Where It Rising",
-        "source": "aol.com",
-        "sourceUrl": "https://www.aol.com/articles/net-interest-margin-2-bank-112002000.html",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "global market crash why are trillions of dollars being lost||1795267800000",
-        "category": "central_bank",
-        "title": "Global market crash : Why are trillions of dollars being lost , and what awaits the world economy ?",
-        "source": "en.apa.az",
-        "sourceUrl": "https://en.apa.az/finance/global-market-crash-why-are-trillions-of-dollars-being-lost-and-what-awaits-the-world-economy-analysis-537636",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "soludo when academic pedigree meets the rough edges of politics||1795267800000",
-        "category": "central_bank",
-        "title": "Soludo : When Academic Pedigree Meets The Rough Edges Of Politics - By Isaac Asabor",
-        "source": "opinionnigeria.com",
-        "sourceUrl": "https://www.opinionnigeria.com/soludo-when-academic-pedigree-meets-the-rough-edges-of-politics-by-isaac-asabor/",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "a historic el ni o has arrived here what it||1795267800000",
-        "category": "central_bank",
-        "title": "A Historic El Niño Has Arrived . Here What it Means for US Prices",
-        "source": "aol.com",
-        "sourceUrl": "https://www.aol.com/articles/historic-el-ni-o-arrived-123009000.html",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [
-          "usINX"
-        ],
-        "relatedAssets": []
-      },
-      {
-        "id": "nvidia longest losing streak since 2008 anthropic record ipo fizzles|2008|1795267800000",
-        "category": "central_bank",
-        "title": "Nvidia longest losing streak since 2008 ; Anthropic record IPO fizzles",
-        "source": "aol.com",
-        "sourceUrl": "https://www.aol.com/articles/nvidia-longest-losing-streak-since-110732000.html",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "kevin oleary blunt warning for retirees about these costly money||1795267800000",
-        "category": "central_bank",
-        "title": "Kevin OLeary Blunt Warning for Retirees About These Costly Money Traps",
-        "source": "aol.com",
-        "sourceUrl": "https://www.aol.com/articles/kevin-olearys-blunt-warning-retirees-112800000.html",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "kerala explores export opportunities under india free trade agreements india||1795267800000",
-        "category": "trade",
-        "title": "KERALA EXPLORES EXPORT OPPORTUNITIES UNDER INDIA FREE TRADE AGREEMENTS - India Education | Latest Education News | Global Educational News",
-        "source": "indiaeducationdiary.in",
-        "sourceUrl": "https://indiaeducationdiary.in/kerala-explores-export-opportunities-under-indias-free-trade-agreements/",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": "印度",
-        "lat": 28.61,
-        "lng": 77.21,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "presidential hopeful wants guatemala to become the israel of latin||1795267800000",
-        "category": "trade",
-        "title": "Presidential hopeful wants Guatemala to become the  Israel of Latin America",
-        "source": "jpost.com",
-        "sourceUrl": "http://www.jpost.com/international/article-915535",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": "以色列",
-        "lat": 32.08,
-        "lng": 34.78,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [
-          "usINX"
-        ],
-        "relatedAssets": []
-      },
-      {
-        "id": "africa investment risk outlook for 2027|2027|1795267800000",
-        "category": "trade",
-        "title": "Africa Investment Risk Outlook for 2027",
-        "source": "africabusiness.com",
-        "sourceUrl": "https://africabusiness.com/2026/11/21/africas-investment-risk-outlook-for-2027/",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
         "relatedAssets": []
       },
       {
@@ -1596,6 +1132,21 @@
         "country": null,
         "lat": null,
         "lng": null,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "denmark urges eu to stop russian tourist visas after foiled||1795267800000",
+        "category": "conflict",
+        "title": "Denmark urges EU to stop Russian tourist visas after foiled assassination plot",
+        "source": "jpost.com",
+        "sourceUrl": "http://www.jpost.com/international/article-915635",
+        "publishedAt": "2026-11-21T13:30:00.000Z",
+        "country": "俄罗斯",
+        "lat": 55.76,
+        "lng": 37.62,
         "severity": 30,
         "importance": "low",
         "relatedSymbols": [],
@@ -1617,6 +1168,21 @@
         "relatedAssets": []
       },
       {
+        "id": "denmark pushes eu to tighten travel curbs on russians after||1795267800000",
+        "category": "conflict",
+        "title": "Denmark pushes EU to tighten travel curbs on Russians after foiled plot",
+        "source": "en.apa.az",
+        "sourceUrl": "https://en.apa.az/foreign-policy/denmark-pushes-eu-to-tighten-travel-curbs-on-russians-after-foiled-plot-537665",
+        "publishedAt": "2026-11-21T13:30:00.000Z",
+        "country": "俄罗斯",
+        "lat": 55.76,
+        "lng": 37.62,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
         "id": "stephen miller wife sparks doomsday frenzy by posting and deleting||1795267800000",
         "category": "conflict",
         "title": "Stephen Miller wife sparks doomsday frenzy by posting and deleting chilling Trump threat",
@@ -1626,293 +1192,6 @@
         "country": null,
         "lat": null,
         "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "africa world governments summit dialogue for latin america and the||1795267800000",
-        "category": "geopolitics",
-        "title": "Africa : World Governments Summit Dialogue for Latin America and the Caribbean Explores Stronger Cooperation in Shaping the Future",
-        "source": "allafrica.com",
-        "sourceUrl": "https://allafrica.com/stories/202611210135.html",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [
-          "usINX"
-        ],
-        "relatedAssets": []
-      },
-      {
-        "id": "president ilham aliyev held expanded meeting with president of vietnam||1795267800000",
-        "category": "geopolitics",
-        "title": "President Ilham Aliyev held expanded meeting with President of Vietnam",
-        "source": "en.apa.az",
-        "sourceUrl": "https://en.apa.az/official-news/president-ilham-aliyev-held-expanded-meeting-with-president-of-vietnam-updated-537583",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": "越南",
-        "lat": 21.03,
-        "lng": 105.85,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "oppi annual summit 2026 calls for stronger partnerships to advance|2026|1795267800000",
-        "category": "geopolitics",
-        "title": "OPPI Annual Summit 2026 calls for stronger partnerships to advance pharma innovation and global leadership",
-        "source": "biospectrumindia.com",
-        "sourceUrl": "https://www.biospectrumindia.com/news/73/28876/oppi-annual-summit-2026-calls-for-stronger-partnerships-to-advance-pharma-innovation-and-global-leadership.html",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "a mining concession is no blank check by fransiscus nanga||1795267800000",
-        "category": "geopolitics",
-        "title": "A Mining Concession Is No Blank Check - By Fransiscus Nanga Roka",
-        "source": "opinionnigeria.com",
-        "sourceUrl": "https://www.opinionnigeria.com/a-mining-concession-is-no-blank-check-by-fransiscus-nanga-roka/",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "uk and eu agree brexit reset deal||1795267800000",
-        "category": "geopolitics",
-        "title": "UK and EU agree Brexit reset deal",
-        "source": "irishcentral.com",
-        "sourceUrl": "https://www.irishcentral.com/news/uk-eu-brexit-reset",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "bangalore bioinnovation centre announces new initiatives to strengthen biotech sector||1795267800000",
-        "category": "geopolitics",
-        "title": "Bangalore Bioinnovation Centre announces new initiatives to strengthen biotech sector",
-        "source": "biospectrumindia.com",
-        "sourceUrl": "https://www.biospectrumindia.com/news/96/28879/bangalore-bioinnovation-centre-announces-new-initiatives-to-strengthen-biotech-sector.html",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "bengaluru tech summit 2026 spotlights biotechnology startups and deeptech innovation|2026|1795267800000",
-        "category": "geopolitics",
-        "title": "Bengaluru Tech Summit 2026 spotlights biotechnology startups and DeepTech innovation",
-        "source": "biospectrumindia.com",
-        "sourceUrl": "https://www.biospectrumindia.com/news/16/28868/bengaluru-tech-summit-2026-spotlights-biotechnology-startups-and-deeptech-innovation.html",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "hegseth new bout of strategic stupidity spurs outrage how does||1795267800000",
-        "category": "geopolitics",
-        "title": "Hegseth new bout of  strategic stupidity  spurs outrage :  How does this make us safer ?",
-        "source": "rawstory.com",
-        "sourceUrl": "https://www.rawstory.com/hegseth-canada-2678481536/",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "stars explores new frontiers at dubai future week||1795267800000",
-        "category": "geopolitics",
-        "title": "STARS explores new frontiers at Dubai Future Week",
-        "source": "bignewsnetwork.com",
-        "sourceUrl": "http://www.bignewsnetwork.com/news/279447157/stars-explores-new-frontiers-at-dubai-future-week",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": "阿联酋",
-        "lat": 24.47,
-        "lng": 54.37,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "salman khan on maatrubhumi clash with eetha and why he||1795267800000",
-        "category": "geopolitics",
-        "title": "Salman Khan on Maatrubhumi Clash With Eetha and Why He Didnt Clash With Shah Rukh Khan King",
-        "source": "filmfare.com",
-        "sourceUrl": "https://www.filmfare.com/news/bollywood/salman-khan-on-maatrubhumis-clash-with-eetha-and-why-he-didnt-clash-with-shah-rukh-khans-king-87302.html",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "women leadership innovation and collective action can shape solutions to||1795267800000",
-        "category": "geopolitics",
-        "title": "WOMEN LEADERSHIP , INNOVATION AND COLLECTIVE ACTION CAN SHAPE SOLUTIONS TO GLOBAL CHALLENGES : LOK SABHA SPEAKER - India Education | Latest Education News | Global Educational News",
-        "source": "indiaeducationdiary.in",
-        "sourceUrl": "https://indiaeducationdiary.in/womens-leadership-innovation-and-collective-action-can-shape-solutions-to-global-challenges-lok-sabha-speaker/",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": "印度",
-        "lat": 28.61,
-        "lng": 77.21,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "calvin robinson the making of an anti semite||1795267800000",
-        "category": "geopolitics",
-        "title": "Calvin Robinson : the making of an anti - Semite",
-        "source": "spiked-online.com",
-        "sourceUrl": "https://www.spiked-online.com/2026/11/21/calvin-robinson-the-making-of-an-anti-semite/",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "bhooguarantee karnataka cabinet approves 15 lakh free residential sites one|15|1795267800000",
-        "category": "geopolitics",
-        "title": "Bhooguarantee : Karnataka Cabinet approves 15 lakh free residential sites , one lakh new houses under Bhooguarantee",
-        "source": "neworleanssun.com",
-        "sourceUrl": "http://www.neworleanssun.com/news/279446906/bhooguarantee-karnataka-cabinet-approves-15-lakh-free-residential-sites-one-lakh-new-houses-under-bhooguarantee",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "national drug enforcement authority world police summit sign mou||1795267800000",
-        "category": "geopolitics",
-        "title": "National Drug Enforcement Authority , World Police Summit sign MoU",
-        "source": "bignewsnetwork.com",
-        "sourceUrl": "http://www.bignewsnetwork.com/news/279447117/national-drug-enforcement-authority-world-police-summit-sign-mou",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "redditch based campaign group vows fight for chagossian justice is||1795267800000",
-        "category": "geopolitics",
-        "title": "Redditch - based campaign group vows fight for Chagossian justice is not over following court setback",
-        "source": "redditchstandard.co.uk",
-        "sourceUrl": "https://redditchstandard.co.uk/news/redditch-based-campaign-group-vows-fight-for-chagossian-justice-is-not-over-following-court-setback-66181/",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "funky taurus media music photo agency products||1795267800000",
-        "category": "geopolitics",
-        "title": "Funky Taurus Media - Music Photo Agency & Products",
-        "source": "funkytaurusmedia.com",
-        "sourceUrl": "https://www.funkytaurusmedia.com/shop_content.php?coID=3&XTCsid=e89fkfl0p5c6a7vqu1r0s3r215",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "could a jordan israel palestine confederation offer an alternative solution||1795267800000",
-        "category": "geopolitics",
-        "title": "Could a Jordan - Israel - Palestine confederation offer an alternative solution",
-        "source": "jpost.com",
-        "sourceUrl": "http://www.jpost.com/jerusalem-report/article-915145",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": "以色列",
-        "lat": 32.08,
-        "lng": 34.78,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "apologise for 1962 humiliation rijiju slams rahul compromised pm jibe|1962|1795267800000",
-        "category": "geopolitics",
-        "title": "Apologise for 1962 humiliation : Rijiju slams Rahul  compromised PM  jibe",
-        "source": "rediff.com",
-        "sourceUrl": "https://www.rediff.com/news/report/apologise-for-1962-humiliation-rijiju-slams-rahuls-compromised-pm-jibe/20261121.htm",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "cop31 climate talks overrun in dispute over final deal||1795267800000",
-        "category": "geopolitics",
-        "title": "Cop31 climate talks overrun in dispute over final deal",
-        "source": "thenationalnews.com",
-        "sourceUrl": "https://www.thenationalnews.com/news/mena/2026/11/21/cop31-climate-talks-overrun-in-dispute-over-final-deal/",
-        "publishedAt": "2026-11-21T13:30:00.000Z",
-        "country": "秘鲁",
-        "lat": -12.05,
-        "lng": -77.04,
         "severity": 30,
         "importance": "low",
         "relatedSymbols": [],
@@ -1994,21 +1273,6 @@
         "relatedAssets": []
       },
       {
-        "id": "all options on table for united kingdom eu relationship including||1795264200000",
-        "category": "trade",
-        "title": "All options on table for united kingdom - EU relationship including rejoining , says Miliband",
-        "source": "newarkadvertiser.co.uk",
-        "sourceUrl": "https://www.newarkadvertiser.co.uk/national/all-options-on-table-for-uk-eu-relationship-including-rejoining-says-miliband-174585/",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "英国",
-        "lat": 51.51,
-        "lng": -0.13,
-        "severity": 85,
-        "importance": "high",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
         "id": "ballistic missile attack on zelenskyy hometown in central ukraine kills|2|1795264200000",
         "category": "conflict",
         "title": "Ballistic missile attack on Zelenskyy hometown in central Ukraine kills 2 and wounds scores",
@@ -2020,115 +1284,6 @@
         "lng": 30.52,
         "severity": 85,
         "importance": "high",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "lula secures first major political victory ahead of fourth term||1795264200000",
-        "category": "central_bank",
-        "title": "Lula secures first major political victory ahead of fourth term as Brazil Senate approves fiscal plan",
-        "source": "argentinastar.com",
-        "sourceUrl": "http://www.argentinastar.com/news/279446781/lula-secures-first-major-political-victory-ahead-of-fourth-term-as-brazil-senate-approves-fiscal-plan",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "巴西",
-        "lat": -15.79,
-        "lng": -47.88,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "mark carney is so popular he can get away with||1795264200000",
-        "category": "trade",
-        "title": "Mark Carney is so popular he can get away with a lot . Will it last if the Trump spell breaks ?",
-        "source": "theguardian.com",
-        "sourceUrl": "https://www.theguardian.com/world/2026/nov/21/mark-carney-popular-will-it-last-trump-spell-breaks-canada",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "vietnam builds on apec 2026 outcomes towards hosting apec 2027|2026,2027|1795264200000",
-        "category": "trade",
-        "title": "Vietnam builds on APEC 2026 outcomes towards hosting APEC 2027",
-        "source": "vietnamnet.vn",
-        "sourceUrl": "https://vietnamnet.vn/en/vietnam-builds-on-apec-2026-outcomes-towards-hosting-apec-2027-2577435.html",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "越南",
-        "lat": 21.03,
-        "lng": 105.85,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "as trump basks in summit pomp china xi strengthens his||1795264200000",
-        "category": "trade",
-        "title": "As Trump basks in summit pomp , China Xi strengthens his hand",
-        "source": "tribune.com.pk",
-        "sourceUrl": "https://tribune.com.pk/story/2641527/as-trump-basks-in-summit-pomp-chinas-xi-strengthens-his-hand",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "中国",
-        "lat": 39.904,
-        "lng": 116.407,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [
-          "sh000001"
-        ],
-        "relatedAssets": []
-      },
-      {
-        "id": "general women union receives official delegation from vietnam||1795264200000",
-        "category": "trade",
-        "title": "General Women Union receives official delegation from Vietnam",
-        "source": "vietnamtribune.com",
-        "sourceUrl": "http://www.vietnamtribune.com/news/279446919/general-women-union-receives-official-delegation-from-vietnam",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "越南",
-        "lat": 21.03,
-        "lng": 105.85,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "alibaba says new us compute rules will affect 2027 products|2027|1795264200000",
-        "category": "trade",
-        "title": "Alibaba says new US compute rules will affect 2027 products",
-        "source": "vietnamtribune.com",
-        "sourceUrl": "http://www.vietnamtribune.com/news/279443930/alibaba-says-new-us-compute-rules-will-affect-2027-products",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [
-          "usINX"
-        ],
-        "relatedAssets": []
-      },
-      {
-        "id": "for us he is a killer zelensky rebukes trump for||1795264200000",
-        "category": "conflict",
-        "title": "For us he is a killer : Zelensky rebukes Trump for calling Putin his  friend  - as it claimed Russian leader increases strikes on Ukraine after every meeting with President",
-        "source": "dailymail.com",
-        "sourceUrl": "https://www.dailymail.com/news/article-16311045/killer-Zelensky-Trump-Putin-friend-Russian-strikes-Ukraine.html",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "乌克兰",
-        "lat": 50.45,
-        "lng": 30.52,
-        "severity": 55,
-        "importance": "med",
         "relatedSymbols": [],
         "relatedAssets": []
       },
@@ -2150,117 +1305,15 @@
         "relatedAssets": []
       },
       {
-        "id": "look at india trump cites india 7 gdp growth to|7|1795264200000",
-        "category": "central_bank",
-        "title": "Look at India : Trump cites India 7 % GDP growth to slam US Fed over high interest rates",
-        "source": "ibtimes.co.in",
-        "sourceUrl": "https://www.ibtimes.co.in/look-india-trump-cites-indias-7-gdp-growth-slam-us-fed-over-high-interest-rates-908551",
+        "id": "for us he is a killer zelensky rebukes trump for||1795264200000",
+        "category": "conflict",
+        "title": "For us he is a killer : Zelensky rebukes Trump for calling Putin his  friend  - as it claimed Russian leader increases strikes on Ukraine after every meeting with President",
+        "source": "dailymail.com",
+        "sourceUrl": "https://www.dailymail.com/news/article-16311045/killer-Zelensky-Trump-Putin-friend-Russian-strikes-Ukraine.html",
         "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "印度",
-        "lat": 28.61,
-        "lng": 77.21,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [
-          "usINX"
-        ],
-        "relatedAssets": [
-          {
-            "sym": "usINX",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "usIXIC",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "usDJI",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "EM:171.US10Y",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "EM:101.GC00Y",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "BTCUSDT",
-            "rel": "RELATED"
-          }
-        ]
-      },
-      {
-        "id": "vietnam abolishes supreme people procuracy investigative agency||1795264200000",
-        "category": "trade",
-        "title": "Vietnam abolishes Supreme People Procuracy investigative agency",
-        "source": "vietnamnet.vn",
-        "sourceUrl": "https://vietnamnet.vn/en/vietnam-abolishes-supreme-people-s-procuracy-s-investigative-agency-2577414.html",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "越南",
-        "lat": 21.03,
-        "lng": 105.85,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "7 news belize|7|1795264200000",
-        "category": "trade",
-        "title": "7 News Belize",
-        "source": "7newsbelize.com",
-        "sourceUrl": "https://7newsbelize.com/sstory.php?nid=80689",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "tangled up in blue what kind of mandate did voters||1795264200000",
-        "category": "trade",
-        "title": "Tangled up in blue : What kind of mandate did voters hand Democrats in the midterms ? [ column ]",
-        "source": "lancasteronline.com",
-        "sourceUrl": "https://lancasteronline.com/opinion/columnists/tangled-up-in-blue-what-kind-of-mandate-did-voters-hand-democrats-in-the-midterms/article_f9c700bf-66c2-4772-b8d4-b581fc7bc33c.html",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "hanoi kicks off vietnam culture day 2026 celebrations|2026|1795264200000",
-        "category": "trade",
-        "title": "Hanoi kicks off Vietnam Culture Day 2026 celebrations",
-        "source": "vietnamnet.vn",
-        "sourceUrl": "https://vietnamnet.vn/en/hanoi-kicks-off-vietnam-culture-day-2026-celebrations-2577422.html",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "越南",
-        "lat": 21.03,
-        "lng": 105.85,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "nafdac destroys fake expired products worth n100bn||1795264200000",
-        "category": "trade",
-        "title": "NAFDAC Destroys Fake , Expired Products Worth N100bn",
-        "source": "leadership.ng",
-        "sourceUrl": "https://leadership.ng/nafdac-destroys-fake-expired-products-worth-n100bn/",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
+        "country": "乌克兰",
+        "lat": 50.45,
+        "lng": 30.52,
         "severity": 30,
         "importance": "low",
         "relatedSymbols": [],
@@ -2304,162 +1357,6 @@
         "title": "US , Qatar intensify mediation efforts to end Iran conflict",
         "source": "samaa.tv",
         "sourceUrl": "https://www.samaa.tv/2087360717-us-qatar-intensify-mediation-efforts-to-end-iran-conflict",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "伊朗",
-        "lat": 35.69,
-        "lng": 51.39,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [
-          "usINX"
-        ],
-        "relatedAssets": []
-      },
-      {
-        "id": "vatican newspaper expresses reservations about trump xi putin summit final||1795264200000",
-        "category": "geopolitics",
-        "title": "Vatican newspaper expresses reservations about Trump - Xi - Putin summit final statement | News Headlines",
-        "source": "catholicculture.org",
-        "sourceUrl": "https://www.catholicculture.org/news/headlines/index.cfm?storyid=71321",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "俄罗斯",
-        "lat": 55.76,
-        "lng": 37.62,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "trump defends fantastic ties with xi putin after summit backlash||1795264200000",
-        "category": "geopolitics",
-        "title": "Trump defends  fantastic  ties with Xi , Putin after summit backlash",
-        "source": "naharnet.com",
-        "sourceUrl": "https://www.naharnet.com/stories/en/323936-trump-defends-fantastic-ties-with-xi-putin-after-summit-backlash",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "俄罗斯",
-        "lat": 55.76,
-        "lng": 37.62,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "norway pours 2bn into air defence||1795264200000",
-        "category": "geopolitics",
-        "title": "Norway pours €2bn into air defence",
-        "source": "thebarentsobserver.com",
-        "sourceUrl": "https://www.thebarentsobserver.com/security/norway-pours-2bn-into-air-defence/462411",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "挪威",
-        "lat": 59.91,
-        "lng": 10.75,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "us vice president vance declines to say he would have||1795264200000",
-        "category": "geopolitics",
-        "title": "US Vice President Vance declines to say he would have ordered Iran strikes",
-        "source": "tribune.com.pk",
-        "sourceUrl": "https://tribune.com.pk/story/2641517/us-vice-president-vance-declines-to-say-he-would-have-ordered-iran-strikes",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "伊朗",
-        "lat": 35.69,
-        "lng": 51.39,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [
-          "usINX"
-        ],
-        "relatedAssets": []
-      },
-      {
-        "id": "race to lead senate democrats the latest battlefield in party||1795264200000",
-        "category": "geopolitics",
-        "title": "Race to lead Senate Democrats the latest battlefield in party tussle over Israel | Democrats",
-        "source": "theguardian.com",
-        "sourceUrl": "https://www.theguardian.com/us-news/2026/nov/21/senate-democrats-chuck-schumer-chris-van-hollen",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "以色列",
-        "lat": 32.08,
-        "lng": 34.78,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "sin begets sin begets destruction||1795264200000",
-        "category": "geopolitics",
-        "title": "Sin Begets Sin Begets Destruction",
-        "source": "catholicworldreport.com",
-        "sourceUrl": "https://www.catholicworldreport.com/2015/09/21/sin-begets-sin-begets-destruction/",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "top vietnamese leader holds talks with azerbaijani president||1795264200000",
-        "category": "geopolitics",
-        "title": "Top Vietnamese leader holds talks with Azerbaijani President",
-        "source": "vietnamnet.vn",
-        "sourceUrl": "https://vietnamnet.vn/en/top-vietnamese-leader-holds-talks-with-azerbaijani-president-2577421.html",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "越南",
-        "lat": 21.03,
-        "lng": 105.85,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "dialogue with india depends on delhi conduct willingness to solve||1795264200000",
-        "category": "geopolitics",
-        "title": "Dialogue with India depends on Delhi conduct , willingness to solve issues : Dar",
-        "source": "samaa.tv",
-        "sourceUrl": "https://www.samaa.tv/2087360724-dialogue-with-india-depends-on-delhi-s-conduct-willingness-to-solve-issues-dar",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "印度",
-        "lat": 28.61,
-        "lng": 77.21,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "trump defends calling putin a friend but says he cant||1795264200000",
-        "category": "geopolitics",
-        "title": "Trump Defends Calling Putin a Friend but Says He  Cant Speak  to Whether He a Friend to the US",
-        "source": "military.com",
-        "sourceUrl": "https://www.military.com/trump-defends-calling-putin-a-friend-but-says-he-cant-speak-to-whether-hes-a-friend-to-the-us",
-        "publishedAt": "2026-11-21T12:30:00.000Z",
-        "country": "俄罗斯",
-        "lat": 55.76,
-        "lng": 37.62,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [
-          "usINX"
-        ],
-        "relatedAssets": []
-      },
-      {
-        "id": "alarm in sicily as massive us kc 135 stratotanker diverts|135|1795264200000",
-        "category": "geopolitics",
-        "title": "Alarm in Sicily as massive US KC - 135 Stratotanker diverts from Sigonella anti - Iran drone base over mystery UAV",
-        "source": "bankingnews.gr",
-        "sourceUrl": "https://www.bankingnews.gr/diethni/articles/912461/alarm-in-sicily-as-massive-us-kc-135-stratotanker-diverts-from-sigonella-anti-iran-drone-base-over-mystery-uav%20title=",
         "publishedAt": "2026-11-21T12:30:00.000Z",
         "country": "伊朗",
         "lat": 35.69,
@@ -2652,356 +1549,6 @@
         "relatedAssets": []
       },
       {
-        "id": "champaign county board removes funding for flock cameras sheriff says||1795260600000",
-        "category": "trade",
-        "title": "Champaign County Board removes funding for Flock cameras ; sheriff says  Ill find it somewhere",
-        "source": "news-gazette.com",
-        "sourceUrl": "https://www.news-gazette.com/news/local/courts-police-fire/champaign-county-board-removes-funding-for-flock-cameras-sheriff-says-ill-find-it-somewhere/article_f28021a2-666a-43cb-b210-8458d70ec04f.html",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 55,
-        "importance": "med",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "is it a good time to buy alphabet stock google|52|1795260600000",
-        "category": "central_bank",
-        "title": "Is It a Good Time to Buy Alphabet Stock ? Google Parent Hits Fresh 52 - Week Low as Wall Street Still Sees Upside",
-        "source": "ibtimes.com.au",
-        "sourceUrl": "https://www.ibtimes.com.au/alphabet-shares-hit-52-week-low-ai-selloff-1879066",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": "美国",
-        "lat": 38.895,
-        "lng": -77.036,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "albanian daily news||1795260600000",
-        "category": "central_bank",
-        "title": "Albanian Daily News",
-        "source": "albaniandailynews.com",
-        "sourceUrl": "https://albaniandailynews.com/news/-euro-s-decline-boa-cannot-measure-illicit-money-",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "s o paulo nightlife tonight caetano veloso live||1795260600000",
-        "category": "central_bank",
-        "title": "São Paulo Nightlife Tonight : Caetano Veloso Live",
-        "source": "riotimesonline.com",
-        "sourceUrl": "https://www.riotimesonline.com/sao-paulo-nightlife-tonight-november-21-2026/",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "centre moves supreme court seeking review of yes bank 8|1,415,8|1795260600000",
-        "category": "central_bank",
-        "title": "Centre Moves Supreme Court Seeking Review Of Yes Bank ₹8 , 415 Crore AT - 1 Bond Write - Off Verdict",
-        "source": "freepressjournal.in",
-        "sourceUrl": "https://www.freepressjournal.in/business/centre-moves-supreme-court-seeking-review-of-yes-banks-8415-crore-at-1-bond-write-off-verdict",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "donald trump signs common cents act ending penny minting u||1795260600000",
-        "category": "central_bank",
-        "title": "Donald Trump signs Common Cents Act , ending penny minting U . s . Mint Stops Producing Pennies",
-        "source": "el-balad.com",
-        "sourceUrl": "https://www.el-balad.com/17068717",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "paraguay bank chief says alerts were ignored||1795260600000",
-        "category": "central_bank",
-        "title": "Paraguay Bank Chief Says Alerts Were Ignored",
-        "source": "riotimesonline.com",
-        "sourceUrl": "https://www.riotimesonline.com/paraguay-central-bank-chief-says-ueno-alerts-ignored/",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "trump formally ends minting of the penny nbc 5 dallas|5|1795260600000",
-        "category": "central_bank",
-        "title": "Trump formally ends minting of the penny – NBC 5 Dallas - Fort Worth",
-        "source": "nbcdfw.com",
-        "sourceUrl": "https://www.nbcdfw.com/news/local/trump-formally-ends-minting-of-the-penny-after-nearly-250-years-of-production/4109200/",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "uganda presses mobile money firms on fees||1795260600000",
-        "category": "central_bank",
-        "title": "Uganda Presses Mobile Money Firms on Fees",
-        "source": "riotimesonline.com",
-        "sourceUrl": "https://www.riotimesonline.com/uganda-prime-minister-mobile-money-charges-mtn-airtel/",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "mexican stocks post worst week since august||1795260600000",
-        "category": "central_bank",
-        "title": "Mexican Stocks Post Worst Week Since August",
-        "source": "riotimesonline.com",
-        "sourceUrl": "https://www.riotimesonline.com/mexican-stocks-post-worst-week-since-august/",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "fed january hike odds fall to 47|47|1795260600000",
-        "category": "central_bank",
-        "title": "Fed January Hike Odds Fall to 47 %",
-        "source": "riotimesonline.com",
-        "sourceUrl": "https://www.riotimesonline.com/fed-january-hike-odds-fall-to-47-percent-2026/",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": [
-          {
-            "sym": "usINX",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "usIXIC",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "usDJI",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "EM:171.US10Y",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "EM:101.GC00Y",
-            "rel": "RELATED"
-          },
-          {
-            "sym": "BTCUSDT",
-            "rel": "RELATED"
-          }
-        ]
-      },
-      {
-        "id": "arab news the logic behind saudi arabia strategy||1795260600000",
-        "category": "trade",
-        "title": "Arab News | The logic behind Saudi Arabia strategy",
-        "source": "arabnews.com",
-        "sourceUrl": "https://www.arabnews.com/opinion/the-logic-behind-saudi-arabias-strategy-3013332",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": "沙特",
-        "lat": 24.71,
-        "lng": 46.68,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "ghana rent commissioner seeks police guard||1795260600000",
-        "category": "trade",
-        "title": "Ghana Rent Commissioner Seeks Police Guard",
-        "source": "riotimesonline.com",
-        "sourceUrl": "https://www.riotimesonline.com/ghana-rent-commissioner-seeks-police-guard/",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "tsmc reportedly tightens china ai chip curbs as new us||1795260600000",
-        "category": "trade",
-        "title": "TSMC reportedly tightens China AI chip curbs as new US rules close manufacturing loophole",
-        "source": "businesstimes.com.sg",
-        "sourceUrl": "https://www.businesstimes.com.sg/international/global/tsmc-reportedly-tightens-china-ai-chip-curbs-new-us-rules-close-manufacturing-loophole",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": "中国",
-        "lat": 39.904,
-        "lng": 116.407,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [
-          "sh000001",
-          "usINX"
-        ],
-        "relatedAssets": []
-      },
-      {
-        "id": "today thanksgiving holiday was invented amid the civil war to||1795260600000",
-        "category": "trade",
-        "title": "Today Thanksgiving holiday was invented amid the Civil War to unite a divided country",
-        "source": "theitem.com",
-        "sourceUrl": "http://theitem.com/stories/todays-thanksgiving-holiday-was-invented-amid-the-civil-war-to-unite-a-divided-country,448949",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "canada legal tobacco trade eclipsed by black market expert||1795260600000",
-        "category": "trade",
-        "title": "Canada legal tobacco trade eclipsed by black market : expert",
-        "source": "cp24.com",
-        "sourceUrl": "https://www.cp24.com/news/canada/2026/11/21/has-the-black-market-eclipsed-canadas-tobacco-trade/",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": "加拿大",
-        "lat": 45.42,
-        "lng": -75.7,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "fair weather silicon valley pivots away from the right after||1795260600000",
-        "category": "trade",
-        "title": "Fair - weather Silicon Valley pivots away from the right after blue wave :  Im not Maga  | US politics",
-        "source": "theguardian.com",
-        "sourceUrl": "https://www.theguardian.com/us-news/2026/nov/21/silicon-valley-pivot-us-midterms",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [
-          "usINX"
-        ],
-        "relatedAssets": []
-      },
-      {
-        "id": "singapore can make a good living in a multipolar world||1795260600000",
-        "category": "trade",
-        "title": "Singapore can  make a good living  in a multipolar world if US and China dont collide : PM Wong",
-        "source": "businesstimes.com.sg",
-        "sourceUrl": "https://www.businesstimes.com.sg/singapore/singapore-can-make-good-living-multipolar-world-if-us-and-china-dont-collide-pm-wong",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": "中国",
-        "lat": 39.904,
-        "lng": 116.407,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [
-          "sh000001",
-          "usINX"
-        ],
-        "relatedAssets": []
-      },
-      {
-        "id": "where in the world is mark carney five continents and|113,32|1795260600000",
-        "category": "trade",
-        "title": "Where in the world is Mark Carney ? Five continents and 32 countries in 113 days",
-        "source": "hindustantimes.com",
-        "sourceUrl": "https://www.hindustantimes.com/world-news/where-in-the-world-is-mark-carney-five-continents-and-32-countries-in-113-days-101795251433383.html",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "singapore unveils green shipping ai governance initiatives with china after||1795260600000",
-        "category": "trade",
-        "title": "Singapore unveils green shipping , AI governance initiatives with China after PM Wong meets Premier Li Qiang",
-        "source": "businesstimes.com.sg",
-        "sourceUrl": "https://www.businesstimes.com.sg/singapore/singapore-unveils-green-shipping-ai-governance-initiatives-china-after-pm-wong-meets-premier-li",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": "中国",
-        "lat": 39.904,
-        "lng": 116.407,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [
-          "sh000001"
-        ],
-        "relatedAssets": []
-      },
-      {
-        "id": "from animal sacrifice to vedic rituals what prompted shimla daroti||1795260600000",
-        "category": "trade",
-        "title": "From Animal Sacrifice To Vedic Rituals : What Prompted Shimla Daroti Village To Embrace A New Religious Tradition ?",
-        "source": "freepressjournal.in",
-        "sourceUrl": "https://www.freepressjournal.in/lifestyle/from-animal-sacrifice-to-vedic-rituals-what-prompted-shimlas-daroti-village-to-embrace-a-new-religious-tradition",
-        "publishedAt": "2026-11-21T11:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
         "id": "israel accuses hamas of tightening its grip on gaza||1795260600000",
         "category": "conflict",
         "title": "Israel Accuses Hamas of Tightening its Grip on Gaza",
@@ -3026,6 +1573,21 @@
         "country": "俄罗斯",
         "lat": 55.76,
         "lng": 37.62,
+        "severity": 30,
+        "importance": "low",
+        "relatedSymbols": [],
+        "relatedAssets": []
+      },
+      {
+        "id": "champaign county board removes funding for flock cameras sheriff says||1795260600000",
+        "category": "conflict",
+        "title": "Champaign County Board removes funding for Flock cameras ; sheriff says  Ill find it somewhere",
+        "source": "news-gazette.com",
+        "sourceUrl": "https://www.news-gazette.com/news/local/courts-police-fire/champaign-county-board-removes-funding-for-flock-cameras-sheriff-says-ill-find-it-somewhere/article_f28021a2-666a-43cb-b210-8458d70ec04f.html",
+        "publishedAt": "2026-11-21T11:30:00.000Z",
+        "country": null,
+        "lat": null,
+        "lng": null,
         "severity": 30,
         "importance": "low",
         "relatedSymbols": [],
@@ -3270,73 +1832,13 @@
         "importance": "low",
         "relatedSymbols": [],
         "relatedAssets": []
-      },
-      {
-        "id": "伊朗革命卫队击落一架美军mq 1型无人机 伊朗伊斯兰革命卫队21日在社交媒体上说 革命卫队当天在格什姆岛上空击落一架美军mq 1型无人机 这是伊方击落的第19架美军该型无人机 新华社||1795257019000",
-        "category": "market",
-        "title": "【伊朗革命卫队击落一架美军MQ-1型无人机】伊朗伊斯兰革命卫队21日在社交媒体上说，革命卫队当天在格什姆岛上空击落一架美军MQ-1型无人机。这是伊方击落的第19架美军该型无人机。（新华社）",
-        "source": "新浪财经7x24",
-        "sourceUrl": "https://finance.sina.com.cn/7x24/",
-        "publishedAt": "2026-11-21T10:30:19.000Z",
-        "country": "伊朗",
-        "lat": 35.69,
-        "lng": 51.39,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "gov evers delivers radio address on holiday food insecurity||1795257000000",
-        "category": "trade",
-        "title": "Gov . Evers delivers radio address on holiday food insecurity",
-        "source": "wiscnews.com",
-        "sourceUrl": "https://wiscnews.com/community/article_7867ef84-525f-5a63-91a6-3dd96e57902a.html",
-        "publishedAt": "2026-11-21T10:30:00.000Z",
-        "country": null,
-        "lat": null,
-        "lng": null,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "customs suspends recruitment training amid dispute with federal character commission||1795257000000",
-        "category": "trade",
-        "title": "Customs Suspends Recruitment Training Amid Dispute With Federal Character Commission - Latest News In Nigeria , Nigeria News Today , Your Online Nigerian Newspaper",
-        "source": "nigerianeye.com",
-        "sourceUrl": "https://www.nigerianeye.com/2026/11/customs-suspends-recruitment-training.html",
-        "publishedAt": "2026-11-21T10:30:00.000Z",
-        "country": "尼日利亚",
-        "lat": 9.06,
-        "lng": 7.49,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
-      },
-      {
-        "id": "rejoining eu on the table as united kingdom strikes deals||1795257000000",
-        "category": "trade",
-        "title": "Rejoining EU  on the table  as united kingdom strikes deals on trade and young people",
-        "source": "aol.co.uk",
-        "sourceUrl": "https://www.aol.co.uk/articles/rejoining-eu-table-uk-strikes-094552000.html",
-        "publishedAt": "2026-11-21T10:30:00.000Z",
-        "country": "英国",
-        "lat": 51.51,
-        "lng": -0.13,
-        "severity": 30,
-        "importance": "low",
-        "relatedSymbols": [],
-        "relatedAssets": []
       }
     ]
   },
   "meta": {
     "dataset": "events.global",
-    "asof": "2026-11-21T16:29:24.713Z",
-    "generatedAt": "2026-11-21T16:31:58.213Z",
+    "asof": "2026-11-21T16:37:03.802Z",
+    "generatedAt": "2026-11-21T16:39:53.265Z",
     "source": "GDELT DOC 2.0 (artlist) + 新浪财经7x24",
     "stale": false,
     "license": "GDELT 免费开放数据（gdeltproject.org）· 新浪财经7x24 公开快讯；坐标为本项目关键词地理定位，精度为国家/地区级",
