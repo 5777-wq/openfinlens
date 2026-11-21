@@ -84,9 +84,12 @@
   height: 34px;
   margin: 0 auto;                 /* 品牌与动作区之间居中 */
   padding: 3px;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  /* 井底槽 + 浮起选中片（与桌面版 .dt-seg 同款语言，2026-11-21 用户对大胶囊
+     套小胶囊的「圆不圆方不方」观感反馈重做）：槽用 --bg-sunken + --r-md，
+     选中片与按钮同用小圆角，弧线层级单一。 */
+  background: var(--bg-sunken);
+  border: 1px solid var(--border-soft, var(--border));
+  border-radius: var(--r-md);
   isolation: isolate;
 }
 
@@ -97,7 +100,8 @@
   align-items: center;
   justify-content: center;
   padding: 0 var(--sp-16);
-  border-radius: 999px;
+  /* 与槽体 --r-md 内缩 3px 同弧度的小圆角（hover 悬停底色跟 ink 同形） */
+  border-radius: var(--r-sm);
   font-size: var(--fs-12);
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -105,6 +109,8 @@
   white-space: nowrap;
   transition: color var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
 }
+.nav-primary:hover { color: var(--text-secondary); background: var(--bg-hover); }
+.nav-primary.active { color: var(--bg); }
 .nav-primary:hover { color: var(--text-secondary); }
 .nav-primary.active { color: var(--bg); }
 /* 按压反馈：进快出慢（进 = 无过渡，出 = 默认过渡） */
@@ -121,11 +127,13 @@
   left: 3px;
   height: auto;
   z-index: 0;
-  width: calc((100% - 6px) / var(--ink-n, 5));
-  border-radius: 999px;
-  /* 实心墨色：深空=白、日光=黑。
-     旧版是 13% 强调色蒙版 + 内描边，白底上是一块"脏灰"，看不出是当前项。 */
+  width: calc((100% - 6px) / var(--ink-n, 6));
+  /* 浮起选中片：小圆角与槽内缩同弧度 + 浮起阴影（.dt-seg-btn.on 同款语言；
+     内描边省略——tokens 阴影两档纪律，浮片靠墨色+阴影已足够分离）。
+     实心墨色：深空=白、日光=黑——选中项文字反色（.active 用 --bg）。 */
+  border-radius: var(--r-sm);
   background: var(--text);
+  box-shadow: var(--shadow-1);
   transform: translateX(calc(var(--ink-i, 0) * 100%));
   transform-origin: 0 50%;
   transition: transform var(--dur-3) var(--ease-signature);

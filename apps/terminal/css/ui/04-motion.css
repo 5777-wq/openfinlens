@@ -290,13 +290,14 @@ body :is(.pm-card, .wcard, .event-item):not([data-no-press]):is(:active, .is-pre
 .mo-ink-host { position: relative; }
 
 /* 兜底（零特异性，shell 的 .nav-ink 规则一律优先）：shell 还没来得及写壳样式时，
-   指示器也要能量出几何、看得见。position:absolute 是 scaleX 数学成立的前提。 */
+   指示器也要能量出几何、看得见。position:absolute 是 scaleX 数学成立的前提。
+   圆角与 shell 浮起片同款（--r-sm，2026-11-21 井底槽重做同步）。 */
 :where(.nav-ink[data-mo-ink]) {
   position: absolute;
   display: block;
   bottom: 0;
   height: var(--mo-ink-h);
-  border-radius: 999px;
+  border-radius: var(--r-sm);
   background: var(--accent-signature);
 }
 
