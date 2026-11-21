@@ -691,3 +691,45 @@ html { scrollbar-width: thin; scrollbar-color: var(--border-hover) transparent; 
    给个最小高度，让静态骨架（#heatSk）有地方显示。 */
 .heat-wrap { min-height: 420px; }
 @media (max-width: 640px) { .heat-wrap { min-height: 300px; } }
+
+/* ============================================================ S2：数据源健康度浮层
+   顶栏 liveStat 点击展开（div 动态补 role="button"/tabindex，见 app.js bindEvents）。
+   定位语言与 .alert-panel 同款：absolute 挂触发器内、top calc(100%+10px)、right 对齐；
+   卡面用 --r-lg + --shadow-2（日光模式有真实投影，深空模式两档阴影令牌自然回落）。 */
+.live-stat { position: relative; }
+.live-stat[role="button"] { cursor: pointer; }
+.live-stat[role="button"]:hover { color: var(--text-secondary); }
+.live-stat[role="button"]:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+.live-stat[aria-expanded="true"] { color: var(--text); }
+.health-panel {
+  position: absolute; top: calc(100% + 10px); right: 0; width: 340px;
+  max-width: calc(100vw - 24px); max-height: min(70vh, 520px); overflow-y: auto;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: var(--sp-16); z-index: 130;
+  box-shadow: var(--shadow-2);
+  font-size: var(--fs-12);
+}
+/* 打开时编程式 focus 到面板本身（tabindex=-1）：焦点环不关，键盘路径给专用色 */
+.health-panel:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.hp-head {
+  font-size: var(--fs-12); letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-tertiary); margin-bottom: var(--sp-12);
+}
+.hp-cap {
+  font-size: var(--fs-12); color: var(--text-faint); letter-spacing: 0.14em;
+  padding: var(--sp-8) 2px var(--sp-4); border-top: 1px solid var(--border);
+  margin-top: var(--sp-8);
+}
+.hp-cap:first-of-type { border-top: none; margin-top: 0; }
+.hp-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-12);
+  padding: var(--sp-4) var(--sp-8); border-radius: var(--r-sm); line-height: 1.7;
+}
+.hp-row:hover { background: var(--bg-hover); }
+.hp-k { color: var(--text-secondary); }
+.hp-v { color: var(--text); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hp-foot { display: flex; justify-content: flex-end; gap: var(--sp-8); margin-top: var(--sp-12); }

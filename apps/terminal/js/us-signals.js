@@ -35,11 +35,15 @@
   function getLS(k, d) { try { var v = localStorage.getItem('gfd_' + k); return v == null ? d : v; } catch (e) { return d; } }
   function setLS(k, v) { try { localStorage.setItem('gfd_' + k, v); } catch (e) { /* 隐私模式忽略 */ } }
 
-  function rsiOf(it) {           // 当前周期 + 当前周期线的 RSI 对象
-    var src = state.cycle === 'weekly' ? (it.weekly || {}) : it.daily;
-    return (state.period === '14' ? (src.rsi14 || null) : (src.rsi6 || null));
+  function rsiFrom(it, cycle, period) {  // 参数化取线（buildMarkdown/buildCSV 纯函数复用，不读 state）
+    var src = cycle === 'weekly' ? (it.weekly || {}) : (it.daily || {});
+    return (period === '14' ? (src.rsi14 || null) : (src.rsi6 || null));
   }
-  function revertOf(it) { return !!(state.cycle === 'weekly' ? it.weekly && it.weekly.revert : it.daily && it.daily.revert); }
+  function rsiOf(it) {           // 当前周期 + 当前周期线的 RSI 对象
+    return rsiFrom(it, state.cycle, state.period);
+  }
+  function revertFlag(it, cycle) { return !!(cycle === 'weekly' ? it.weekly && it.weekly.revert : it.daily && it.daily.revert); }
+  function revertOf(it) { return revertFlag(it, state.cycle); }
   function vegasOf(it) { return (state.cycle === 'weekly' ? (it.weekly && it.weekly.vegas) || [] : (it.daily && it.daily.vegas) || []); }
 
   function matches(it) {
@@ -55,11 +59,147 @@
     if (f === 'os') return !!(r && r.state === 'oversold');
     if (f === 'obr') return !!(r && r.cross === 'out_ob');
     if (f === 'osr') return !!(r && r.cross === 'out_os');
+    if (f === 'revert') return !!(it.daily && it.daily.revert === true);
     if (f === 'ev') return vegasOf(it).some(function (v) { return v.event && v.event.indexOf('break') === 0; });
     if (f === 'wob') { var w = it.weekly && (state.period === '14' ? it.weekly.rsi14 : it.weekly.rsi6); return !!(w && w.state === 'overbought'); }
     if (f === 'wos') { var w2 = it.weekly && (state.period === '14' ? it.weekly.rsi14 : it.weekly.rsi6); return !!(w2 && w2.state === 'oversold'); }
     if (f === 'wret') { var w3 = it.weekly && (state.period === '14' ? it.weekly.rsi14 : it.weekly.rsi6); return !!(w3 && (w3.cross === 'out_ob' || w3.cross === 'out_os')); }
     return true;
+  }
+
+  /* ---------- Sprint2 S1「信号工作台」：可测纯函数（window.UsSignals 导出） ----------
+     只提炼事实（回归/穿线/自选命中），不携带任何操作建议——合规红线。
+     buildRadar/buildMarkdown/buildCSV 均不读 state、不碰 DOM，vm 单测直接调。 */
+
+  var POS_FULL = { above: '通道上方', inside: '通道带内', below: '通道下方' };  // vdot title / 摘要全称
+  var POS_JOIN = { above: '上方', inside: '带内', below: '下方' };              // 摘要内联：短通道＋方位
+
+  var FILTER_DEFS = [   // 筛选键 → 中文标签（filterChipsHTML 与 buildMarkdown/buildCSV 共用一份）
+    ['all', '全部'], ['ob', '超买'], ['os', '超卖'], ['obr', '超买回落'], ['osr', '超卖回升'],
+    ['ev', '通道穿越'], ['wob', '周超买'], ['wos', '周超卖'], ['wret', '周回归'],
+    ['sp500', 'SP500'], ['ndx100', 'QQQ'], ['spmo', 'SPMO 重合'], ['watch', '自选'],
+  ];
+  function filterLabel(f) {
+    for (var i = 0; i < FILTER_DEFS.length; i++) if (FILTER_DEFS[i][0] === f) return FILTER_DEFS[i][1];
+    return f;
+  }
+
+  function stateTxt(s) {
+    if (s === 'overbought') return '超买';
+    if (s === 'oversold') return '超卖';
+    return s ? '中性' : '';
+  }
+  function normUsKey(s) {  // 与 starBtn 同一把 usAAPL 钥匙（自选集合的键）
+    if (window.U && typeof window.U.normUsSymbol === 'function') return window.U.normUsSymbol(s) || s;
+    return 'us' + s;
+  }
+  function vegasJoin(it, cycle) {  // 「短通道下方（break_up）、中通道带内」形态；数据不足诚实标注
+    var list = (cycle === 'weekly' ? (it.weekly && it.weekly.vegas) : it.daily && it.daily.vegas) || [];
+    return list.map(function (v) {
+      if (!v || !v.pos) return (v && v.key || '') + '数据不足';
+      return (v.key || '') + (POS_JOIN[v.pos] || v.pos || '') + (v.event ? '（' + String(v.event) + '）' : '');
+    }).join('、');
+  }
+  function tagsJoin(it) {  // 「标普500+纳指100」形态
+    var t = it.tags || {};
+    return [t.sp500 ? '标普500' : '', t.ndx100 ? '纳指100' : ''].filter(Boolean).join('+');
+  }
+
+  /* 今日异动雷达：三组各按 rank 升序最多 2 枚。
+     · revert 组 = it.daily.revert === true；点击筛选键 'revert'（matches 按
+       daily.revert 直筛——回归组混有 out_os/out_ob 两种 cross，按首枚定向
+       会丢另一半，2026-11-21 浏览器实测抓包后改直筛）
+     · vegas 组  = daily.vegas 任一 v.event 非空；点击筛选键 'ev'
+     · watch 组  = watchSet[normUs(symbol)] 且 rsi6 ob/os 或 revert 或 vegas 穿线；点击筛选键 'watch' */
+  function buildRadar(items, watchSet, normUs) {
+    var nfn = typeof normUs === 'function' ? normUs : function (s) { return s; };
+    var rankOf = function (it) { return it && it.rank != null ? Number(it.rank) : 1e9; };  // 无 rank（如 SPMO）排末尾
+    var byRank = (items || []).slice().sort(function (a, b) { return rankOf(a) - rankOf(b); });  // slice 防突变
+    var pick = function (list) { return list.slice(0, 2).map(function (it) { return it && it.symbol; }); };
+    var revert = byRank.filter(function (it) { return !!(it && it.daily && it.daily.revert === true); });
+    var vegas = byRank.filter(function (it) {
+      return ((it && it.daily && it.daily.vegas) || []).some(function (v) { return !!(v && v.event); });
+    });
+    var watch = byRank.filter(function (it) {
+      if (!it || !watchSet || !watchSet[nfn(it.symbol)]) return false;
+      var d = it.daily || {}, r6 = d.rsi6 || {};
+      return r6.state === 'overbought' || r6.state === 'oversold' || d.revert === true ||
+        (d.vegas || []).some(function (v) { return !!(v && v.event); });
+    });
+    return {
+      revert: { filterKey: revert.length ? 'revert' : null, syms: pick(revert) },
+      vegas: { filterKey: 'ev', syms: pick(vegas) },
+      watch: { filterKey: 'watch', syms: pick(watch) },
+    };
+  }
+
+  function mdEsc(s) {  // Markdown 文本转义（反斜杠先转，再处理 * ` _ [ ]）
+    return String(s == null ? '' : s).replace(/([\\`*_\[\]])/g, '\\$1');
+  }
+  function csvCell(v) {  // RFC4180：含逗号/引号/换行的单元格加引号，内部引号翻倍
+    var s = v == null ? '' : String(v);
+    if (/[",\r\n]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  /* 结构化 Markdown 摘要：头部（周期口径 · 日期）＋ 计数行 ＋ 每条一行事实 ＋ 免责句。
+     meta = { cycle:'daily'|'weekly', period:'6'|'14', date:'YYYY-MM-DD', filter, filterLabel } */
+  function buildMarkdown(items, meta) {
+    meta = meta || {};
+    var cyc = meta.cycle === 'weekly' ? '周' : '日';
+    var rsiLabel = cyc + 'RSI' + (meta.period === '14' ? '14' : '6');
+    var lines = ['## 美股信号摘要（' + rsiLabel + (meta.date ? ' · ' + String(meta.date) : '') + '）', ''];
+    lines.push('共 ' + (items ? items.length : 0) + ' 只 · 筛选：' + (meta.filterLabel || meta.filter || '全部'));
+    lines.push('');
+    if (!items || !items.length) lines.push('当前筛选没有匹配标的', '');
+    (items || []).forEach(function (it) {
+      if (!it) return;
+      var parts = [];
+      var r = rsiFrom(it, meta.cycle, meta.period);
+      var val = r && isFinite(Number(r.value)) ? Number(r.value).toFixed(1) : '--';
+      var st = stateTxt(r && r.state);
+      parts.push(rsiLabel + ' ' + val + (st ? '（' + st + '）' : ''));
+      var vg = vegasJoin(it, meta.cycle);
+      if (vg) parts.push('Vegas ' + vg);
+      if (revertFlag(it, meta.cycle)) parts.push('RSI 回归');
+      var tg = tagsJoin(it);
+      if (tg) parts.push(tg);
+      var nm = it.name ? ' ' + mdEsc(it.name) : '';
+      lines.push('- **' + mdEsc(it.symbol) + nm + '**：' + parts.join(' · '));
+    });
+    lines.push('', '仅供研究参考，不构成投资建议');
+    return lines.join('\n');
+  }
+
+  /* CSV 导出文本：UTF-8 BOM 打头（Excel 直开不乱码），固定 9 列表头，CRLF 行尾。
+     列：代码,名称,收盘,涨跌幅,日RSI6,日RSI14,周RSI6,信号,成分（RSI 三列与周期开关无关，两套都给）。 */
+  function buildCSV(items, meta) {
+    meta = meta || {};
+    var rows = [['代码', '名称', '收盘', '涨跌幅', '日RSI6', '日RSI14', '周RSI6', '信号', '成分'].map(csvCell).join(',')];
+    (items || []).forEach(function (it) {
+      if (!it) return;
+      var d = it.daily || {}, w = it.weekly || {};
+      var segs = [];
+      var r = rsiFrom(it, meta.cycle, meta.period);
+      var st = stateTxt(r && r.state);
+      if (st === '超买' || st === '超卖') segs.push(st);
+      var vg = vegasJoin(it, meta.cycle);
+      if (vg) segs.push('Vegas ' + vg);
+      if (revertFlag(it, meta.cycle)) segs.push('RSI 回归');
+      var f1 = function (v) { return isFinite(Number(v)) ? Number(v).toFixed(1) : ''; };
+      rows.push([
+        it.symbol || '',
+        it.name || '',
+        isFinite(Number(it.price)) ? Number(it.price).toFixed(2) : '',
+        isFinite(Number(it.changePct)) ? Number(it.changePct).toFixed(2) : '',
+        f1(d.rsi6 && d.rsi6.value),
+        f1(d.rsi14 && d.rsi14.value),
+        f1(w.rsi6 && w.rsi6.value),
+        segs.join(' · '),
+        tagsJoin(it),
+      ].map(csvCell).join(','));
+    });
+    return '\ufeff' + rows.join('\r\n');
   }
 
   function starBtn(it) {
@@ -130,16 +270,30 @@
     return b;
   }
 
+  function rsiBar(r) {
+    // 48×5px 微型温度条（Sprint2 S1）：轨道 0–100，fill 从 0 到当前值，30/70 阈值刻度竖线；
+    // 落点色 ≥70 --text-rise / ≤30 --text-fall / 中间 --text-secondary。纯装饰，aria-hidden。
+    if (!r || !isFinite(Number(r.value))) return '';
+    var v = Math.max(0, Math.min(100, Number(r.value)));
+    var cls = r.value >= 70 ? ' t-hi' : r.value <= 30 ? ' t-lo' : '';
+    return ' <span class="rsi-bar' + cls + '" aria-hidden="true">' +
+      '<span class="rsi-fill" style="left:0%;width:' + v.toFixed(1) + '%"></span>' +
+      '<span class="rsi-tick t30"></span><span class="rsi-tick t70"></span></span>';
+  }
+
   function rowHTML(it) {
     var r = rsiOf(it);
     var vList = vegasOf(it).map(function (v) {
+      // Sprint2 S1：长文本 → 三点矩阵（短/中/长单字徽标，pos 三态着色，穿线事件加描边）；
+      // 悬停 title 给原文（键：方位（EMA n/n）· 事件），窄屏比整行文字省空间。
       if (!v || !v.pos) return '<span class="mut" title="数据不足">·</span>';
-      var cls = v.pos === 'above' ? 'up' : v.pos === 'below' ? 'dn' : 'mut';
-      var ev = v.event ? (v.event === 'break_up' ? '↑' : v.event === 'break_down' ? '↓' : '·') : '';
-      return '<span class="' + cls + '" title="' + esc(v.key + ' EMA' + v.n.join('/') + (v.insufficient ? '（数据不足）' : '')) + '">' +
-        esc(v.key.replace('通道', '')) + POS_TXT[v.pos] + ev + '</span>';
-    }).join(' ');
-    var rev = revertOf(it) ? badge('回落', 'ret', '收盘自上方回落进入通道（回归事件，做T回补观察）') : '';
+      var posCls = v.pos === 'above' ? ' v-above' : v.pos === 'below' ? ' v-below' : ' v-inside';
+      var ttl = (v.key || '') + '：' + (POS_FULL[v.pos] || v.pos || '') + '（EMA' + (v.n || []).join('/') + '）' +
+        (v.event ? ' · ' + String(v.event) : '') + (v.insufficient ? '（数据不足）' : '');
+      return '<span class="vdot' + posCls + (v.event ? ' v-ev' : '') + '" title="' + esc(ttl) + '">' +
+        esc((v.key || '').replace('通道', '')) + '</span>';
+    }).join('');
+    var rev = revertOf(it) ? badge('回落', 'ret', '收盘自上方回落进入通道（RSI 回归事件，仅陈述事实）') : '';
     var tags = it.tags || {};
     var idx = [tags.sp500 ? '标普' : null, tags.ndx100 ? '纳指' : null].filter(Boolean).join('+');
     var watchNote = tags.watchNote || (tags.watch ? '自选' : '');
@@ -152,7 +306,7 @@
       '<td>' + num(it.price) + '</td>' +
       '<td class="' + (it.changePct >= 0 ? 'up' : 'dn') + '">' + pct(it.changePct) + '</td>' +
       '<td class="rsi ' + (r && r.state === 'overbought' ? 'ob' : r && r.state === 'oversold' ? 'os' : '') + '">' +
-        '<span data-gloss="rsi" tabindex="0" role="button" aria-label="什么是RSI">' + (r ? num(r.value, 1) : '--') + '</span></td>' +
+        '<span data-gloss="rsi" tabindex="0" role="button" aria-label="什么是RSI">' + (r ? num(r.value, 1) : '--') + '</span>' + rsiBar(r) + '</td>' +
       '<td>' + (wR ? num(wR.value, 1) : '--') + '</td>' +
       '<td class="sig">' + rev + ' <span class="vegas" data-gloss="vegas" tabindex="0" role="button" aria-label="什么是Vegas通道">' + vList + '</span></td>' +
       '<td class="mut">' + esc(idx || '--') + '</td>' +
@@ -160,26 +314,131 @@
       '</tr>';
   }
 
-  var POS_TXT = { above: '上', inside: '内', below: '下' };
-
   function filterChipsHTML() {
     var c = (state.data && state.data.summary && state.data.summary.counts) || {};
-    var defs = [
-      ['all', '全部', (state.data && state.data.items || []).length],
-      ['ob', '超买', c.ob], ['os', '超卖', c.os],
-      ['obr', '超买回落', c.obr], ['osr', '超卖回升', c.osr],
-      ['ev', '通道穿越', c.events],
-      ['wob', '周超买', c.wob], ['wos', '周超卖', c.wos], ['wret', '周回归', c.wret],
-      ['sp500', 'SP500', null], ['ndx100', 'QQQ', null], ['spmo', 'SPMO 重合', null], ['watch', '自选', null],
-    ];
-    return defs.map(function (d) {
-      var n = d[2] == null ? (d[0] === 'spmo' ? (state.data.items || []).filter(function (x) { return x.spmoWeight != null; }).length
-        : d[0] === 'sp500' ? (state.data.items || []).filter(function (x) { return x.tags.sp500; }).length
-        : d[0] === 'ndx100' ? (state.data.items || []).filter(function (x) { return x.tags.ndx100; }).length
-        : (state.data.items || []).filter(function (x) { return x.tags.watch; }).length) : d[2];
+    var items = (state.data && state.data.items) || [];
+    // summary.counts 缺口一律诚实回 0（旧实现会误落到自选计数）
+    var counts = {
+      all: items.length,
+      ob: c.ob, os: c.os, obr: c.obr, osr: c.osr, ev: c.events,
+      wob: c.wob, wos: c.wos, wret: c.wret,
+      sp500: items.filter(function (x) { return x.tags && x.tags.sp500; }).length,
+      ndx100: items.filter(function (x) { return x.tags && x.tags.ndx100; }).length,
+      spmo: items.filter(function (x) { return x.spmoWeight != null; }).length,
+      watch: items.filter(function (x) { return x.tags && x.tags.watch; }).length,
+    };
+    return FILTER_DEFS.map(function (d) {
+      var n = counts[d[0]];
       return '<button class="chip' + (state.filter === d[0] ? ' on' : '') + '" type="button" data-ussig-f="' + d[0] + '" aria-pressed="' + (state.filter === d[0]) + '">' +
-        esc(d[1]) + ' <b>' + n + '</b></button>';
+        esc(d[1]) + ' <b>' + (n == null ? 0 : n) + '</b></button>';
     }).join('');
+  }
+
+  function toolsHTML() {  // 导出工具：chips 行末尾两枚轻按钮（Sprint2 S1 挂点④）
+    return '<button class="pill ussig-act" type="button" data-ussig-copy="1" aria-label="复制当前筛选下的美股信号摘要（Markdown 格式）">复制摘要</button>' +
+      '<button class="pill ussig-act" type="button" data-ussig-csv="1" aria-label="导出当前筛选下的美股信号为 CSV 文件">导出 CSV</button>';
+  }
+
+  function matchedItems() {  // 当前 filter + cycle + period 下 matches 的条目（SPMO 钉在表首）
+    var d = state.data;
+    if (!d) return [];
+    var all = (d.items || []).slice();
+    if (d.spmo) all.unshift(d.spmo);
+    return all.filter(matches);
+  }
+  function snapshotMeta() {  // 导出纯函数的 meta 快照（周期口径 · 日期 · 筛选标签）
+    var d = state.data || {};
+    return {
+      cycle: state.cycle,
+      period: state.period,
+      date: (d.marketClock && d.marketClock.marketDate) || '',
+      filter: state.filter,
+      filterLabel: filterLabel(state.filter),
+    };
+  }
+
+  function radarHost() {  // 摘要带宿主：插在 chips 行下方（.ussig-head 之后）、工具行/表格上方；懒建一次
+    var chips = $('ussig-chips');
+    var head = chips && chips.parentElement;
+    if (!head) return null;
+    var host = $('ussig-radar');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'ussig-radar';
+      host.className = 'ussig-radar-band';
+      host.setAttribute('role', 'group');
+      host.setAttribute('aria-label', '今日异动雷达');
+      head.insertAdjacentElement('afterend', host);
+    }
+    return host;
+  }
+  function radarHTML(radar) {  // 组标签＋代码胶囊；组内相连、组间 1px 分隔线；aria-pressed 跟随当前筛选
+    if (!radar) return '';
+    var groups = [];
+    if (radar.revert && radar.revert.syms.length) groups.push({ tag: '回归', f: radar.revert.filterKey || 'obr', syms: radar.revert.syms });
+    if (radar.vegas && radar.vegas.syms.length) groups.push({ tag: '穿线', f: 'ev', syms: radar.vegas.syms });
+    if (radar.watch && radar.watch.syms.length) groups.push({ tag: '自选', f: 'watch', syms: radar.watch.syms });
+    if (!groups.length) return '';
+    return '<span class="r-lead" aria-hidden="true">今日异动</span>' + groups.map(function (g) {
+      return g.syms.map(function (s) {
+        var on = state.filter === g.f;
+        return '<button class="ussig-radar' + (on ? ' on' : '') + '" type="button" data-radar-f="' + esc(g.f) + '" aria-pressed="' + on + '" aria-label="' + esc(g.tag + '异动：' + s + '，按该组筛选') + '">' +
+          '<span class="r-tag">' + esc(g.tag) + '</span><span class="r-sym">' + esc(s || '') + '</span></button>';
+      }).join('');
+    }).join('<span class="r-sep" aria-hidden="true"></span>');
+  }
+
+  function flash(btn, doneText) {  // 轻反馈：1.2s 后恢复原文字（期间防重入）
+    if (!btn || btn.dataset.busy) return;
+    var orig = btn.textContent;
+    btn.dataset.busy = '1';
+    btn.textContent = doneText;
+    setTimeout(function () { btn.textContent = orig; delete btn.dataset.busy; }, 1200);
+  }
+  function copyText(text, btn) {  // clipboard API 优先，失败回退 execCommand('copy')，再失败诚实提示
+    var done = function (ok) { flash(btn, ok ? '已复制 ✓' : '复制失败'); };
+    var fallback = function () {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        done(ok);
+      } catch (e) { done(false); }
+    };
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+    } else fallback();
+  }
+  function copySummary(btn) {  // 复制摘要：当前 filter+cycle+period 下的 matches → Markdown
+    if (!state.data) return;
+    copyText(buildMarkdown(matchedItems(), snapshotMeta()), btn);
+  }
+  function exportCSV(btn) {  // 导出 CSV：同口径条目 → BOM CSV 下载（文件名含美东收盘日）
+    if (!state.data) return;
+    var meta = snapshotMeta();
+    var stamp = String(meta.date || '').replace(/[^0-9]/g, '');
+    if (!stamp) {
+      var t = new Date();
+      stamp = t.getFullYear() + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2);
+    }
+    try {
+      var blob = new Blob([buildCSV(matchedItems(), meta)], { type: 'text/csv;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'us-signals-' + stamp + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      flash(btn, '已导出 ✓');
+    } catch (e) { flash(btn, '导出失败'); }
   }
 
   function render() {
@@ -194,19 +453,22 @@
         (d.meta && d.meta.mock ? ' · ' + badge('MOCK 数据', 'warn', '离线 mock 产物，仅供联调') : '');
     }
     var chips = $('ussig-chips');
-    if (chips) chips.innerHTML = filterChipsHTML();
+    if (chips) chips.innerHTML = filterChipsHTML() + toolsHTML();
+    // 今日异动雷达带（Sprint2 S1 挂点①）：chips 行下方、表格上方；提炼自 items + 自选集合
+    var all = (d.items || []).slice();
+    if (d.spmo) all.unshift(d.spmo);              // SPMO 钉在表首
+    var rhost = radarHost();
+    if (rhost) rhost.innerHTML = radarHTML(buildRadar(all, state.watchSet || {}, normUsKey));
     var body = $('ussig-body');
     if (!body) return;
-    var items = (d.items || []).slice();
-    if (d.spmo) items.unshift(d.spmo);            // SPMO 钉在表首
-    var vis = items.filter(matches);
+    var vis = all.filter(matches);
     var head = '<tr><th class="stcol" aria-label="自选"></th><th>排名</th><th>代码</th><th>名称</th><th>收盘</th><th>涨跌</th>' +
       '<th>RSI' + esc(state.period) + (state.cycle === 'weekly' ? '（周）' : '') + '</th><th>周RSI</th><th>信号</th><th>成分</th><th>SPMO%</th></tr>';
     body.innerHTML = vis.length
       ? '<table class="ussig-table"><thead>' + head + '</thead><tbody>' + vis.map(rowHTML).join('') + '</tbody></table>'
       : '<div class="ussig-empty">当前筛选没有匹配标的</div>';
     var note = $('ussig-note');
-    if (note) note.textContent = '显示 ' + vis.length + ' / ' + items.length + ' 只 · RSI' + state.period + ' · ' + (state.cycle === 'weekly' ? '周线' : '日线');
+    if (note) note.textContent = '显示 ' + vis.length + ' / ' + all.length + ' 只 · RSI' + state.period + ' · ' + (state.cycle === 'weekly' ? '周线' : '日线');
   }
 
   function renderEmpty(msg, retry) {
@@ -217,6 +479,8 @@
     if (clock) clock.textContent = '';
     var chips = $('ussig-chips');
     if (chips) chips.innerHTML = '';
+    var rhost = $('ussig-radar');
+    if (rhost) rhost.innerHTML = '';   // 摘要带随空态一起清空（不建宿主，只清已有的）
   }
 
   function load() {
@@ -259,6 +523,14 @@
       if (cy) { state.cycle = cy.getAttribute('data-ussig-cycle'); setLS('ussig_cycle', state.cycle); syncSwitches(); render(); return; }
       var f = e.target.closest('[data-ussig-f]');
       if (f) { state.filter = f.getAttribute('data-ussig-f'); render(); return; }
+      // 雷达胶囊（Sprint2 S1 挂点①）：点击 → 切到该组既有筛选键并联动 render（aria-pressed 随重渲染刷新）
+      var rd = e.target.closest('[data-radar-f]');
+      if (rd) { state.filter = rd.getAttribute('data-radar-f'); render(); return; }
+      // 导出工具（挂点④）：复制 Markdown 摘要 / 下载 BOM CSV
+      var cp = e.target.closest('[data-ussig-copy]');
+      if (cp) { copySummary(cp); return; }
+      var cs = e.target.closest('[data-ussig-csv]');
+      if (cs) { exportCSV(cs); return; }
       if (e.target.closest('[data-ussig-retry]')) { load(); return; }
       // 点行 → 详情（走 bus.js 约定的 symbol:open，app.js 接 openDetail）
       var row = e.target.closest('.ussig-row');
@@ -320,12 +592,28 @@
       else if (state.status === 'ok') render();
     });
     syncSwitches();
+    /* 深链直达双保险（2026-11-21）：#ussig / #tab=ussig 直接打开时，Bus 'tab' 的
+       emit 时机与 defer/ContentLoaded 存在竞态，监听可能收不到首帧事件——
+       boot 即时自查一次 + 1.5s 兜底再查一次，两道都漏才算漏。
+       调试探针默认关闭：URL 带 ?debug=1 才写 window.__ussigDebug（终审要求
+       生产无探针残留；保留门控便于日后复诊）。 */
+    const debugOn = /[?&]debug=1/.test(location.search || '');
+    if (debugOn) { window.__ussigDebug = window.__ussigDebug || []; window.__ussigDebug.push('boot rs=' + document.readyState + ' hash=' + (location.hash || '').slice(0, 20)); }
+    if (/ussig/.test(location.hash || '')) {
+      if (debugOn) window.__ussigDebug.push('selfcheck-hit loaded=' + state.loaded + ' st=' + state.status);
+      if (!state.loaded && state.status !== 'loading') { if (debugOn) window.__ussigDebug.push('selfcheck-load'); load(); }
+    }
+    setTimeout(function () {
+      if (debugOn) window.__ussigDebug.push('t1500 loaded=' + state.loaded + ' st=' + state.status);
+      if (!state.loaded && state.status !== 'loading' && /ussig/.test(location.hash || '')) { if (debugOn) window.__ussigDebug.push('t1500-load'); load(); }
+    }, 1500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 
   // 详情页信号胶囊卡的渲染口（app.js loadTechnical 消费；vm 单测直接调）。
-  // boot 依赖 DOM，但 renderCard 是纯函数——测试环境只碰这一个导出。
-  window.UsSignals = { renderCard: renderCard };
+  // boot 依赖 DOM，但 renderCard 与 buildRadar/buildMarkdown/buildCSV 都是纯函数——
+  // 测试环境只碰这四个导出，不触 DOM/网络。
+  window.UsSignals = { renderCard: renderCard, buildRadar: buildRadar, buildMarkdown: buildMarkdown, buildCSV: buildCSV };
 })();

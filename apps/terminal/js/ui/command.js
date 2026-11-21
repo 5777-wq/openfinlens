@@ -16,6 +16,11 @@
  * 数据源：标的（本地词典 + 远程搜索，支持代码 / 中文名 / 拼音首字母）
  *         功能命令（5 个一级 + 12 个子项、指标、模式、快照、刷新、设置）
  *         Academy 术语（data/academy-terms.json 懒拉，293 条白话金融术语，选中开新标签）
+ *         Academy 文章（academy/data/content/index.json 懒拉，134 篇复盘/科普文章，选中开新标签；
+ *                       academy 的真实路由是 #/<section>/<id>，见 router.js ROUTES，不是 #/article/<id>）
+ * 键盘流：⌘K 搜索面板、? 快捷键速查浮层（复用 cmd-* 皮肤，DOM 动态创建）、
+ *         T 快速切主题（读 dataset.theme 反色后走 AppNav.setTheme）——
+ *         T/? 不与 app.js 已占用的 1-9/0、/、Backspace 冲突（app.js 数字键与 / 同样带输入控件守卫）。
  * ------------------------------------------------------------------------- */
 
 (function (global) {
@@ -33,6 +38,9 @@
   let usSignalsItems = null;      // Meridian 美股标的（异步补装进词典，拉不到就保持原词典）
   let termItems = null;           // Academy 术语条目（懒拉 data/academy-terms.json，拉不到保持 null）
   let termsTried = false;         // 术语只试拉一次：失败静默，不重试轰炸（与 us-signals 同款脾气）
+  let articleItems = null;        // Academy 文章条目（懒拉 academy/data/content/index.json，拉不到保持 null）
+  let articlesTried = false;      // 文章索引同样只试拉一次：失败静默
+  let kbdHost = null, kbdPanel = null, kbdTrap = null, kbdOpen = false; // ? 快捷键速查浮层（首次创建后复用）
 
   /* ==================== 拼音首字母 ====================
      不为几千个汉字手写映射表：Intl.Collator 的 zh-pinyin 排序里，汉字按拼音
@@ -90,6 +98,7 @@
     const sym = String(item.symbol || '').toLowerCase();
     const py = String(item.py || '').toLowerCase();
     const hint = String(item.hint || '').toLowerCase();
+    const kw = String(item.kw || '').toLowerCase();
     if (code && code === Q) return 100;
     if (sym && sym === Q) return 98;
     if (code && code.indexOf(Q) === 0) return 92;
@@ -97,6 +106,7 @@
     if (py && py.indexOf(Q) === 0) return 84;
     if (name && name.indexOf(Q) > 0) return 74;
     if (py && py.indexOf(Q) > 0) return 64;
+    if (kw && kw.indexOf(Q) >= 0) return 52;   // 关键词包含（文章 tags：次贷/美债/危机…）
     if (subsequence(Q, py)) return 48;
     if (subsequence(Q, name)) return 34;
     if (code && code.indexOf(Q) > 0) return 30;
@@ -222,6 +232,7 @@
     cmds.forEach((c) => { const s = score(q, c); if (s) scored.push({ item: c, s }); });
     locals.forEach((c) => { const s = score(q, c); if (s) scored.push({ item: c, s }); });
     (termItems || []).forEach((c) => { const s = score(q, c); if (s) scored.push({ item: c, s }); });
+    (articleItems || []).forEach((c) => { const s = score(q, c); if (s) scored.push({ item: c, s }); });
     remoteItems.forEach((c) => { const s = score(q, c); if (s) scored.push({ item: c, s }); });
     // 功能命令排在标的之前（命令面板的约定：先给"能做的事"，再给"能看的标的"），
     // 组内仍按相关度。否则输入「日光」会被「日光控股」这类标的抢走默认选中项。
@@ -234,12 +245,14 @@
     for (const x of scored) {
       // 同一只标的有两份来源（本地词典 / 东财远程）：代码相同即视为同一条，
       // 保留打分更高的那份（本地带 market，标签更有用）。
-      // term 与 symbol 是两个 namespace（kind 不同、key 前缀不同），互不干扰。
+      // term / article / symbol 是三个 namespace（kind 不同、key 前缀不同），互不干扰。
       const key = x.item.kind === 'symbol'
         ? 'symbol|' + (x.item.code || x.item.symbol || x.item.label)
         : x.item.kind === 'term'
           ? 'term|' + (x.item.id || x.item.label)
-          : 'cmd|' + x.item.label;
+          : x.item.kind === 'article'
+            ? 'article|' + (x.item.id || x.item.label)
+            : 'cmd|' + x.item.label;
       if (seen.has(key)) continue;
       seen.add(key);
       out.push(x.item);
@@ -332,6 +345,9 @@
     } else if (item.kind === 'term') {
       // Academy 术语：新标签打开术语页（相对路径，见 openTerm）
       openTerm(item.id);
+    } else if (item.kind === 'article') {
+      // Academy 文章：新标签打开文章页（路由 #/<section>/<id>，见 openArticle）
+      openArticle(item);
     } else if (typeof item.run === 'function') {
       item.run();
     }
@@ -366,7 +382,9 @@
     isOpen = true;
     remoteItems = [];
     clearTimeout(remoteTimer);
+    closeKbdSheet();                // ? 浮层若开着，让位给面板（不叠两层模态）
     fetchTermsIntoLocal();          // 术语懒拉：首次打开面板才发请求（零首屏阻塞）
+    fetchArticlesIntoLocal();       // 文章索引懒拉：同上，失败静默
     if (!host) return;
     host.hidden = false;
     document.body.classList.add('modal-open');
@@ -400,6 +418,7 @@
   function onInput() {
     const q = input ? input.value.trim() : '';
     fetchTermsIntoLocal();          // 首次搜索也兜一次（面板常驻场景漏不掉）
+    fetchArticlesIntoLocal();       // 文章索引同款兜底
     render(q);
     scheduleRemote(q);
   }
@@ -441,12 +460,33 @@
     if (scrim) scrim.addEventListener('click', closePalette);
     if (trigger) trigger.addEventListener('click', openPalette);
 
-    // 全局快捷键：⌘K / Ctrl+K。输入框里也生效（命令面板要能随时唤起）。
+    // 全局快捷键：⌘K / Ctrl+K 唤起面板；? 速查浮层；T 切主题。
+    // ⌘K 输入框里也生效（命令面板要能随时唤起）；T/? 是单键，输入控件内不劫持
+    // （守卫与 app.js 数字键同款：input/textarea/select/contentEditable 一律放行）。
     document.addEventListener('keydown', (e) => {
       const k = e.key && e.key.toLowerCase();
       if ((e.metaKey || e.ctrlKey) && k === 'k') {
         e.preventDefault();
         togglePalette();
+        return;
+      }
+      const t = e.target;
+      const tag = ((t && t.tagName) || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || (t && t.isContentEditable)) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;   // Ctrl+T（新标签）/Cmd+T 等浏览器组合键不劫持
+      if (e.key === '?' || e.key === '？') {            // shift+/ ；'？' 是中文输入态的全角问号
+        e.preventDefault();
+        toggleKbdSheet();
+        return;
+      }
+      if (e.key === 'Escape' && kbdOpen) {
+        e.preventDefault();
+        closeKbdSheet();               // 焦点陷阱在时它自己也会收（幂等），这里是陷阱缺席时的兜底
+        return;
+      }
+      if (k === 't') {
+        e.preventDefault();
+        toggleThemeKey();
       }
     });
     // 触发按钮可被脚本点击；打开状态下点外面由遮罩负责，Esc 由焦点陷阱负责
@@ -512,6 +552,172 @@
       .catch(() => { /* academy-terms 未部署时 ⌘K 只给标的与命令，不重试轰炸 */ });
   }
 
+  /* Sprint 3（切片 S3，「Power-User 全站键盘流」）：⌘K 接入 Academy 的 134 篇文章。
+     · 与 fetchTermsIntoLocal 同款懒拉：触发点 = 首次打开面板 / 首次输入，失败静默只试一次；
+     · 路径注意：终端页在 /openfinlens/ 下，'data/…' 是终端自己的 data/；
+       academy 内容在 /openfinlens/academy/data/，相对终端页写作 'academy/data/content/index.json'；
+     · 条目走独立 kind:'article' 通道（不进 localSymbols，与 symbol/term 互不干扰）；
+     · index.json 结构：{ items: [{ id, section, title, dek, tag, tags, readMinutes,
+       dataAsOf, dataAsOfActual, difficulty, updatedAt, file }] }，section ∈
+       assets/concepts/crisis/cycles/family/reports，恰好对应 router.js 的六条 :id 路由。 */
+  function buildArticleItems(j) {
+    if (!j || !Array.isArray(j.items)) return null;
+    const out = [];
+    for (const a of j.items) {
+      if (!a || !a.id || !a.title) continue;
+      out.push({
+        kind: 'article',
+        group: '文章',
+        id: String(a.id),
+        section: String(a.section || 'assets'),
+        label: String(a.title),
+        hint: '白话金融 · 复盘/科普文章',
+        /* kw：文章 tags 关键词串（如「次贷 美债 危机」）——搜索打分的附加
+           匹配面。标题往往不含核心词（《2008 年那场金融危机》搜「次贷」
+           全靠 tags），与 py 并列供 scoreOf 消费。 */
+        kw: Array.isArray(a.tags) ? a.tags.join(' ') : String(a.tags || ''),
+        py: initialsOf(String(a.title)),
+      });
+    }
+    return out;
+  }
+
+  function openArticle(item) {
+    if (!item || !item.id) return;
+    // 单源：AcademyGloss.BASE（js/data/academy-gloss.js，相对 'academy/'）；
+    // academy 真实路由是 #/<section>/<id>（router.js ROUTES：assets/concepts/crisis/
+    // cycles/family/reports 各挂 :id），不是 #/article/<id>——与 academy-gloss.js
+    // 跨站链接（BASE + '#/assets/…'）同一形态；懒加载包缺席时退回同一字面量
+    const base = (global.AcademyGloss && global.AcademyGloss.BASE) || 'academy/';
+    const section = item.section || 'assets';
+    const url = base + '#/' + encodeURIComponent(section) + '/' + encodeURIComponent(item.id) + '?from=lens';
+    try { window.open(url, '_blank', 'noopener'); }
+    catch (e) { /* 弹窗被拦时静默：文章搜索不是关键路径 */ }
+  }
+
+  function fetchArticlesIntoLocal() {
+    if (articlesTried || articleItems) return;
+    articlesTried = true;
+    fetch('academy/data/content/index.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))))
+      .then((j) => {
+        articleItems = buildArticleItems(j);
+        // 面板开着且已经输入了查询：这轮补装立即进入结果（与术语补装同时序）
+        if (articleItems && isOpen && input && input.value.trim()) render(input.value);
+      })
+      .catch(() => { /* 内容索引未部署时 ⌘K 只有标的/命令/术语，不重试轰炸 */ });
+  }
+
+  /* ==================== ? 快捷键速查浮层 ==================== */
+  // 复用 cmd-host/cmd-scrim/cmd-panel 的既有皮肤语言（01-shell.css，不新增 css）；
+  // DOM 首次按下 ? 时动态创建，之后复用。双列清单由静态数组渲染，内联样式只做
+  // 栅格分栏与描述行排版，色彩/字号全部走既有 CSS 变量。
+
+  const KBD_ROWS = [
+    { keys: '1–6', label: '切一级板块', desc: '市场 / 事件 / 资产 / 基金 / 洞察 / 美股信号' },
+    { keys: '⌘K / /', label: '全局搜索', desc: '标的 · 术语 · 文章（⌘K 唤起面板，/ 聚焦顶栏搜索）' },
+    { keys: 'T', label: '切换主题', desc: '纸白（日光）⇄ 纯黑（深空），输入框内不生效' },
+    { keys: 'Esc', label: '关闭', desc: '命令面板 / 速查浮层 / 详情页' },
+  ];
+
+  function ensureKbdSheet() {
+    if (kbdHost) return kbdHost;
+    const host = document.createElement('div');
+    host.className = 'cmd-host';
+    host.id = 'kbdSheet';
+    host.hidden = true;
+    const scrim = document.createElement('div');
+    scrim.className = 'cmd-scrim';
+    scrim.setAttribute('aria-hidden', 'true');
+    const panel = document.createElement('div');
+    panel.className = 'cmd-panel';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    panel.setAttribute('aria-label', '快捷键速查');
+    panel.tabIndex = -1;
+    const field = document.createElement('div');
+    field.className = 'cmd-field';
+    field.innerHTML =
+      '<span class="cmd-glyph" aria-hidden="true">?</span>'
+      + '<span class="cmd-item-label" style="font-size:var(--fs-15);color:var(--text)">键盘速查</span>'
+      + '<kbd class="cmd-kbd">ESC</kbd>';
+    const grid = document.createElement('div');
+    grid.setAttribute('style', 'display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8) var(--sp-16);align-items:start;padding:var(--sp-8)');
+    KBD_ROWS.forEach((r) => {
+      const cell = document.createElement('div');
+      cell.className = 'cmd-item';
+      cell.innerHTML =
+        '<kbd class="cmd-kbd">' + esc(r.keys) + '</kbd>'
+        + '<span class="cmd-item-label" style="display:flex;flex-direction:column;gap:2px;'
+        + 'white-space:normal;overflow:visible;text-overflow:clip">'
+        + '<span style="color:var(--text)">' + esc(r.label) + '</span>'
+        + '<span style="font-size:var(--fs-12);color:var(--text-faint)">' + esc(r.desc) + '</span>'
+        + '</span>';
+      grid.appendChild(cell);
+    });
+    const foot = document.createElement('div');
+    foot.className = 'cmd-foot';
+    foot.innerHTML =
+      '<span class="cmd-hint"><kbd>?</kbd> 开关浮层</span>'
+      + '<span class="cmd-hint"><kbd>T</kbd> 切主题</span>'
+      + '<span class="cmd-hint cmd-hint-end">⌘K 全局搜索</span>';
+    const scroll = document.createElement('div');
+    scroll.className = 'cmd-scroll';
+    scroll.appendChild(grid);
+    panel.appendChild(field);
+    panel.appendChild(scroll);
+    panel.appendChild(foot);
+    host.appendChild(scrim);
+    host.appendChild(panel);
+    document.body.appendChild(host);
+    scrim.addEventListener('click', closeKbdSheet);
+    kbdHost = host;
+    kbdPanel = panel;
+    return kbdHost;
+  }
+
+  function openKbdSheet() {
+    ensureKbdSheet();
+    if (kbdOpen || isOpen) return;   // 命令面板开着时不叠第二层模态
+    kbdOpen = true;
+    if (!kbdHost) return;
+    kbdHost.hidden = false;
+    document.body.classList.add('modal-open');   // 与设置弹层/命令面板同一约定
+    void kbdHost.offsetWidth;
+    kbdHost.classList.add('is-open');
+    if (global.FocusTrap) {
+      kbdTrap = global.FocusTrap.open(kbdPanel, { initialFocus: kbdPanel, onEscape: closeKbdSheet });
+    }
+    try { kbdPanel.focus({ preventScroll: true }); } catch (e) { kbdPanel.focus(); }
+  }
+
+  function closeKbdSheet() {
+    if (!kbdOpen) return;
+    kbdOpen = false;
+    if (kbdTrap) { kbdTrap.close(); kbdTrap = null; }
+    document.body.classList.remove('modal-open');
+    if (kbdHost) kbdHost.classList.remove('is-open');
+    // 与 closePalette 同款时序：等收起动效（--ease-exit ≈ .2s）走完再 display:none
+    setTimeout(() => { if (!kbdOpen && kbdHost) kbdHost.hidden = true; }, 220);
+  }
+
+  function toggleKbdSheet() { if (kbdOpen) closeKbdSheet(); else openKbdSheet(); }
+
+  /* ==================== T 键快速切主题 ==================== */
+
+  function nextThemeOf(cur) {
+    // daylight→nexus、nexus→daylight；非 daylight 的脏值/未设一律视为深空 → 切回日光
+    // （与 app.js toggleTheme 的同款口径：dataset.theme 上没有第三个合法值）
+    return String(cur || '') === 'daylight' ? 'nexus' : 'daylight';
+  }
+
+  function toggleThemeKey() {
+    const app = global.AppNav;
+    if (!app || !app.setTheme) return;
+    const root = document.documentElement;
+    app.setTheme(nextThemeOf(root && root.dataset ? root.dataset.theme : ''));
+  }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
   else bind();
   fetchUsSignalsIntoLocal();
@@ -521,5 +727,20 @@
     close: closePalette,
     toggle: togglePalette,
     isOpen: () => isOpen,
+    /* _internals：仅供 _test/*.test.mjs 在 vm 沙箱里直调纯函数/URL 构造，不是公开 API，
+       页面代码不得依赖（新增公开行为请走上面四个入口）。 */
+    _internals: {
+      buildTermItems,
+      fetchTermsIntoLocal,
+      buildArticleItems,
+      buildAll,
+      fetchArticlesIntoLocal,
+      openTerm,
+      openArticle,
+      nextThemeOf,
+      toggleThemeKey,
+      toggleKbdSheet,
+      KBD_ROWS,
+    },
   };
 })(typeof window !== 'undefined' ? window : globalThis);
