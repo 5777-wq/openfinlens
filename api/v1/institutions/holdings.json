@@ -1,7 +1,7 @@
 {
   "ok": true,
   "data": {
-    "asOf": "2026-11-21T09:03:37.734Z",
+    "asOf": "2026-11-21T16:31:56.944Z",
     "institutions": [
       {
         "slug": "berkshire",
@@ -3589,7 +3589,7 @@
     "fundHoldings": {
       "reportDate": "2026-09-30",
       "reportDateName": "2026年三季报",
-      "lagDays": 52,
+      "lagDays": 53,
       "partial": false,
       "disclosureScope": "TOP10",
       "fundsReporting": 9260,
@@ -4721,8 +4721,8 @@
   },
   "meta": {
     "dataset": "institutions.holdings",
-    "asof": "2026-11-21T09:03:37.734Z",
-    "generatedAt": "2026-11-21T09:03:39.130Z",
+    "asof": "2026-11-21T16:31:56.944Z",
+    "generatedAt": "2026-11-21T16:31:58.213Z",
     "source": "SEC EDGAR 13F · 发行方公开 ETF 持仓 · 东方财富基金持仓统计",
     "stale": false,
     "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
