@@ -1,4 +1,6 @@
 /* ussig.css —— 「美股信号」Tab（monorepo Phase 4；Wave 2 视觉重构切片 S1）
+ * Sprint2 切片 S1（2026-11-21）新增：今日异动雷达带（.ussig-radar-band）、
+ * RSI 微型温度条（.rsi-bar）、Vegas 三点矩阵（.vdot）、导出工具按钮（.ussig-act）。
  * 换肤纪律：只消费主终端真实令牌（文字 --text/--text-secondary/--text-tertiary、
  * 边框 --border/--border-soft/--border-hover、井底 --bg-sunken、悬停 --bg-hover、
  * 强调 --accent-signature、涨跌文字 --text-rise/--text-fall），
@@ -34,6 +36,70 @@
   align-items: center;
   gap: var(--sp-8);
 }
+
+/* ---------- Sprint2 S1 挂点①：今日异动雷达带 ----------
+   us-signals.js render() 在 chips 行下方懒建 #ussig-radar（.ussig-head 兄弟位、工具行/表格上方）。
+   胶囊 = 组标签（r-tag）＋代码（r-sym），组内相连、组间 1px 分隔线（r-sep）；
+   语言克制：描边胶囊 + --bg-card 底，选中态只切 --accent-signature 描边，无渐变无阴影。 */
+.ussig-radar-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-8);
+  margin: 0 0 var(--sp-12);
+}
+.ussig-radar-band:empty { display: none; }
+.ussig-radar-band .r-lead {
+  color: var(--text-tertiary);
+  font-size: var(--fs-12);
+  letter-spacing: 0.1em;
+}
+.ussig-radar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 2px var(--sp-8);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: var(--fs-12);
+  font-family: inherit;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.ussig-radar:hover { color: var(--text); border-color: var(--border-hover); background: var(--bg-hover); }
+.ussig-radar.on, .ussig-radar[aria-pressed="true"] { color: var(--text); border-color: var(--accent-signature); }
+.ussig-radar .r-tag { color: var(--text-tertiary); }
+.ussig-radar.on .r-tag, .ussig-radar[aria-pressed="true"] .r-tag { color: var(--accent-signature); }
+.ussig-radar .r-sym { font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.02em; }
+.ussig-radar-band .r-sep { width: 1px; height: 16px; margin: 0 var(--sp-4); background: var(--border); }
+
+/* ---------- Sprint2 S1 挂点④：导出工具按钮（chips 行末尾） ----------
+   .pill 基础样式在 02-market.css 只覆盖 #view-detail/.k-toolbar 作用域，
+   本面板自己补全轻按钮语言：描边胶囊 + hover 抬底，不引入新组件。 */
+.ussig-chips .ussig-act {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  margin-left: auto;
+  padding: var(--sp-4) var(--sp-12);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  color: var(--text-secondary);
+  font-size: var(--fs-12);
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.ussig-chips .ussig-act + .ussig-act { margin-left: 0; }
+.ussig-chips .ussig-act:hover { color: var(--text); border-color: var(--border-hover); background: var(--bg-hover); }
 
 /* ---------- 徽章（us-signals.js badge() 产出） ---------- */
 .ussig-badge {
@@ -119,10 +185,64 @@
 .ussig-row td.rsi.ob { color: var(--text-rise); font-weight: 800; }
 .ussig-row td.rsi.os { color: var(--text-fall); font-weight: 800; }
 .ussig-row .rank, .ussig-row .mut { color: var(--text-tertiary); }
-.ussig-row .vegas { display: inline-flex; gap: var(--sp-8); }
-.ussig-row .vegas .up { color: var(--text-rise); font-weight: 700; }
-.ussig-row .vegas .dn { color: var(--text-fall); font-weight: 700; }
 .stcol { text-align: center !important; width: 36px; }
+
+/* ---------- Sprint2 S1 挂点②：RSI 微型温度条 ----------
+   48×5px 轨道（--bg-sunken）+ fill 从 0 到当前值 + 30/70 阈值 1px 刻度竖线（压在 fill 上层）。
+   落点色：≥70 --text-rise / ≤30 --text-fall / 中间 --text-secondary（js 端 .t-hi/.t-lo）。
+   纯装饰（aria-hidden），窄屏砍列不涉及本列。 */
+.rsi-bar {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 5px;
+  margin-left: var(--sp-8);
+  border-radius: var(--r-pill);
+  background: var(--bg-sunken);
+  overflow: hidden;
+  vertical-align: middle;
+}
+.rsi-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--text-secondary);
+}
+.rsi-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border-hover);
+}
+.rsi-tick.t30 { left: 30%; }
+.rsi-tick.t70 { left: 70%; }
+.rsi-bar.t-hi .rsi-fill { background: var(--text-rise); }
+.rsi-bar.t-lo .rsi-fill { background: var(--text-fall); }
+
+/* ---------- Sprint2 S1 挂点③：Vegas 三点矩阵 ----------
+   长文本「短通道 通道上方…」→ 三枚单字徽标（短/中/长）：pos 三态文字色
+   （above=--text-rise / below=--text-fall / inside=--text-secondary），
+   穿线事件 .v-ev 用 currentColor 描边＋加粗高亮；title 给原文，比整行文字省空间、窄屏同样显示。 */
+.ussig-row .vegas { display: inline-flex; align-items: center; flex-wrap: wrap; gap: var(--sp-4); }
+.vdot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  color: var(--text-secondary);
+  font-size: var(--fs-12);
+  line-height: 1;
+}
+.vdot.v-above { color: var(--text-rise); }
+.vdot.v-below { color: var(--text-fall); }
+.vdot.v-inside { color: var(--text-secondary); }
+.vdot.v-ev { border-color: currentColor; font-weight: 700; }
 
 /* ---------- 空态（对齐 .empty 的引导卡语言，03-panels §8） ---------- */
 .ussig-empty {

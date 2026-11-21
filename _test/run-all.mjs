@@ -17,6 +17,9 @@ const groups = [
   { file: 'bundle.test.mjs', net: false }, // 发布卫生：打包产物新鲜度/入口唯一/懒加载守卫/首屏体积红线
   { file: 'desktop.test.mjs', net: false }, // 桌面版契约：入口白名单/版本戳/独立登记/互链/合规词扫描
   { file: 'wave1.test.mjs', net: false },   // 融合 Wave 1：规范化/迁移/信号卡/hash/Vegas 接线/主题同步
+  { file: 'ussig-workbench.test.mjs', net: false }, // Sprint2-S1 信号工作台：雷达带/温度条/Vegas 矩阵/摘要与 CSV
+  { file: 'sprint2-detail.test.mjs', net: false },  // Sprint2-S2 详情三合一：产业链/百科匹配/加入对比/健康浮层/港股扩容
+  { file: 'sprint3-keys.test.mjs', net: false },    // Sprint2-S3 键盘流：文章索引/?速查/T 键主题
   { file: 'minify.test.mjs', net: false }, // 压缩器自证：token 序列一致（69 个 JS）+ CSS 选择器/声明数一致 + V8 可编译
  // 发布卫生：打包产物新鲜度/入口唯一/懒加载守卫/首屏体积红线
   { file: 'navmap.test.mjs', net: false },  // UI v2 信息架构：12 旧 key → 5 一级的映射 / 深链往返 / 兜底

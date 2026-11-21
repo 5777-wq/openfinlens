@@ -1472,3 +1472,20 @@ html[data-theme="daylight"] .sig-card { box-shadow: var(--shadow-1); }
 .pm-sec, .pm-list, .pm-cards, .pm-card, .pm-outs, .pm-out { min-width: 0; max-width: 100%; }
 .pm-out > * { min-width: 0; }
 .pm-outs { overflow-x: clip; }
+
+/* ============================================================ S2：详情页上下文胶囊与链接
+   产业链胶囊（.detail-context 里一枚 .pill.chain-pill，挂在 #detailStats 之前）与
+   「白话标的百科 ↗」（.detail-asset-link，复用 .detail-gloss 同款排版）。全部动态 DOM，
+   这里只管长相：克制——同底色，仅强调色细边提示"这是个去产业链页的入口"。 */
+.detail-context {
+  display: flex; align-items: center; gap: var(--sp-8);
+  margin: var(--sp-8) 0 var(--sp-4); min-width: 0;
+}
+.detail-context .chain-pill {
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  border-radius: var(--r-pill);
+  padding: var(--sp-4) var(--sp-12);
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.detail-context .chain-pill:hover { border-color: rgba(var(--accent-rgb), 0.7); color: var(--text); }
+.detail-gloss.detail-asset-link { margin-left: var(--sp-8); }

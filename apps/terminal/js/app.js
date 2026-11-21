@@ -90,6 +90,8 @@
     boardOpenBk: null, boardStocks: [], boardGen: 0,
     voices: null, voicesAt: 0, voicesGen: 0, globeQuotes: null,
     events: null, eventsVia: null, eventsLoadedAt: 0,
+    eventsGeneratedAt: null,  // 事件产物 generatedAt（ms；loadEvents 从 EventsSource 补存，健康度浮层读）
+    usSigGeneratedAt: null,   // us-signals.json 的 generatedAt（ms；ensureUsSigMap 拉取时补存，健康度浮层读）
     // 事件页子视图：map（平面地图）| news（实时快讯）| pm（市场预测）
     // 存量 'globe' 由 setEventsSub 归一。
     // 键名带 v2：默认页从「平面地图」改成「市场预测」（用户 2026-10-20 要求），
@@ -180,7 +182,7 @@
     // 多图布局 + 联动开关（详情工具条，与标尺/类型同一弹层语言）
     'layoutToggle', 'layoutMenu', 'syncToggle',
     'globeBar', 'macroBox', 'voicesList', 'voicesSub', 'newsCatBar',
-    'globeStatus', 'mapLegend', 'mapStatusPts',
+    'liveStat', 'globeStatus', 'mapLegend', 'mapStatusPts',
     'evGlobePane', 'evNewsPane', 'evPmPane', 'evTypeBar', 'eventList', 'eventDetail', 'mapStage',
     'pmSub', 'pmList', 'pmOverview',
     'mapLayers', 'countryDetail',
@@ -1279,6 +1281,12 @@
         });
         usSigMap = map;
         usSigAt = now;
+        // S2：产物新鲜度给健康度浮层用（us-schema.mjs 校验过 generatedAt 是合法时间）
+        state.usSigGeneratedAt = j.generatedAt
+          ? (window.Events && typeof window.Events.toMs === 'function'
+            ? window.Events.toMs(j.generatedAt)
+            : (typeof j.generatedAt === 'number' ? j.generatedAt : (Date.parse(j.generatedAt) || null)))
+          : null;
         return map;
       });
   }
@@ -1849,6 +1857,77 @@
   /* ---- 港股全市场（东财 主板+GEM ≈ 2900 只）----
      与美股同一套影子：一次全量抓取，同时供"港股热力图"（未来也可供港股宽度）使用，缓存 5 分钟。
      市场过滤常量在 sources/eastmoney.js（FS_HK）——裸 m:116 会混进 1.7 万条权证。 */
+  /* 港股蓝筹池（S2 备源扩容，2026-11 人工维护）：恒生指数 + 恒生科技指数核心成分 63 只，
+     供东财港股全市场拒连时的腾讯报价备源——原 universe 港股精选只有 ~15 只，热力图兜底
+     覆盖面太窄。symbol 与 TENCENT_UNIVERSE 同构（hk + 5 位数字）；TencentSource.getQuotes
+     内部 60/批分块 → 63 只两次请求内完成。名单为常识级权威成分（大金融/能源/电讯/科技/
+     消费/医药/地产龙头），非逐日核对指数编制变动——成分调整后需人工更新。 */
+  const HK_BLUE_CHIPS = [
+    { symbol: 'hk00700', name: '腾讯控股' },
+    { symbol: 'hk09988', name: '阿里巴巴-W' },
+    { symbol: 'hk03690', name: '美团-W' },
+    { symbol: 'hk01810', name: '小米集团-W' },
+    { symbol: 'hk09618', name: '京东集团-SW' },
+    { symbol: 'hk09999', name: '网易-S' },
+    { symbol: 'hk09888', name: '百度集团-SW' },
+    { symbol: 'hk01024', name: '快手-W' },
+    { symbol: 'hk06618', name: '京东健康' },
+    { symbol: 'hk00981', name: '中芯国际' },
+    { symbol: 'hk00992', name: '联想集团' },
+    { symbol: 'hk01347', name: '华虹半导体' },
+    { symbol: 'hk00522', name: 'ASMPT' },
+    { symbol: 'hk00285', name: '比亚迪电子' },
+    { symbol: 'hk02018', name: '瑞声科技' },
+    { symbol: 'hk02382', name: '舜宇光学科技' },
+    { symbol: 'hk06690', name: '海尔智家' },
+    { symbol: 'hk00780', name: '同程旅行' },
+    { symbol: 'hk02015', name: '理想汽车-W' },
+    { symbol: 'hk09868', name: '小鹏汽车-W' },
+    { symbol: 'hk09866', name: '蔚来-SW' },
+    { symbol: 'hk01211', name: '比亚迪股份' },
+    { symbol: 'hk00175', name: '吉利汽车' },
+    { symbol: 'hk00005', name: '汇丰控股' },
+    { symbol: 'hk01398', name: '工商银行' },
+    { symbol: 'hk00939', name: '建设银行' },
+    { symbol: 'hk03988', name: '中国银行' },
+    { symbol: 'hk01299', name: '友邦保险' },
+    { symbol: 'hk02318', name: '中国平安' },
+    { symbol: 'hk02628', name: '中国人寿' },
+    { symbol: 'hk02388', name: '中银香港' },
+    { symbol: 'hk00388', name: '香港交易所' },
+    { symbol: 'hk00941', name: '中国移动' },
+    { symbol: 'hk00728', name: '中国电信' },
+    { symbol: 'hk00762', name: '中国联通' },
+    { symbol: 'hk00883', name: '中国海洋石油' },
+    { symbol: 'hk00857', name: '中国石油股份' },
+    { symbol: 'hk00386', name: '中国石油化工股份' },
+    { symbol: 'hk00002', name: '中电控股' },
+    { symbol: 'hk00003', name: '香港中华煤气' },
+    { symbol: 'hk00006', name: '电能实业' },
+    { symbol: 'hk09633', name: '农夫山泉' },
+    { symbol: 'hk02020', name: '安踏体育' },
+    { symbol: 'hk01876', name: '百威亚太' },
+    { symbol: 'hk00291', name: '华润啤酒' },
+    { symbol: 'hk02269', name: '药明生物' },
+    { symbol: 'hk01093', name: '石药集团' },
+    { symbol: 'hk01177', name: '中国生物制药' },
+    { symbol: 'hk02359', name: '药明康德' },
+    { symbol: 'hk00016', name: '新鸿基地产' },
+    { symbol: 'hk00012', name: '恒基兆业地产' },
+    { symbol: 'hk01113', name: '长实集团' },
+    { symbol: 'hk00017', name: '新世界发展' },
+    { symbol: 'hk00823', name: '领展房产基金' },
+    { symbol: 'hk00688', name: '中国海外发展' },
+    { symbol: 'hk01109', name: '华润置地' },
+    { symbol: 'hk00960', name: '龙湖集团' },
+    { symbol: 'hk01972', name: '太古地产' },
+    { symbol: 'hk01997', name: '九龙仓置业' },
+    { symbol: 'hk00027', name: '银河娱乐' },
+    { symbol: 'hk01928', name: '金沙中国' },
+    { symbol: 'hk00669', name: '创科实业' },
+    { symbol: 'hk06060', name: '众安在线' },
+  ];
+
   async function ensureHKRows() {
     if (state.heatItems.hk && state.heatItems.hk.length) return state.heatItems.hk;
     const c = Cache.raw('heat:hk');
@@ -1864,9 +1943,12 @@
       Cache.set('heat:hk', rows);
     } else {
       /* 东财 clist 拒连时的备源（与美股 usRowsFromTencent 同构，2026-11-21）：
-         universe 港股精选（恒指权重股等 ~15 只）走腾讯报价——量级小但保住
-         热力图不空态；兜底也失败才回落旧缓存。 */
-      const hk = (window.TENCENT_UNIVERSE || []).filter(u => /^hk/i.test(u.symbol));
+         S2 扩容——恒指+恒科核心成分池 HK_BLUE_CHIPS（63 只）走腾讯报价
+         （getQuotes 内部 60/批分块，两次请求内完成），热力图兜底不再只是
+         universe 精选的 ~15 只；兜底也失败才回落旧缓存。 */
+      const hk = (HK_BLUE_CHIPS && HK_BLUE_CHIPS.length)
+        ? HK_BLUE_CHIPS
+        : (window.TENCENT_UNIVERSE || []).filter(u => /^hk/i.test(u.symbol));
       const quotes = await window.TencentSource.getQuotes(hk.map(u => u.symbol)).catch(() => []);
       const rows2 = (quotes || []).filter(q => q && q.marketCap).map(q => ({
         code: q.code || q.symbol,
@@ -1875,7 +1957,7 @@
         price: q.price, changePct: q.changePct, change: q.change,
         volume: q.volume, amount: q.amount,
         marketCap: q.marketCap,
-        industry: '港股精选',
+        industry: '港股蓝筹',
       }));
       if (rows2.length) {
         state.heatItems.hk = rows2; state.heatVia.hk = 'tencent';
@@ -2201,6 +2283,131 @@
     requestAnimationFrame(step);
   }
 
+  /* ==================== 详情页上下文匹配（S2：产业链 + 标的百科） ====================
+     纯匹配逻辑抽成 window.AppMatch（vm 单测直测，_test/sprint2-detail.test.mjs），
+     app.js 只负责消费。不新发请求：产业链定义来自 js/data/industry-chains.js
+     （window.INDUSTRY_CHAINS，chains[].links[].stocks[].symbol，腾讯格式 sh/sz/hk/us+码），
+     百科清单来自 js/data/academy-assets.js（window.AcademyAssets.symbols，终端符号裸字符串数组，
+     由 _scripts/collect-academy-terms.mjs 自动同步——不在表里的点过去是半空页，不给链接）。 */
+  window.AppMatch = (() => {
+    /* 统一归一：美股双侧过 U.normUsSymbol（裸 AAPL 与 usAAPL 归一形态），其余小写原样。 */
+    function canonSymbol(s) {
+      const t = String(s == null ? '' : s).trim();
+      if (!t) return '';
+      const norm = (typeof window !== 'undefined' && window.U && window.U.normUsSymbol)
+        ? window.U.normUsSymbol(t) : '';
+      return (norm || t).toLowerCase();
+    }
+    /* 一个 symbol 的全部可匹配键：规范形 + 裸码别名（sh/sz/bj/hk 前缀剥掉、
+       us 剥前缀、EM:116.xxxxx ↔ hkxxxxx）。索引侧与查询侧共用，保证两侧对得上。 */
+    function aliasKeys(s) {
+      const keys = [];
+      const push = (v) => { if (v && keys.indexOf(v) < 0) keys.push(v); };
+      const canon = canonSymbol(s);
+      if (!canon) return keys;
+      push(canon);
+      const pre = /^(sh|sz|bj|hk)(\d{5,6})$/.exec(canon);
+      if (pre) push(pre[2]);                       // 裸 A股 6 位 / 港股 5 位
+      const um = /^us([a-z0-9._\-]+)$/.exec(canon);
+      if (um) push(um[1]);                         // 裸美股 ticker
+      const em = /^em:(\d{3})\.(.+)$/.exec(canon);
+      if (em) {                                    // 东财 secid 形态的详情目标（南向港股等）
+        if (em[1] === '116') push('hk' + em[2]);
+        else if (/^(105|106|107)$/.test(em[1])) push('us' + em[2]);
+      }
+      return keys;
+    }
+    /* 产业链索引：symbol 键 → { chainId, chainName, linkName, stockName, stockSymbol }。
+       同键冲突时保留先出现的链条（确定性）。 */
+    function chainIndex(chains) {
+      const map = new Map();
+      (chains || []).forEach(c => {
+        (c && c.links || []).forEach(l => {
+          (l && l.stocks || []).forEach(st => {
+            if (!st || !st.symbol) return;
+            aliasKeys(st.symbol).forEach(k => {
+              if (!map.has(k)) map.set(k, {
+                chainId: c.id, chainName: c.name,
+                linkName: l.name, stockName: st.name || '', stockSymbol: st.symbol,
+              });
+            });
+          });
+        });
+      });
+      return map;
+    }
+    /* symbol → 命中的产业链环节；未命中返回 null。 */
+    function matchChain(symbol, chains) {
+      const src = chains || (typeof window !== 'undefined' ? window.INDUSTRY_CHAINS : null);
+      if (!src || !src.length) return null;
+      const map = chainIndex(src);
+      const keys = aliasKeys(symbol);
+      for (let i = 0; i < keys.length; i++) {
+        if (map.has(keys[i])) return map.get(keys[i]);
+      }
+      return null;
+    }
+    /* symbol → 科普站标的百科页链接；不在 AcademyAssets.symbols 里（假入口）返回 null。 */
+    function assetHref(symbol, assets) {
+      const src = assets || (typeof window !== 'undefined' ? window.AcademyAssets : null);
+      const list = src && Array.isArray(src.symbols) ? src.symbols : [];
+      if (!list.length) return null;
+      const keys = aliasKeys(symbol);
+      if (!keys.length) return null;
+      const set = new Set();
+      list.forEach(s => aliasKeys(s).forEach(k => set.add(k)));
+      for (let i = 0; i < keys.length; i++) {
+        if (!set.has(keys[i])) continue;
+        const entry = list.find(s => aliasKeys(s).indexOf(keys[i]) >= 0) || keys[i];
+        return 'academy/#/assets/' + encodeURIComponent(entry)
+          + '?from=lens&sym=' + encodeURIComponent(String(symbol || ''));
+      }
+      return null;
+    }
+    return { canonSymbol, aliasKeys, chainIndex, matchChain, assetHref };
+  })();
+
+  /* ---- 详情页上下文挂载：产业链胶囊（detailStats 之前）+ 白话百科链接（detailGloss 旁）----
+     每次都先摘掉上一标的的残留再按当前 symbol 重建（sibling 节点不随 innerHTML 清空，
+     不摘会残留到下一个标的）。纯匹配在 window.AppMatch，这里只做 DOM。 */
+  function mountDetailContext(t) {
+    if (!t || !el.detailStats || !el.detailStats.parentNode) return;
+    document.querySelectorAll('#view-detail .detail-context, #view-detail .detail-asset-link')
+      .forEach(n => n.remove());
+    const am = window.AppMatch;
+    if (!am) return;
+    // a. 产业链命中 → 「所属产业链」胶囊：点击进产业链页（最小实现：setTab('chain')，
+    //    链内定位交给 chain 视图自己的渲染与展开逻辑）。
+    const hit = am.matchChain(t.symbol);
+    if (hit) {
+      const wrap = document.createElement('div');
+      wrap.className = 'detail-context';
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.className = 'pill chain-pill';
+      pill.textContent = hit.chainName + ' · ' + hit.linkName;
+      pill.title = '所属产业链（' + hit.chainName + '）：本环节成员含「' + hit.stockName + '」。点击进入产业链页查看全链（人工维护清单）';
+      pill.setAttribute('aria-label', '所属产业链：' + hit.chainName + '，环节 ' + hit.linkName);
+      pill.addEventListener('click', () => setTab('chain'));
+      wrap.appendChild(pill);
+      el.detailStats.parentNode.insertBefore(wrap, el.detailStats);
+    }
+    // b. 标的百科命中 → 「白话标的百科 ↗」：与 detailGloss 的词条解释不同页（assets/ id 页），
+    //    只给真的采到月线序列的标的（AcademyAssets 同步清单），设置里关掉科普站就一起关。
+    const acadOn = window.Store.settings.get().academy !== false;
+    const href = acadOn ? am.assetHref(t.symbol) : null;
+    if (href && el.detailGloss && el.detailGloss.parentNode) {
+      const a = document.createElement('a');
+      a.className = 'detail-gloss detail-asset-link';
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = '白话标的百科 ↗';
+      a.title = '去「白话金融 OpenFin Academy」看这只标的的百科页（带真实月线数据卡）';
+      el.detailGloss.parentNode.insertBefore(a, el.detailGloss.nextSibling);
+    }
+  }
+
   /* ==================== 技术面板块（替换原"大师视角"） ==================== */
 
   // 打开详情时与图表并行取一次日K → Technical.analyze → 渲染指标卡
@@ -2209,6 +2416,8 @@
     const t = state.detail;
     const box = el.detailInsight;
     if (!t || !box) return;
+    // S2：产业链胶囊 + 白话标的百科链接在技术面开跑前挂上（与 sigCard 同批，不依赖日K 结果）
+    mountDetailContext(t);
     box.innerHTML = '';
 
     // Wave 1（Gemini 裁定 4）：信号表带来的 usSignals 协议对象在这里正式消费——
@@ -2309,6 +2518,81 @@
     vegasBtn.hidden = !(state.detail && state.detail.usSignals);
   }
 
+  /* ---- 详情页「一键加入对比」（S2）：ensureVegasToggle 同款动态按钮，插在 maToggle 前 ----
+     对比列表本体在 compareview.js（window.CompareView，localStorage 键 'cmp'，
+     条目 {code, secid}，上限 MAX_FUNDS=8）——这里不另起存储：先按 CompareView.state
+     做去重/上限预检并给出诚实反馈，能加才走它自己的 addItem（持久化 + 刷新都归它管）。 */
+  let cmpAddBtn = null;
+  function compareSupported(t) {
+    if (!t) return false;
+    if (t.market === 'crypto') return true;                                  // 加密详情可加（对比页取数失败时自会诚实空态）
+    if (t.market === 'cn' || t.market === 'hk' || t.market === 'us') return true;
+    // A股指数（sh/sz/bj 前缀）有可解析 secid，长历史取得到；EM 宏观/外汇/海外指数不行
+    if (t.market === 'index' && /^(sh|sz|bj)/.test(t.symbol || '')) return true;
+    return false;
+  }
+  function compareHas(t) {
+    const cv = window.CompareView;
+    if (!cv || !cv.state || !Array.isArray(cv.state.items) || !t) return false;
+    const code = String(t.symbol || '').trim().toUpperCase();
+    return !!code && cv.state.items.some(i => String(i.code || '').trim().toUpperCase() === code);
+  }
+  function compareBtnFlash(text) {
+    if (!cmpAddBtn) return;
+    clearTimeout(compareBtnFlash._t);
+    cmpAddBtn.textContent = text;
+    compareBtnFlash._t = setTimeout(() => {
+      compareBtnFlash._t = null;
+      if (cmpAddBtn) cmpAddBtn.textContent = '+ 对比';
+      syncCompareBtn();
+    }, 1200);
+  }
+  function addCurrentToCompare() {
+    const t = state.detail;
+    const cv = window.CompareView;
+    if (!t || !cv) return;
+    const code = String(t.symbol || '').trim();
+    if (!code) return;
+    const items = (cv.state && cv.state.items) || [];
+    const max = cv.MAX_FUNDS || 8;
+    if (compareHas(t)) { compareBtnFlash('已在对比 ✓'); return; }
+    if (items.length >= max) {
+      if (window.AlertCenter && typeof window.AlertCenter.toast === 'function') {
+        window.AlertCenter.toast('对比列表已满（' + max + ' 只），请先在对比页移除后再加入');
+      }
+      compareBtnFlash('已满');
+      return;
+    }
+    // code 用终端 symbol（sh600519 / hk00700 / usAAPL）：HistorySource.candidatesOf 对
+    // 前缀形态是无歧义解析，比详情里那份裸 6 位 code 更稳；secid 交给对比页自己解析补记。
+    cv.addItem(code, null, t.name || '');
+    compareBtnFlash('已加入 ✓');
+    syncCompareBtn();
+  }
+  function ensureCompareBtn() {
+    if (cmpAddBtn || !el.maToggle || !el.maToggle.parentNode) return;
+    cmpAddBtn = document.createElement('button');
+    cmpAddBtn.type = 'button';
+    cmpAddBtn.className = 'pill cmp-add-btn';
+    cmpAddBtn.id = 'cmpAddDetail';
+    cmpAddBtn.title = '把当前标的加入「对比」页的多标的对比列表（最多 8 只）';
+    cmpAddBtn.textContent = '+ 对比';
+    cmpAddBtn.addEventListener('click', addCurrentToCompare);
+    el.maToggle.parentNode.insertBefore(cmpAddBtn, el.maToggle);
+  }
+  function syncCompareBtn() {
+    if (!cmpAddBtn) return;
+    const t = state.detail;
+    if (!t) { cmpAddBtn.hidden = true; return; }
+    cmpAddBtn.hidden = false;
+    const ok = compareSupported(t);
+    cmpAddBtn.disabled = !ok;
+    cmpAddBtn.title = ok
+      ? '把当前标的加入「对比」页的多标的对比列表（最多 8 只）'
+      : '该标的类型暂无长历史对比能力（仅 A股/港股/美股/加密可加），宏观察汇率/海外指数等不放这个入口';
+    if (!compareBtnFlash._t) cmpAddBtn.textContent = compareHas(t) ? '对比中 ✓' : '+ 对比';
+  }
+
   /* ==================== 详情页 + K线 ==================== */
 
   // 分钟级周期按市场放行（2026-10-21 数据面更新，修 issue #1）：
@@ -2372,6 +2656,9 @@
     // Wave 1：Vegas 开关按钮的显隐随详情目标走（非美股信号标的隐藏）
     ensureVegasToggle();
     syncVegasBtn();
+    // S2：「一键加入对比」按钮同样随详情目标走（可加/禁用/对比中三态）
+    ensureCompareBtn();
+    syncCompareBtn();
     // 周期按钮 active 与 state 同步（detailPeriod 跨详情保留上次选择）
     document.querySelectorAll('[data-period]').forEach(b =>
       b.classList.toggle('active', b.dataset.period === state.detailPeriod));
@@ -3192,6 +3479,7 @@
     state.eventsVia = via;
     state.eventsSource = source;
     state.eventsLoadedAt = Date.now();
+    state.eventsGeneratedAt = generatedAt || null;   // S2：产物生成时间给健康度浮层（EventsSource 已折算成 ms）
     renderGlobeStatus();
     renderEvTypeBar();
     renderEventList();
@@ -5715,6 +6003,116 @@
     el.liveLabel.textContent = sec + 's';
   }
 
+  /* ==================== 数据源健康度浮层（S2） ====================
+     顶栏 liveStat 点击 → 轻量浮层（.health-panel，挂 liveStat 内，alert-panel 同款定位语言）。
+     纪律：内容全部读运行时 state，打开时不新发任何请求；读不到就写「未加载」，不装实时。
+     关闭模式对齐 AlertCenter：Esc（键序在铃铛面板之后）+ 点面板外。 */
+  let healthPanel = null;
+  const HEAT_VIA_LABELS = { primary: '主源直连', tencent: '腾讯备源', cache: '缓存', none: '未加载' };
+  // 'backup' 各市场含义不同（A股=腾讯精选兜底，加密=OKX），分开措辞；
+  // A股串可能带「·已剔除指数 N」装饰（写入时拼上的），健康度面板只看源，取前缀。
+  const HEAT_BACKUP_LABELS = { cn: '腾讯精选兜底', crypto: 'OKX 备源' };
+  const HEAT_MKT_NAMES = { cn: 'A股', hk: '港股', us: '美股', crypto: '加密' };
+  function heatViaLabel(mkt) {
+    if (!state.heatVia[mkt]) return '未加载';
+    const via = String(state.heatVia[mkt]);
+    if (via === 'recent') {
+      const at = state.heatCachedAt[mkt];
+      return at ? '主源 · ' + fmtAgo(at) : '主源';
+    }
+    if (via.indexOf('backup') === 0) return HEAT_BACKUP_LABELS[mkt] || '备源';
+    return HEAT_VIA_LABELS[via] || via;
+  }
+  /* 同日只报时分秒，跨天补日期（fmtTime/fmtDay 已有，别再造轮子） */
+  function healthStamp(ms) {
+    if (!ms) return '--';
+    const day = U.fmtDay ? U.fmtDay(ms) : String(ms).slice(0, 10);
+    return day === (U.fmtDay ? U.fmtDay(Date.now()) : '') ? fmtTime(ms) : day + ' ' + fmtTime(ms);
+  }
+  function swVersionLabel() {
+    try {
+      const url = (navigator.serviceWorker && navigator.serviceWorker.controller)
+        ? navigator.serviceWorker.controller.scriptURL : '';
+      const m = String(url || '').match(/ofl-v\d+/);
+      return m ? m[0] : '未注册';
+    } catch (e) { return '未注册'; }
+  }
+  function healthPanelHTML() {
+    const heatRows = Object.keys(HEAT_MKT_NAMES).map(mkt =>
+      '<div class="hp-row"><span class="hp-k">' + HEAT_MKT_NAMES[mkt] + '</span>'
+      + '<span class="hp-v num">' + escapeHTML(heatViaLabel(mkt)) + '</span></div>').join('');
+    return ''
+      + '<div class="hp-head">数据源健康度</div>'
+      + '<div class="hp-cap">热力图数据源</div>'
+      + '<div class="hp-rows">' + heatRows + '</div>'
+      + '<div class="hp-cap">关键产物新鲜度</div>'
+      + '<div class="hp-rows">'
+      +   '<div class="hp-row"><span class="hp-k">全球事件</span><span class="hp-v num">'
+      +     escapeHTML(healthStamp(state.eventsGeneratedAt)) + '</span></div>'
+      +   '<div class="hp-row"><span class="hp-k">美股信号</span><span class="hp-v num">'
+      +     escapeHTML(healthStamp(state.usSigGeneratedAt)) + '</span></div>'
+      + '</div>'
+      + '<div class="hp-cap">运行环境</div>'
+      + '<div class="hp-rows"><div class="hp-row"><span class="hp-k">Service Worker</span>'
+      +   '<span class="hp-v num">' + escapeHTML(swVersionLabel()) + '</span></div></div>'
+      + '<div class="hp-foot"><button type="button" class="pill hp-refresh" title="清掉本站所有 Cache Storage 后整页重载（Service Worker 缓存与数据缓存一并失效）">刷新缓存</button></div>';
+  }
+  function buildHealthPanel() {
+    const p = document.createElement('div');
+    p.id = 'healthPanel';
+    p.className = 'health-panel';
+    p.setAttribute('role', 'dialog');
+    p.setAttribute('aria-label', '数据源健康度');
+    p.tabIndex = -1;
+    p.hidden = true;
+    p.addEventListener('click', (e) => {
+      const btn = e.target.closest && e.target.closest('.hp-refresh');
+      if (!btn) return;
+      e.stopPropagation();
+      btn.disabled = true;
+      btn.textContent = '清除中…';
+      const go = () => { try { location.reload(); } catch (err) { /* 环境拦截则只关浮层 */ closeHealthPanel(); } };
+      if (typeof caches !== 'undefined' && caches && typeof caches.keys === 'function') {
+        caches.keys()
+          .then(ks => Promise.all((ks || []).map(k => caches.delete(k))))
+          .then(go).catch(go);
+      } else go();
+    });
+    return p;
+  }
+  function openHealthPanel() {
+    if (!el.liveStat) return;
+    if (!healthPanel) { healthPanel = buildHealthPanel(); el.liveStat.appendChild(healthPanel); }
+    // 每次打开按当前 state 现组装（不新发请求；上一态不残留）
+    healthPanel.innerHTML = healthPanelHTML();
+    healthPanel.hidden = false;
+    el.liveStat.setAttribute('aria-expanded', 'true');
+    try { healthPanel.focus({ preventScroll: true }); } catch (e) { /* 忽略 */ }
+  }
+  function closeHealthPanel(opts) {
+    if (!healthPanel || healthPanel.hidden) return;
+    healthPanel.hidden = true;
+    el.liveStat.setAttribute('aria-expanded', 'false');
+    if (!opts || opts.focus !== false && el.liveStat && el.liveStat.focus) {
+      try { el.liveStat.focus({ preventScroll: true }); } catch (e) { /* 忽略 */ }
+    }
+  }
+  function toggleHealthPanel() {
+    if (healthPanel && !healthPanel.hidden) closeHealthPanel();
+    else openHealthPanel();
+  }
+  /* S3 顺手修：详情/席位 Backspace·Esc 返回守卫此前调用了未定义的 anyModalOpen()，
+     详情页按 Esc 会直接 ReferenceError（返回按钮不响应）。这里补定义：任何一层
+     弹层（健康度浮层 / 到价提醒面板与弹层 / 设置弹层 / 搜索下拉）开着就不算"裸详情"。 */
+  function anyModalOpen() {
+    if (healthPanel && !healthPanel.hidden) return true;
+    if (el.alertModal && el.alertModal.classList.contains('active')) return true;
+    if (el.alertPanel && !el.alertPanel.hidden) return true;
+    if (el.settingsModal && el.settingsModal.classList.contains('active')) return true;
+    if (el.searchResults && el.searchResults.classList.contains('active')) return true;
+    return false;
+  }
+
   function applyTheme(t) {
     if (THEMES.indexOf(t) < 0) t = DEFAULT_THEME;   // 旧皮肤名 / random / 脏值 → 默认（日光）
     if (el.segTheme) {
@@ -7103,6 +7501,28 @@
     });
 
     // 设置
+    // S2：数据源健康度浮层——liveStat 原是纯显示 div，动态补齐可点语义
+    //（role/tabindex/aria-haspopup/aria-expanded），键盘 Enter/Space 与鼠标等价。
+    if (el.liveStat) {
+      el.liveStat.setAttribute('role', 'button');
+      el.liveStat.setAttribute('tabindex', '0');
+      el.liveStat.setAttribute('aria-haspopup', 'dialog');
+      el.liveStat.setAttribute('aria-expanded', 'false');
+      el.liveStat.setAttribute('aria-controls', 'healthPanel');
+      el.liveStat.addEventListener('click', toggleHealthPanel);
+      el.liveStat.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+          e.preventDefault();
+          toggleHealthPanel();
+        }
+      });
+      // 点浮层外收起（对齐 alerts.js 的铃铛面板：点面板本体/触发器不收）
+      document.addEventListener('click', (e) => {
+        if (!healthPanel || healthPanel.hidden) return;
+        if (e.target.closest && e.target.closest('#liveStat')) return;
+        closeHealthPanel({ focus: false });   // 鼠标点外面：不抢焦点
+      });
+    }
     el.settingsBtn.addEventListener('click', openModal);
     el.settingsClose.addEventListener('click', closeModal);
     el.settingsModal.addEventListener('click', (e) => { if (e.target === el.settingsModal) closeModal(); });
@@ -7118,6 +7538,7 @@
         if (window.AlertCenter && window.AlertCenter.closePanel) window.AlertCenter.closePanel();
         return;
       }
+      if (healthPanel && !healthPanel.hidden) { closeHealthPanel(); return; }   // S2：健康度浮层排在铃铛面板之后
       closeModal();
     });
     el.segUpdown.addEventListener('click', (e) => {
