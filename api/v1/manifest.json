@@ -44,7 +44,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-20T20:53:12.386Z",
+          "generatedAt": "2026-11-21T01:50:11.968Z",
           "count": 11,
           "datasets": [
             {
@@ -60,7 +60,7 @@
             "openapi": "api/openapi.json"
           }
         },
-        "asof": "2026-11-20T20:53:12.386Z",
+        "asof": "2026-11-21T01:50:11.968Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -100,7 +100,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-20T20:53:12.386Z",
+          "generatedAt": "2026-11-21T01:50:11.968Z",
           "base": "api/v1",
           "datasets": [
             {
@@ -111,7 +111,7 @@
             }
           ]
         },
-        "asof": "2026-11-20T20:53:12.386Z",
+        "asof": "2026-11-21T01:50:11.968Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -203,7 +203,7 @@
             "中石化"
           ]
         },
-        "asof": "2026-11-20T20:53:12.386Z",
+        "asof": "2026-11-21T01:50:11.968Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -314,10 +314,10 @@
           "change": 0.11,
           "changePct": 1.86,
           "quoteAt": 1795162500000,
-          "updatedAt": 1795207993393,
+          "updatedAt": 1795225812980,
           "source": "tencent"
         },
-        "asof": "2026-11-20T20:53:13.590Z",
+        "asof": "2026-11-21T01:50:13.138Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -384,7 +384,7 @@
             }
           ]
         },
-        "asof": "2026-11-20T00:00:00.000Z",
+        "asof": "2026-11-21T00:00:00.000Z",
         "stale": false,
         "count": 19,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -445,7 +445,7 @@
             }
           }
         },
-        "asof": "2026-11-20T00:00:00.000Z",
+        "asof": "2026-11-21T00:00:00.000Z",
         "stale": false,
         "count": 19,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -559,23 +559,23 @@
           }
         ],
         "sample": {
-          "id": "新兴市场 拉美股市暴跌至一年低点 汇率因利率担忧而走低 拉美股市跌至一年多来的低点 此前 anthropic公司ipo未能提振市场对人工智能行业的信心 导致全球股市抛售加剧 同时 美国加息预期持续给该地区货币带来压力 尽管拉美市场对科技板块的直接敞口有限|15,24,29,5,86|1795207780000",
-          "category": "central_bank",
-          "title": "【新兴市场-拉美股市暴跌至一年低点，汇率因利率担忧而走低】拉美股市跌至一年多来的低点。此前，Anthropic公司IPO未能提振市场对人工智能行业的信心，导致全球股市抛售加剧；同时，美国加息预期持续给该地区货币带来压力。尽管拉美市场对科技板块的直接敞口有限，但全球风险偏好的恶化仍波及该地区。MSCI拉丁美洲股票指数下跌0.86%，相应的货币指数下跌1.5%，恐将连续第四周收跌。在成交量极低的情况下，巴西雷亚尔兑美元下跌0.24%。墨西哥比索汇率上涨0.29%。智利比索对美元汇率下跌0.29%，而秘鲁索尔跌0.15%。",
+          "id": "据总台记者消息 秘鲁首都利马等地震感强烈 秘鲁地球物理研究所说 震中位于胡宁省胡宁市西北部30公里 震源深度129公里 秘鲁位于环太平洋地震带上 是地震多发国家||1795225540000",
+          "category": "market",
+          "title": "据总台记者消息，秘鲁首都利马等地震感强烈。 秘鲁地球物理研究所说，震中位于胡宁省胡宁市西北部30公里，震源深度129公里。秘鲁位于环太平洋地震带上，是地震多发国家。",
           "source": "新浪财经7x24",
           "sourceUrl": "https://finance.sina.com.cn/7x24/",
-          "publishedAt": "2026-11-20T20:49:40.000Z",
-          "country": "巴西",
-          "lat": -15.79,
-          "lng": -47.88,
+          "publishedAt": "2026-11-21T01:45:40.000Z",
+          "country": "秘鲁",
+          "lat": -12.05,
+          "lng": -77.04,
           "severity": 55,
           "importance": "med",
           "relatedSymbols": [],
           "relatedAssets": []
         },
-        "asof": "2026-11-20T20:50:29.894Z",
+        "asof": "2026-11-21T01:47:41.353Z",
         "stale": false,
-        "count": 94,
+        "count": 73,
         "license": "GDELT 免费开放数据（gdeltproject.org）· 新浪财经7x24 公开快讯；坐标为本项目关键词地理定位，精度为国家/地区级",
         "note": "severity 是把上游 importance 映射成 0-100 的展示口径；坐标为关键词地理定位，精度为国家/地区级，定位不到时为 null。"
       },
@@ -654,7 +654,7 @@
           "category": "central_bank",
           "partition": true,
           "endDate": 1796878740000,
-          "updatedAt": 1795207665007,
+          "updatedAt": 1795225650209,
           "outcomeCount": 5,
           "outcomes": [
             {
@@ -662,35 +662,35 @@
               "label": "25 bps increase",
               "labelZh": "增加25个基点",
               "probability": 0.895,
-              "change24h": -2
+              "change24h": -3
             },
             {
               "id": "pm:3215007",
               "label": "No change",
               "labelZh": "不变",
-              "probability": 0.087,
-              "change24h": 5.9
+              "probability": 0.08,
+              "change24h": 5
             },
             {
               "id": "pm:3215009",
               "label": "50+ bps increase",
               "labelZh": "增加50 +个基点",
-              "probability": 0.018,
-              "change24h": -4.2
+              "probability": 0.019,
+              "change24h": -3.1
             },
             {
               "id": "pm:3215006",
               "label": "25 bps decrease",
               "labelZh": "下降25个基点",
-              "probability": 0.004,
-              "change24h": 0.1
+              "probability": 0.006,
+              "change24h": 0.3
             },
             {
               "id": "pm:3215005",
               "label": "50+ bps decrease",
               "labelZh": "降低50 +个基点",
               "probability": 0.003,
-              "change24h": 0.2
+              "change24h": 0.1
             }
           ],
           "rest": {
@@ -698,7 +698,7 @@
             "count": 0
           }
         },
-        "asof": "2026-11-20T20:51:22.062Z",
+        "asof": "2026-11-21T01:48:26.899Z",
         "stale": false,
         "count": 30,
         "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
@@ -737,7 +737,7 @@
           }
         ],
         "sample": {
-          "asOf": "2026-11-20T20:53:11.278Z",
+          "asOf": "2026-11-21T01:50:10.928Z",
           "institutions": [
             {
               "slug": "berkshire",
@@ -750,7 +750,7 @@
           "etf": {
             "asOf": "2026-11-19",
             "published": "2026-11-19",
-            "lagDays": 1,
+            "lagDays": 2,
             "funds": [
               {
                 "key": "spmo",
@@ -807,7 +807,7 @@
             ]
           }
         },
-        "asof": "2026-11-20T20:53:11.278Z",
+        "asof": "2026-11-21T01:50:10.928Z",
         "stale": false,
         "count": 4,
         "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
@@ -930,19 +930,19 @@
         ],
         "sample": {
           "status": "ok",
-          "generatedAt": "2026-11-20T20:53:12.386Z",
+          "generatedAt": "2026-11-21T01:50:11.968Z",
           "durationMs": 0,
           "datasets": [
             {
               "id": "quotes.latest",
-              "lastBuilt": "2026-11-20T20:53:12.386Z",
+              "lastBuilt": "2026-11-21T01:50:11.968Z",
               "count": 1,
               "ms": 0,
               "stale": false
             }
           ]
         },
-        "asof": "2026-11-20T20:53:12.386Z",
+        "asof": "2026-11-21T01:50:11.968Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -952,8 +952,8 @@
   },
   "meta": {
     "dataset": "manifest",
-    "asof": "2026-11-20T20:53:12.386Z",
-    "generatedAt": "2026-11-20T20:53:12.386Z",
+    "asof": "2026-11-21T01:50:11.968Z",
+    "generatedAt": "2026-11-21T01:50:11.968Z",
     "source": "本项目构建产物（data/** 与 js/data/universe.js）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
