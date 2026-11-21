@@ -45,7 +45,7 @@
      原来是 5 个渲染阻塞请求、合计 88KB(gzip)，最后一个文件把 FCP 卡在 1.1s（TTFB 才 0.5s）；
      合成 1 个、再去注释压空白后 ≈34KB。层叠顺序不变（style → shell → market → panels → motion），
      源码仍分层放 css/ 与 css/ui/，改完样式跑 `node _scripts/build-css.mjs`。 -->
-<link rel="stylesheet" href="css/bundle.css?v=20261121d">
+<link rel="stylesheet" href="css/bundle.css?v=20261121e">
 </head>
 <body data-updown="red">
 
@@ -1019,7 +1019,7 @@
 <!-- v3.3 首屏提速：69 个业务脚本打成一个包（js/bundle.js）。
      慢网实测单个小文件要排队 ~1.9s，打包后只剩 1 个请求；源码仍在 js/ 下，
      改完源码跑 `node _scripts/build-js-bundle.mjs` 重新生成（顺序见 _scripts/js-bundle.manifest.json）。 -->
-<script defer src="js/bundle.js?v=20261121d"></script>
+<script defer src="js/bundle.js?v=20261121e"></script>
 <!-- 弹层焦点工具：进焦点 / Tab 循环 / 退出还焦点。设置弹层、分享弹层、到价提醒弹层共用一套。 -->
 <!-- 期权数据源（window.OptionSource）：T 型报价的链数据/月份表，受 OPTIONS_ON 合规开关管辖 -->
 <!-- news-engine / event-engine / llm-provider 不在这里加载（2026-10-20 摘除）：

@@ -1000,7 +1000,7 @@ out+=hit;}else if(/[a-z0-9]/i.test(ch)){out+=ch.toUpperCase();}}
 return out;}
 function subsequence(q,s){if(!q)return false;let i=0;for(const ch of s){if(ch===q[i])i++;if(i>=q.length)return true;}
 return false;}
-function score(q,item){if(!q)return 1;const Q=q.toLowerCase();const name=String(item.label||'').toLowerCase();const code=String(item.code||'').toLowerCase();const sym=String(item.symbol||'').toLowerCase();const py=String(item.py||'').toLowerCase();const hint=String(item.hint||'').toLowerCase();if(code&&code===Q)return 100;if(sym&&sym===Q)return 98;if(code&&code.indexOf(Q)===0)return 92;if(name&&name.indexOf(Q)===0)return 88;if(py&&py.indexOf(Q)===0)return 84;if(name&&name.indexOf(Q)>0)return 74;if(py&&py.indexOf(Q)>0)return 64;if(subsequence(Q,py))return 48;if(subsequence(Q,name))return 34;if(code&&code.indexOf(Q)>0)return 30;if(hint&&hint.indexOf(Q)>=0)return 20;return 0;}
+function score(q,item){if(!q)return 1;const Q=q.toLowerCase();const name=String(item.label||'').toLowerCase();const code=String(item.code||'').toLowerCase();const sym=String(item.symbol||'').toLowerCase();const py=String(item.py||'').toLowerCase();const hint=String(item.hint||'').toLowerCase();const kw=String(item.kw||'').toLowerCase();if(code&&code===Q)return 100;if(sym&&sym===Q)return 98;if(code&&code.indexOf(Q)===0)return 92;if(name&&name.indexOf(Q)===0)return 88;if(py&&py.indexOf(Q)===0)return 84;if(name&&name.indexOf(Q)>0)return 74;if(py&&py.indexOf(Q)>0)return 64;if(kw&&kw.indexOf(Q)>=0)return 52;if(subsequence(Q,py))return 48;if(subsequence(Q,name))return 34;if(code&&code.indexOf(Q)>0)return 30;if(hint&&hint.indexOf(Q)>=0)return 20;return 0;}
 function guessCode(symbol,secid){if(secid){const p=String(secid).split('.');return p[1]||p[0]||'';}
 const s=String(symbol||'');if(s.indexOf('EM:')===0){const p=s.slice(3).split('.');return p[1]||p[0]||'';}
 const m=/^[a-z]{2}(.+)$/.exec(s);return m?m[1]:s;}
@@ -1049,7 +1049,7 @@ return out;}
 function openTerm(id){const base=(global.AcademyGloss&&global.AcademyGloss.BASE)||'academy/';const url=base+'#/term/'+encodeURIComponent(id)+'?from=lens';try{window.open(url,'_blank','noopener');}
 catch(e){}}
 function fetchTermsIntoLocal(){if(termsTried||termItems)return;termsTried=true;fetch('data/academy-terms.json',{cache:'no-store'}).then((r)=>(r.ok?r.json():Promise.reject(new Error('HTTP '+r.status)))).then((j)=>{termItems=buildTermItems(j);if(termItems&&isOpen&&input&&input.value.trim())render(input.value);}).catch(()=>{});}
-function buildArticleItems(j){if(!j||!Array.isArray(j.items))return null;const out=[];for(const a of j.items){if(!a||!a.id||!a.title)continue;out.push({kind:'article',group:'文章',id:String(a.id),section:String(a.section||'assets'),label:String(a.title),hint:'白话金融 · 复盘/科普文章',py:initialsOf(String(a.title)),});}
+function buildArticleItems(j){if(!j||!Array.isArray(j.items))return null;const out=[];for(const a of j.items){if(!a||!a.id||!a.title)continue;out.push({kind:'article',group:'文章',id:String(a.id),section:String(a.section||'assets'),label:String(a.title),hint:'白话金融 · 复盘/科普文章',kw:Array.isArray(a.tags)?a.tags.join(' '):String(a.tags||''),py:initialsOf(String(a.title)),});}
 return out;}
 function openArticle(item){if(!item||!item.id)return;const base=(global.AcademyGloss&&global.AcademyGloss.BASE)||'academy/';const section=item.section||'assets';const url=base+'#/'+encodeURIComponent(section)+'/'+encodeURIComponent(item.id)+'?from=lens';try{window.open(url,'_blank','noopener');}
 catch(e){}}

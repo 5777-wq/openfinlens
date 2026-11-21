@@ -11,7 +11,7 @@
 
 'use strict';
 
-const CACHE = 'ofl-v5';                 // ← 发版时修改这个版本号（20261121d Sprint2 收尾整体换代）
+const CACHE = 'ofl-v6';                 // ← 发版时修改这个版本号（20261121e Sprint2 收尾+kw 搜索面 整体换代）
 const CACHE_PREFIX = 'ofl-';            // activate 只清本站自己的旧缓存
 
 const PRECACHE = [

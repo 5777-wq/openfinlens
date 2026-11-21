@@ -2306,14 +2306,29 @@
       const canon = canonSymbol(s);
       if (!canon) return keys;
       push(canon);
+      /* A 股 1 位市场码（EM:0/1 + 6 位，搜索直达详情的 secid 形态）：em 三码
+         正则不覆盖该形态，字符串解析兜住（sh600111 / sz000333 → 裸 6 位键）。 */
+      if (canon.indexOf('em:') === 0) {
+        const rest = canon.slice(3);
+        const dot = rest.indexOf('.');
+        if (dot === 1 && rest.length === 8 && /^\d{6}/.test(rest.slice(2))) {
+          const mkt1 = rest.slice(0, 1);
+          const code6 = rest.slice(2);
+          push((mkt1 === '0' ? 'sz' : mkt1 === '1' ? 'sh' : '') + code6);
+        }
+      }
       const pre = /^(sh|sz|bj|hk)(\d{5,6})$/.exec(canon);
       if (pre) push(pre[2]);                       // 裸 A股 6 位 / 港股 5 位
       const um = /^us([a-z0-9._\-]+)$/.exec(canon);
       if (um) push(um[1]);                         // 裸美股 ticker
       const em = /^em:(\d{3})\.(.+)$/.exec(canon);
-      if (em) {                                    // 东财 secid 形态的详情目标（南向港股等）
-        if (em[1] === '116') push('hk' + em[2]);
-        else if (/^(105|106|107)$/.test(em[1])) push('us' + em[2]);
+      if (em) {                                    // 东财 secid 形态的详情目标（南向港股、美股、A 股搜索直达等）
+        const mkt = em[1];
+        const code6 = em[2];
+        if (mkt === '116') { push('hk' + code6); }
+        else if (mkt === '0' && code6.length === 6 && /^\d{6}/.test(code6)) { push('sz' + code6); }
+        else if (mkt === '1' && code6.length === 6 && /^\d{6}/.test(code6)) { push('sh' + code6); }
+        if (em[1] === '105' || em[1] === '106' || em[1] === '107') { push('us' + em[2]); }
       }
       return keys;
     }
