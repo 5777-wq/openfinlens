@@ -98,6 +98,7 @@
     const sym = String(item.symbol || '').toLowerCase();
     const py = String(item.py || '').toLowerCase();
     const hint = String(item.hint || '').toLowerCase();
+    const kw = String(item.kw || '').toLowerCase();
     if (code && code === Q) return 100;
     if (sym && sym === Q) return 98;
     if (code && code.indexOf(Q) === 0) return 92;
@@ -105,6 +106,7 @@
     if (py && py.indexOf(Q) === 0) return 84;
     if (name && name.indexOf(Q) > 0) return 74;
     if (py && py.indexOf(Q) > 0) return 64;
+    if (kw && kw.indexOf(Q) >= 0) return 52;   // 关键词包含（文章 tags：次贷/美债/危机…）
     if (subsequence(Q, py)) return 48;
     if (subsequence(Q, name)) return 34;
     if (code && code.indexOf(Q) > 0) return 30;
@@ -570,6 +572,10 @@
         section: String(a.section || 'assets'),
         label: String(a.title),
         hint: '白话金融 · 复盘/科普文章',
+        /* kw：文章 tags 关键词串（如「次贷 美债 危机」）——搜索打分的附加
+           匹配面。标题往往不含核心词（《2008 年那场金融危机》搜「次贷」
+           全靠 tags），与 py 并列供 scoreOf 消费。 */
+        kw: Array.isArray(a.tags) ? a.tags.join(' ') : String(a.tags || ''),
         py: initialsOf(String(a.title)),
       });
     }
