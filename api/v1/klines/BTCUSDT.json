@@ -8,17 +8,10 @@
       "day": {
         "interval": "day",
         "count": 160,
-        "asof": "2026-11-21",
+        "asof": "2026-11-22",
         "stale": false,
         "source": "tencent/eastmoney/binance（经 js/sources 适配器）",
         "rows": [
-          {
-            "time": "2026-06-15",
-            "open": 65746.45,
-            "high": 67292.15,
-            "low": 65354,
-            "close": 66328.74
-          },
           {
             "time": "2026-06-16",
             "open": 66328.74,
@@ -1130,7 +1123,14 @@
             "open": 58951.51,
             "high": 60996,
             "low": 55130,
-            "close": 60475.69
+            "close": 60215.77
+          },
+          {
+            "time": "2026-11-22",
+            "open": 60215.78,
+            "high": 60352.16,
+            "low": 60012.07,
+            "close": 60098.39
           }
         ]
       },
@@ -1867,7 +1867,7 @@
             "open": 65351.05,
             "high": 65696.16,
             "low": 55130,
-            "close": 60479.08
+            "close": 60098.39
           }
         ]
       },
@@ -2296,7 +2296,7 @@
             "open": 77582.02,
             "high": 81196.01,
             "low": 55130,
-            "close": 60479.08
+            "close": 60098.39
           }
         ]
       }
@@ -2304,8 +2304,8 @@
   },
   "meta": {
     "dataset": "klines.symbol",
-    "asof": "2026-11-21",
-    "generatedAt": "2026-11-21T21:59:56.655Z",
+    "asof": "2026-11-22",
+    "generatedAt": "2026-11-22T01:44:49.331Z",
     "source": "腾讯 ifzq / 东方财富 push2his / 币安 klines（复用 js/sources 口径）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
