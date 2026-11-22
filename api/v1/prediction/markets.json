@@ -28,7 +28,7 @@
         "category": "central_bank",
         "partition": true,
         "endDate": 1796878740000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -42,7 +42,7 @@
             "id": "pm:3215007",
             "label": "No change",
             "labelZh": "不变",
-            "probability": 0.067,
+            "probability": 0.066,
             "change24h": -0.9
           },
           {
@@ -79,7 +79,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1808107140000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 46,
         "outcomes": [
           {
@@ -137,7 +137,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1857272340000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 44,
         "outcomes": [
           {
@@ -195,7 +195,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798748940000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -246,7 +246,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1857272340000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 58,
         "outcomes": [
           {
@@ -293,7 +293,7 @@
           }
         ],
         "rest": {
-          "probability": 0.298,
+          "probability": 0.299,
           "count": 52
         }
       },
@@ -304,7 +304,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1857272340000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 58,
         "outcomes": [
           {
@@ -356,42 +356,65 @@
         }
       },
       {
+        "id": "ev:73130",
+        "title": "Will the U.S. invade Iran before 2027?",
+        "titleZh": "美国会在2027年之前入侵伊朗吗？",
+        "category": "geopolitics",
+        "partition": false,
+        "endDate": 1798779540000,
+        "updatedAt": 1795366167034,
+        "outcomeCount": 1,
+        "outcomes": [
+          {
+            "id": "pm:665374",
+            "label": "Yes",
+            "labelZh": "是",
+            "probability": 0.065,
+            "change24h": -1
+          }
+        ],
+        "rest": {
+          "probability": 0,
+          "count": 0
+        }
+      },
+      {
         "id": "ev:81557",
         "title": "Prime Minister of Israel after the next election?",
         "titleZh": "下次选举后的以色列总理？",
         "category": "geopolitics",
         "partition": true,
         "endDate": 1793159940000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 22,
         "outcomes": [
           {
             "id": "pm:682708",
             "label": "Gadi Eizenkot",
             "labelZh": "加迪·艾森科特",
-            "probability": 0.595,
-            "change24h": -5.2
+            "probability": 0.597,
+            "change24h": -5.1
           },
           {
             "id": "pm:682705",
             "label": "Benjamin Netanyahu",
             "labelZh": "本杰明·内塔尼亚胡",
-            "probability": 0.272,
-            "change24h": 6.8
+            "probability": 0.275,
+            "change24h": 7.2
           },
           {
             "id": "pm:682706",
             "label": "Naftali Bennett",
             "labelZh": "纳夫塔利·贝内特",
-            "probability": 0.058,
-            "change24h": 0.5
+            "probability": 0.057,
+            "change24h": 0.4
           },
           {
             "id": "pm:682710",
             "label": "Avigdor Lieberman",
             "labelZh": "阿维格多·利伯曼",
             "probability": 0.039,
-            "change24h": 0.1
+            "change24h": 0.2
           },
           {
             "id": "pm:682711",
@@ -401,15 +424,15 @@
             "change24h": 0.1
           },
           {
-            "id": "pm:682712",
-            "label": "Yair Golan",
+            "id": "pm:682721",
+            "label": "Amir Ohana",
             "labelZh": null,
             "probability": 0.004,
-            "change24h": 0.3
+            "change24h": 0.1
           }
         ],
         "rest": {
-          "probability": 0.023,
+          "probability": 0.022,
           "count": 16
         }
       },
@@ -420,7 +443,7 @@
         "category": "geopolitics",
         "partition": true,
         "endDate": 1798779540000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 16,
         "outcomes": [
           {
@@ -478,7 +501,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1795928340000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -515,7 +538,7 @@
         "category": "election",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 2,
         "outcomes": [
           {
@@ -545,7 +568,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -564,11 +587,11 @@
       {
         "id": "ev:96786",
         "title": "2026 Taiwanese Local Elections: Party Winner",
-        "titleZh": "2026 年台湾地方选举：获胜政党",
+        "titleZh": "2026年台湾地方选举：获胜政党",
         "category": "election",
         "partition": true,
         "endDate": 1795928340000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -582,8 +605,8 @@
             "id": "pm:814613",
             "label": "Democratic Progressive Party (DPP)",
             "labelZh": "民进党",
-            "probability": 0.232,
-            "change24h": -1.9
+            "probability": 0.23,
+            "change24h": -2.1
           },
           {
             "id": "pm:814614",
@@ -605,7 +628,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1796014740000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 20,
         "outcomes": [
           {
@@ -663,13 +686,13 @@
         "category": "central_bank",
         "partition": true,
         "endDate": 1798779540000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 13,
         "outcomes": [
           {
             "id": "pm:616902",
             "label": "0 (0 bps)",
-            "labelZh": null,
+            "labelZh": "0（0 bps）",
             "probability": 0.984,
             "change24h": 0.2
           },
@@ -721,7 +744,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1814414340000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -752,36 +775,13 @@
         }
       },
       {
-        "id": "ev:455875",
-        "title": "Strait of Hormuz traffic returns to normal by December 31?",
-        "titleZh": "霍尔木兹海峡的交通在12月31日之前恢复正常？",
-        "category": "geopolitics",
-        "partition": false,
-        "endDate": 1798779540000,
-        "updatedAt": 1795365806444,
-        "outcomeCount": 1,
-        "outcomes": [
-          {
-            "id": "pm:2176270",
-            "label": "Yes",
-            "labelZh": "是",
-            "probability": 0.031,
-            "change24h": 0.2
-          }
-        ],
-        "rest": {
-          "probability": 0,
-          "count": 0
-        }
-      },
-      {
         "id": "ev:1138701",
         "title": "Spain General Election Winner",
         "titleZh": "西班牙大选获胜者",
         "category": "election",
         "partition": true,
         "endDate": 1796014740000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -832,7 +832,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1796014740000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -883,7 +883,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1814414340000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -920,7 +920,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1806551940000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 6,
         "outcomes": [
           {
@@ -978,7 +978,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798748940000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -999,8 +999,8 @@
             "id": "pm:6831495",
             "label": "November 22",
             "labelZh": "11月22日",
-            "probability": 0.33,
-            "change24h": -4
+            "probability": 0.32,
+            "change24h": -5
           }
         ],
         "rest": {
@@ -1015,7 +1015,7 @@
         "category": "central_bank",
         "partition": true,
         "endDate": 1801112340000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -1066,7 +1066,7 @@
         "category": "energy",
         "partition": false,
         "endDate": 1796101199999,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 20,
         "outcomes": [
           {
@@ -1124,7 +1124,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1793768340000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 11,
         "outcomes": [
           {
@@ -1182,7 +1182,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1830315540000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 2,
         "outcomes": [
           {
@@ -1196,7 +1196,7 @@
             "id": "pm:4713962",
             "label": "December 31, 2026",
             "labelZh": "2026年12月31日",
-            "probability": 0.091,
+            "probability": 0.09,
             "change24h": -0.7
           }
         ],
@@ -1212,7 +1212,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -1235,7 +1235,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -1258,7 +1258,7 @@
         "category": "election",
         "partition": false,
         "endDate": 1796014740000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -1281,7 +1281,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795365806444,
+        "updatedAt": 1795366167034,
         "outcomeCount": 2,
         "outcomes": [
           {
@@ -1305,21 +1305,21 @@
         }
       },
       {
-        "id": "ev:73130",
-        "title": "Will the U.S. invade Iran before 2027?",
-        "titleZh": "美国会在2027年之前入侵伊朗吗？",
+        "id": "ev:455875",
+        "title": "Strait of Hormuz traffic returns to normal by December 31?",
+        "titleZh": "霍尔木兹海峡的交通在12月31日之前恢复正常？",
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795365686360,
+        "updatedAt": 1795366047089,
         "outcomeCount": 1,
         "outcomes": [
           {
-            "id": "pm:665374",
+            "id": "pm:2176270",
             "label": "Yes",
             "labelZh": "是",
-            "probability": 0.055,
-            "change24h": -2
+            "probability": 0.031,
+            "change24h": 0.2
           }
         ],
         "rest": {
@@ -1331,8 +1331,8 @@
   },
   "meta": {
     "dataset": "prediction.markets",
-    "asof": "2026-11-22T16:45:06.159Z",
-    "generatedAt": "2026-11-22T16:46:46.752Z",
+    "asof": "2026-11-22T16:51:40.612Z",
+    "generatedAt": "2026-11-22T16:53:33.797Z",
     "source": "公开预测市场概率聚合（只读；不含平台标识与链接）",
     "stale": false,
     "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
