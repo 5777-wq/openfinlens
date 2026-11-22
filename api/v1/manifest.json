@@ -44,7 +44,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-22T08:53:00.131Z",
+          "generatedAt": "2026-11-22T09:02:38.495Z",
           "count": 11,
           "datasets": [
             {
@@ -60,7 +60,7 @@
             "openapi": "api/openapi.json"
           }
         },
-        "asof": "2026-11-22T08:53:00.131Z",
+        "asof": "2026-11-22T09:02:38.495Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -100,7 +100,7 @@
         ],
         "sample": {
           "version": "v1",
-          "generatedAt": "2026-11-22T08:53:00.131Z",
+          "generatedAt": "2026-11-22T09:02:38.495Z",
           "base": "api/v1",
           "datasets": [
             {
@@ -111,7 +111,7 @@
             }
           ]
         },
-        "asof": "2026-11-22T08:53:00.131Z",
+        "asof": "2026-11-22T09:02:38.495Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -203,7 +203,7 @@
             "中石化"
           ]
         },
-        "asof": "2026-11-22T08:53:00.131Z",
+        "asof": "2026-11-22T09:02:38.495Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -314,10 +314,10 @@
           "change": 0.11,
           "changePct": 1.86,
           "quoteAt": 1795162500000,
-          "updatedAt": 1795337580944,
+          "updatedAt": 1795338159402,
           "source": "tencent"
         },
-        "asof": "2026-11-22T08:53:01.782Z",
+        "asof": "2026-11-22T09:02:39.962Z",
         "stale": false,
         "count": 194,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -654,7 +654,7 @@
           "category": "central_bank",
           "partition": true,
           "endDate": 1796878740000,
-          "updatedAt": 1795337123536,
+          "updatedAt": 1795337842421,
           "outcomeCount": 5,
           "outcomes": [
             {
@@ -668,8 +668,8 @@
               "id": "pm:3215007",
               "label": "No change",
               "labelZh": "不变",
-              "probability": 0.069,
-              "change24h": -1.2
+              "probability": 0.066,
+              "change24h": -1.5
             },
             {
               "id": "pm:3215009",
@@ -690,7 +690,7 @@
               "label": "50+ bps decrease",
               "labelZh": "降低50 +个基点",
               "probability": 0.005,
-              "change24h": 0.2
+              "change24h": 0.1
             }
           ],
           "rest": {
@@ -698,7 +698,7 @@
             "count": 0
           }
         },
-        "asof": "2026-11-22T08:51:00.154Z",
+        "asof": "2026-11-22T09:00:32.872Z",
         "stale": false,
         "count": 30,
         "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
@@ -737,7 +737,7 @@
           }
         ],
         "sample": {
-          "asOf": "2026-11-22T08:52:59.052Z",
+          "asOf": "2026-11-22T09:02:37.794Z",
           "institutions": [
             {
               "slug": "berkshire",
@@ -807,7 +807,7 @@
             ]
           }
         },
-        "asof": "2026-11-22T08:52:59.052Z",
+        "asof": "2026-11-22T09:02:37.794Z",
         "stale": false,
         "count": 4,
         "license": "公开披露数据；13F 为季度持仓，ETF 为发行方日更全量持仓，基金口径为季度前十大汇总。",
@@ -930,19 +930,19 @@
         ],
         "sample": {
           "status": "ok",
-          "generatedAt": "2026-11-22T08:53:00.131Z",
+          "generatedAt": "2026-11-22T09:02:38.495Z",
           "durationMs": 0,
           "datasets": [
             {
               "id": "quotes.latest",
-              "lastBuilt": "2026-11-22T08:53:00.131Z",
+              "lastBuilt": "2026-11-22T09:02:38.495Z",
               "count": 1,
               "ms": 0,
               "stale": false
             }
           ]
         },
-        "asof": "2026-11-22T08:53:00.131Z",
+        "asof": "2026-11-22T09:02:38.495Z",
         "stale": false,
         "count": 11,
         "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
@@ -952,8 +952,8 @@
   },
   "meta": {
     "dataset": "manifest",
-    "asof": "2026-11-22T08:53:00.131Z",
-    "generatedAt": "2026-11-22T08:53:00.131Z",
+    "asof": "2026-11-22T09:02:38.495Z",
+    "generatedAt": "2026-11-22T09:02:38.495Z",
     "source": "本项目构建产物（data/** 与 js/data/universe.js）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",

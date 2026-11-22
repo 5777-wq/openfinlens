@@ -28,7 +28,7 @@
         "category": "central_bank",
         "partition": true,
         "endDate": 1796878740000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -42,8 +42,8 @@
             "id": "pm:3215007",
             "label": "No change",
             "labelZh": "不变",
-            "probability": 0.069,
-            "change24h": -1.2
+            "probability": 0.066,
+            "change24h": -1.5
           },
           {
             "id": "pm:3215009",
@@ -64,7 +64,7 @@
             "label": "50+ bps decrease",
             "labelZh": "降低50 +个基点",
             "probability": 0.005,
-            "change24h": 0.2
+            "change24h": 0.1
           }
         ],
         "rest": {
@@ -79,22 +79,22 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798748940000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 5,
         "outcomes": [
           {
             "id": "pm:6908163",
             "label": "November 20",
             "labelZh": "11月20日",
-            "probability": 0.996,
-            "change24h": -0.1
+            "probability": 0.997,
+            "change24h": 0
           },
           {
             "id": "pm:6367372",
             "label": "November 22",
             "labelZh": "11月22日",
-            "probability": 0.989,
-            "change24h": 2.1
+            "probability": 0.99,
+            "change24h": 2.2
           },
           {
             "id": "pm:3902370",
@@ -130,13 +130,13 @@
         "category": "election",
         "partition": true,
         "endDate": 1857272340000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 44,
         "outcomes": [
           {
             "id": "pm:561997",
             "label": "Robert F. Kennedy Jr.",
-            "labelZh": "罗伯特·F·肯尼迪·小",
+            "labelZh": null,
             "probability": 0.49,
             "change24h": null
           },
@@ -188,13 +188,13 @@
         "category": "election",
         "partition": true,
         "endDate": 1808107140000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 46,
         "outcomes": [
           {
             "id": "pm:679018",
             "label": "Marine Le Pen",
-            "labelZh": "玛丽娜·勒庞",
+            "labelZh": null,
             "probability": 0.47,
             "change24h": 0.6
           },
@@ -246,7 +246,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1857272340000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 58,
         "outcomes": [
           {
@@ -274,8 +274,8 @@
             "id": "pm:559655",
             "label": "Josh Shapiro",
             "labelZh": null,
-            "probability": 0.064,
-            "change24h": 0.1
+            "probability": 0.062,
+            "change24h": 0
           },
           {
             "id": "pm:559654",
@@ -304,7 +304,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1857272340000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 58,
         "outcomes": [
           {
@@ -362,7 +362,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -385,7 +385,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1795928340000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -400,7 +400,7 @@
             "label": "Puma Shen",
             "labelZh": null,
             "probability": 0.331,
-            "change24h": -0.1
+            "change24h": -0.2
           },
           {
             "id": "pm:3580934",
@@ -422,20 +422,20 @@
         "category": "geopolitics",
         "partition": true,
         "endDate": 1798779540000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 16,
         "outcomes": [
           {
             "id": "pm:1105744",
             "label": "Nicolás Maduro",
-            "labelZh": "尼古拉斯·马杜罗",
+            "labelZh": null,
             "probability": 0.911,
             "change24h": 1.4
           },
           {
             "id": "pm:1105742",
             "label": "Delcy Rodríguez",
-            "labelZh": "德尔西·罗德里格斯",
+            "labelZh": null,
             "probability": 0.085,
             "change24h": -1
           },
@@ -449,7 +449,7 @@
           {
             "id": "pm:1105741",
             "label": "María Corina Machado",
-            "labelZh": "玛丽亚·科里纳·马查多",
+            "labelZh": null,
             "probability": 0.002,
             "change24h": null
           },
@@ -480,13 +480,13 @@
         "category": "election",
         "partition": true,
         "endDate": 1796014740000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 20,
         "outcomes": [
           {
             "id": "pm:2695686",
             "label": "Alberto Núñez Feijóo",
-            "labelZh": "阿尔韦托·努涅斯·费霍奥",
+            "labelZh": null,
             "probability": 0.885,
             "change24h": 1
           },
@@ -494,14 +494,14 @@
             "id": "pm:2695678",
             "label": "Pedro Sánchez",
             "labelZh": "佩德罗·桑切斯",
-            "probability": 0.101,
-            "change24h": -1.8
+            "probability": 0.092,
+            "change24h": -2.6
           },
           {
             "id": "pm:2695687",
             "label": "Santiago Abascal",
             "labelZh": "圣地亚哥阿瓦斯卡尔",
-            "probability": 0.011,
+            "probability": 0.012,
             "change24h": -0.1
           },
           {
@@ -521,7 +521,7 @@
           {
             "id": "pm:2695680",
             "label": "Yolanda Díaz",
-            "labelZh": "约兰达·迪亚斯 (Yolanda Díaz)",
+            "labelZh": null,
             "probability": 0.001,
             "change24h": null
           }
@@ -538,7 +538,7 @@
         "category": "geopolitics",
         "partition": true,
         "endDate": 1793159940000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 22,
         "outcomes": [
           {
@@ -592,31 +592,31 @@
       {
         "id": "ev:96786",
         "title": "2026 Taiwanese Local Elections: Party Winner",
-        "titleZh": "2026年台湾地方选举：获胜政党",
+        "titleZh": null,
         "category": "election",
         "partition": true,
         "endDate": 1795928340000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 3,
         "outcomes": [
           {
             "id": "pm:814612",
             "label": "Kuomintang (KMT)",
-            "labelZh": "中国国民党（KMT）",
+            "labelZh": null,
             "probability": 0.77,
             "change24h": 9.5
           },
           {
             "id": "pm:814613",
             "label": "Democratic Progressive Party (DPP)",
-            "labelZh": "民进党",
-            "probability": 0.232,
-            "change24h": -9.2
+            "labelZh": null,
+            "probability": 0.233,
+            "change24h": -9.1
           },
           {
             "id": "pm:814614",
             "label": "Taiwan People’s Party (TPP)",
-            "labelZh": "台湾民众党（TPP）",
+            "labelZh": null,
             "probability": 0.001,
             "change24h": null
           }
@@ -633,7 +633,7 @@
         "category": "central_bank",
         "partition": true,
         "endDate": 1798779540000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 13,
         "outcomes": [
           {
@@ -646,7 +646,7 @@
           {
             "id": "pm:616903",
             "label": "1 (25 bps)",
-            "labelZh": "1（25个基点）",
+            "labelZh": null,
             "probability": 0.005,
             "change24h": 0.1
           },
@@ -674,7 +674,7 @@
           {
             "id": "pm:616914",
             "label": "12+ (300+ bps)",
-            "labelZh": "12+（300+个基点）",
+            "labelZh": null,
             "probability": 0.002,
             "change24h": 0.1
           }
@@ -691,7 +691,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1806551940000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 6,
         "outcomes": [
           {
@@ -704,14 +704,14 @@
           {
             "id": "pm:7155711",
             "label": "February 28",
-            "labelZh": "2月\t28",
+            "labelZh": null,
             "probability": 0.305,
             "change24h": null
           },
           {
             "id": "pm:7155713",
             "label": "January 31",
-            "labelZh": "1月31日",
+            "labelZh": null,
             "probability": 0.22,
             "change24h": 0.5
           },
@@ -749,41 +749,41 @@
         "category": "election",
         "partition": true,
         "endDate": 1793768340000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 11,
         "outcomes": [
           {
             "id": "pm:1662423",
             "label": "Chuck Schumer",
-            "labelZh": "查克·舒默",
+            "labelZh": null,
             "probability": 0.925,
             "change24h": -0.5
           },
           {
             "id": "pm:1662429",
             "label": "Chris Van Hollen",
-            "labelZh": "克里斯·范·霍伦",
+            "labelZh": null,
             "probability": 0.068,
             "change24h": 0.4
           },
           {
             "id": "pm:1662424",
             "label": "Brian Schatz",
-            "labelZh": "布莱恩·夏茨",
+            "labelZh": null,
             "probability": 0.007,
             "change24h": 0.2
           },
           {
             "id": "pm:1662418",
             "label": "John Thune",
-            "labelZh": "约翰·图恩",
+            "labelZh": null,
             "probability": 0.001,
             "change24h": null
           },
           {
             "id": "pm:1662419",
             "label": "John Barrasso",
-            "labelZh": "约翰·巴拉索",
+            "labelZh": null,
             "probability": 0.001,
             "change24h": null
           },
@@ -807,7 +807,7 @@
         "category": "election",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 2,
         "outcomes": [
           {
@@ -831,13 +831,64 @@
         }
       },
       {
+        "id": "ev:1232497",
+        "title": "Spain General Election: Santa Cruz de Tenerife Winner",
+        "titleZh": null,
+        "category": "election",
+        "partition": true,
+        "endDate": 1796014740000,
+        "updatedAt": 1795337842421,
+        "outcomeCount": 5,
+        "outcomes": [
+          {
+            "id": "pm:6031068",
+            "label": "PSOE",
+            "labelZh": null,
+            "probability": 0.67,
+            "change24h": 17.5
+          },
+          {
+            "id": "pm:6031067",
+            "label": "PP",
+            "labelZh": null,
+            "probability": 0.325,
+            "change24h": -19
+          },
+          {
+            "id": "pm:6031070",
+            "label": "Vox",
+            "labelZh": null,
+            "probability": 0.002,
+            "change24h": -0.3
+          },
+          {
+            "id": "pm:6031074",
+            "label": "Broad Front (FA)",
+            "labelZh": null,
+            "probability": 0.001,
+            "change24h": null
+          },
+          {
+            "id": "pm:6031076",
+            "label": "CCa",
+            "labelZh": null,
+            "probability": 0.001,
+            "change24h": null
+          }
+        ],
+        "rest": {
+          "probability": 0,
+          "count": 0
+        }
+      },
+      {
         "id": "ev:1337182",
         "title": "US x Iran Effective Ceasefire begins by...? (2 week pause)",
         "titleZh": "美国x伊朗有效停火始于... ？ （暂停2周）",
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798748940000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -851,8 +902,8 @@
             "id": "pm:6831496",
             "label": "November 30",
             "labelZh": "11月30日",
-            "probability": 0.535,
-            "change24h": -2
+            "probability": 0.53,
+            "change24h": -2.5
           },
           {
             "id": "pm:6831495",
@@ -868,64 +919,13 @@
         }
       },
       {
-        "id": "ev:1232497",
-        "title": "Spain General Election: Santa Cruz de Tenerife Winner",
-        "titleZh": "西班牙大选：圣克鲁斯-德特内里费获胜者",
-        "category": "election",
-        "partition": true,
-        "endDate": 1796014740000,
-        "updatedAt": 1795337123536,
-        "outcomeCount": 5,
-        "outcomes": [
-          {
-            "id": "pm:6031068",
-            "label": "PSOE",
-            "labelZh": "西班牙工人社会党（PSOE）",
-            "probability": 0.665,
-            "change24h": 17
-          },
-          {
-            "id": "pm:6031067",
-            "label": "PP",
-            "labelZh": null,
-            "probability": 0.325,
-            "change24h": -19
-          },
-          {
-            "id": "pm:6031070",
-            "label": "Vox",
-            "labelZh": "VOX",
-            "probability": 0.002,
-            "change24h": -0.3
-          },
-          {
-            "id": "pm:6031074",
-            "label": "Broad Front (FA)",
-            "labelZh": "广泛阵线（FA）",
-            "probability": 0.001,
-            "change24h": null
-          },
-          {
-            "id": "pm:6031076",
-            "label": "CCa",
-            "labelZh": "CCA",
-            "probability": 0.001,
-            "change24h": null
-          }
-        ],
-        "rest": {
-          "probability": 0,
-          "count": 0
-        }
-      },
-      {
         "id": "ev:1138701",
         "title": "Spain General Election Winner",
-        "titleZh": "西班牙大选获胜者",
+        "titleZh": null,
         "category": "election",
         "partition": true,
         "endDate": 1796014740000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -938,28 +938,28 @@
           {
             "id": "pm:5336560",
             "label": "PSOE",
-            "labelZh": "西班牙工人社会党（PSOE）",
+            "labelZh": null,
             "probability": 0.275,
             "change24h": 3
           },
           {
             "id": "pm:5336562",
             "label": "Vox",
-            "labelZh": "VOX",
+            "labelZh": null,
             "probability": 0.003,
             "change24h": 0.1
           },
           {
             "id": "pm:5336563",
             "label": "Broad Front (FA)",
-            "labelZh": "广泛阵线（FA）",
+            "labelZh": null,
             "probability": 0.001,
             "change24h": null
           },
           {
             "id": "pm:5336564",
             "label": "Podemos",
-            "labelZh": "我们能党",
+            "labelZh": null,
             "probability": 0.001,
             "change24h": null
           }
@@ -976,7 +976,7 @@
         "category": "central_bank",
         "partition": true,
         "endDate": 1801112340000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -1027,7 +1027,7 @@
         "category": "energy",
         "partition": false,
         "endDate": 1796101199999,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 20,
         "outcomes": [
           {
@@ -1055,8 +1055,8 @@
             "id": "pm:6207382",
             "label": "↓ $75",
             "labelZh": "75美元",
-            "probability": 0.12,
-            "change24h": -4
+            "probability": 0.105,
+            "change24h": -5.5
           },
           {
             "id": "pm:6588820",
@@ -1074,7 +1074,7 @@
           }
         ],
         "rest": {
-          "probability": 0.211,
+          "probability": 0.208,
           "count": 14
         }
       },
@@ -1085,7 +1085,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -1108,7 +1108,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1814414340000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -1145,7 +1145,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1814414340000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -1182,7 +1182,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -1205,15 +1205,15 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1814414340000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 14,
         "outcomes": [
           {
             "id": "pm:4338140",
             "label": "December 31, 2027",
             "labelZh": "2027年12月31日",
-            "probability": 0.69,
-            "change24h": 1.5
+            "probability": 0.685,
+            "change24h": 1
           },
           {
             "id": "pm:4338137",
@@ -1240,8 +1240,8 @@
             "id": "pm:4338141",
             "label": "August 31, 2027",
             "labelZh": "2027年8月31日",
-            "probability": 0.625,
-            "change24h": 1
+            "probability": 0.62,
+            "change24h": 0.5
           },
           {
             "id": "pm:4338138",
@@ -1263,27 +1263,27 @@
         "category": "election",
         "partition": true,
         "endDate": 1814414340000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 10,
         "outcomes": [
           {
             "id": "pm:1193094",
             "label": "Magdalena Andersson",
-            "labelZh": "玛格达莱纳·安德松",
-            "probability": 0.52,
-            "change24h": -3
+            "labelZh": null,
+            "probability": 0.53,
+            "change24h": -2
           },
           {
             "id": "pm:1193093",
             "label": "Ulf Kristersson",
-            "labelZh": "乌尔夫·克里斯特松",
+            "labelZh": null,
             "probability": 0.461,
             "change24h": 2.9
           },
           {
             "id": "pm:1193096",
             "label": "Ebba Busch",
-            "labelZh": "埃芭·布施 (Ebba Busch)",
+            "labelZh": null,
             "probability": 0.009,
             "change24h": 0.2
           },
@@ -1321,7 +1321,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 2,
         "outcomes": [
           {
@@ -1347,11 +1347,11 @@
       {
         "id": "ev:34052",
         "title": "Zelenskyy out as Ukraine president by end of 2026?",
-        "titleZh": "泽连斯基将在 2026 年底卸任乌克兰总统？",
+        "titleZh": null,
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -1374,7 +1374,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795337123536,
+        "updatedAt": 1795337842421,
         "outcomeCount": 2,
         "outcomes": [
           {
@@ -1401,8 +1401,8 @@
   },
   "meta": {
     "dataset": "prediction.markets",
-    "asof": "2026-11-22T08:51:00.154Z",
-    "generatedAt": "2026-11-22T08:53:00.131Z",
+    "asof": "2026-11-22T09:00:32.872Z",
+    "generatedAt": "2026-11-22T09:02:38.495Z",
     "source": "公开预测市场概率聚合（只读；不含平台标识与链接）",
     "stale": false,
     "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
