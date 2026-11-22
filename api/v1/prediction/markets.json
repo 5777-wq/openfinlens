@@ -28,7 +28,7 @@
         "category": "central_bank",
         "partition": true,
         "endDate": 1796878740000,
-        "updatedAt": 1795384827083,
+        "updatedAt": 1795385363647,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -42,15 +42,15 @@
             "id": "pm:3215007",
             "label": "No change",
             "labelZh": "不变",
-            "probability": 0.065,
-            "change24h": -0.4
+            "probability": 0.064,
+            "change24h": -0.5
           },
           {
             "id": "pm:3215009",
             "label": "50+ bps increase",
             "labelZh": "增加50 +个基点",
             "probability": 0.021,
-            "change24h": -0.1
+            "change24h": 0
           },
           {
             "id": "pm:3215006",
@@ -73,71 +73,13 @@
         }
       },
       {
-        "id": "ev:637442",
-        "title": "Next Prime Minister of Spain?",
-        "titleZh": "西班牙首相",
-        "category": "election",
-        "partition": true,
-        "endDate": 1796014740000,
-        "updatedAt": 1795384818488,
-        "outcomeCount": 20,
-        "outcomes": [
-          {
-            "id": "pm:2695686",
-            "label": "Alberto Núñez Feijóo",
-            "labelZh": "阿尔韦托·努涅斯·费霍",
-            "probability": 0.895,
-            "change24h": 1
-          },
-          {
-            "id": "pm:2695678",
-            "label": "Pedro Sánchez",
-            "labelZh": "佩德罗·桑切斯",
-            "probability": 0.075,
-            "change24h": -1.5
-          },
-          {
-            "id": "pm:2695687",
-            "label": "Santiago Abascal",
-            "labelZh": "圣地亚哥阿瓦斯卡尔",
-            "probability": 0.006,
-            "change24h": -0.7
-          },
-          {
-            "id": "pm:2695693",
-            "label": "Carlos Cuerpo",
-            "labelZh": null,
-            "probability": 0.004,
-            "change24h": 0.2
-          },
-          {
-            "id": "pm:2695679",
-            "label": "María Jesús Montero",
-            "labelZh": "玛丽亚·赫苏斯·蒙特罗",
-            "probability": 0.001,
-            "change24h": null
-          },
-          {
-            "id": "pm:2695680",
-            "label": "Yolanda Díaz",
-            "labelZh": "约兰达·迪亚斯 (Yolanda Díaz)",
-            "probability": 0.001,
-            "change24h": null
-          }
-        ],
-        "rest": {
-          "probability": 0.014,
-          "count": 14
-        }
-      },
-      {
         "id": "ev:711714",
         "title": "Israel x Iran ceasefire continues through...?",
         "titleZh": "以色列x伊朗停火持续到... ？",
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798748940000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -145,14 +87,14 @@
             "label": "November 20",
             "labelZh": "11月20日",
             "probability": 0.999,
-            "change24h": 0.4
+            "change24h": 0.3
           },
           {
             "id": "pm:6367372",
             "label": "November 22",
             "labelZh": "11月22日",
             "probability": 0.998,
-            "change24h": 3.9
+            "change24h": 4.5
           },
           {
             "id": "pm:3902370",
@@ -188,7 +130,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1857272340000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 44,
         "outcomes": [
           {
@@ -235,7 +177,7 @@
           }
         ],
         "rest": {
-          "probability": 0.219,
+          "probability": 0.215,
           "count": 38
         }
       },
@@ -246,7 +188,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1808107140000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 46,
         "outcomes": [
           {
@@ -275,7 +217,7 @@
             "label": "François Hollande",
             "labelZh": "弗朗索瓦·奥朗德",
             "probability": 0.047,
-            "change24h": 0.5
+            "change24h": 0.8
           },
           {
             "id": "pm:679021",
@@ -304,7 +246,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1857272340000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 58,
         "outcomes": [
           {
@@ -325,8 +267,8 @@
             "id": "pm:559652",
             "label": "Gavin Newsom",
             "labelZh": "加文·纽森",
-            "probability": 0.096,
-            "change24h": -0.1
+            "probability": 0.097,
+            "change24h": null
           },
           {
             "id": "pm:559655",
@@ -362,35 +304,35 @@
         "category": "geopolitics",
         "partition": true,
         "endDate": 1793159940000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 22,
         "outcomes": [
           {
             "id": "pm:682708",
             "label": "Gadi Eizenkot",
             "labelZh": "加迪·艾森科特",
-            "probability": 0.597,
-            "change24h": -4.1
+            "probability": 0.589,
+            "change24h": -4.9
           },
           {
             "id": "pm:682705",
             "label": "Benjamin Netanyahu",
             "labelZh": "本杰明·内塔尼亚胡",
-            "probability": 0.289,
-            "change24h": 8.4
+            "probability": 0.286,
+            "change24h": 8.1
           },
           {
             "id": "pm:682706",
             "label": "Naftali Bennett",
             "labelZh": "纳夫塔利·贝内特",
             "probability": 0.047,
-            "change24h": -0.4
+            "change24h": -0.5
           },
           {
             "id": "pm:682710",
             "label": "Avigdor Lieberman",
             "labelZh": "阿维格多·利伯曼",
-            "probability": 0.038,
+            "probability": 0.039,
             "change24h": -0.2
           },
           {
@@ -414,13 +356,36 @@
         }
       },
       {
+        "id": "ev:73130",
+        "title": "Will the U.S. invade Iran before 2027?",
+        "titleZh": "美国会在2027年之前入侵伊朗吗？",
+        "category": "geopolitics",
+        "partition": false,
+        "endDate": 1798779540000,
+        "updatedAt": 1795385363647,
+        "outcomeCount": 1,
+        "outcomes": [
+          {
+            "id": "pm:665374",
+            "label": "Yes",
+            "labelZh": "是",
+            "probability": 0.055,
+            "change24h": -2
+          }
+        ],
+        "rest": {
+          "probability": 0,
+          "count": 0
+        }
+      },
+      {
         "id": "ev:143443",
         "title": "Venezuela leader end of 2026?",
         "titleZh": "2026年底委内瑞拉领导人？",
         "category": "geopolitics",
         "partition": true,
         "endDate": 1798779540000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 16,
         "outcomes": [
           {
@@ -428,7 +393,7 @@
             "label": "Nicolás Maduro",
             "labelZh": "尼古拉斯·马杜罗",
             "probability": 0.898,
-            "change24h": -0.2
+            "change24h": -0.4
           },
           {
             "id": "pm:1105742",
@@ -472,36 +437,13 @@
         }
       },
       {
-        "id": "ev:73130",
-        "title": "Will the U.S. invade Iran before 2027?",
-        "titleZh": "美国会在2027年之前入侵伊朗吗？",
-        "category": "geopolitics",
-        "partition": false,
-        "endDate": 1798779540000,
-        "updatedAt": 1795384763027,
-        "outcomeCount": 1,
-        "outcomes": [
-          {
-            "id": "pm:665374",
-            "label": "Yes",
-            "labelZh": "是",
-            "probability": 0.055,
-            "change24h": -2
-          }
-        ],
-        "rest": {
-          "probability": 0,
-          "count": 0
-        }
-      },
-      {
         "id": "ev:31552",
         "title": "Presidential Election Winner 2028",
         "titleZh": "2028年总统选举获胜者",
         "category": "election",
         "partition": true,
         "endDate": 1857272340000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 58,
         "outcomes": [
           {
@@ -516,7 +458,7 @@
             "label": "JD Vance",
             "labelZh": "JD万斯",
             "probability": 0.131,
-            "change24h": -1.2
+            "change24h": -1
           },
           {
             "id": "pm:561231",
@@ -553,13 +495,71 @@
         }
       },
       {
+        "id": "ev:637442",
+        "title": "Next Prime Minister of Spain?",
+        "titleZh": "西班牙首相",
+        "category": "election",
+        "partition": true,
+        "endDate": 1796014740000,
+        "updatedAt": 1795385363647,
+        "outcomeCount": 20,
+        "outcomes": [
+          {
+            "id": "pm:2695686",
+            "label": "Alberto Núñez Feijóo",
+            "labelZh": "阿尔韦托·努涅斯·费霍奥",
+            "probability": 0.895,
+            "change24h": 1
+          },
+          {
+            "id": "pm:2695678",
+            "label": "Pedro Sánchez",
+            "labelZh": "佩德罗·桑切斯",
+            "probability": 0.071,
+            "change24h": -1.9
+          },
+          {
+            "id": "pm:2695687",
+            "label": "Santiago Abascal",
+            "labelZh": "圣地亚哥阿瓦斯卡尔",
+            "probability": 0.007,
+            "change24h": -0.6
+          },
+          {
+            "id": "pm:2695693",
+            "label": "Carlos Cuerpo",
+            "labelZh": null,
+            "probability": 0.004,
+            "change24h": 0.2
+          },
+          {
+            "id": "pm:2695679",
+            "label": "María Jesús Montero",
+            "labelZh": "玛丽亚·赫苏斯·蒙特罗",
+            "probability": 0.001,
+            "change24h": null
+          },
+          {
+            "id": "pm:2695680",
+            "label": "Yolanda Díaz",
+            "labelZh": "约兰达·迪亚斯 (Yolanda Díaz)",
+            "probability": 0.001,
+            "change24h": null
+          }
+        ],
+        "rest": {
+          "probability": 0.014,
+          "count": 14
+        }
+      },
+      {
         "id": "ev:848341",
         "title": "Taipei Mayor Election Winner",
         "titleZh": "台北市长选举获胜者",
         "category": "election",
         "partition": true,
         "endDate": 1795928340000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -596,7 +596,7 @@
         "category": "election",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 2,
         "outcomes": [
           {
@@ -626,7 +626,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -649,7 +649,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1814414340000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -686,15 +686,15 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1806551940000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 6,
         "outcomes": [
           {
             "id": "pm:4906129",
             "label": "March 31",
             "labelZh": "3月31日",
-            "probability": 0.445,
-            "change24h": -1.5
+            "probability": 0.435,
+            "change24h": -2.5
           },
           {
             "id": "pm:7155711",
@@ -738,13 +738,94 @@
         }
       },
       {
+        "id": "ev:770451",
+        "title": "Fed Decision in January?",
+        "titleZh": "美联储1月份的决定？",
+        "category": "central_bank",
+        "partition": true,
+        "endDate": 1801112340000,
+        "updatedAt": 1795385363647,
+        "outcomeCount": 5,
+        "outcomes": [
+          {
+            "id": "pm:3215013",
+            "label": "25 bps increase",
+            "labelZh": "增加25个基点",
+            "probability": 0.485,
+            "change24h": 3
+          },
+          {
+            "id": "pm:3215012",
+            "label": "No change",
+            "labelZh": "不变",
+            "probability": 0.475,
+            "change24h": -1.5
+          },
+          {
+            "id": "pm:3215011",
+            "label": "25 bps decrease",
+            "labelZh": "下降25个基点",
+            "probability": 0.022,
+            "change24h": 0
+          },
+          {
+            "id": "pm:3215014",
+            "label": "50+ bps increase",
+            "labelZh": "增加50 +个基点",
+            "probability": 0.011,
+            "change24h": null
+          },
+          {
+            "id": "pm:3215010",
+            "label": "50+ bps decrease",
+            "labelZh": "降低50 +个基点",
+            "probability": 0.007,
+            "change24h": 0.1
+          }
+        ],
+        "rest": {
+          "probability": 0,
+          "count": 0
+        }
+      },
+      {
+        "id": "ev:634802",
+        "title": "Iran full airspace closure by...?",
+        "titleZh": "伊朗在……之前全面关闭领空？",
+        "category": "geopolitics",
+        "partition": false,
+        "endDate": 1798779540000,
+        "updatedAt": 1795385363647,
+        "outcomeCount": 2,
+        "outcomes": [
+          {
+            "id": "pm:3128768",
+            "label": "December 31",
+            "labelZh": "12月31日",
+            "probability": 0.155,
+            "change24h": -5
+          },
+          {
+            "id": "pm:6281141",
+            "label": "November 30",
+            "labelZh": "11月30日",
+            "probability": 0.045,
+            "change24h": -4
+          }
+        ],
+        "rest": {
+          "probability": 0,
+          "count": 0
+        }
+      },
+      {
         "id": "ev:166435",
         "title": "Next Prime Minister of Sweden",
         "titleZh": "瑞典首相",
         "category": "election",
         "partition": true,
         "endDate": 1814414340000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 10,
         "outcomes": [
           {
@@ -796,94 +877,13 @@
         }
       },
       {
-        "id": "ev:634802",
-        "title": "Iran full airspace closure by...?",
-        "titleZh": "伊朗在……之前全面关闭领空？",
-        "category": "geopolitics",
-        "partition": false,
-        "endDate": 1798779540000,
-        "updatedAt": 1795384763027,
-        "outcomeCount": 2,
-        "outcomes": [
-          {
-            "id": "pm:3128768",
-            "label": "December 31",
-            "labelZh": "12月31日",
-            "probability": 0.155,
-            "change24h": -5
-          },
-          {
-            "id": "pm:6281141",
-            "label": "November 30",
-            "labelZh": "11月30日",
-            "probability": 0.045,
-            "change24h": -4
-          }
-        ],
-        "rest": {
-          "probability": 0,
-          "count": 0
-        }
-      },
-      {
-        "id": "ev:770451",
-        "title": "Fed Decision in January?",
-        "titleZh": "美联储1月份的决定？",
-        "category": "central_bank",
-        "partition": true,
-        "endDate": 1801112340000,
-        "updatedAt": 1795384763027,
-        "outcomeCount": 5,
-        "outcomes": [
-          {
-            "id": "pm:3215013",
-            "label": "25 bps increase",
-            "labelZh": "增加25个基点",
-            "probability": 0.485,
-            "change24h": 3
-          },
-          {
-            "id": "pm:3215012",
-            "label": "No change",
-            "labelZh": "不变",
-            "probability": 0.475,
-            "change24h": -1.5
-          },
-          {
-            "id": "pm:3215011",
-            "label": "25 bps decrease",
-            "labelZh": "下降25个基点",
-            "probability": 0.022,
-            "change24h": 0
-          },
-          {
-            "id": "pm:3215014",
-            "label": "50+ bps increase",
-            "labelZh": "增加50 +个基点",
-            "probability": 0.011,
-            "change24h": null
-          },
-          {
-            "id": "pm:3215010",
-            "label": "50+ bps decrease",
-            "labelZh": "降低50 +个基点",
-            "probability": 0.007,
-            "change24h": 0.1
-          }
-        ],
-        "rest": {
-          "probability": 0,
-          "count": 0
-        }
-      },
-      {
         "id": "ev:455875",
         "title": "Strait of Hormuz traffic returns to normal by December 31?",
         "titleZh": "霍尔木兹海峡的交通在12月31日之前恢复正常？",
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -906,7 +906,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1796014740000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -914,7 +914,7 @@
             "label": "PSOE",
             "labelZh": "西班牙工人社会党（PSOE）",
             "probability": 0.715,
-            "change24h": 13.5
+            "change24h": 12.5
           },
           {
             "id": "pm:6031067",
@@ -957,7 +957,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1814414340000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 3,
         "outcomes": [
           {
@@ -979,7 +979,7 @@
             "label": "December 31, 2026",
             "labelZh": "2026年12月31日",
             "probability": 0.014,
-            "change24h": 0.1
+            "change24h": null
           }
         ],
         "rest": {
@@ -994,15 +994,15 @@
         "category": "energy",
         "partition": false,
         "endDate": 1796101199999,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 20,
         "outcomes": [
           {
             "id": "pm:6172754",
             "label": "↓ $80",
             "labelZh": "80",
-            "probability": 0.545,
-            "change24h": 1
+            "probability": 0.55,
+            "change24h": 2.5
           },
           {
             "id": "pm:6910695",
@@ -1041,7 +1041,7 @@
           }
         ],
         "rest": {
-          "probability": 0.199,
+          "probability": 0.197,
           "count": 14
         }
       },
@@ -1052,7 +1052,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1793768340000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 11,
         "outcomes": [
           {
@@ -1066,8 +1066,8 @@
             "id": "pm:1662429",
             "label": "Chris Van Hollen",
             "labelZh": "克里斯·范·霍伦",
-            "probability": 0.07,
-            "change24h": -0.6
+            "probability": 0.074,
+            "change24h": -0.2
           },
           {
             "id": "pm:1662424",
@@ -1110,13 +1110,13 @@
         "category": "central_bank",
         "partition": true,
         "endDate": 1798779540000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 13,
         "outcomes": [
           {
             "id": "pm:616902",
             "label": "0 (0 bps)",
-            "labelZh": "0（0 个基点）",
+            "labelZh": null,
             "probability": 0.983,
             "change24h": null
           },
@@ -1168,15 +1168,15 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798748940000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 3,
         "outcomes": [
           {
             "id": "pm:6831497",
             "label": "December 31",
             "labelZh": "12月31日",
-            "probability": 0.755,
-            "change24h": -1.5
+            "probability": 0.745,
+            "change24h": -2
           },
           {
             "id": "pm:6831496",
@@ -1201,11 +1201,11 @@
       {
         "id": "ev:1178432",
         "title": "Spain General Election: PP + Vox Majority?",
-        "titleZh": "西班牙大选：人民党 + 沃克斯党将获得多数席位？",
+        "titleZh": "西班牙大选：人民党 + 声音党将赢得多数席位？",
         "category": "election",
         "partition": false,
         "endDate": 1796014740000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -1228,7 +1228,7 @@
         "category": "election",
         "partition": true,
         "endDate": 1796014740000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 5,
         "outcomes": [
           {
@@ -1262,7 +1262,7 @@
           {
             "id": "pm:5336564",
             "label": "Podemos",
-            "labelZh": "我们能党",
+            "labelZh": "我们能党（Podemos）",
             "probability": 0.001,
             "change24h": null
           }
@@ -1275,11 +1275,11 @@
       {
         "id": "ev:1045598",
         "title": "Russia military action against EU country by...?",
-        "titleZh": "俄罗斯对欧盟国家的军事行动是在……？",
+        "titleZh": "俄罗斯对欧盟国家采取军事行动的理由是……？",
         "category": "geopolitics",
         "partition": false,
         "endDate": 1830315540000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 2,
         "outcomes": [
           {
@@ -1309,7 +1309,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -1332,7 +1332,7 @@
         "category": "geopolitics",
         "partition": false,
         "endDate": 1798779540000,
-        "updatedAt": 1795384763027,
+        "updatedAt": 1795385363647,
         "outcomeCount": 1,
         "outcomes": [
           {
@@ -1352,8 +1352,8 @@
   },
   "meta": {
     "dataset": "prediction.markets",
-    "asof": "2026-11-22T22:02:04.891Z",
-    "generatedAt": "2026-11-22T22:03:49.153Z",
+    "asof": "2026-11-22T22:11:33.137Z",
+    "generatedAt": "2026-11-22T22:13:16.233Z",
     "source": "公开预测市场概率聚合（只读；不含平台标识与链接）",
     "stale": false,
     "license": "概率数值来自公开市场报价聚合，仅用于信息展示；不构成预测或投资建议。",
