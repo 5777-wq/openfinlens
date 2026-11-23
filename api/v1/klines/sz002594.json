@@ -1128,9 +1128,9 @@
           {
             "time": "2026-11-23",
             "open": 78.5,
-            "high": 78.62,
+            "high": 78.84,
             "low": 77.54,
-            "close": 77.9
+            "close": 78.04
           }
         ]
       },
@@ -1865,9 +1865,9 @@
           {
             "time": "2026-11-23",
             "open": 78.5,
-            "high": 78.62,
+            "high": 78.84,
             "low": 77.54,
-            "close": 77.9
+            "close": 78.04
           }
         ]
       },
@@ -2296,7 +2296,7 @@
             "open": 81.78,
             "high": 86.98,
             "low": 77.54,
-            "close": 77.9
+            "close": 78.04
           }
         ]
       }
@@ -2305,7 +2305,7 @@
   "meta": {
     "dataset": "klines.symbol",
     "asof": "2026-11-23",
-    "generatedAt": "2026-11-23T02:43:19.934Z",
+    "generatedAt": "2026-11-23T10:59:44.161Z",
     "source": "腾讯 ifzq / 东方财富 push2his / 币安 klines（复用 js/sources 口径）",
     "stale": false,
     "license": "公开数据，仅用于信息展示与统计研究；不构成任何投资建议。",
